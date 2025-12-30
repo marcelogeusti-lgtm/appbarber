@@ -71,6 +71,7 @@ model Barbershop {
   products  Product[]
   appointments Appointment[]
   transactions Transaction[]
+  waitlist     Waitlist[]
 }
 
 model Professional {
@@ -95,6 +96,7 @@ model Service {
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
 
   appointments Appointment[]
+  waitlist     Waitlist[]
 }
 
 model Schedule {
@@ -162,4 +164,18 @@ model Transaction {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+model Waitlist {
+  id           String   @id @default(uuid())
+  date         DateTime
+  clientName   String
+  clientPhone  String
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  serviceId    String
+  service      Service    @relation(fields: [serviceId], references: [id])
+
+  createdAt    DateTime @default(now())
 }

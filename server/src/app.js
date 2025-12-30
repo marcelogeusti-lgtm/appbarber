@@ -37,6 +37,8 @@ app.use('/api/professionals', professionalRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/transactions', require('./routes/transaction.routes'));
+app.use('/api/availability', require('./routes/availability.routes'));
+app.use('/api/waitlist', require('./routes/waitlist.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

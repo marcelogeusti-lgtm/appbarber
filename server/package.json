@@ -27,7 +27,8 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "morgan": "^1.10.0",
-    "pg": "^8.11.0"
+    "pg": "^8.11.0",
+    "date-fns": "^2.30.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.0",

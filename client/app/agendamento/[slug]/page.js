@@ -18,9 +18,14 @@ export default function BarbershopPage() {
         phone: '',
         email: '',
         birthday: '', // YYYY-MM-DD
-        date: '',
+        date: new Date().toISOString().split('T')[0],
         time: '' // HH:mm
     });
+
+    const [availability, setAvailability] = useState([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [isWaitlistMode, setIsWaitlistMode] = useState(false);
+    const [successMessage, setSuccessMessage] = useState(null);
 
     useEffect(() => {
         if (!slug) return;
@@ -43,6 +48,46 @@ export default function BarbershopPage() {
         }
     }, [slug]);
 
+    const fetchSlots = async (date) => {
+        if (!barbershop) return;
+        setLoadingSlots(true);
+        try {
+            const res = await api.get(`/availability/${barbershop.id}/${date}`);
+            setAvailability(res.data);
+            setIsWaitlistMode(res.data.every(pro => pro.slots.length === 0));
+        } catch (err) {
+            console.error('Error fetching slots');
+        } finally {
+            setLoadingSlots(false);
+        }
+    };
+
+    useEffect(() => {
+        if (formData.date && barbershop) {
+            fetchSlots(formData.date);
+        }
+    }, [formData.date, barbershop]);
+
+    const handleWaitlist = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/waitlist', {
+                barbershopId: barbershop.id,
+                serviceId: selectedService.id,
+                date: formData.date,
+                name: formData.name,
+                phone: formData.phone
+            });
+            setSuccessMessage("Você entrou na lista de espera! Avisaremos pelo WhatsApp se uma vaga abrir. 📱");
+            setTimeout(() => {
+                setStep(1);
+                setSuccessMessage(null);
+            }, 5000);
+        } catch (err) {
+            alert('Erro ao entrar na lista de espera');
+        }
+    };
+
     const handleServiceSelect = (service) => {
         setSelectedService(service);
         setStep(2);
@@ -60,7 +105,7 @@ export default function BarbershopPage() {
             }));
 
             await api.post('/appointments', {
-                professionalId: barbershop.ownerId, // Simplified: assume owner is the pro for now
+                professionalId: formData.professionalId,
                 serviceId: selectedService.id,
                 date: formData.date,
                 time: formData.time,
@@ -151,48 +196,94 @@ export default function BarbershopPage() {
                             &larr; Voltar para Serviços
                         </button>
 
-                        <div className="mb-10 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 flex justify-between items-center group">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Você selecionou</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">{selectedService?.name}</h3>
+                        {successMessage ? (
+                            <div className="py-20 text-center space-y-6">
+                                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
+                                    <MessageCircle className="w-10 h-10" />
+                                </div>
+                                <h3 className="text-2xl font-black uppercase tracking-tighter">{successMessage}</h3>
+                                <p className="text-slate-500 font-medium italic">Redirecionando para o início...</p>
                             </div>
-                            <div className="text-3xl font-black text-orange-500 italic">R$ {selectedService?.price}</div>
-                        </div>
+                        ) : (
+                            <>
+                                <div className="mb-10 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 flex justify-between items-center group">
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Você selecionou</p>
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">{selectedService?.name}</h3>
+                                    </div>
+                                    <div className="text-3xl font-black text-orange-500 italic">R$ {selectedService?.price}</div>
+                                </div>
 
-                        <form onSubmit={handleBook} className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu Nome</label>
-                                    <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" placeholder="Digite seu nome" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu WhatsApp</label>
-                                    <input required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" placeholder="(00) 00000-0000" />
-                                </div>
-                            </div>
+                                <form onSubmit={isWaitlistMode ? handleWaitlist : handleBook} className="space-y-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu Nome</label>
+                                            <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" placeholder="Digite seu nome" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu WhatsApp</label>
+                                            <input required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" placeholder="(00) 00000-0000" />
+                                        </div>
+                                    </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Aniversário</label>
-                                    <input type="date" required value={formData.birthday} onChange={e => setFormData({ ...formData, birthday: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" />
-                                </div>
-                                <div className="space-y-2 flex flex-col justify-end">
-                                    <p className="text-[10px] text-orange-500 font-bold uppercase tracking-tighter leading-tight italic ml-1">Ganhe presentes exclusivos no mês do seu aniversário! 🎂</p>
-                                </div>
-                            </div>
+                                    <div className="space-y-4">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center mb-4">Escolha a Data</label>
+                                        <input type="date" required value={formData.date} min={new Date().toISOString().split('T')[0]} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold text-center" />
+                                    </div>
 
-                            <div className="border-t border-slate-50 dark:border-slate-800 pt-8 mt-4">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center mb-8">Escolha sua Agenda</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <input type="date" required value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" />
-                                    <input type="time" required value={formData.time} onChange={e => setFormData({ ...formData, time: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" />
-                                </div>
-                            </div>
+                                    {!isWaitlistMode && (
+                                        <div className="space-y-6">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center mb-4">Horários Disponíveis</h4>
 
-                            <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-black hover:scale-[1.01] active:scale-95 transition-all mt-6">
-                                Confirmar Agendamento ✂️
-                            </button>
-                        </form>
+                                            {loadingSlots ? (
+                                                <div className="text-center py-8 animate-pulse text-xs font-bold uppercase text-slate-400 tracking-widest">Sincronizando agenda...</div>
+                                            ) : (
+                                                <div className="space-y-8">
+                                                    {availability.map(pro => (
+                                                        <div key={pro.proId} className="space-y-4">
+                                                            <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                                                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Barbeiro {pro.proName}
+                                                            </p>
+                                                            <div className="grid grid-cols-4 gap-3">
+                                                                {pro.slots.map(slot => (
+                                                                    <button
+                                                                        key={slot}
+                                                                        type="button"
+                                                                        onClick={() => setFormData({ ...formData, time: slot, professionalId: pro.proId })}
+                                                                        className={`p-3 rounded-xl text-xs font-bold transition-all border ${formData.time === slot && formData.professionalId === pro.proId ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-orange-500'}`}
+                                                                    >
+                                                                        {slot}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            {pro.slots.length === 0 && (
+                                                                <p className="text-[10px] text-slate-400 italic">Este profissional não tem horários para hoje.</p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {isWaitlistMode && !loadingSlots && (
+                                        <div className="p-8 bg-orange-500/5 border-2 border-dashed border-orange-500/20 rounded-[2rem] text-center space-y-4">
+                                            <p className="text-orange-500 font-black uppercase text-[10px] tracking-widest">Agenda Lotada para este dia!</p>
+                                            <p className="text-slate-500 text-xs font-medium">Não encontramos horários livres. Quer entrar na lista de espera? Avisamos você no WhatsApp se alguém cancelar!</p>
+                                            <button type="submit" className="w-full bg-orange-500 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-orange-500/20 hover:scale-[1.02] transition-transform">
+                                                ENTRAR NA LISTA DE ESPERA 📋
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {!isWaitlistMode && (
+                                        <button type="submit" disabled={!formData.time} className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-black hover:scale-[1.01] active:scale-95 transition-all mt-6 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed">
+                                            Confirmar Agendamento ✂️
+                                        </button>
+                                    )}
+                                </form>
+                            </>
+                        )}
                     </div>
                 )}
             </main>
