@@ -163,6 +163,21 @@ function DayView({ appointments, professionals, selectedPro }) {
                         >
                             WhatsApp
                         </a>
+                        <button
+                            onClick={async () => {
+                                if (confirm('Deseja realmente cancelar este agendamento?')) {
+                                    try {
+                                        await api.patch(`/appointments/${app.id}/status`, { status: 'CANCELLED' });
+                                        window.location.reload();
+                                    } catch (err) {
+                                        alert('Erro ao cancelar agendamento');
+                                    }
+                                }
+                            }}
+                            className="flex-1 md:flex-none bg-red-500/10 text-red-500 border border-red-500/20 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition text-center"
+                        >
+                            Cancelar
+                        </button>
                     </div>
                 </div>
             ))}

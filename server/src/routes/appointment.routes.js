@@ -30,5 +30,6 @@ const optionalProtect = async (req, res, next) => {
 router.post('/', optionalProtect, createAppointment);
 router.get('/me', protect, getMyAppointments); // Client history
 router.get('/pro', protect, authorize('BARBER', 'ADMIN'), getProAppointments); // Pro View
+router.patch('/:id/status', protect, authorize('BARBER', 'ADMIN'), require('../controllers/appointment.controller').updateAppointmentStatus);
 
 module.exports = router;

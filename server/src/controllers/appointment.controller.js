@@ -153,3 +153,40 @@ exports.getProAppointments = async (req, res) => {
         res.status(500).json({ message: 'Error' });
     }
 };
+
+exports.updateAppointmentStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // CONFIRMED, COMPLETED, CANCELLED
+
+        const appointment = await prisma.appointment.update({
+            where: { id },
+            data: { status },
+            include: { client: true, service: true, professional: true }
+        });
+
+        // Trigger n8n on cancellation to notify waitlist
+        if (status === 'CANCELLED') {
+            const webhookUrl = process.env.N8N_WEBHOOK_URL;
+            if (webhookUrl) {
+                axios.post(webhookUrl, {
+                    event: 'appointment.cancelled',
+                    data: {
+                        id: appointment.id,
+                        date: format(new Date(appointment.date), 'yyyy-MM-dd'),
+                        time: format(new Date(appointment.date), 'HH:mm'),
+                        clientName: appointment.client?.name,
+                        clientPhone: appointment.client?.phone,
+                        serviceName: appointment.service?.name,
+                        barbershopId: appointment.barbershopId
+                    }
+                }).catch(e => console.error('Cancellation Webhook Error:', e.message));
+            }
+        }
+
+        res.json(appointment);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error updating status' });
+    }
+};
