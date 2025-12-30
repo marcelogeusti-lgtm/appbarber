@@ -33,9 +33,9 @@ export default function DashboardPage() {
     if (!user) return <div className="p-8 text-center">Carregando...</div>;
 
     const publicUrl = user?.barbershop?.slug
-        ? `https://www.barbeon.com/agendamento/${user.barbershop.slug}`
+        ? `https://corteconexao.com.br/agendamento/${user.barbershop.slug}`
         : user?.ownedBarbershops?.[0]?.slug
-            ? `https://www.barbeon.com/agendamento/${user.ownedBarbershops[0].slug}`
+            ? `https://corteconexao.com.br/agendamento/${user.ownedBarbershops[0].slug}`
             : '';
 
     const copyToClipboard = () => {
