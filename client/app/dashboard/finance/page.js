@@ -5,6 +5,9 @@ import { TrendingUp, Users, Scissors, DollarSign, Calendar, ArrowUpRight, ArrowD
 
 export default function FinancePage() {
     const [transactions, setTransactions] = useState([]);
+    const [stats, setStats] = useState({ totalRevenue: 0, totalAppointments: 0, totalExpenses: 0, netProfit: 0, commissions: [] });
+    const [loading, setLoading] = useState(true);
+    const [period, setPeriod] = useState('month');
     const [isAdding, setIsAdding] = useState(false);
     const [newTrans, setNewTrans] = useState({ description: '', amount: '', type: 'EXPENSE', category: 'Outros' });
 
