@@ -13,7 +13,7 @@ export default function RootPage() {
         <div className="min-h-screen bg-slate-900 flex items-center justify-center">
             <div className="animate-pulse flex flex-col items-center gap-4">
                 <div className="w-12 h-12 bg-orange-500 rounded-xl"></div>
-                <p className="text-white font-bold uppercase tracking-widest text-xs">Acessando Barber On...</p>
+                <p className="text-white font-bold uppercase tracking-widest text-xs">Acessando Corte & Conexão...</p>
             </div>
         </div>
     );

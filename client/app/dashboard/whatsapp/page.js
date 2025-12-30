@@ -21,7 +21,7 @@ export default function WhatsAppPage() {
         setStatus('connecting');
         // Evolution API / n8n connection simulation
         setTimeout(() => {
-            setQrCode('https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=BarberOn_Production_Session_EvolutionAPI');
+            setQrCode('https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=CorteConexao_Production_Session_EvolutionAPI');
         }, 1200);
     };
 
@@ -59,7 +59,7 @@ export default function WhatsAppPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Instância Ativa</h2>
-                                        <p className="text-slate-500 mt-2 font-medium">Sua conta <span className="font-bold text-slate-900 dark:text-white">"BarberBot_Live"</span> está operando via Evolution API.</p>
+                                        <p className="text-slate-500 mt-2 font-medium">Sua conta <span className="font-bold text-slate-900 dark:text-white">"Conexao_Live"</span> está operando via Evolution API.</p>
                                     </div>
                                     <div className="pt-4">
                                         <button onClick={handleDisconnect} className="bg-red-50 text-red-500 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-100 transition flex items-center gap-2 mx-auto border border-red-100">

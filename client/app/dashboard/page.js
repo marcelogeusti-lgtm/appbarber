@@ -95,22 +95,47 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Ganhos em Agendamentos</h3>
-                        <p className="text-4xl font-black text-green-600">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)}
-                        </p>
-                        <p className="text-xs text-slate-400 mt-2">Soma total dos serviços realizados</p>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Base de Clientes</h3>
-                        <p className="text-4xl font-black text-slate-900 dark:text-white">{stats.clients}</p>
-                        <p className="text-xs text-slate-400 mt-2">Clientes únicos agendados</p>
+            {/* Client Flow Guide */}
+            <div className="bg-orange-500 rounded-3xl p-8 text-white shadow-2xl shadow-orange-500/20 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                    <Users className="w-32 h-32" />
+                </div>
+                <div className="relative z-10 max-w-2xl">
+                    <h2 className="text-2xl font-black uppercase tracking-tight mb-4">Como funciona o fluxo do seu cliente? ✂️</h2>
+                    <p className="text-orange-100 font-medium mb-6 leading-relaxed">
+                        Esqueça cadastros chatos! No **Corte & Conexão**, seu cliente só informa o nome e telefone na primeira vez. Nós cuidamos do resto para que o agendamento seja feito em menos de 1 minuto.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+                            <p className="text-[10px] font-black uppercase tracking-widest mb-1">Passo 1</p>
+                            <p className="text-xs font-bold leading-tight">Cliente acessa seu link público</p>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+                            <p className="text-[10px] font-black uppercase tracking-widest mb-1">Passo 2</p>
+                            <p className="text-xs font-bold leading-tight">Escolhe o serviço e o horário</p>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+                            <p className="text-[10px] font-black uppercase tracking-widest mb-1">Passo 3</p>
+                            <p className="text-xs font-bold leading-tight">Confirma e pronto! Simples assim.</p>
+                        </div>
                     </div>
                 </div>
-            )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Ganhos em Agendamentos</h3>
+                    <p className="text-4xl font-black text-green-600">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-2">Soma total dos serviços realizados</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Base de Clientes</h3>
+                    <p className="text-4xl font-black text-slate-900 dark:text-white">{stats.clients}</p>
+                    <p className="text-xs text-slate-400 mt-2">Clientes únicos agendados</p>
+                </div>
+            </div>
 
             {stats.appointments === 0 && (
                 <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 text-center py-12">

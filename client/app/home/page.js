@@ -17,7 +17,7 @@ export default function LandingPage() {
                         <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
                             <Scissors className="text-white w-6 h-6" />
                         </div>
-                        <span className="text-2xl font-bold tracking-tight text-slate-900">Barber On</span>
+                        <span className="text-2xl font-black tracking-tight text-slate-900 uppercase">Corte & Conexão</span>
                     </div>
 
                     <div className="hidden md:flex items-center gap-8">
@@ -71,7 +71,7 @@ export default function LandingPage() {
             <section id="funcionalidades" className="py-20 bg-slate-50">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Funcionalidades do Barber On</h2>
+                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Funcionalidades do Corte & Conexão</h2>
                         <div className="w-20 h-1 bg-orange-500 mx-auto rounded-full"></div>
                     </div>
 
@@ -161,9 +161,9 @@ export default function LandingPage() {
                 <div className="container mx-auto px-6 text-center">
                     <div className="flex items-center justify-center gap-2 mb-8">
                         <Scissors className="text-orange-500 w-6 h-6" />
-                        <span className="text-2xl font-bold text-white">Barber On</span>
+                        <span className="text-2xl font-black text-white uppercase">Corte & Conexão</span>
                     </div>
-                    <p className="text-sm opacity-60">&copy; 2025 Barber On. Todos os direitos reservados.</p>
+                    <p className="text-sm opacity-60">&copy; 2025 Corte & Conexão. Todos os direitos reservados.</p>
                 </div>
             </footer>
         </div>

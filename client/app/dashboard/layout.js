@@ -27,8 +27,10 @@ export default function DashboardLayout({ children }) {
             {/* Sidebar */}
             <aside className="w-64 bg-white dark:bg-gray-800 shadow-md hidden md:block">
                 <div className="p-6">
-                    <h2 className="text-2xl font-bold">Barber On</h2>
-                    <p className="text-sm text-gray-500 capitalize">{user.role.replace('_', ' ')}</p>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter">Corte & Conexão</h2>
+                    <div className="bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest inline-block mt-1">
+                        {user.role === 'ADMIN' ? '🏢 Dono de Unidade' : user.role === 'SUPER_ADMIN' ? '👑 Gestor Geral' : '✂️ Profissional'}
+                    </div>
                 </div>
                 <nav className="mt-6 px-4 space-y-2">
                     <Link href="/dashboard" className="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">Visão Geral</Link>
@@ -58,8 +60,8 @@ export default function DashboardLayout({ children }) {
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
                 <header className="h-16 bg-white dark:bg-gray-800 shadow px-6 flex items-center justify-between md:hidden">
-                    <span className="font-bold">Barber On</span>
-                    <button onClick={logout}>Logout</button>
+                    <span className="font-black uppercase text-sm tracking-tighter">Corte & Conexão</span>
+                    <button onClick={logout} className="text-xs font-bold text-red-500">Sair</button>
                 </header>
                 <main className="p-6 overflow-auto">
                     {children}
