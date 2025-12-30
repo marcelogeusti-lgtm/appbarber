@@ -46,6 +46,7 @@ export default function DashboardLayout({ children }) {
                             <Link href="/dashboard/services" className="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">Meus Serviços</Link>
                             <Link href="/dashboard/finance" className="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">Financeiro</Link>
                             <Link href="/dashboard/whatsapp" className="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">Automação WhatsApp</Link>
+                            <Link href="/dashboard/subscriptions" className="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">Planos de Assinatura</Link>
                             <Link href="/dashboard/settings" className="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">Configurações</Link>
                         </>
                     )}

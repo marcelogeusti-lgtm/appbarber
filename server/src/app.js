@@ -39,6 +39,7 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/transactions', require('./routes/transaction.routes'));
 app.use('/api/availability', require('./routes/availability.routes'));
 app.use('/api/waitlist', require('./routes/waitlist.routes'));
+app.use('/api/subscriptions', require('./routes/subscription.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
