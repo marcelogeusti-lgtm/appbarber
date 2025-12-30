@@ -1,4 +1,5 @@
 # AppBarber Cloud SaaS
+*Atualizado em: 30/12/2025*
 
 Este é um sistema SaaS completo para gestão de barbearias, construído com Node.js (Backend) e Next.js (Frontend).
 
