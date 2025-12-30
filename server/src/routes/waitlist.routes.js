@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const waitlistController = require('../controllers/waitlist.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
+const { protect } = require('../middlewares/auth.middleware');
 
 router.post('/', waitlistController.addToWaitlist);
-router.get('/', authMiddleware, waitlistController.getWaitlist);
+router.get('/', protect, waitlistController.getWaitlist);
 
 module.exports = router;
