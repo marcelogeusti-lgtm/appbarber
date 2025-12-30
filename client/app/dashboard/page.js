@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { Users } from 'lucide-react';
 import api from '../../lib/api';
 
 export default function DashboardPage() {
@@ -7,13 +8,17 @@ export default function DashboardPage() {
     const [stats, setStats] = useState({ appointments: 0, revenue: 0, clients: 0 });
 
     useEffect(() => {
-        const u = localStorage.getItem('user');
-        if (u) {
-            const parsedUser = JSON.parse(u);
-            setUser(parsedUser);
-            if (parsedUser.role === 'ADMIN' || parsedUser.role === 'BARBER') {
-                fetchStats();
+        try {
+            const u = localStorage.getItem('user');
+            if (u) {
+                const parsedUser = JSON.parse(u);
+                setUser(parsedUser);
+                if (parsedUser.role === 'ADMIN' || parsedUser.role === 'BARBER') {
+                    fetchStats();
+                }
             }
+        } catch (err) {
+            console.error('Error parsing user data:', err);
         }
     }, []);
 

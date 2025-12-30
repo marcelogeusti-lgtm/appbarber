@@ -28,11 +28,16 @@ export default function DashboardLayout({ children }) {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) router.push('/login');
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) router.push('/login');
 
-        const userData = localStorage.getItem('user');
-        if (userData) setUser(JSON.parse(userData));
+            const userData = localStorage.getItem('user');
+            if (userData) setUser(JSON.parse(userData));
+        } catch (err) {
+            console.error('Error parsing user data in layout:', err);
+            router.push('/login');
+        }
     }, [router]);
 
     const logout = () => {
