@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  BARBER
+  CLIENT
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+// Models
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  password  String?
+  phone     String?  @unique
+  birthday  DateTime?
+  role      Role     @default(CLIENT)
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  ownedBarbershops Barbershop[] @relation("BarbershopOwner")
+  
+  // If user is staff (Barber/Admin)
+  workedBarbershopId String?
+  workedBarbershop   Barbershop? @relation("BarbershopStaff", fields: [workedBarbershopId], references: [id])
+
+  // If user is a professional (has specific profile)
+  professionalProfile Professional?
+
+  // As a client
+  clientAppointments Appointment[] @relation("ClientAppointments")
+  
+  // As a professional (service provider)
+  proAppointments    Appointment[] @relation("ProAppointments")
+}
+
+model Barbershop {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  address   String?
+  phone     String?
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId   String
+  owner     User     @relation("BarbershopOwner", fields: [ownerId], references: [id])
+
+  staff     User[]   @relation("BarbershopStaff")
+  services  Service[]
+  products  Product[]
+  appointments Appointment[]
+  transactions Transaction[]
+}
+
+model Professional {
+  id        String @id @default(uuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id])
+  bio       String?
+  position  String? // Cargo (Ex: Barbeiro Sênior, Auxiliar)
+  
+  schedules Schedule[]
+}
+
+model Service {
+  id           String @id @default(uuid())
+  name         String
+  description  String?
+  price        Decimal  @db.Decimal(10, 2)
+  duration     Int      // Minutes
+  active       Boolean  @default(true)
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  appointments Appointment[]
+}
+
+model Schedule {
+  id             String @id @default(uuid())
+  dayOfWeek      Int    // 0=Sunday, 1=Monday...
+  startTime      String // "09:00"
+  endTime        String // "18:00"
+  isOff          Boolean @default(false)
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id])
+}
+
+model Appointment {
+  id        String   @id @default(uuid())
+  date      DateTime
+  status    AppointmentStatus @default(PENDING)
+  notes     String?
+  
+  clientId  String
+  client    User     @relation("ClientAppointments", fields: [clientId], references: [id])
+
+  professionalId String
+  professional   User     @relation("ProAppointments", fields: [professionalId], references: [id])
+
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id])
+
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  costPrice   Decimal? @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Transaction {
+  id           String   @id @default(uuid())
+  description  String
+  amount       Decimal  @db.Decimal(10, 2)
+  type         TransactionType
+  category     String?  // Ex: Aluguel, Produto, Marketing
+  date         DateTime @default(now())
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
