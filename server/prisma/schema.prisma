@@ -22,6 +22,19 @@ enum AppointmentStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  ONLINE
+  CASH
+  CARD
+  SUBSCRIPTION
+}
+
 // Models
 
 model User {
@@ -51,6 +64,7 @@ model User {
   
   // As a professional (service provider)
   proAppointments    Appointment[] @relation("ProAppointments")
+  subscriptions      UserSubscription[]
 }
 
 model Barbershop {
@@ -72,6 +86,7 @@ model Barbershop {
   appointments Appointment[]
   transactions Transaction[]
   waitlist     Waitlist[]
+  subscriptionPlans SubscriptionPlan[]
 }
 
 model Professional {
@@ -129,6 +144,11 @@ model Appointment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod?
+
+  transactions Transaction[]
 }
 
 model Product {
@@ -162,6 +182,9 @@ model Transaction {
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
 
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -178,4 +201,34 @@ model Waitlist {
   service      Service    @relation(fields: [serviceId], references: [id])
 
   createdAt    DateTime @default(now())
+}
+
+model SubscriptionPlan {
+  id            String   @id @default(uuid())
+  name          String
+  price         Float
+  quantityOfCuts Int
+  validityDays  Int
+  
+  barbershopId  String
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  subscriptions UserSubscription[]
+  createdAt     DateTime @default(now())
+}
+
+model UserSubscription {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  
+  planId          String
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  
+  startDate       DateTime @default(now())
+  endDate         DateTime
+  remainingCuts   Int
+  status          String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  
+  createdAt       DateTime @default(now())
 }

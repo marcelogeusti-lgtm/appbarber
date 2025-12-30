@@ -153,7 +153,21 @@ export default function BarbershopPage() {
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase">{barbershop.name}</h1>
                     <div className="flex items-center justify-center gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        <span className="flex items-center gap-2"><MapPin className="w-4 h-4 text-orange-500" /> {barbershop.address || 'Check-in Social'}</span>
+                        {barbershop.address && (
+                            <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(barbershop.address)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 hover:text-orange-500 transition-colors"
+                            >
+                                <MapPin className="w-4 h-4 text-orange-500" /> {barbershop.address}
+                            </a>
+                        )}
+                        {!barbershop.address && (
+                            <span className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-orange-500" /> Check-in Social
+                            </span>
+                        )}
                     </div>
                 </div>
             </header>
