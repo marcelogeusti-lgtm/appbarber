@@ -6,8 +6,10 @@ import { Plus, User, Phone, Mail, Clock, Shield, X, Check, Calendar } from 'luci
 export default function ProfessionalsPage() {
     const [pros, setPros] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [editingScheduleId, setEditingScheduleId] = useState(null);
+    const [tempSchedules, setTempSchedules] = useState([]);
     const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '', position: '' });
 
     useEffect(() => {
@@ -30,6 +32,7 @@ export default function ProfessionalsPage() {
 
     const handleAddPro = async (e) => {
         e.preventDefault();
+        setActionLoading(true);
         try {
             const userStr = localStorage.getItem('user');
             const user = JSON.parse(userStr);
@@ -42,10 +45,12 @@ export default function ProfessionalsPage() {
 
             setFormData({ name: '', email: '', password: '', phone: '', position: '' });
             setIsAdding(false);
-            fetchPros();
-            alert('Profissional cadastrado com sucesso!');
+            await fetchPros();
+            alert('✅ Profissional cadastrado com sucesso!');
         } catch (err) {
-            alert('Erro ao cadastrar profissional: ' + (err.response?.data?.message || err.message));
+            alert('❌ Erro ao cadastrar: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -61,13 +66,16 @@ export default function ProfessionalsPage() {
     };
 
     const saveSchedule = async () => {
+        setActionLoading(true);
         try {
             await api.put('/professionals/schedule', { userId: editingScheduleId, schedules: tempSchedules });
             setEditingScheduleId(null);
-            fetchPros();
-            alert('Jornada de trabalho atualizada!');
+            await fetchPros();
+            alert('✅ Jornada de trabalho atualizada!');
         } catch (err) {
-            alert('Erro ao salvar horários');
+            alert('❌ Erro ao salvar horários');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -129,7 +137,13 @@ export default function ProfessionalsPage() {
                         </div>
 
                         <div className="md:col-span-2 pt-4 flex gap-4">
-                            <button type="submit" className="flex-1 bg-slate-900 text-white p-4 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">SALVAR CADASTRO</button>
+                            <button
+                                type="submit"
+                                disabled={actionLoading}
+                                className={`flex-1 bg-slate-900 text-white p-4 rounded-2xl font-black uppercase tracking-widest transition shadow-lg ${actionLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800 shadow-slate-900/20'}`}
+                            >
+                                {actionLoading ? 'SALVANDO...' : 'SALVAR CADASTRO'}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -210,7 +224,13 @@ export default function ProfessionalsPage() {
                             ))}
                         </div>
                         <div className="p-6 bg-slate-50 dark:bg-slate-800 flex justify-end gap-3">
-                            <button onClick={saveSchedule} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-slate-900/20">SALVAR JORNADA</button>
+                            <button
+                                onClick={saveSchedule}
+                                disabled={actionLoading}
+                                className={`bg-slate-900 text-white px-8 py-3 rounded-xl font-bold shadow-lg ${actionLoading ? 'opacity-50' : 'shadow-slate-900/20'}`}
+                            >
+                                {actionLoading ? 'SALVANDO...' : 'SALVAR JORNADA'}
+                            </button>
                         </div>
                     </div>
                 </div>

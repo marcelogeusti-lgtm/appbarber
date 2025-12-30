@@ -62,9 +62,9 @@ export default function AuthPage() {
                         <Scissors className="w-8 h-8 text-white" />
                     </div>
                 </div>
-                <h2 className="text-center text-3xl font-black text-slate-900 dark:text-white tracking-tight">Barber On</h2>
+                <h2 className="text-center text-3xl font-black text-slate-900 dark:text-white tracking-tight">Corte & Conexão</h2>
                 <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-                    Sua barbearia no próximo nível 🚀
+                    O sistema de gestão que sua barbearia merece ✂️
                 </p>
             </div>
 
@@ -76,8 +76,8 @@ export default function AuthPage() {
                         <button
                             onClick={() => { setActiveTab('login'); setError(''); }}
                             className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'login'
-                                    ? 'bg-white dark:bg-slate-950 text-orange-500 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'bg-white dark:bg-slate-950 text-orange-500 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
                         >
                             <LogIn className="w-4 h-4" /> Entrar
@@ -85,8 +85,8 @@ export default function AuthPage() {
                         <button
                             onClick={() => { setActiveTab('register'); setError(''); }}
                             className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'register'
-                                    ? 'bg-white dark:bg-slate-950 text-orange-500 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'bg-white dark:bg-slate-950 text-orange-500 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
                         >
                             <UserPlus className="w-4 h-4" /> Criar Conta
@@ -231,7 +231,7 @@ export default function AuthPage() {
                 </div>
                 <div className="mt-8 text-center">
                     <p className="text-xs text-slate-500 dark:text-slate-600 font-bold uppercase tracking-widest">
-                        Acesso exclusivo para parceiros Barber On
+                        Acesso exclusivo para parceiros Corte & Conexão
                     </p>
                 </div>
             </div>

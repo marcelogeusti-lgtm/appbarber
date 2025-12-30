@@ -22,8 +22,9 @@ export default function DashboardPage() {
             const res = await api.get('/appointments/pro');
             setStats({
                 appointments: res.data.length,
-                revenue: res.data.reduce((acc, curr) => acc + (curr.service.price || 0), 0),
-                clients: new Set(res.data.map(a => a.clientId)).size
+                revenue: res.data.reduce((acc, curr) => acc + Number(curr.service.price || 0), 0),
+                clients: new Set(res.data.map(a => a.clientId)).size,
+                today: res.data.filter(a => new Date(a.date).toDateString() === new Date().toDateString()).length
             });
         } catch (err) {
             console.error('Error fetching stats:', err);
@@ -88,20 +89,20 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Próximos Agendamentos</h3>
-                    <p className="text-5xl font-black text-orange-500">{stats.appointments}</p>
-                    <p className="text-xs text-slate-400 mt-2">Hoje e amanhã</p>
+                    <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Agendamentos para Hoje</h3>
+                    <p className="text-5xl font-black text-orange-500">{stats.today || 0}</p>
+                    <p className="text-xs text-slate-400 mt-2">Clientes agendados nas próximas 24h</p>
                 </div>
             </div>
 
             {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Faturamento Bruto</h3>
+                        <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Ganhos em Agendamentos</h3>
                         <p className="text-4xl font-black text-green-600">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)}
                         </p>
-                        <p className="text-xs text-slate-400 mt-2">Total acumulado garantido</p>
+                        <p className="text-xs text-slate-400 mt-2">Soma total dos serviços realizados</p>
                     </div>
                     <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                         <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Base de Clientes</h3>
