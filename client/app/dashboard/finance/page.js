@@ -28,8 +28,8 @@ export default function FinancePage() {
             else startDate.setMonth(startDate.getMonth() - 1);
 
             const res = await api.get(`/finance/stats?barbershopId=${bId}&startDate=${startDate.toISOString()}&endDate=${new Date().toISOString()}`);
-            setStats(res.data);
-            setTransactions(res.data.transactions || []);
+            setStats(res.data || { totalRevenue: 0, totalAppointments: 0, totalExpenses: 0, netProfit: 0, commissions: [] });
+            setTransactions(res.data?.transactions || []);
             setLoading(false);
         } catch (err) {
             console.error(err);

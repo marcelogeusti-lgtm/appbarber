@@ -20,11 +20,12 @@ export default function DashboardPage() {
     const fetchStats = async () => {
         try {
             const res = await api.get('/appointments/pro');
+            const data = res.data || [];
             setStats({
-                appointments: res.data.length,
-                revenue: res.data.reduce((acc, curr) => acc + Number(curr.service.price || 0), 0),
-                clients: new Set(res.data.map(a => a.clientId)).size,
-                today: res.data.filter(a => new Date(a.date).toDateString() === new Date().toDateString()).length
+                appointments: data.length,
+                revenue: data.reduce((acc, curr) => acc + Number(curr?.service?.price || 0), 0),
+                clients: new Set(data.map(a => a.clientId)).size,
+                today: data.filter(a => a.date && new Date(a.date).toDateString() === new Date().toDateString()).length
             });
         } catch (err) {
             console.error('Error fetching stats:', err);
