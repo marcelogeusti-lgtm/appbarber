@@ -35,6 +35,18 @@ enum PaymentMethod {
   SUBSCRIPTION
 }
 
+enum CommissionType {
+  SERVICE
+  PRODUCT
+  SUBSCRIPTION
+  EXTRA
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
 // Models
 
 model User {
@@ -65,6 +77,7 @@ model User {
   // As a professional (service provider)
   proAppointments    Appointment[] @relation("ProAppointments")
   subscriptions      UserSubscription[]
+  commissions        Commission[]
 }
 
 model Barbershop {
@@ -87,6 +100,7 @@ model Barbershop {
   transactions Transaction[]
   waitlist     Waitlist[]
   subscriptionPlans SubscriptionPlan[]
+  commissions  Commission[]
 }
 
 model Professional {
@@ -149,6 +163,7 @@ model Appointment {
   paymentMethod PaymentMethod?
 
   transactions Transaction[]
+  commissions  Commission[]
 }
 
 model Product {
@@ -230,5 +245,27 @@ model UserSubscription {
   remainingCuts   Int
   status          String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
   
+  createdAt       DateTime @default(now())
+}
+
+model Commission {
+  id              String   @id @default(uuid())
+  
+  barberId        String
+  barber          User     @relation(fields: [barberId], references: [id])
+  
+  barbershopId    String
+  barbershop      Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  appointmentId   String?
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
+  
+  type            CommissionType
+  description     String?
+  amount          Float
+  percentage      Float?
+  status          CommissionStatus @default(PENDING)
+  
+  paidAt          DateTime?
   createdAt       DateTime @default(now())
 }
