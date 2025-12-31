@@ -92,6 +92,15 @@ export default function DashboardLayout({ children }) {
                         </div>
                     </div>
 
+                    {/* FINANCEIRO */}
+                    <div>
+                        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Financeiro</p>
+                        <div className="space-y-1">
+                            <SidebarLink href="/dashboard/finance/dashboard" icon={<BadgeDollarSign className="w-4 h-4" />} label="Dashboard" />
+                            <SidebarLink href="/dashboard/finance" icon={<Receipt className="w-4 h-4" />} label="Extrato Financeiro" />
+                        </div>
+                    </div>
+
                     {/* CLUBE DE ASSINATURA */}
                     <div>
                         <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 text-orange-500">Clube de Assinatura</p>
