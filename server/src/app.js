@@ -41,6 +41,7 @@ app.use('/api/availability', require('./routes/availability.routes'));
 app.use('/api/waitlist', require('./routes/waitlist.routes'));
 app.use('/api/subscriptions', require('./routes/subscription.routes'));
 app.use('/api/commissions', require('./routes/commission.routes'));
+app.use('/api/orders', require('./routes/order.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

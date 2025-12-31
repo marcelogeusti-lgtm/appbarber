@@ -47,6 +47,13 @@ enum CommissionStatus {
   PAID
 }
 
+enum OrderStatus {
+  OPEN
+  CLOSED
+  PAID
+  CANCELLED
+}
+
 // Models
 
 model User {
@@ -78,6 +85,10 @@ model User {
   proAppointments    Appointment[] @relation("ProAppointments")
   subscriptions      UserSubscription[]
   commissions        Commission[]
+  
+  // Orders
+  clientOrders       Order[] @relation("ClientOrders")
+  professionalOrders Order[] @relation("ProfessionalOrders")
 }
 
 model Barbershop {
@@ -101,6 +112,7 @@ model Barbershop {
   waitlist     Waitlist[]
   subscriptionPlans SubscriptionPlan[]
   commissions  Commission[]
+  orders       Order[]
 }
 
 model Professional {
@@ -176,6 +188,8 @@ model Product {
   
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  orderItems   OrderItem[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -268,4 +282,58 @@ model Commission {
   
   paidAt          DateTime?
   createdAt       DateTime @default(now())
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  
+  appointmentId   String   @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  
+  barbershopId    String
+  barbershop      Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  clientId        String
+  client          User     @relation("ClientOrders", fields: [clientId], references: [id])
+  
+  professionalId  String
+  professional    User     @relation("ProfessionalOrders", fields: [professionalId], references: [id])
+  
+  status          OrderStatus @default(OPEN)
+  
+  subtotal        Float    @default(0)
+  discount        Float    @default(0)
+  total           Float    @default(0)
+  
+  paymentMethod   PaymentMethod?
+  paymentStatus   PaymentStatus @default(PENDING)
+  paidAt          DateTime?
+  
+  notes           String?
+  
+  items           OrderItem[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  type        String   // "SERVICE" or "PRODUCT"
+  
+  serviceId   String?
+  service     Service? @relation(fields: [serviceId], references: [id])
+  
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  
+  quantity    Int      @default(1)
+  unitPrice   Float
+  total       Float
+  
+  createdAt   DateTime @default(now())
 }
