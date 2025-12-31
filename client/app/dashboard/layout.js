@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }) {
             <aside className="w-72 bg-[#111827] border-r border-slate-800/50 hidden md:flex flex-col h-screen sticky top-0 overflow-y-auto scrollbar-hide">
                 <div className="p-8">
                     <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
-                        <span className="text-orange-500 italic">Best</span>Barbers
+                        <span className="text-orange-500 italic">Barbe</span>-On
                     </h2>
 
                     {/* Barbershop Status Selector */}
@@ -123,7 +123,7 @@ export default function DashboardLayout({ children }) {
                             <Menu className="w-6 h-6" />
                         </button>
                         <span className="font-black uppercase text-xl tracking-tighter text-white">
-                            <span className="text-orange-500 italic">Best</span>Barbers
+                            <span className="text-orange-500 italic">Barbe</span>-On
                         </span>
                     </div>
 

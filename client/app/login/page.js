@@ -62,7 +62,7 @@ export default function AuthPage() {
                         <Scissors className="w-8 h-8 text-white" />
                     </div>
                 </div>
-                <h2 className="text-center text-3xl font-black text-slate-900 dark:text-white tracking-tight">Corte & Conexão</h2>
+                <h2 className="text-center text-3xl font-black text-slate-900 dark:text-white tracking-tight">Barbe-On</h2>
                 <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
                     O sistema de gestão que sua barbearia merece ✂️
                 </p>
@@ -231,7 +231,7 @@ export default function AuthPage() {
                 </div>
                 <div className="mt-8 text-center">
                     <p className="text-xs text-slate-500 dark:text-slate-600 font-bold uppercase tracking-widest">
-                        Acesso exclusivo para parceiros Corte & Conexão
+                        Acesso exclusivo para parceiros Barbe-On
                     </p>
                 </div>
             </div>

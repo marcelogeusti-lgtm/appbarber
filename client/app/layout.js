@@ -5,7 +5,7 @@ import clsx from 'clsx';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-    title: 'Corte & Conexão',
+    title: 'Barbe-On - Sistema de Gestão para Barbearias',
     description: 'O sistema de gestão que sua barbearia merece',
 };
 
