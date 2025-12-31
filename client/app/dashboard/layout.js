@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import {
     Calendar, History, PieChart, BadgeDollarSign, Users2,
     Contact2, Receipt, Clock3, UserPlus2, CreditCard,
-    Wallet2, Settings, LogOut, Store, Menu
+    Wallet2, Settings, LogOut, Store, Menu, Rocket, ShoppingBag
 } from 'lucide-react';
 
 function SidebarLink({ href, icon, label, active = false }) {
@@ -92,6 +92,16 @@ export default function DashboardLayout({ children }) {
                         </div>
                     </div>
 
+                    {/* GESTÃO */}
+                    <div>
+                        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Gestão</p>
+                        <div className="space-y-1">
+                            <SidebarLink href="/dashboard/professionals" icon={<Users2 className="w-4 h-4" />} label="Equipe" />
+                            <SidebarLink href="/dashboard/services" icon={<Store className="w-4 h-4" />} label="Serviços" />
+                            <SidebarLink href="/dashboard/products" icon={<ShoppingBag className="w-4 h-4" />} label="Produtos" />
+                        </div>
+                    </div>
+
                     {/* FINANCEIRO */}
                     <div>
                         <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Financeiro</p>
@@ -124,6 +134,7 @@ export default function DashboardLayout({ children }) {
 
                     {/* AJUSTES */}
                     <div className="pt-4 border-t border-slate-800/50">
+                        <SidebarLink href="/dashboard/updates" icon={<Rocket className="w-4 h-4" />} label="Atualizações" />
                         <SidebarLink href="/dashboard/settings" icon={<Settings className="w-4 h-4" />} label="Configurações" />
                         <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 transition-all mt-4">
                             <LogOut className="w-4 h-4" /> Sair do Sistema
