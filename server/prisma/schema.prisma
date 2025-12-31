@@ -138,6 +138,7 @@ model Service {
 
   appointments Appointment[]
   waitlist     Waitlist[]
+  orderItems   OrderItem[]
 }
 
 model Schedule {
@@ -176,6 +177,7 @@ model Appointment {
 
   transactions Transaction[]
   commissions  Commission[]
+  order        Order?
 }
 
 model Product {
