@@ -85,6 +85,11 @@ export default function ProductsPage() {
 
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
+    const formatCurrency = (value) => {
+        const num = Number(value);
+        return isNaN(num) ? '0.00' : num.toFixed(2);
+    };
+
     if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Carregando produtos...</div>;
 
     return (
@@ -112,7 +117,7 @@ export default function ProductsPage() {
             </header>
 
             {isAdding && (
-                <form onSubmit={isEditing ? handleUpdateProduct : handleCreateProduct} className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl animate-in zoom-in-95 duration-300">
+                <form onSubmit={isEditing ? handleUpdateProduct : handleCreateProduct} className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl">
                     <h3 className="text-white font-bold uppercase mb-6 flex items-center gap-2">
                         {isEditing ? <Edit className="w-4 h-4 text-emerald-500" /> : <Plus className="w-4 h-4 text-emerald-500" />}
                         {isEditing ? 'Editar Produto' : 'Novo Produto'}
@@ -188,9 +193,9 @@ export default function ProductsPage() {
                             <div>
                                 <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-2">{product.name}</h3>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-2xl font-black text-emerald-500">R$ {product.price.toFixed(2)}</span>
+                                    <span className="text-2xl font-black text-emerald-500">R$ {formatCurrency(product.price)}</span>
                                     {product.costPrice && (
-                                        <span className="text-xs font-bold text-slate-600">Custo: {product.costPrice.toFixed(2)}</span>
+                                        <span className="text-xs font-bold text-slate-600">Custo: {formatCurrency(product.costPrice)}</span>
                                     )}
                                 </div>
                             </div>
