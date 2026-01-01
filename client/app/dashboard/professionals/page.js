@@ -38,6 +38,12 @@ export default function ProfessionalsPage() {
             const user = JSON.parse(userStr);
             const barbershopId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
+            if (!barbershopId) {
+                alert('Erro: ID da barbearia não encontrado. Faça login novamente.');
+                setActionLoading(false);
+                return;
+            }
+
             await api.post('/professionals', {
                 ...formData,
                 barbershopId

@@ -76,7 +76,12 @@ exports.updateSchedule = async (req, res) => {
 
 exports.createProfessional = async (req, res) => {
     try {
+        console.log('Creating Professional Body:', req.body); // Debug log
         const { name, email, password, phone, position, barbershopId } = req.body;
+
+        if (!barbershopId) {
+            return res.status(400).json({ message: 'ID da Barbearia é obrigatório' });
+        }
 
         // Check if user already exists
         const existing = await prisma.user.findUnique({ where: { email } });
@@ -111,7 +116,7 @@ exports.createProfessional = async (req, res) => {
         res.status(201).json(user);
     } catch (error) {
         console.error('Create Prof error:', error);
-        res.status(500).json({ message: 'Server error: ' + error.message });
+        res.status(500).json({ message: 'Erro ao criar profissional: ' + error.message });
     }
 };
 

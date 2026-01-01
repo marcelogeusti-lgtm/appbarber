@@ -10,7 +10,16 @@ exports.getBarbershopBySlug = async (req, res) => {
             include: {
                 services: true,
                 staff: {
-                    select: { id: true, name: true, avatarUrl: true, role: true }
+                    where: { role: 'BARBER' },
+                    select: {
+                        id: true,
+                        name: true,
+                        avatarUrl: true,
+                        role: true,
+                        professionalProfile: {
+                            select: { position: true, bio: true }
+                        }
+                    }
                 }
             }
         });
