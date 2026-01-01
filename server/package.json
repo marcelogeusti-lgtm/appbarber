@@ -4,7 +4,7 @@
   "description": "Backend API for AppBarber Cloud SaaS",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "npx prisma db push --accept-data-loss && node src/server.js",
     "dev": "nodemon src/server.js",
     "postinstall": "npx prisma generate",
     "db:push": "npx prisma db push --accept-data-loss",
