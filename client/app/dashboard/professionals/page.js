@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
-import { Plus, User, Phone, Mail, Clock, Shield, X, Check, Calendar } from 'lucide-react';
+import { Plus, User, Phone, Mail, Clock, Shield, X, Check, Calendar, Trash2, Edit } from 'lucide-react';
 
 export default function ProfessionalsPage() {
     const [pros, setPros] = useState([]);
@@ -95,58 +95,63 @@ export default function ProfessionalsPage() {
 
     const dayName = (d) => ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][d];
 
-    if (loading) return <div className="p-8 text-center">Carregando equipe...</div>;
+    if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse font-bold uppercase text-xs">Carregando equipe...</div>;
 
     return (
-        <div className="space-y-6 text-slate-900 dark:text-white">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tight">Gerenciar Equipe</h1>
-                    <p className="text-slate-500 text-sm">Cadastre e gerencie os profissionais e suas jornadas.</p>
+        <div className="space-y-8 pb-20">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-3xl border border-slate-800 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                        <User className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Gestão de Equipe</h1>
+                        <p className="text-slate-500 text-sm font-medium italic">Cadastre e gerencie os profissionais e suas jornadas.</p>
+                    </div>
                 </div>
                 {!isAdding && (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="bg-orange-500 text-white px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center gap-2 hover:bg-orange-600 transition shadow-lg shadow-orange-500/20"
+                        className="flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 transition"
                     >
-                        <Plus className="w-5 h-5" /> Adicionar Funcionário
+                        <Plus className="w-4 h-4" /> Adicionar Profissional
                     </button>
                 )}
-            </div>
+            </header>
 
             {isAdding && (
-                <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl animate-in fade-in slide-in-from-top-4">
+                <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl animate-in fade-in slide-in-from-top-4">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-black uppercase tracking-wider">Novo Profissional</h2>
+                        <h2 className="text-xl font-bold uppercase tracking-wider text-white">Novo Profissional</h2>
                         <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-red-500 transition"><X /></button>
                     </div>
                     <form onSubmit={handleAddPro} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome Completo</label>
-                            <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-4 border rounded-2xl dark:bg-gray-900 dark:border-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition" required />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nome Completo</label>
+                            <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cargo / Função</label>
-                            <input placeholder="Ex: Barbeiro Sênior" value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} className="w-full p-4 border rounded-2xl dark:bg-gray-900 dark:border-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition" required />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Cargo / Função</label>
+                            <input placeholder="Ex: Barbeiro Sênior" value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">E-mail de Acesso</label>
-                            <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full p-4 border rounded-2xl dark:bg-gray-900 dark:border-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition" required />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">E-mail de Acesso</label>
+                            <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Telefone / WhatsApp</label>
-                            <input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full p-4 border rounded-2xl dark:bg-gray-900 dark:border-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition" required />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Telefone / WhatsApp</label>
+                            <input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Senha Temporária</label>
-                            <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full p-4 border rounded-2xl dark:bg-gray-900 dark:border-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition" required />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Senha Temporária</label>
+                            <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
                         </div>
 
                         <div className="md:col-span-2 pt-4 flex gap-4">
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className={`flex-1 bg-slate-900 text-white p-4 rounded-2xl font-black uppercase tracking-widest transition shadow-lg ${actionLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800 shadow-slate-900/20'}`}
+                                className={`flex-1 bg-white text-slate-900 p-4 rounded-xl font-black uppercase tracking-widest transition hover:bg-slate-200 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {actionLoading ? 'SALVANDO...' : 'SALVAR CADASTRO'}
                             </button>
@@ -157,29 +162,29 @@ export default function ProfessionalsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pros.map(pro => (
-                    <div key={pro.id} className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all group">
+                    <div key={pro.id} className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 hover:border-emerald-500/50 transition-all group relative">
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-2xl flex items-center justify-center font-black text-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                            <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center font-black text-2xl text-emerald-500 border border-slate-800 group-hover:scale-110 transition-transform">
                                 {pro.name.charAt(0)}
                             </div>
                             <div>
-                                <h3 className="font-black text-xl uppercase tracking-tight">{pro.name}</h3>
-                                <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                <h3 className="font-black text-xl text-white uppercase tracking-tight">{pro.name}</h3>
+                                <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
                                     <Shield className="w-3 h-3" /> {pro.professionalProfile?.position || 'Barbeiro'}
                                 </p>
                             </div>
                         </div>
 
                         <div className="space-y-3 mb-8">
-                            <div className="flex items-center gap-3 text-slate-500 text-sm">
-                                <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center"><Phone className="w-4 h-4" /></div>
+                            <div className="flex items-center gap-3 text-slate-400 text-sm">
+                                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center border border-slate-800"><Phone className="w-4 h-4" /></div>
                                 <span className="font-medium">{pro.phone || 'Sem telefone'}</span>
                             </div>
-                            <div className="flex items-center gap-3 text-slate-500 text-sm">
-                                <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center"><Mail className="w-4 h-4" /></div>
+                            <div className="flex items-center gap-3 text-slate-400 text-sm">
+                                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center border border-slate-800"><Mail className="w-4 h-4" /></div>
                                 <span className="font-medium">{pro.email}</span>
                             </div>
-                            <div className="flex items-center gap-3 text-emerald-500 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 p-3 rounded-2xl">
+                            <div className="flex items-center gap-3 text-emerald-500 text-xs font-bold bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20">
                                 <Clock className="w-4 h-4" />
                                 <span>
                                     {pro.professionalProfile?.schedules?.length > 0
@@ -191,7 +196,7 @@ export default function ProfessionalsPage() {
 
                         <button
                             onClick={() => openScheduleEditor(pro)}
-                            className="w-full border-2 border-slate-50 dark:border-slate-700 p-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all flex items-center justify-center gap-2"
+                            className="w-full border border-slate-700 bg-slate-900 p-4 rounded-xl font-black text-xs text-slate-300 uppercase tracking-widest hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all flex items-center justify-center gap-2"
                         >
                             <Calendar className="w-4 h-4" /> DEFINIR JORNADA
                         </button>
@@ -201,39 +206,39 @@ export default function ProfessionalsPage() {
 
             {/* Schedule Modal */}
             {editingScheduleId && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-orange-500 text-white">
-                            <h2 className="text-xl font-bold">Definir Jornada de Trabalho</h2>
-                            <button onClick={() => setEditingScheduleId(null)}><X /></button>
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#111827] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-700">
+                        <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-emerald-500 text-white">
+                            <h2 className="text-xl font-bold uppercase">Definir Jornada de Trabalho</h2>
+                            <button onClick={() => setEditingScheduleId(null)} className="hover:text-slate-200"><X /></button>
                         </div>
                         <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
                             {tempSchedules.map((s, idx) => (
-                                <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border ${s.isOff ? 'bg-slate-50 dark:bg-slate-800 border-slate-100 opacity-50' : 'bg-white dark:bg-slate-800 border-orange-100'}`}>
+                                <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border ${s.isOff ? 'bg-slate-900/50 border-slate-800 opacity-50' : 'bg-slate-900 border-emerald-500/30'}`}>
                                     <div className="w-32">
-                                        <p className="font-bold">{dayName(s.dayOfWeek)}</p>
+                                        <p className="font-bold text-white">{dayName(s.dayOfWeek)}</p>
                                         <button
                                             onClick={() => toggleDayOff(s.dayOfWeek)}
-                                            className={`text-[10px] font-black uppercase tracking-widest ${s.isOff ? 'text-red-500' : 'text-green-500'}`}
+                                            className={`text-[10px] font-black uppercase tracking-widest ${s.isOff ? 'text-red-500' : 'text-emerald-500'}`}
                                         >
                                             {s.isOff ? 'OFF (Folga)' : 'ON (Trabalha)'}
                                         </button>
                                     </div>
                                     {!s.isOff && (
                                         <div className="flex items-center gap-3">
-                                            <input type="time" value={s.startTime} onChange={e => updateTime(s.dayOfWeek, 'startTime', e.target.value)} className="p-2 border rounded-lg bg-white dark:bg-slate-900" />
-                                            <span>até</span>
-                                            <input type="time" value={s.endTime} onChange={e => updateTime(s.dayOfWeek, 'endTime', e.target.value)} className="p-2 border rounded-lg bg-white dark:bg-slate-900" />
+                                            <input type="time" value={s.startTime} onChange={e => updateTime(s.dayOfWeek, 'startTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold" />
+                                            <span className="text-slate-500 text-xs uppercase font-bold">até</span>
+                                            <input type="time" value={s.endTime} onChange={e => updateTime(s.dayOfWeek, 'endTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold" />
                                         </div>
                                     )}
                                 </div>
                             ))}
                         </div>
-                        <div className="p-6 bg-slate-50 dark:bg-slate-800 flex justify-end gap-3">
+                        <div className="p-6 bg-slate-900 border-t border-slate-800 flex justify-end gap-3">
                             <button
                                 onClick={saveSchedule}
                                 disabled={actionLoading}
-                                className={`bg-slate-900 text-white px-8 py-3 rounded-xl font-bold shadow-lg ${actionLoading ? 'opacity-50' : 'shadow-slate-900/20'}`}
+                                className={`bg-white text-slate-900 px-8 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-slate-200 transition ${actionLoading ? 'opacity-50' : ''}`}
                             >
                                 {actionLoading ? 'SALVANDO...' : 'SALVAR JORNADA'}
                             </button>
