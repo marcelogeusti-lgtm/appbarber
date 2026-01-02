@@ -6,41 +6,72 @@ const { format } = require('date-fns');
 
 exports.createAppointment = async (req, res) => {
     try {
-        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod } = req.body;
+        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod, createAccount, password } = req.body;
         let clientId = req.user?.id;
+        let createdToken = null;
 
-        // Guest Handling
+        // Guest Handling or Auto-Registration
         if (!clientId) {
             if (!guestName || !guestPhone) {
                 return res.status(400).json({ message: 'Nome e Telefone são obrigatórios para agendamento' });
             }
 
-            let user = await prisma.user.findUnique({ where: { phone: guestPhone } });
+            // Check if user exists by phone OR email (if email provided)
+            let user = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { phone: guestPhone },
+                        ...(guestEmail ? [{ email: guestEmail }] : [])
+                    ]
+                }
+            });
 
-            if (!user) {
-                // Create new Guest User
+            if (createAccount) {
+                if (!guestEmail || !password) {
+                    return res.status(400).json({ message: 'Email e Senha são obrigatórios para criar conta.' });
+                }
+                if (user) {
+                    return res.status(400).json({ message: 'Um usuário com este telefone ou email já existe. Faça login.' });
+                }
+
+                const hashedPassword = await bcrypt.hash(password, 10);
                 user = await prisma.user.create({
                     data: {
                         name: guestName,
                         phone: guestPhone,
-                        email: guestEmail || null,
+                        email: guestEmail,
                         birthday: guestBirthday ? new Date(guestBirthday) : null,
                         role: 'CLIENT',
-                        password: null // No password for guest
+                        password: hashedPassword
                     }
                 });
+                createdToken = generateToken(user);
             } else {
-                // Update missing optional info if provided
-                const updates = {};
-                if (guestEmail && !user.email) updates.email = guestEmail;
-                if (guestBirthday && !user.birthday) updates.birthday = new Date(guestBirthday);
-                if (guestName && user.name !== guestName) updates.name = guestName; // Keep name updated
-
-                if (Object.keys(updates).length > 0) {
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: updates
+                // Determine if we need to create a GUEST user (no auth) or use existing
+                if (!user) {
+                    user = await prisma.user.create({
+                        data: {
+                            name: guestName,
+                            phone: guestPhone,
+                            email: guestEmail || null,
+                            birthday: guestBirthday ? new Date(guestBirthday) : null,
+                            role: 'CLIENT',
+                            password: null // No password for guest
+                        }
                     });
+                } else {
+                    // Update missing optional info if provided
+                    const updates = {};
+                    if (guestEmail && !user.email) updates.email = guestEmail;
+                    if (guestBirthday && !user.birthday) updates.birthday = new Date(guestBirthday);
+                    if (guestName && user.name !== guestName) updates.name = guestName; // Keep name updated
+
+                    if (Object.keys(updates).length > 0) {
+                        await prisma.user.update({
+                            where: { id: user.id },
+                            data: updates
+                        });
+                    }
                 }
             }
             clientId = user.id;
@@ -172,7 +203,8 @@ exports.createAppointment = async (req, res) => {
             }).catch(e => console.error('Webhook Error:', e.message));
         }
 
-        res.status(201).json({ appointment, order, isGuest: !req.user });
+        const responseUser = user ? { id: user.id, name: user.name, email: user.email, role: user.role } : null;
+        res.status(201).json({ appointment, order, token: createdToken, user: responseUser, isGuest: !req.user });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

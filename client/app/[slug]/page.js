@@ -26,7 +26,9 @@ export default function BarbershopPage() {
         email: '',
         birthday: '',
         date: '',
-        time: ''
+        time: '',
+        createAccount: false,
+        password: ''
     });
 
     useEffect(() => {
@@ -95,6 +97,11 @@ export default function BarbershopPage() {
             if (!formData.name || !formData.phone || !formData.date || !formData.time) {
                 return alert('Preencha todos os dados obrigatórios');
             }
+            if (formData.createAccount) {
+                if (!formData.email || !formData.password) {
+                    return alert('Email e Senha são obrigatórios para criar sua conta.');
+                }
+            }
             if (!paymentMethod) return alert('Selecione uma forma de pagamento');
 
             localStorage.setItem('guestData', JSON.stringify({
@@ -104,7 +111,7 @@ export default function BarbershopPage() {
                 birthday: formData.birthday
             }));
 
-            await api.post('/appointments', {
+            const res = await api.post('/appointments', {
                 professionalId: selectedProfessional.id,
                 serviceId: selectedService.id,
                 products: selectedProducts.map(p => p.id),
@@ -115,8 +122,15 @@ export default function BarbershopPage() {
                 guestPhone: formData.phone,
                 guestEmail: formData.email,
                 guestBirthday: formData.birthday,
-                barbershopId: barbershop.id
+                barbershopId: barbershop.id,
+                createAccount: formData.createAccount,
+                password: formData.password
             });
+
+            if (formData.createAccount && res.data.token) {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+            }
 
             setStep(5); // Success
         } catch (err) {
@@ -276,6 +290,31 @@ export default function BarbershopPage() {
                             <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Seus Dados</h3>
                             <input placeholder="Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none" />
                             <input placeholder="Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none" />
+                            <input type="email" placeholder="Email (Opcional)" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none" />
+
+                            {/* Auto Registration UX */}
+                            <div className="bg-slate-900/50 p-4 rounded-xl border border-dashed border-slate-700 space-y-3">
+                                <label className="flex items-center gap-3 cursor-pointer">
+                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition ${formData.createAccount ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600 bg-slate-800'}`}>
+                                        {formData.createAccount && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                                    </div>
+                                    <input type="checkbox" className="hidden" checked={formData.createAccount} onChange={e => setFormData({ ...formData, createAccount: e.target.checked })} />
+                                    <div>
+                                        <span className="text-white text-sm font-bold block">Criar minha conta</span>
+                                        <span className="text-[10px] text-slate-500 font-medium block">Facilite seus próximos agendamentos</span>
+                                    </div>
+                                </label>
+
+                                {formData.createAccount && (
+                                    <div className="animate-in slide-in-from-top-1 fade-in">
+                                        <input type="password" placeholder="Crie uma senha" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white font-bold text-sm outline-none focus:border-emerald-500 transition" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="text-center">
+                                <div className="text-xs text-slate-500 font-medium">Já tem conta? <a href="/login" className="text-emerald-500 font-bold hover:underline">Entrar</a></div>
+                            </div>
                         </div>
 
                         <div className="space-y-3">

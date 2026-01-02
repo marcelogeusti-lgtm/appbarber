@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Calendar, Search, Package, Clock, LogOut, ChevronRight, Star, MapPin, User, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import api from '../../lib/api';
+import api from '../../../lib/api';
 
 export default function ClientHome() {
     const [user, setUser] = useState(null);
@@ -31,27 +31,24 @@ export default function ClientHome() {
     return (
         <div className="min-h-screen bg-slate-950 text-white font-sans pb-24">
             {/* Header */}
-            <header className="p-6 flex justify-between items-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-900">
+            {/* Header */}
+            <header className="p-6 flex justify-between items-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10">
                 <div>
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-0.5">Bem-vindo de volta,</p>
-                    <h1 className="text-2xl font-black text-white tracking-tight">{user?.name?.split(' ')[0]}</h1>
+                    <p className="text-slate-400 text-sm font-medium mb-0.5">Olá, <span className="text-white font-bold">{user?.name?.split(' ')[0] || 'Cliente'}</span></p>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</p>
                 </div>
                 <div className="relative cursor-pointer hover:bg-slate-900 p-2 rounded-full transition">
-                    <Bell className="w-6 h-6 text-slate-300" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-slate-950"></span>
+                    <Bell className="w-6 h-6 text-white" />
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-950"></span>
                 </div>
             </header>
 
-            {/* Search Bar */}
+            {/* Search Bar - Redirects to Search Tab */}
             <div className="px-6 mb-8">
-                <div className="bg-slate-900 rounded-2xl p-4 flex items-center gap-3 border border-slate-800 focus-within:border-orange-500/50 transition shadow-lg shadow-black/20">
-                    <Search className="w-5 h-5 text-slate-500" />
-                    <input
-                        type="text"
-                        placeholder="Buscar serviço ou profissional..."
-                        className="bg-transparent border-none outline-none text-white placeholder-slate-500 text-sm font-medium w-full"
-                    />
-                </div>
+                <Link href="/search" className="bg-slate-900 rounded-2xl p-4 flex items-center gap-3 border border-slate-800 active:scale-95 transition shadow-lg shadow-black/20">
+                    <Search className="w-5 h-5 text-slate-400" />
+                    <span className="text-slate-500 text-sm font-medium">Encontre um estabelecimento...</span>
+                </Link>
             </div>
 
             {/* Hero CTA */}
@@ -118,11 +115,7 @@ export default function ClientHome() {
             </div>
 
             {/* Logout */}
-            <div className="px-6 mt-8 text-center">
-                <button onClick={handleLogout} className="text-xs font-bold text-red-500 uppercase tracking-widest hover:text-red-400 transition flex items-center justify-center gap-2 mx-auto">
-                    <LogOut className="w-4 h-4" /> Sair do App
-                </button>
-            </div>
+
         </div>
     );
 }

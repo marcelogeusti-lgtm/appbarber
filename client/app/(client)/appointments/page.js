@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, MapPin, Scissors, User, XCircle, RefreshCw, Loader2, Check } from 'lucide-react';
-import api from '../../lib/api';
+import api from '../../../lib/api';
 
 export default function HistoryPage() {
     const [appointments, setAppointments] = useState([]);
@@ -46,9 +46,6 @@ export default function HistoryPage() {
         <div className="min-h-screen bg-slate-950 text-white font-sans pb-20">
             {/* Header */}
             <header className="p-6 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 flex items-center gap-4 border-b border-slate-900">
-                <Link href="/home" className="p-2 -ml-2 hover:bg-slate-900 rounded-full transition">
-                    <ArrowLeft className="w-6 h-6 text-white" />
-                </Link>
                 <h1 className="text-xl font-black uppercase tracking-tight">Meus Agendamentos</h1>
             </header>
 

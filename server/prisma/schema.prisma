@@ -148,6 +148,8 @@ model Schedule {
   dayOfWeek      Int    // 0=Sunday, 1=Monday...
   startTime      String // "09:00"
   endTime        String // "18:00"
+  breakStart     String? // "12:00"
+  breakEnd       String? // "13:00"
   isOff          Boolean @default(false)
   professionalId String
   professional   Professional @relation(fields: [professionalId], references: [id])

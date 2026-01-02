@@ -30,7 +30,12 @@ export default function AuthPage() {
             const res = await api.post('/auth/login', loginData);
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
-            router.push('/dashboard');
+
+            if (res.data.user.role === 'CLIENT') {
+                router.push('/home'); // Client Area
+            } else {
+                router.push('/dashboard'); // Admin Area
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao entrar. Verifique suas credenciais.');
         } finally {
@@ -46,7 +51,12 @@ export default function AuthPage() {
             const res = await api.post('/auth/register', registerData);
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
-            router.push('/dashboard');
+
+            if (res.data.user.role === 'CLIENT') {
+                router.push('/home');
+            } else {
+                router.push('/dashboard');
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
         } finally {
@@ -231,7 +241,7 @@ export default function AuthPage() {
                 </div>
                 <div className="mt-8 text-center">
                     <p className="text-xs text-slate-500 dark:text-slate-600 font-bold uppercase tracking-widest">
-                        Acesso exclusivo para parceiros Barbe-On
+                        Acesso para Clientes e Parceiros Barbe-On
                     </p>
                 </div>
             </div>

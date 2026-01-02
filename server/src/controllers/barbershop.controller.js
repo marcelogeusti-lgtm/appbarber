@@ -1,6 +1,46 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Public: Search Barbershops
+exports.searchBarbershops = async (req, res) => {
+    try {
+        const { term, type } = req.query; // type: NAME, CITY, NEARBY
+
+        let where = {};
+
+        if (term) {
+            const lowerTerm = term.toLowerCase();
+            // Ideally use full-text search or ILIKE if Postgres
+            // For simplicity/Prisma SQLite/MySQL compatibility often contains is used
+
+            if (type === 'CITY') {
+                where = { address: { contains: term } };
+            } else {
+                // Default NAME or generic search
+                where = {
+                    OR: [
+                        { name: { contains: term } },
+                        { address: { contains: term } }
+                    ]
+                };
+            }
+        }
+
+        const barbershops = await prisma.barbershop.findMany({
+            where,
+            include: {
+                services: { take: 1 }, // Show at least one service/price
+            },
+            take: 20
+        });
+
+        res.json(barbershops);
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // Public: Get Barbershop by Slug
 exports.getBarbershopBySlug = async (req, res) => {
     try {

@@ -58,8 +58,14 @@ export default function DashboardPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Olá, {user.name}! 👋</h1>
-                <div className="bg-orange-500/10 text-orange-500 px-4 py-2 rounded-full text-sm font-bold border border-orange-500/20">
-                    {user.role === 'SUPER_ADMIN' ? '👑 Super Admin' : user.role === 'ADMIN' ? '🏢 Administrador' : '✂️ Profissional'}
+                <div className="flex gap-3">
+                    <a href="/home" className="bg-slate-900 text-white px-4 py-2 rounded-full text-xs font-bold border border-slate-700 hover:bg-slate-800 transition flex items-center gap-2">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        Ver como Cliente
+                    </a>
+                    <div className="bg-orange-500/10 text-orange-500 px-4 py-2 rounded-full text-sm font-bold border border-orange-500/20">
+                        {user.role === 'SUPER_ADMIN' ? '👑 Super Admin' : user.role === 'ADMIN' ? '🏢 Administrador' : '✂️ Profissional'}
+                    </div>
                 </div>
             </div>
 
