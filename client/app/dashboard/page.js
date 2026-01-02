@@ -4,6 +4,7 @@ import { Users, Copy, TrendingUp, ShoppingBag } from 'lucide-react';
 import api from '../../lib/api';
 
 export default function DashboardPage() {
+    console.log('Dashboard Version 2.0 - Loaded');
     const [user, setUser] = useState(null);
     const [stats, setStats] = useState({ appointments: 0, revenue: 0, clients: 0 });
 
@@ -108,7 +109,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 flex flex-col justify-center items-center text-center">
-                    <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4">Jobs para Hoje</h3>
+                    <h3 className="text-slate-500 text-xs font-black uppercase tracking-widest mb-4">Atendimentos Hoje</h3>
                     <p className="text-7xl font-black text-white hover:text-emerald-500 transition-colors uppercase leading-none">{stats.today || 0}</p>
                     <div className="mt-4 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
                         <p className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">Atendimento Dinâmico</p>
