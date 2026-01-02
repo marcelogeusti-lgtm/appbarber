@@ -11,24 +11,28 @@ exports.getFinancialDashboard = async (req, res) => {
         const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1)); // Primeiro dia do mês
         const end = endDate ? new Date(endDate) : new Date(); // Hoje
 
-        // Buscar agendamentos completados no período
-        const appointments = await prisma.appointment.findMany({
+        // Buscar Comandas (Orders) Fechadas/Pagas no período
+        const orders = await prisma.order.findMany({
             where: {
                 barbershopId,
-                status: 'COMPLETED',
-                date: {
+                status: { in: ['CLOSED', 'PAID'] }, // Apenas pagas
+                updatedAt: { // Considerar a data de fechamento/pagamento
                     gte: startOfDay(start),
                     lte: endOfDay(end)
                 }
             },
             include: {
-                service: true,
-                professional: { select: { id: true, name: true } },
+                items: {
+                    include: {
+                        service: true,
+                        product: true
+                    }
+                },
                 client: { select: { id: true, name: true } }
             }
         });
 
-        // Buscar transações (despesas e outras receitas)
+        // Buscar transações (despesas e outras receitas manuais não atreladas a orders)
         const transactions = await prisma.transaction.findMany({
             where: {
                 barbershopId,
@@ -43,42 +47,31 @@ exports.getFinancialDashboard = async (req, res) => {
         const daysInterval = eachDayOfInterval({ start, end });
         const revenueByDay = daysInterval.map(day => {
             const dayStr = format(day, 'dd/MM');
-            const dayRevenue = appointments
-                .filter(apt => format(new Date(apt.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'))
-                .reduce((sum, apt) => sum + Number(apt.service.price), 0);
+            const dayOrders = orders.filter(order =>
+                format(new Date(order.updatedAt), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+            );
+            const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
             return { date: dayStr, value: dayRevenue };
         });
 
         // KPIs
-        const totalRevenue = appointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
-        const totalClients = new Set(appointments.map(apt => apt.clientId)).size;
-        const avgClientsPerDay = (totalClients / daysInterval.length).toFixed(2);
+        const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const totalClients = new Set(orders.map(order => order.clientId)).size;
+        // Evitar divisão por zero se daysInterval for vazio (embora improvável com a lógica atual)
+        const avgClientsPerDay = daysInterval.length > 0 ? (orders.length / daysInterval.length).toFixed(1) : 0;
 
-        // Comandas em aberto (agendamentos confirmados mas não completados)
-        const openAppointments = await prisma.appointment.count({
+        // Comandas em aberto (Status OPEN)
+        const openOrders = await prisma.order.findMany({
             where: {
                 barbershopId,
-                status: 'CONFIRMED',
-                date: {
-                    gte: startOfDay(start),
-                    lte: endOfDay(end)
-                }
+                status: 'OPEN',
+            },
+            include: {
+                items: true
             }
         });
 
-        const openCommandsValue = await prisma.appointment.findMany({
-            where: {
-                barbershopId,
-                status: 'CONFIRMED',
-                date: {
-                    gte: startOfDay(start),
-                    lte: endOfDay(end)
-                }
-            },
-            include: { service: true }
-        });
-
-        const totalOpenCommands = openCommandsValue.reduce((sum, apt) => sum + Number(apt.service.price), 0);
+        const totalOpenCommands = openOrders.reduce((sum, order) => sum + (order.total || 0), 0);
 
         // Despesas
         const totalExpenses = transactions
@@ -89,19 +82,23 @@ exports.getFinancialDashboard = async (req, res) => {
         const totalReceived = totalRevenue;
         const balance = totalReceived - totalExpenses;
 
-        // Valores a receber (agendamentos futuros confirmados)
+        // Valores a receber (Agendamentos futuros CONFIRMADOS que ainda NÃO têm comanda ou comanda OPEN)
         const futureAppointments = await prisma.appointment.findMany({
             where: {
                 barbershopId,
                 status: 'CONFIRMED',
-                date: { gte: new Date() }
+                date: { gte: new Date() },
+                order: null // Apenas os que não geraram comanda ainda
             },
             include: { service: true }
         });
 
-        const toReceive = futureAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
+        const futureRevenue = futureAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
 
-        // Dividir valores a receber por método de pagamento (simulado - você pode adicionar campo paymentMethod)
+        // Total a receber = Comandas Abertas + Agendamentos Futuros (sem comanda)
+        const toReceive = totalOpenCommands + futureRevenue;
+
+        // Dividir valores a receber por método de pagamento (simulado/estimado ou baseado no histórico)
         const toReceiveCash = toReceive * 0.4; // 40% dinheiro
         const toReceiveCard = toReceive * 0.35; // 35% cartão
         const toReceivePix = toReceive * 0.25; // 25% pix
@@ -114,8 +111,8 @@ exports.getFinancialDashboard = async (req, res) => {
             totalRevenue,
             totalClients,
             avgClientsPerDay,
-            openCommands: openAppointments,
-            totalOpenCommands,
+            openCommands: openOrders.length, // Quantidade de comandas abertas
+            totalOpenCommands, // Valor monetário
 
             // Saldo
             balance,
@@ -129,70 +126,107 @@ exports.getFinancialDashboard = async (req, res) => {
             toReceivePix
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Financial Dashboard Error:', error);
+        res.status(500).json({ message: 'Erro ao carregar dashboard financeiro.', error: error.message });
     }
 };
 
-// Manter função original para compatibilidade
+// Manter função de estatísticas detalhadas (atualizada para usar Orders)
 exports.getFinancialStats = async (req, res) => {
     try {
         const { barbershopId, startDate, endDate } = req.query;
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        const where = {
-            barbershopId,
-            status: 'COMPLETED',
-        };
+        const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));
+        const end = endDate ? new Date(endDate) : new Date();
 
-        if (startDate && endDate) {
-            where.date = {
-                gte: new Date(startDate),
-                lte: new Date(endDate)
-            };
-        }
-
-        const [appointments, transactions] = await Promise.all([
-            prisma.appointment.findMany({
-                where,
-                include: { service: true, professional: { select: { id: true, name: true } } }
+        const [orders, transactions] = await Promise.all([
+            prisma.order.findMany({
+                where: {
+                    barbershopId,
+                    status: { in: ['CLOSED', 'PAID'] },
+                    updatedAt: {
+                        gte: startOfDay(start),
+                        lte: endOfDay(end)
+                    }
+                },
+                include: {
+                    items: {
+                        include: {
+                            service: true,
+                            product: true
+                        }
+                    },
+                    professional: { select: { id: true, name: true } },
+                    client: true
+                }
             }),
             prisma.transaction.findMany({
                 where: {
                     barbershopId,
-                    date: where.date
+                    date: {
+                        gte: startOfDay(start),
+                        lte: endOfDay(end)
+                    }
                 }
             })
         ]);
 
-        const appointmentRevenue = appointments.reduce((acc, curr) => acc + Number(curr.service.price), 0);
-        const otherIncome = transactions.filter(t => t.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0);
-        const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0);
-        const totalGrossRevenue = appointmentRevenue + otherIncome;
+        // Receita Bruta (Vem das Orders)
+        const totalGrossRevenue = orders.reduce((acc, curr) => acc + (curr.total || 0), 0);
 
-        const commissions = appointments.reduce((acc, curr) => {
-            const proName = curr.professional.name;
-            const value = Number(curr.service.price) * 0.5;
-            acc[proName] = (acc[proName] || 0) + value;
-            return acc;
-        }, {});
+        // Outras Receitas (Transactions do tipo INCOME)
+        const otherIncome = transactions.filter(t => t.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+        // Despesas (Transactions do tipo EXPENSE)
+        const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+        // Breakdown de Receita: Serviços vs Produtos
+        let serviceRevenue = 0;
+        let productRevenue = 0;
+
+        orders.forEach(order => {
+            order.items.forEach(item => {
+                if (item.type === 'SERVICE') serviceRevenue += item.total;
+                if (item.type === 'PRODUCT') productRevenue += item.total;
+            });
+        });
+
+        // Comissões (Estimativa: 50% apenas sobre SERVIÇOS)
+        const commissions = {};
+
+        orders.forEach(order => {
+            const proName = order.professional?.name || 'Desconhecido';
+            // Calcular comissão baseada nos itens de serviço da ordem
+            const orderServiceTotal = order.items
+                .filter(i => i.type === 'SERVICE')
+                .reduce((sum, i) => sum + i.total, 0);
+
+            const commissionValue = orderServiceTotal * 0.5; // 50%
+
+            commissions[proName] = (commissions[proName] || 0) + commissionValue;
+        });
 
         const totalCommissions = Object.values(commissions).reduce((acc, curr) => acc + curr, 0);
-        const netProfit = totalGrossRevenue - totalCommissions - totalExpenses;
+
+        // Lucro Líquido
+        const netProfit = (totalGrossRevenue + otherIncome) - totalCommissions - totalExpenses;
 
         res.json({
-            totalRevenue: totalGrossRevenue,
-            appointmentRevenue,
+            totalRevenue: totalGrossRevenue + otherIncome, // Soma tudo
+            salesRevenue: totalGrossRevenue, // Apenas vendas (orders)
+            serviceRevenue,
+            productRevenue,
             otherIncome,
             totalExpenses,
             netProfit,
-            totalAppointments: appointments.length,
+            totalOrders: orders.length,
             commissions: Object.entries(commissions).map(([name, value]) => ({ name, value })),
-            appointments: appointments.slice(0, 10),
+            orders: orders.slice(0, 10), // Últimas 10
             transactions: transactions.slice(0, 10)
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Financial Stats Error:', error);
+        res.status(500).json({ message: 'Server error loading stats.' });
     }
 };
