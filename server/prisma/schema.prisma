@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Enums
@@ -98,6 +99,7 @@ model Barbershop {
   address   String?
   phone     String?
   logoUrl   String?
+  webhookUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -113,6 +115,26 @@ model Barbershop {
   subscriptionPlans SubscriptionPlan[]
   commissions  Commission[]
   orders       Order[]
+  settings     BarbershopSettings?
+}
+
+model BarbershopSettings {
+  id              String   @id @default(uuid())
+  
+  barbershopId    String   @unique
+  barbershop      Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  
+  // Visual Identity
+  logoUrl         String?
+  primaryColor    String   @default("#f97316") // Orange-500
+  secondaryColor  String   @default("#1f2937") // Gray-800
+  accentColor     String   @default("#10b981") // Emerald-500
+  
+  // Additional Settings (for future use)
+  customDomain    String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Professional {

@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import api from '../../../../lib/api'; // Adjust path if needed
+import api from '../../../../lib/api';
 import {
     Receipt, User, Calendar, Clock, Plus, Trash2,
-    CreditCard, CheckCircle, AlertCircle, Scissors, Package
+    CreditCard, CheckCircle, AlertCircle, Scissors, Package, Percent, X
 } from 'lucide-react';
 
 export default function OrderDetailsPage() {
@@ -14,12 +14,12 @@ export default function OrderDetailsPage() {
 
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [products, setProducts] = useState([]); // For selection
-    const [services, setServices] = useState([]); // For selection
+    const [products, setProducts] = useState([]);
+    const [services, setServices] = useState([]);
 
-    // UI States for Modals (simplified for now)
-    const [showProductModal, setShowProductModal] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState('');
+    // UI States
+    const [showDiscountModal, setShowDiscountModal] = useState(false);
+    const [discountValue, setDiscountValue] = useState(0);
 
     useEffect(() => {
         if (id) {
@@ -96,12 +96,25 @@ export default function OrderDetailsPage() {
         }
     };
 
+    const handleApplyDiscount = async () => {
+        try {
+            await api.put(`/orders/${id}/discount`, {
+                discount: parseFloat(discountValue) || 0
+            });
+            fetchOrder();
+            setShowDiscountModal(false);
+            setDiscountValue(0);
+        } catch (err) {
+            alert('Erro ao aplicar desconto');
+        }
+    };
+
     const handleCloseOrder = async () => {
         if (!confirm('Fechar e finalizar comanda?')) return;
         try {
             await api.post(`/orders/${id}/pay`, {
-                paymentMethod: 'CASH', // Default for now, can implement selection
-                discount: 0
+                paymentMethod: 'CASH',
+                discount: order.discount || 0
             });
             fetchOrder();
         } catch (err) {
@@ -201,27 +214,49 @@ export default function OrderDetailsPage() {
 
                         {!isClosed && (
                             <div className="p-6 bg-slate-900/30 border-t border-slate-800 grid grid-cols-2 gap-4">
-                                <button className="p-4 bg-slate-800 rounded-2xl border border-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition flex items-center justify-center gap-2">
-                                    <Scissors className="w-4 h-4" /> Add Serviço
-                                </button>
+                                {/* Add Service Dropdown */}
                                 <div className="relative group">
-                                    <button className="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition flex items-center justify-center gap-2">
+                                    <button className="w-full p-4 bg-blue-500/10 rounded-2xl border border-blue-500/30 text-blue-400 font-bold text-xs uppercase tracking-wider hover:bg-blue-500/20 transition flex items-center justify-center gap-2">
+                                        <Scissors className="w-4 h-4" /> Add Serviço
+                                    </button>
+                                    <div className="absolute bottom-full left-0 w-full mb-2 bg-[#111827] border border-blue-500/30 rounded-xl shadow-xl overflow-hidden hidden group-hover:block max-h-60 overflow-y-auto z-10">
+                                        {services.length > 0 ? services.map(serv => (
+                                            <button
+                                                key={serv.id}
+                                                onClick={() => handleAddItem('SERVICE', serv.id)}
+                                                className="w-full text-left p-3 hover:bg-slate-800 text-slate-300 text-xs font-bold border-b border-slate-800 last:border-0 transition"
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <span>{serv.name}</span>
+                                                    <span className="text-blue-400">R$ {formatCurrency(serv.price)}</span>
+                                                </div>
+                                            </button>
+                                        )) : (
+                                            <div className="p-3 text-center text-slate-500 text-xs">Nenhum serviço disponível</div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Add Product Dropdown */}
+                                <div className="relative group">
+                                    <button className="w-full p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 text-emerald-400 font-bold text-xs uppercase tracking-wider hover:bg-emerald-500/20 transition flex items-center justify-center gap-2">
                                         <Package className="w-4 h-4" /> Add Produto
                                     </button>
-                                    {/* Simple Dropdown for Products */}
-                                    <div className="absolute bottom-full left-0 w-full mb-2 bg-[#111827] border border-slate-700 rounded-xl shadow-xl overflow-hidden hidden group-hover:block max-h-60 overflow-y-auto z-10">
-                                        {products.map(prod => (
+                                    <div className="absolute bottom-full left-0 w-full mb-2 bg-[#111827] border border-emerald-500/30 rounded-xl shadow-xl overflow-hidden hidden group-hover:block max-h-60 overflow-y-auto z-10">
+                                        {products.length > 0 ? products.map(prod => (
                                             <button
                                                 key={prod.id}
                                                 onClick={() => handleAddItem('PRODUCT', prod.id)}
-                                                className="w-full text-left p-3 hover:bg-slate-800 text-slate-300 text-xs font-bold border-b border-slate-800 last:border-0"
+                                                className="w-full text-left p-3 hover:bg-slate-800 text-slate-300 text-xs font-bold border-b border-slate-800 last:border-0 transition"
                                             >
-                                                <div className="flex justify-between">
+                                                <div className="flex justify-between items-center">
                                                     <span>{prod.name}</span>
-                                                    <span className="text-emerald-500">R$ {formatCurrency(prod.price)}</span>
+                                                    <span className="text-emerald-400">R$ {formatCurrency(prod.price)}</span>
                                                 </div>
                                             </button>
-                                        ))}
+                                        )) : (
+                                            <div className="p-3 text-center text-slate-500 text-xs">Nenhum produto disponível</div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -260,10 +295,87 @@ export default function OrderDetailsPage() {
                                 </div>
                                 <span className="text-emerald-500 font-bold text-xs uppercase">Dinheiro / Pix</span>
                             </div>
+
+                            {!isClosed && (
+                                <button
+                                    onClick={() => {
+                                        setDiscountValue(order.discount || 0);
+                                        setShowDiscountModal(true);
+                                    }}
+                                    className="w-full p-4 bg-orange-500/10 rounded-2xl border border-orange-500/30 text-orange-400 font-bold text-xs uppercase tracking-wider hover:bg-orange-500/20 transition flex items-center justify-center gap-2"
+                                >
+                                    <Percent className="w-4 h-4" /> Aplicar Desconto
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Discount Modal */}
+            {showDiscountModal && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+                    <div className="bg-[#111827] w-full max-w-md rounded-3xl shadow-2xl border border-slate-800 overflow-hidden animate-in zoom-in-95">
+                        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                            <h3 className="text-white font-black text-lg uppercase flex items-center gap-2">
+                                <Percent className="w-5 h-5 text-orange-500" />
+                                Aplicar Desconto
+                            </h3>
+                            <button
+                                onClick={() => setShowDiscountModal(false)}
+                                className="p-2 hover:bg-slate-800 rounded-lg transition"
+                            >
+                                <X className="w-5 h-5 text-slate-400" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Valor do Desconto (R$)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max={order.subtotal}
+                                    value={discountValue}
+                                    onChange={(e) => setDiscountValue(e.target.value)}
+                                    className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold text-lg focus:ring-2 ring-orange-500 outline-none"
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 space-y-2">
+                                <div className="flex justify-between text-sm text-slate-400">
+                                    <span>Subtotal</span>
+                                    <span>R$ {formatCurrency(order.subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm text-orange-400 font-bold">
+                                    <span>Desconto</span>
+                                    <span>- R$ {formatCurrency(discountValue)}</span>
+                                </div>
+                                <div className="flex justify-between text-lg text-white font-black pt-2 border-t border-slate-800">
+                                    <span>Novo Total</span>
+                                    <span className="text-emerald-500">R$ {formatCurrency(order.subtotal - (parseFloat(discountValue) || 0))}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowDiscountModal(false)}
+                                    className="flex-1 p-3 bg-slate-800 rounded-xl font-bold text-sm hover:bg-slate-700 transition text-white"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleApplyDiscount}
+                                    className="flex-1 p-3 bg-orange-500 rounded-xl font-bold text-sm hover:bg-orange-600 transition text-white shadow-lg shadow-orange-500/20"
+                                >
+                                    Aplicar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

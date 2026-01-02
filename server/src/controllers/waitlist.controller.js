@@ -18,7 +18,9 @@ exports.addToWaitlist = async (req, res) => {
         });
 
         // Trigger n8n for waitlist tracking
-        const webhookUrl = process.env.N8N_WEBHOOK_URL;
+        const barbershop = await prisma.barbershop.findUnique({ where: { id: barbershopId } });
+        const webhookUrl = barbershop?.webhookUrl;
+
         if (webhookUrl) {
             axios.post(webhookUrl, {
                 event: 'waitlist.added',

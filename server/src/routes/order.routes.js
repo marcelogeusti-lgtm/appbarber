@@ -7,6 +7,7 @@ router.get('/', orderController.listOrders);
 router.post('/', orderController.createOrder);
 router.get('/:id', orderController.getOrder);
 router.post('/:id/items', orderController.addItem);
+router.put('/:id/discount', orderController.updateDiscount);
 router.delete('/items/:itemId', orderController.removeItem);
 router.post('/:id/pay', orderController.closeOrder);
 

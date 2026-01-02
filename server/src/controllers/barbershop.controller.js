@@ -38,7 +38,7 @@ exports.getBarbershopBySlug = async (req, res) => {
 exports.updateBarbershop = async (req, res) => {
     try {
         const { id } = req.params; // or derived from user token
-        const { name, address, phone, slug } = req.body;
+        const { name, address, phone, slug, webhookUrl } = req.body;
 
         // Check ownership
         // Ideally use req.user.barbershopId or check ownerId
@@ -51,7 +51,7 @@ exports.updateBarbershop = async (req, res) => {
 
         const updated = await prisma.barbershop.update({
             where: { id },
-            data: { name, address, phone, slug }
+            data: { name, address, phone, slug, webhookUrl }
         });
 
         res.json(updated);

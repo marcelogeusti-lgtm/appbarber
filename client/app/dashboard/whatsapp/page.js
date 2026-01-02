@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { MessageSquare, QrCode, ShieldCheck, XCircle, Settings, Bell, Zap } from 'lucide-react';
+import api from '../../../lib/api';
+
 
 export default function WhatsAppPage() {
     const [status, setStatus] = useState('disconnected'); // disconnected, connecting, connected
@@ -8,13 +10,44 @@ export default function WhatsAppPage() {
     const [webhookUrl, setWebhookUrl] = useState('');
 
     useEffect(() => {
-        const savedUrl = localStorage.getItem('N8N_WEBHOOK_URL');
-        if (savedUrl) setWebhookUrl(savedUrl);
+        fetchBarbershopData();
     }, []);
 
-    const saveWebhook = () => {
-        localStorage.setItem('N8N_WEBHOOK_URL', webhookUrl);
-        alert('Configuração de automação salva com sucesso!');
+    const fetchBarbershopData = async () => {
+        try {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+            const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug;
+            if (!slug) return;
+
+            const res = await api.get(`/barbershops/${slug}`);
+            if (res.data.webhookUrl) {
+                setWebhookUrl(res.data.webhookUrl);
+            }
+        } catch (err) {
+            console.error('Error fetching barbershop data:', err);
+        }
+    };
+
+    const saveWebhook = async () => {
+        try {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+
+            if (!bId) {
+                alert('Barbearia não identificada.');
+                return;
+            }
+
+            await api.put(`/barbershops/${bId}`, { webhookUrl });
+            alert('Configuração de automação salva com sucesso no banco de dados!');
+        } catch (err) {
+            console.error('Error saving webhook:', err);
+            alert('Erro ao salvar configuração: ' + (err.response?.data?.message || err.message));
+        }
     };
 
     const handleConnect = () => {

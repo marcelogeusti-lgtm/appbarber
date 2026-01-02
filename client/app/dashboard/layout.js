@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-    Calendar, History, PieChart, BadgeDollarSign, Users2,
-    Contact2, Receipt, Clock3, UserPlus2, CreditCard,
-    Wallet2, Settings, LogOut, Store, Menu, Rocket, ShoppingBag
+    Calendar, PieChart, BadgeDollarSign, Users2,
+    Contact2, Receipt, CreditCard,
+    Wallet2, Settings, LogOut, Store, Menu, ShoppingBag
 } from 'lucide-react';
 
 function SidebarLink({ href, icon, label, active = false }) {
@@ -73,22 +73,19 @@ export default function DashboardLayout({ children }) {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-8 mt-4 overflow-y-auto pb-10">
+                    {/* VISÃO GERAL */}
+                    <div>
+                        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Visão Geral</p>
+                        <div className="space-y-1">
+                            <SidebarLink href="/dashboard" icon={<PieChart className="w-4 h-4" />} label="Dashboard" />
+                        </div>
+                    </div>
+
                     {/* AGENDAMENTOS */}
                     <div>
                         <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Agendamentos</p>
                         <div className="space-y-1">
                             <SidebarLink href="/dashboard/schedule" icon={<Calendar className="w-4 h-4" />} label="Agenda" />
-                            <SidebarLink href="/dashboard/history" icon={<History className="w-4 h-4" />} label="Histórico" />
-                        </div>
-                    </div>
-
-                    {/* INDICADORES */}
-                    <div>
-                        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Indicadores</p>
-                        <div className="space-y-1">
-                            <SidebarLink href="/dashboard/stats/occupancy" icon={<PieChart className="w-4 h-4" />} label="Taxa de Ocupação" />
-                            <SidebarLink href="/dashboard/stats/ticket" icon={<BadgeDollarSign className="w-4 h-4" />} label="Ticket Médio" />
-                            <SidebarLink href="/dashboard/stats/frequency" icon={<Users2 className="w-4 h-4" />} label="Frequência de Clientes" />
                         </div>
                     </div>
 
@@ -99,6 +96,7 @@ export default function DashboardLayout({ children }) {
                             <SidebarLink href="/dashboard/professionals" icon={<Users2 className="w-4 h-4" />} label="Equipe" />
                             <SidebarLink href="/dashboard/services" icon={<Store className="w-4 h-4" />} label="Serviços" />
                             <SidebarLink href="/dashboard/products" icon={<ShoppingBag className="w-4 h-4" />} label="Produtos" />
+                            <SidebarLink href="/dashboard/orders" icon={<Receipt className="w-4 h-4" />} label="Comandas" />
                         </div>
                     </div>
 
@@ -108,14 +106,7 @@ export default function DashboardLayout({ children }) {
                         <div className="space-y-1">
                             <SidebarLink href="/dashboard/finance/dashboard" icon={<BadgeDollarSign className="w-4 h-4" />} label="Dashboard" />
                             <SidebarLink href="/dashboard/finance" icon={<Receipt className="w-4 h-4" />} label="Extrato Financeiro" />
-                        </div>
-                    </div>
-
-                    {/* RELATÓRIOS */}
-                    <div>
-                        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Relatórios</p>
-                        <div className="space-y-1">
-                            <SidebarLink href="/dashboard/reports/commissions" icon={<Users2 className="w-4 h-4" />} label="Comissões" />
+                            <SidebarLink href="/dashboard/reports/commissions" icon={<Wallet2 className="w-4 h-4" />} label="Comissões" />
                         </div>
                     </div>
 
@@ -123,18 +114,14 @@ export default function DashboardLayout({ children }) {
                     <div>
                         <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 text-orange-500">Clube de Assinatura</p>
                         <div className="space-y-1">
-                            <SidebarLink href="/dashboard/subscribers" icon={<Contact2 className="w-4 h-4" />} label="Resumo de Assinantes" active />
-                            <SidebarLink href="/dashboard/finance/receipts" icon={<Receipt className="w-4 h-4" />} label="Extrato de Recebimentos" />
-                            <SidebarLink href="/dashboard/finance/upcoming" icon={<Clock3 className="w-4 h-4" />} label="Faturas Previstas" />
-                            <SidebarLink href="/dashboard/subscriptions/new" icon={<UserPlus2 className="w-4 h-4" />} label="Cadastro de Assinaturas" />
-                            <SidebarLink href="/dashboard/subscriptions" icon={<CreditCard className="w-4 h-4" />} label="Gestão de Planos" />
-                            <SidebarLink href="/dashboard/finance/payouts" icon={<Wallet2 className="w-4 h-4" />} label="Saldo e Saque" />
+                            <SidebarLink href="/dashboard/subscribers" icon={<Contact2 className="w-4 h-4" />} label="Assinantes" />
+                            <SidebarLink href="/dashboard/subscriptions" icon={<CreditCard className="w-4 h-4" />} label="Planos" />
                         </div>
                     </div>
 
                     {/* AJUSTES */}
                     <div className="pt-4 border-t border-slate-800/50">
-                        <SidebarLink href="/dashboard/updates" icon={<Rocket className="w-4 h-4" />} label="Atualizações" />
+                        <SidebarLink href="/dashboard/whatsapp" icon={<Contact2 className="w-4 h-4" />} label="WhatsApp" />
                         <SidebarLink href="/dashboard/settings" icon={<Settings className="w-4 h-4" />} label="Configurações" />
                         <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 transition-all mt-4">
                             <LogOut className="w-4 h-4" /> Sair do Sistema

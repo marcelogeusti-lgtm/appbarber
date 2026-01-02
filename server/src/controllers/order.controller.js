@@ -148,6 +148,43 @@ exports.removeItem = async (req, res) => {
     }
 };
 
+// Update Discount
+exports.updateDiscount = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { discount } = req.body;
+
+        const order = await prisma.order.findUnique({ where: { id } });
+        if (!order) return res.status(404).json({ message: 'Comanda não encontrada.' });
+
+        const finalDiscount = parseFloat(discount) || 0;
+        const finalTotal = order.subtotal - finalDiscount;
+
+        const updatedOrder = await prisma.order.update({
+            where: { id },
+            data: {
+                discount: finalDiscount,
+                total: finalTotal
+            },
+            include: {
+                items: {
+                    include: {
+                        service: true,
+                        product: true
+                    }
+                },
+                client: true,
+                professional: true
+            }
+        });
+
+        res.json(updatedOrder);
+    } catch (error) {
+        console.error('Update Discount Error:', error);
+        res.status(500).json({ message: 'Erro ao atualizar desconto.' });
+    }
+};
+
 // Close/Pay Order
 exports.closeOrder = async (req, res) => {
     try {

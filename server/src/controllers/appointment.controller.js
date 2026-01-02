@@ -1,6 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const axios = require('axios');
+const { format } = require('date-fns');
+
 
 exports.createAppointment = async (req, res) => {
     try {
@@ -101,7 +103,9 @@ exports.createAppointment = async (req, res) => {
         });
 
         // Trigger n8n Webhook (Async, don't block response)
-        const webhookUrl = process.env.N8N_WEBHOOK_URL;
+        const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });
+        const webhookUrl = barbershop?.webhookUrl;
+
         if (webhookUrl) {
             axios.post(webhookUrl, {
                 event: 'appointment.created',
@@ -167,7 +171,9 @@ exports.updateAppointmentStatus = async (req, res) => {
 
         // Trigger n8n on cancellation to notify waitlist
         if (status === 'CANCELLED') {
-            const webhookUrl = process.env.N8N_WEBHOOK_URL;
+            const barbershop = await prisma.barbershop.findUnique({ where: { id: appointment.barbershopId } });
+            const webhookUrl = barbershop?.webhookUrl;
+
             if (webhookUrl) {
                 axios.post(webhookUrl, {
                     event: 'appointment.cancelled',
