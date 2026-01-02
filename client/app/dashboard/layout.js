@@ -13,7 +13,7 @@ function SidebarLink({ href, icon, label, active = false }) {
         <Link
             href={href}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all ${active
-                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
+                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
         >
@@ -48,17 +48,17 @@ export default function DashboardLayout({ children }) {
     if (!user) return null;
 
     return (
-        <div className="flex min-h-screen bg-[#0a0f1a] text-slate-300 font-sans selection:bg-orange-500/30">
+        <div className="flex min-h-screen bg-[#0a0f1a] text-slate-300 font-sans selection:bg-emerald-500/30">
             {/* Sidebar */}
             <aside className="w-72 bg-[#111827] border-r border-slate-800/50 hidden md:flex flex-col h-screen sticky top-0 overflow-y-auto scrollbar-hide">
                 <div className="p-8">
                     <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
-                        <span className="text-orange-500 italic">Barbe</span>-On
+                        <span className="text-emerald-500 italic">Barbe</span>-On
                     </h2>
 
                     {/* Barbershop Status Selector */}
-                    <div className="mt-8 p-4 bg-slate-900/50 rounded-2xl border border-slate-800 flex items-center gap-4 group cursor-pointer hover:border-orange-500/50 transition-all">
-                        <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                    <div className="mt-8 p-4 bg-slate-900/50 rounded-2xl border border-slate-800 flex items-center gap-4 group cursor-pointer hover:border-emerald-500/50 transition-all">
+                        <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                             <Store className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1 overflow-hidden">
@@ -112,7 +112,7 @@ export default function DashboardLayout({ children }) {
 
                     {/* CLUBE DE ASSINATURA */}
                     <div>
-                        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 text-orange-500">Clube de Assinatura</p>
+                        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 text-emerald-500">Clube de Assinatura</p>
                         <div className="space-y-1">
                             <SidebarLink href="/dashboard/subscribers" icon={<Contact2 className="w-4 h-4" />} label="Assinantes" />
                             <SidebarLink href="/dashboard/subscriptions" icon={<CreditCard className="w-4 h-4" />} label="Planos" />
@@ -123,7 +123,7 @@ export default function DashboardLayout({ children }) {
                     <div className="pt-4 border-t border-slate-800/50">
                         <SidebarLink href="/dashboard/whatsapp" icon={<Contact2 className="w-4 h-4" />} label="WhatsApp" />
                         <SidebarLink href="/dashboard/settings" icon={<Settings className="w-4 h-4" />} label="Configurações" />
-                        <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 transition-all mt-4">
+                        <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-500/60 hover:bg-red-500/10 transition-all mt-4">
                             <LogOut className="w-4 h-4" /> Sair do Sistema
                         </button>
                     </div>
@@ -138,7 +138,7 @@ export default function DashboardLayout({ children }) {
                             <Menu className="w-6 h-6" />
                         </button>
                         <span className="font-black uppercase text-xl tracking-tighter text-white">
-                            <span className="text-orange-500 italic">Barbe</span>-On
+                            <span className="text-emerald-500 italic">Barbe</span>-On
                         </span>
                     </div>
 
@@ -147,7 +147,7 @@ export default function DashboardLayout({ children }) {
                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Bem-vindo,</p>
                             <p className="text-sm font-black text-white uppercase tracking-tighter">{user.name}</p>
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-orange-500/20">
+                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-emerald-500/20">
                             {user.name?.[0]}
                         </div>
                     </div>

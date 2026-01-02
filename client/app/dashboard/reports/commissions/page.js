@@ -60,36 +60,36 @@ export default function CommissionsReportPage() {
     return (
         <div className="space-y-8 pb-20">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-10 rounded-[2.5rem] border border-slate-800 shadow-sm">
                 <div>
-                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Relatório de Colaboradores</h1>
-                    <p className="text-slate-500 text-sm font-medium italic mt-2">Comissões e performance da equipe</p>
+                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Relatório de Equipe</h1>
+                    <p className="text-slate-500 text-sm font-medium italic mt-2">Monitoramento de produtividade e repasses financeiros</p>
                 </div>
-                <div className="flex gap-4">
-                    <button className="flex items-center gap-2 bg-orange-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-orange-500/20 hover:bg-orange-600 transition-all">
-                        <DollarSign className="w-4 h-4" /> Dar baixa nas comissões
+                <div className="flex flex-wrap gap-4">
+                    <button className="flex items-center gap-2 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 transition-all">
+                        <DollarSign className="w-4 h-4" /> Efetuar Pagamentos
                     </button>
-                    <button className="flex items-center gap-2 bg-[#111827] border border-orange-500 text-orange-500 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500/10 transition-all">
-                        <Download className="w-4 h-4" /> Exportar em excel
+                    <button className="flex items-center gap-2 bg-slate-950 border border-slate-800 text-slate-400 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-emerald-500/30 transition-all">
+                        <Download className="w-4 h-4" /> Exportar Dados
                     </button>
                 </div>
             </div>
 
             {/* Resumo Geral */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <KPICard label="Vendas Total" value={`R$ ${data.summary.totalSales.toFixed(2)}`} color="slate" />
-                <KPICard label="Total de serviços" value={`R$ ${data.summary.totalServices.toFixed(2)}`} color="emerald" />
-                <KPICard label="Assinaturas" value={data.summary.totalSubscriptions} desc="Comissões" color="emerald" />
-                <KPICard label="Comissões Pagas" value={`R$ ${data.summary.totalPaidCommissions.toFixed(2)}`} color="slate" />
-                <KPICard label="Comissões Pendentes" value={`R$ ${data.summary.totalPendingCommissions.toFixed(2)}`} color="red" />
+                <KPICard label="Volume de Vendas" value={`R$ ${data.summary.totalSales.toFixed(2)}`} color="slate" />
+                <KPICard label="Total em Serviços" value={`R$ ${data.summary.totalServices.toFixed(2)}`} color="emerald" />
+                <KPICard label="Comissão Assinaturas" value={data.summary.totalSubscriptions} desc="Total Estimado" color="emerald" />
+                <KPICard label="Já Liquidado" value={`R$ ${data.summary.totalPaidCommissions.toFixed(2)}`} color="slate" />
+                <KPICard label="Pendente" value={`R$ ${data.summary.totalPendingCommissions.toFixed(2)}`} color="red" />
             </div>
 
             {/* Gráfico de Pizza + Filtros */}
-            <div className="bg-[#111827] p-8 rounded-3xl border border-slate-800">
-                <div className="flex flex-col md:flex-row gap-8">
+            <div className="bg-[#111827] p-10 rounded-[2.5rem] border border-slate-800 shadow-2xl">
+                <div className="flex flex-col lg:flex-row gap-12">
                     {/* Gráfico */}
                     <div className="flex-1">
-                        <h3 className="text-lg font-black text-white uppercase tracking-tight mb-6">Detalhamento de comissões</h3>
+                        <h3 className="text-lg font-black text-white uppercase tracking-[0.1em] mb-8 border-l-4 border-emerald-500 pl-4">Distribuição de Resultados</h3>
                         <div className="relative w-64 h-64 mx-auto">
                             <svg viewBox="0 0 200 200" className="transform -rotate-90">
                                 {chartData.map((item, idx) => {
@@ -104,7 +104,7 @@ export default function CommissionsReportPage() {
                                             r="80"
                                             fill="none"
                                             stroke={item.color}
-                                            strokeWidth="40"
+                                            strokeWidth="30"
                                             strokeDasharray={`${percentage * 5.03} ${500 - percentage * 5.03}`}
                                             strokeDashoffset={-offset * 5.03}
                                             className="transition-all hover:opacity-80 cursor-pointer"
@@ -114,95 +114,99 @@ export default function CommissionsReportPage() {
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="text-center">
-                                    <p className="text-3xl font-black text-white">R$ {totalChart.toFixed(0)}</p>
-                                    <p className="text-xs text-slate-500 font-bold uppercase">Total</p>
+                                    <p className="text-3xl font-black text-white tracking-tighter">R$ {totalChart.toFixed(0)}</p>
+                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Total Equipe</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="mt-6 space-y-2">
+                        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
                             {chartData.map((item, idx) => (
-                                <div key={idx} className="flex items-center gap-3">
-                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                    <span className="text-sm font-bold text-slate-400">{item.name}</span>
-                                    <span className="ml-auto text-sm font-black text-white">R$ {item.value.toFixed(2)}</span>
+                                <div key={idx} className="flex items-center gap-3 bg-slate-950/50 p-3 rounded-xl border border-slate-800/30">
+                                    <div className="w-3 h-3 rounded-full shadow-lg" style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}50` }}></div>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{item.name}</span>
+                                    <span className="ml-auto text-[11px] font-black text-white">R$ {item.value.toFixed(0)}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Filtros */}
-                    <div className="flex-1 space-y-4">
-                        <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Início</label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={e => setStartDate(e.target.value)}
-                                className="w-full bg-[#0a0f1a] border border-slate-800 rounded-xl px-4 py-3 text-white font-bold focus:ring-2 ring-orange-500 outline-none"
-                            />
+                    <div className="flex-1 space-y-6">
+                        <div className="bg-slate-950 p-8 rounded-3xl border border-slate-800">
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 block">Período Inicial</label>
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={e => setStartDate(e.target.value)}
+                                            className="w-full bg-[#111827] border border-slate-800 rounded-xl px-4 py-3 text-white font-bold focus:ring-2 ring-emerald-500 outline-none transition-all text-xs"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 block">Período Final</label>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={e => setEndDate(e.target.value)}
+                                            className="w-full bg-[#111827] border border-slate-800 rounded-xl px-4 py-3 text-white font-bold focus:ring-2 ring-emerald-500 outline-none transition-all text-xs"
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={fetchReport}
+                                    className="w-full bg-emerald-500 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20"
+                                >
+                                    Atualizar Dashboards
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Fim</label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={e => setEndDate(e.target.value)}
-                                className="w-full bg-[#0a0f1a] border border-slate-800 rounded-xl px-4 py-3 text-white font-bold focus:ring-2 ring-orange-500 outline-none"
-                            />
+                        <div className="p-6 border border-emerald-500/10 rounded-2xl bg-emerald-500/5">
+                            <p className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest leading-relaxed italic">
+                                Use os filtros para visualizar a performance em janelas de tempo específicas ou conferir repasses de ciclos fechados.
+                            </p>
                         </div>
-                        <button
-                            onClick={fetchReport}
-                            className="w-full bg-orange-500 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
-                        >
-                            Pesquisar
-                        </button>
-                        <button className="w-full bg-[#0a0f1a] border border-slate-800 text-slate-400 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all">
-                            Adicionar lançamento para o barbeiro
-                        </button>
                     </div>
                 </div>
             </div>
 
             {/* Tabela de Barbeiros */}
-            <div className="bg-[#111827] rounded-3xl border border-slate-800 overflow-hidden">
+            <div className="bg-[#111827] rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-[#0a0f1a]">
                             <tr>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Colaborador</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Total em Serviços</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Comissão Serviços</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Comissão Produtos</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Comissão Assinatura</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Total em Extras</th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Compras de Produto</th>
-                                <th className="px-6 py-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">Ações</th>
+                                <th className="px-8 py-6 text-left text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Colaborador</th>
+                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Serviços (Bruto)</th>
+                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Comissão Serv.</th>
+                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Comissão Prod.</th>
+                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Total Líquido</th>
+                                <th className="px-8 py-6 text-center text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Fluxo</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800">
+                        <tbody className="divide-y divide-slate-800/50">
                             {data.barbers.map((barber, idx) => (
-                                <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center">
-                                                <Users className="w-5 h-5 text-white" />
+                                <tr key={idx} className="hover:bg-emerald-500/5 transition-colors group">
+                                    <td className="px-8 py-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                <Users className="w-6 h-6 text-emerald-500" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-black text-white">{barber.barberName}</p>
-                                                <p className="text-xs text-slate-500 font-medium">{barber.appointmentCount} agendamentos</p>
+                                                <p className="text-sm font-black text-white uppercase tracking-tight">{barber.barberName}</p>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{barber.appointmentCount} Atendimentos</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-right text-sm font-black text-white">R$ {barber.totalServices.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right text-sm font-black text-slate-300">R$ {barber.totalServices.toFixed(2)}</td>
                                     <td className="px-6 py-4 text-right text-sm font-black text-emerald-500">R$ {barber.serviceCommission.toFixed(2)}</td>
                                     <td className="px-6 py-4 text-right text-sm font-black text-white">R$ {barber.productCommission.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-right text-sm font-black text-white">R$ {barber.subscriptionCommission.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-right text-sm font-black text-white">R$ {barber.extras.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-right text-sm font-black text-red-500">-R$ {barber.productPurchases.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-center">
+                                    <td className="px-6 py-4 text-right text-sm font-black text-emerald-400 bg-emerald-500/5">R$ {(barber.serviceCommission + barber.productCommission + barber.subscriptionCommission + barber.extras - barber.productPurchases).toFixed(2)}</td>
+                                    <td className="px-8 py-6 text-center">
                                         <button
                                             onClick={() => handlePayCommissions(barber.barberId)}
-                                            className="bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-emerald-600 transition-all"
+                                            className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/5"
                                         >
                                             Dar Baixa
                                         </button>
@@ -219,16 +223,17 @@ export default function CommissionsReportPage() {
 
 function KPICard({ label, value, desc, color }) {
     const colors = {
-        slate: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-        emerald: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-        red: 'bg-red-500/10 text-red-500 border-red-500/20',
+        slate: 'bg-[#111827] text-slate-300 border-slate-800',
+        emerald: 'bg-[#111827] text-emerald-500 border-emerald-500/20',
+        red: 'bg-[#111827] text-red-500 border-red-500/20',
     };
 
     return (
-        <div className={`p-6 rounded-2xl border ${colors[color]}`}>
-            <p className="text-[10px] font-black uppercase tracking-widest mb-2 opacity-70">{label}</p>
-            <p className="text-2xl font-black mb-1">{value}</p>
-            {desc && <p className="text-[10px] font-medium opacity-60">{desc}</p>}
+        <div className={`p-8 rounded-[2rem] border shadow-xl relative overflow-hidden group ${colors[color]}`}>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-3 opacity-50">{label}</p>
+            <p className="text-3xl font-black tracking-tighter group-hover:scale-105 transition-transform origin-left text-white">{value}</p>
+            {desc && <p className="text-[10px] font-bold uppercase tracking-widest mt-2 opacity-40">{desc}</p>}
+            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-current opacity-5 rounded-full blur-2xl"></div>
         </div>
     );
 }

@@ -240,12 +240,12 @@ export default function ProfessionalsPage() {
 
                                             <div className="flex items-center gap-3 border-t border-slate-800/50 pt-3">
                                                 <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest pl-1">Início Almoço</p>
+                                                    <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest pl-1">Início Almoço</p>
                                                     <input type="time" value={s.breakStart || '12:00'} onChange={e => updateTime(s.dayOfWeek, 'breakStart', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
                                                 </div>
                                                 <span className="text-slate-500 text-[10px] uppercase font-bold mt-4">até</span>
                                                 <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest pl-1">Fim Almoço</p>
+                                                    <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest pl-1">Fim Almoço</p>
                                                     <input type="time" value={s.breakEnd || '13:00'} onChange={e => updateTime(s.dayOfWeek, 'breakEnd', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
                                                 </div>
                                             </div>

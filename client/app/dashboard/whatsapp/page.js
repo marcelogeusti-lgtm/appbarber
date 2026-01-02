@@ -67,36 +67,38 @@ export default function WhatsAppPage() {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter flex items-center gap-3">
-                        <MessageSquare className="w-8 h-8 text-emerald-500" />
-                        Automação WhatsApp
-                    </h1>
-                    <p className="text-slate-500 text-sm font-medium italic">Reduza faltas e fidelize clientes com notificações inteligentes</p>
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-3xl border border-slate-800 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20">
+                        <MessageSquare className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Automação de Mensagens</h1>
+                        <p className="text-slate-500 text-sm font-medium italic leading-none mt-1">Sincronize sua operação com notificações inteligentes</p>
+                    </div>
                 </div>
-                <div className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${status === 'connected' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${status === 'connected' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                    {status === 'connected' ? 'Conectado' : 'Desconectado'}
+                <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border ${status === 'connected' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                    <div className={`w-2 h-2 rounded-full ${status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    {status === 'connected' ? 'Instância Ativa' : 'Offline'}
                 </div>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] shadow-sm overflow-hidden">
+                    <div className="bg-[#111827] border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
                         <div className="p-8 md:p-16 text-center">
                             {status === 'connected' ? (
-                                <div className="space-y-6">
-                                    <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/10 rotate-3">
+                                <div className="space-y-8">
+                                    <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-3xl border border-emerald-500/20 flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 rotate-3">
                                         <ShieldCheck className="w-12 h-12" />
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Instância Ativa</h2>
-                                        <p className="text-slate-500 mt-2 font-medium">Sua conta <span className="font-bold text-slate-900 dark:text-white">"Conexao_Live"</span> está operando via Evolution API.</p>
+                                        <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Conexão Estabelecida</h2>
+                                        <p className="text-slate-500 mt-2 font-medium">Sua instância <span className="text-emerald-500 font-bold uppercase tracking-widest text-xs ml-1">"Barbe_On_Live"</span> está pronta.</p>
                                     </div>
                                     <div className="pt-4">
-                                        <button onClick={handleDisconnect} className="bg-red-50 text-red-500 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-100 transition flex items-center gap-2 mx-auto border border-red-100">
-                                            <XCircle className="w-4 h-4" /> Desconectar instância
+                                        <button onClick={handleDisconnect} className="bg-slate-950 text-red-500 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition flex items-center gap-2 mx-auto border border-slate-800">
+                                            <XCircle className="w-4 h-4" /> Finalizar Instância
                                         </button>
                                     </div>
                                 </div>
@@ -104,26 +106,26 @@ export default function WhatsAppPage() {
                                 <div className="space-y-8">
                                     {status === 'disconnected' ? (
                                         <>
-                                            <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 text-slate-200 rounded-3xl flex items-center justify-center mx-auto -rotate-6">
+                                            <div className="w-24 h-24 bg-slate-950 text-slate-700 rounded-3xl border border-slate-800 flex items-center justify-center mx-auto -rotate-6">
                                                 <QrCode className="w-12 h-12" />
                                             </div>
                                             <div className="max-w-md mx-auto">
-                                                <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Sincronizar Conta</h2>
-                                                <p className="text-slate-500 mt-2 font-medium">Conecte o WhatsApp do seu estabelecimento para enviar lembretes automáticos e comunicações de marketing.</p>
+                                                <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Vincular Dispositivo</h2>
+                                                <p className="text-slate-500 mt-2 font-medium">Conecte o WhatsApp do seu estabelecimento para habilitar os avisos de agendamento em tempo real.</p>
                                             </div>
-                                            <button onClick={handleConnect} className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-slate-900/30 hover:bg-black transition-all hover:scale-105 active:scale-95">
-                                                GERAR QR CODE DE CONEXÃO
+                                            <button onClick={handleConnect} className="bg-emerald-500 text-white px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-emerald-500/20 hover:bg-emerald-600 transition-all hover:scale-105 active:scale-95">
+                                                GERAR TOKEN DE ACESSO
                                             </button>
                                         </>
                                     ) : (
                                         <div className="space-y-8 flex flex-col items-center">
-                                            <div className="p-6 bg-white rounded-[2rem] border-8 border-slate-900 shadow-2xl relative">
-                                                <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64 grayscale hover:grayscale-0 transition-all duration-700" />
-                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-white/10 backdrop-blur-[2px] transition-opacity cursor-none font-black text-slate-900 uppercase text-[10px] tracking-widest">Aguardando Scan</div>
+                                            <div className="p-6 bg-white rounded-[2rem] border-[12px] border-slate-950 shadow-2xl relative">
+                                                <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64 grayscale group-hover:grayscale-0 transition-all duration-700" />
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-white/40 backdrop-blur-[2px] transition-opacity cursor-pointer font-black text-slate-950 uppercase text-[10px] tracking-widest">Digitalizando...</div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-widest">Escaneie o código acima</p>
-                                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Abra o WhatsApp {'>'} Aparelhos Conectados {'>'} Conectar um Aparelho</p>
+                                            <div className="space-y-3">
+                                                <p className="text-white font-black uppercase text-xs tracking-[0.2em] animate-pulse">Aguardando Leitura</p>
+                                                <p className="text-slate-600 text-[10px] font-bold uppercase tracking-widest bg-slate-950 px-4 py-1 rounded-full border border-slate-800">WhatsApp {'>'} Aparelhos Conectados {'>'} Vincular</p>
                                             </div>
                                         </div>
                                     )}
@@ -131,80 +133,94 @@ export default function WhatsAppPage() {
                             )}
                         </div>
 
-                        <div className="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-6 items-center justify-between">
+                        <div className="px-8 py-6 bg-slate-950/50 border-t border-slate-800/50 flex flex-col md:flex-row gap-6 items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-white dark:bg-slate-900 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-800">
-                                    <Zap className="w-5 h-5 text-orange-500" />
+                                <div className="w-12 h-12 bg-slate-950 rounded-xl flex items-center justify-center shadow-lg border border-slate-800">
+                                    <Zap className="w-5 h-5 text-emerald-500" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status da Engine</p>
-                                    <p className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase">Evolution API v2.0 <span className="text-emerald-500 ml-2">● Online</span></p>
+                                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Engine de Mensageria</p>
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-tight">Evolution API Enterprise <span className="text-emerald-500 ml-2">● Estável</span></p>
                                 </div>
                             </div>
                             <div className="flex gap-4">
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Criptografia</p>
-                                    <p className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase">HTTPS / AES-256</p>
+                                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Segurança</p>
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-tight">TLS 1.3 / End-to-End</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 shadow-xl overflow-hidden relative">
                         <div className="flex items-center gap-3 mb-6">
-                            <Settings className="w-5 h-5 text-slate-400" />
-                            <h3 className="font-black uppercase tracking-widest text-sm">Configuração de Webhook (n8n)</h3>
+                            <div className="p-2 bg-slate-950 rounded-lg border border-slate-800">
+                                <Settings className="w-5 h-5 text-emerald-500" />
+                            </div>
+                            <h3 className="font-black uppercase tracking-[0.15em] text-xs text-white">Configuração de Automação (n8n Webhook)</h3>
                         </div>
                         <div className="flex flex-col md:flex-row gap-4">
                             <input
                                 type="text"
                                 value={webhookUrl}
                                 onChange={(e) => setWebhookUrl(e.target.value)}
-                                placeholder="https://n8n.seu-dominio.com/webhook/..."
-                                className="flex-1 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 ring-emerald-500 transition font-mono text-xs"
+                                placeholder="https://automaserv.com/webhook/..."
+                                className="flex-1 p-5 bg-slate-950 border border-slate-800 rounded-2xl outline-none focus:ring-2 ring-emerald-500 transition font-mono text-[10px] text-emerald-500 placeholder:text-slate-800"
                             />
-                            <button onClick={saveWebhook} className="bg-emerald-500 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20">Salvar Endpoint</button>
+                            <button onClick={saveWebhook} className="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20">SALVAR ENDPOINT</button>
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-4 font-bold uppercase tracking-widest flex items-center gap-2">
-                            <Bell className="w-3 h-3" /> Este URL receberá notificações de novos agendamentos em tempo real.
-                        </p>
+                        <div className="mt-6 flex items-center gap-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800/50">
+                            <Bell className="w-4 h-4 text-emerald-500" />
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                                Este endpoint processará gatilhos de agendamento, cancelamento e lembretes recorrentes.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
                 <div className="space-y-6">
-                    <div className="p-8 bg-slate-900 text-white rounded-[2.5rem] shadow-xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
-                            <MessageSquare className="w-20 h-20" />
+                    <div className="p-8 bg-[#111827] text-white rounded-[2.5rem] border border-slate-800 shadow-xl relative overflow-hidden group">
+                        <div className="absolute -top-4 -right-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <MessageSquare className="w-32 h-32" />
                         </div>
-                        <h4 className="font-black uppercase tracking-widest text-xs mb-4 text-emerald-400">Funcionalidades Ativas</h4>
-                        <ul className="space-y-4">
-                            <li className="flex items-start gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></div>
-                                <p className="text-xs font-medium text-slate-300">Lembretes automáticos 24h e 1h antes do horário.</p>
+                        <h4 className="font-black uppercase tracking-[0.2em] text-[10px] mb-6 text-emerald-500">Módulos Inteligentes</h4>
+                        <ul className="space-y-6">
+                            <li className="flex items-start gap-4">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0 shadow-lg shadow-emerald-500/50"></div>
+                                <div className="space-y-1">
+                                    <p className="text-[11px] font-black uppercase tracking-tight text-white">Lembrete Pré-Agendado</p>
+                                    <p className="text-[10px] font-medium text-slate-500 leading-relaxed italic">Disparo automático 24h e 1h antes para evitar No-Show.</p>
+                                </div>
                             </li>
-                            <li className="flex items-start gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></div>
-                                <p className="text-xs font-medium text-slate-300">Mensagem de boas-vindas para novos clientes.</p>
+                            <li className="flex items-start gap-4">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0 shadow-lg shadow-emerald-500/50"></div>
+                                <div className="space-y-1">
+                                    <p className="text-[11px] font-black uppercase tracking-tight text-white">Feedback do Cliente</p>
+                                    <p className="text-[10px] font-medium text-slate-500 leading-relaxed italic">Solicita uma avaliação 30 min após a conclusão do serviço.</p>
+                                </div>
                             </li>
-                            <li className="flex items-start gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></div>
-                                <p className="text-xs font-medium text-slate-300">Confirmação instantânea de pagamento/reserva.</p>
+                            <li className="flex items-start gap-4">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0 shadow-lg shadow-emerald-500/50"></div>
+                                <div className="space-y-1">
+                                    <p className="text-[11px] font-black uppercase tracking-tight text-white">Recupere Clientes</p>
+                                    <p className="text-[10px] font-medium text-slate-500 leading-relaxed italic">Alerta de retorno caso o cliente não agende nada em 45 dias.</p>
+                                </div>
                             </li>
                         </ul>
                     </div>
 
-                    <div className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] shadow-sm">
-                        <h4 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-slate-400">
-                            Dicas de Uso
+                    <div className="p-8 bg-slate-950/20 border border-slate-800/50 rounded-[2.5rem]">
+                        <h4 className="font-black uppercase tracking-[0.2em] text-[10px] mb-6 flex items-center gap-2 text-slate-600">
+                            Protocolos de Uso
                         </h4>
                         <div className="space-y-6">
-                            <div className="space-y-2">
-                                <p className="font-black uppercase text-[10px] text-slate-700 dark:text-white tracking-widest">Evite Bloqueios</p>
-                                <p className="text-[10px] font-medium text-slate-500 italic leading-relaxed">Não envie mensagens em massa para números que não têm você salvo nos contatos.</p>
+                            <div className="space-y-3">
+                                <p className="font-black uppercase text-[10px] text-slate-400 tracking-widest border-b border-slate-800 pb-1 w-fit">Conexão Segura</p>
+                                <p className="text-[10px] font-medium text-slate-600 italic leading-relaxed">Mantenha seu celular carregado e conectado à internet para garantir a entrega das mensagens.</p>
                             </div>
-                            <div className="space-y-2">
-                                <p className="font-black uppercase text-[10px] text-slate-700 dark:text-white tracking-widest">Personalização</p>
-                                <p className="text-[10px] font-medium text-slate-500 italic leading-relaxed">Use o n8n para incluir o nome do cliente e do barbeiro na mensagem.</p>
+                            <div className="space-y-3">
+                                <p className="font-black uppercase text-[10px] text-slate-400 tracking-widest border-b border-slate-800 pb-1 w-fit">Limites de Envio</p>
+                                <p className="text-[10px] font-medium text-slate-600 italic leading-relaxed">Não realize disparos manuais em massa pelo app enquanto a engine estiver processando automações.</p>
                             </div>
                         </div>
                     </div>

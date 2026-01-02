@@ -69,18 +69,23 @@ export default function FinancePage() {
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
     return (
-        <div className="space-y-8 pb-20 text-slate-900 dark:text-white">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter">Fluxo Financeiro</h1>
-                    <p className="text-slate-500 text-sm font-medium">Controle de caixa, lucros e comissões</p>
+        <div className="space-y-8 pb-20">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-3xl border border-slate-800 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                        <TrendingUp className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Fluxo Financeiro</h1>
+                        <p className="text-slate-500 text-sm font-medium italic">Gestão estratégica de entradas, saídas e comissões.</p>
+                    </div>
                 </div>
-                <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-2xl border border-slate-100 dark:border-slate-700 w-full md:w-auto overflow-x-auto">
+                <div className="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-800 w-full md:w-auto overflow-x-auto">
                     {['day', 'week', 'month'].map(p => (
                         <button
                             key={p}
                             onClick={() => setPeriod(p)}
-                            className={`flex-1 md:flex-none px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === p ? 'bg-white dark:bg-slate-900 text-orange-500 shadow-lg shadow-orange-500/5' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`flex-1 md:flex-none px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === p ? 'bg-[#111827] text-emerald-500 shadow-xl border border-emerald-500/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             {p === 'day' ? 'Hoje' : p === 'week' ? 'Semana' : 'Mês'}
                         </button>
@@ -89,131 +94,145 @@ export default function FinancePage() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-slate-900 p-8 rounded-3xl text-white relative overflow-hidden shadow-2xl shadow-slate-900/40">
+                <div className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 text-white relative overflow-hidden group">
                     <div className="relative z-10">
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Faturamento Bruto</p>
-                        <h2 className="text-3xl font-black mt-1">{formatBRL(stats.totalRevenue)}</h2>
-                        <p className="text-[9px] mt-4 font-bold opacity-40 uppercase tracking-widest">Serviços + Outras Entradas</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Faturamento Bruto</p>
+                        <h2 className="text-3xl font-black mt-2 group-hover:text-emerald-500 transition-colors uppercase">{formatBRL(stats.totalRevenue)}</h2>
+                        <div className="mt-4 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Total processado</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm relative group overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 transition-transform"><Scissors /></div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total de Cortes</p>
-                    <h2 className="text-3xl font-black mt-1">{stats.totalAppointments}</h2>
-                    <p className="text-[9px] mt-4 text-orange-500 font-black uppercase tracking-widest">Agendamentos Concluídos</p>
+                <div className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 shadow-sm relative group overflow-hidden">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Serviços / Jobs</p>
+                    <h2 className="text-3xl font-black mt-2 text-white uppercase">{stats.totalAppointments}</h2>
+                    <p className="text-[9px] mt-4 text-emerald-500 font-black uppercase tracking-widest bg-emerald-500/10 w-fit px-2 py-1 rounded">Agendamentos concluídos</p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Despesas Totais</p>
-                    <h2 className="text-3xl font-black mt-1 text-red-500">{formatBRL(stats.totalExpenses + (stats.totalCommissions || 0))}</h2>
-                    <p className="text-[9px] mt-4 text-slate-400 font-bold uppercase tracking-widest">Incluindo Comissões</p>
+                <div className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Custos & Comissões</p>
+                    <h2 className="text-3xl font-black mt-2 text-red-500 uppercase">{formatBRL(stats.totalExpenses + (stats.totalCommissions || 0))}</h2>
+                    <p className="text-[9px] mt-4 text-slate-600 font-black uppercase tracking-widest">Comprometimento de caixa</p>
                 </div>
 
-                <div className="bg-emerald-600 p-8 rounded-3xl text-white shadow-2xl shadow-emerald-600/30">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Lucro Líquido</p>
-                    <h2 className="text-4xl font-black mt-1 leading-none">{formatBRL(stats.netProfit)}</h2>
-                    <p className="text-[9px] mt-4 font-black uppercase tracking-widest bg-white/10 w-fit px-2 py-1 rounded inline-block">Resultado Real</p>
+                <div className="bg-emerald-500 p-8 rounded-[2rem] text-[#111827] shadow-2xl shadow-emerald-500/20">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Lucro Líquido</p>
+                    <h2 className="text-4xl font-black mt-1 leading-none uppercase">{formatBRL(stats.netProfit)}</h2>
+                    <p className="text-[9px] mt-4 font-black uppercase tracking-widest bg-black/5 w-fit px-2 py-1 rounded">Performance Financeira</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-sm">
                         <div className="flex justify-between items-center mb-10">
                             <div>
-                                <h3 className="text-lg font-black uppercase tracking-tighter">Movimentações de Caixa</h3>
-                                <p className="text-xs text-slate-400 font-medium italic">Entradas manuais e despesas operacionais</p>
+                                <h3 className="text-xl font-black uppercase tracking-tighter text-white">Fluxo de Caixa</h3>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Lançamentos manuais e operacionais</p>
                             </div>
                             <button
                                 onClick={() => setIsAdding(true)}
-                                className="bg-orange-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition shadow-lg shadow-orange-500/20"
+                                className="bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20"
                             >
                                 NOVO LANÇAMENTO
                             </button>
                         </div>
 
                         {isAdding && (
-                            <form onSubmit={handleAddTransaction} className="mb-8 p-6 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-4">
-                                <div className="md:col-span-2">
-                                    <label className="text-[9px] font-black ml-2 uppercase text-slate-400">Descrição</label>
-                                    <input placeholder="Ex: Aluguel, Compra de Sprays..." value={newTrans.description} onChange={e => setNewTrans({ ...newTrans, description: e.target.value })} className="w-full p-3 border rounded-xl dark:bg-slate-900 dark:border-slate-600 text-sm" required />
+                            <form onSubmit={handleAddTransaction} className="mb-8 p-8 bg-slate-950 rounded-[2rem] border border-slate-800 grid grid-cols-1 md:grid-cols-4 gap-6 animate-in fade-in slide-in-from-top-4">
+                                <div className="md:col-span-2 space-y-2">
+                                    <label className="text-[10px] font-black ml-1 uppercase text-slate-500 tracking-widest">Descrição</label>
+                                    <input placeholder="Ex: Produto Limpeza, Aluguel..." value={newTrans.description} onChange={e => setNewTrans({ ...newTrans, description: e.target.value })} className="w-full p-4 bg-[#111827] border border-slate-800 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-white font-bold" required />
                                 </div>
-                                <div>
-                                    <label className="text-[9px] font-black ml-2 uppercase text-slate-400">Valor (R$)</label>
-                                    <input type="number" step="0.01" placeholder="0.00" value={newTrans.amount} onChange={e => setNewTrans({ ...newTrans, amount: e.target.value })} className="w-full p-3 border rounded-xl dark:bg-slate-900 dark:border-slate-600 text-sm" required />
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black ml-1 uppercase text-slate-500 tracking-widest">Valor</label>
+                                    <input type="number" step="0.01" placeholder="0.00" value={newTrans.amount} onChange={e => setNewTrans({ ...newTrans, amount: e.target.value })} className="w-full p-4 bg-[#111827] border border-slate-800 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-white font-bold" required />
                                 </div>
-                                <div>
-                                    <label className="text-[9px] font-black ml-2 uppercase text-slate-400">Tipo</label>
-                                    <select value={newTrans.type} onChange={e => setNewTrans({ ...newTrans, type: e.target.value })} className="w-full p-3 border rounded-xl dark:bg-slate-900 dark:border-slate-600 text-sm">
-                                        <option value="EXPENSE">Saída (Gasto)</option>
-                                        <option value="INCOME">Entrada (Extra)</option>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black ml-1 uppercase text-slate-500 tracking-widest">Tipo</label>
+                                    <select value={newTrans.type} onChange={e => setNewTrans({ ...newTrans, type: e.target.value })} className="w-full p-4 bg-[#111827] border border-slate-800 rounded-xl outline-none focus:ring-2 ring-emerald-500 text-white font-bold appearance-none">
+                                        <option value="EXPENSE">SAÍDA (Custo)</option>
+                                        <option value="INCOME">ENTRADA (Extra)</option>
                                     </select>
                                 </div>
-                                <div className="md:col-span-4 flex gap-2 justify-end">
-                                    <button type="submit" className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest">SALVAR</button>
-                                    <button type="button" onClick={() => setIsAdding(false)} className="bg-slate-200 dark:bg-slate-700 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest">CANCELAR</button>
+                                <div className="md:col-span-4 flex gap-3 justify-end pt-2">
+                                    <button type="submit" className="bg-white text-slate-900 px-10 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200">SALVAR</button>
+                                    <button type="button" onClick={() => setIsAdding(false)} className="bg-slate-900 text-slate-500 px-10 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-800">CANCELAR</button>
                                 </div>
                             </form>
                         )}
 
                         <div className="space-y-4">
                             {transactions.length > 0 ? transactions.map((t, i) => (
-                                <div key={i} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-orange-200 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-3 rounded-xl ${t.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                                <div key={i} className="flex items-center justify-between p-6 bg-slate-950/20 rounded-2xl border border-slate-800/50 group hover:border-emerald-500/30 transition-all">
+                                    <div className="flex items-center gap-5">
+                                        <div className={`p-4 rounded-2xl border ${t.type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                                             {t.type === 'INCOME' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm uppercase tracking-tight">{t.description}</p>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} • {t.category || 'Outros'}</p>
+                                            <p className="font-black text-sm uppercase tracking-tight text-white mb-1">{t.description}</p>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                                                {new Date(t.date).toLocaleDateString('pt-BR')} • {t.category || 'Operacional'}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-6">
-                                        <p className={`font-black text-lg ${t.type === 'INCOME' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                                        <p className={`font-black text-xl uppercase ${t.type === 'INCOME' ? 'text-emerald-500' : 'text-white'}`}>
                                             {t.type === 'INCOME' ? '+' : '-'}{formatBRL(t.amount)}
                                         </p>
-                                        <button onClick={() => handleDeleteTransaction(t.id)} className="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"><ArrowDownRight className="w-4 h-4 rotate-45" /></button>
+                                        <button onClick={() => handleDeleteTransaction(t.id)} className="text-slate-800 hover:text-red-500 transition-colors">
+                                            <ArrowDownRight className="w-5 h-5 rotate-45" />
+                                        </button>
                                     </div>
                                 </div>
                             )) : (
-                                <div className="py-20 text-center">
-                                    <p className="text-slate-400 italic font-medium uppercase tracking-widest text-[10px]">Sem movimentações extras no período</p>
+                                <div className="py-24 text-center border-2 border-dashed border-slate-800 rounded-3xl">
+                                    <p className="text-slate-600 italic font-black uppercase tracking-widest text-[10px]">Sem movimentações extras no período</p>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <h3 className="text-lg font-black uppercase tracking-tighter mb-8">Comissões da Equipe</h3>
+                <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-sm">
+                    <h3 className="text-xl font-black uppercase tracking-tighter text-white mb-8">Pay-out Equipe</h3>
                     <div className="space-y-8">
                         {stats.commissions && stats.commissions.length > 0 ? stats.commissions.map((c, i) => (
-                            <div key={i} className="flex flex-col gap-2">
+                            <div key={i} className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center font-black text-slate-500 uppercase">{c.name.charAt(0)}</div>
-                                        <p className="font-black text-xs uppercase tracking-widest text-slate-700 dark:text-slate-300">{c.name}</p>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-slate-950 rounded-2xl flex items-center justify-center font-black text-emerald-500 border border-slate-800 uppercase text-xl shadow-inner">
+                                            {c.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-xs uppercase tracking-widest text-white leading-none mb-1">{c.name}</p>
+                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Acumulado</p>
+                                        </div>
                                     </div>
-                                    <p className="font-black text-orange-500 text-sm">
+                                    <p className="font-black text-emerald-500 text-lg uppercase tracking-tight">
                                         {formatBRL(c.value)}
                                     </p>
                                 </div>
-                                <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-900 shadow-inner">
                                     <div
-                                        className="bg-orange-500 h-full rounded-full"
+                                        className="bg-emerald-500 h-full rounded-full transition-all duration-1000"
                                         style={{ width: `${Math.min(100, (c.value / (stats.totalRevenue || 1)) * 100)}%` }}
                                     ></div>
                                 </div>
                             </div>
                         )) : (
-                            <p className="text-slate-400 italic text-xs uppercase font-bold text-center py-20">Aguardando dados de serviço...</p>
+                            <div className="py-24 text-center">
+                                <Users className="w-12 h-12 text-slate-800 mx-auto mb-4" />
+                                <p className="text-slate-600 italic text-[10px] uppercase font-black tracking-widest">Nenhuma comissão pendente</p>
+                            </div>
                         )}
                     </div>
 
-                    <div className="mt-12 p-6 bg-slate-900 rounded-2xl text-white">
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Total em Comissões</p>
-                        <h4 className="text-2xl font-black mt-1 leading-none">
+                    <div className="mt-12 p-8 bg-slate-950 rounded-3xl border border-slate-800 flex flex-col items-center justify-center text-center">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Provisão de Saída Total</p>
+                        <h4 className="text-3xl font-black text-white uppercase tracking-tighter">
                             {formatBRL(stats.commissions?.reduce((acc, curr) => acc + curr.value, 0) || 0)}
                         </h4>
                     </div>
