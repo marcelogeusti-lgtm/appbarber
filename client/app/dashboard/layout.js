@@ -63,7 +63,7 @@ export default function DashboardLayout({ children }) {
                         </div>
                         <div className="flex-1 overflow-hidden">
                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Unidade</p>
-                            <h3 className="text-sm font-black text-white truncate uppercase tracking-tighter">{user.barbershop?.name || 'Barbearia'}</h3>
+                            <h3 className="text-sm font-black text-white truncate uppercase tracking-tighter">{user?.barbershop?.name || 'Barbearia'}</h3>
                             <div className="flex items-center gap-1.5 mt-1">
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                                 <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ativa</span>
@@ -145,10 +145,10 @@ export default function DashboardLayout({ children }) {
                     <div className="hidden md:flex items-center gap-4 ml-auto">
                         <div className="text-right">
                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Bem-vindo,</p>
-                            <p className="text-sm font-black text-white uppercase tracking-tighter">{user.name}</p>
+                            <p className="text-sm font-black text-white uppercase tracking-tighter">{user?.name || 'Usuário'}</p>
                         </div>
                         <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-emerald-500/20">
-                            {user.name?.[0]}
+                            {user?.name?.[0] || 'U'}
                         </div>
                     </div>
                 </header>
