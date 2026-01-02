@@ -1,7 +1,7 @@
 'use client';
 
-export default function DashboardPageV4() {
-    console.log('Dashboard V4 - Minimal Mode Loaded');
+export default function DashboardPageV5() {
+    console.log('Dashboard V5 - JS Restore');
 
     return (
         <div className="p-10 text-center">
