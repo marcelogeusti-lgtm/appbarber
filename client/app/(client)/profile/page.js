@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { User, Settings, LogOut, ChevronRight, Heart, MapPin, Shield, CreditCard, File } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
     const router = useRouter();
