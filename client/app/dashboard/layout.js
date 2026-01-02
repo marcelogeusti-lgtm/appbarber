@@ -138,7 +138,7 @@ export default function DashboardLayout({ children }) {
                             <Menu className="w-6 h-6" />
                         </button>
                         <span className="font-black uppercase text-xl tracking-tighter text-white">
-                            <span className="text-emerald-500 italic">Barbe</span>-On
+                            <span className="text-emerald-500 italic">Barbe</span>-On <span className="text-[8px] text-slate-600">v4.0</span>
                         </span>
                     </div>
 
