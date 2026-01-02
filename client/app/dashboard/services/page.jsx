@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { Plus, Trash2, Edit2, X, Scissors, Clock } from 'lucide-react';
 
-export default function ServicesPage() {
+export default function ServicesPageV2() {
+    console.log('Services Version 2.0 - JSX Fix');
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
