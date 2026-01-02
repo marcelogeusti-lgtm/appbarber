@@ -1,102 +1,102 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Clock, Scissors, CalendarCheck, MapPin, Phone, MessageCircle } from 'lucide-react';
-import api from '../../../lib/api';
+import { Clock, Scissors, CalendarCheck, MapPin, Phone, MessageCircle, User, ChevronRight, ArrowLeft, Star, Calendar, ShoppingBag, CreditCard, Banknote } from 'lucide-react';
+import api from '../../../lib/api'; // Adjusted import path for agendamento/[slug]
 
 export default function BarbershopPage() {
     const params = useParams();
     const { slug } = params;
     const [barbershop, setBarbershop] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState([]);
+    const [mySubscription, setMySubscription] = useState(null);
+
+    // Booking State
+    const [step, setStep] = useState(1);
     const [selectedService, setSelectedService] = useState(null);
-    const [step, setStep] = useState(1); // 1: Services, 2: Guest Form
+    const [selectedProfessional, setSelectedProfessional] = useState(null);
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [paymentMethod, setPaymentMethod] = useState(''); // 'LOCAL', 'ONLINE', 'SUBSCRIPTION'
 
     // Form Data
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
         email: '',
-        birthday: '', // YYYY-MM-DD
-        date: new Date().toISOString().split('T')[0],
-        time: '' // HH:mm
+        birthday: '',
+        date: '',
+        time: ''
     });
-
-    const [availability, setAvailability] = useState([]);
-    const [loadingSlots, setLoadingSlots] = useState(false);
-    const [isWaitlistMode, setIsWaitlistMode] = useState(false);
-    const [successMessage, setSuccessMessage] = useState(null);
 
     useEffect(() => {
         if (!slug) return;
-        api.get(`/barbershops/${slug}`)
-            .then(res => setBarbershop(res.data))
-            .catch(err => console.error(err))
-            .finally(() => setLoading(false));
 
-        // Load saved guest data
+        async function loadData() {
+            try {
+                const res = await api.get(`/barbershops/${slug}`);
+                setBarbershop(res.data);
+
+                // Load Products
+                const prodRes = await api.get(`/products?barbershopId=${res.data.id}`);
+                setProducts(prodRes.data);
+
+                // Check Subscription (if logged in)
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    // Minimal check if user.name matches form default
+                    setFormData(prev => ({
+                        ...prev,
+                        name: user.name || prev.name,
+                        phone: user.phone || prev.phone,
+                        email: user.email || prev.email
+                    }));
+
+                    try {
+                        const subRes = await api.get('/subscription/my-active');
+                        setMySubscription(subRes.data);
+                    } catch (e) { /* No sub */ }
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadData();
+
         const saved = localStorage.getItem('guestData');
         if (saved) {
-            const parsed = JSON.parse(saved);
-            setFormData(prev => ({
-                ...prev,
-                name: parsed.name || '',
-                phone: parsed.phone || '',
-                email: parsed.email || '',
-                birthday: parsed.birthday || ''
-            }));
+            setFormData(prev => ({ ...prev, ...JSON.parse(saved) }));
         }
     }, [slug]);
-
-    const fetchSlots = async (date) => {
-        if (!barbershop) return;
-        setLoadingSlots(true);
-        try {
-            const res = await api.get(`/availability/${barbershop.id}/${date}`);
-            setAvailability(res.data);
-            setIsWaitlistMode(res.data.every(pro => pro.slots.length === 0));
-        } catch (err) {
-            console.error('Error fetching slots');
-        } finally {
-            setLoadingSlots(false);
-        }
-    };
-
-    useEffect(() => {
-        if (formData.date && barbershop) {
-            fetchSlots(formData.date);
-        }
-    }, [formData.date, barbershop]);
-
-    const handleWaitlist = async (e) => {
-        e.preventDefault();
-        try {
-            await api.post('/waitlist', {
-                barbershopId: barbershop.id,
-                serviceId: selectedService.id,
-                date: formData.date,
-                name: formData.name,
-                phone: formData.phone
-            });
-            setSuccessMessage("Você entrou na lista de espera! Avisaremos pelo WhatsApp se uma vaga abrir. 📱");
-            setTimeout(() => {
-                setStep(1);
-                setSuccessMessage(null);
-            }, 5000);
-        } catch (err) {
-            alert('Erro ao entrar na lista de espera');
-        }
-    };
 
     const handleServiceSelect = (service) => {
         setSelectedService(service);
         setStep(2);
     };
 
-    const handleBook = async (e) => {
-        e.preventDefault();
+    const handleProfessionalSelect = (pro) => {
+        setSelectedProfessional(pro);
+        setStep(3);
+    };
+
+    const handleProductToggle = (product) => {
+        if (selectedProducts.find(p => p.id === product.id)) {
+            setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
+        } else {
+            setSelectedProducts([...selectedProducts, product]);
+        }
+    };
+
+    const handleBook = async () => {
         try {
-            // Save guest data for next time
+            if (!formData.name || !formData.phone || !formData.date || !formData.time) {
+                return alert('Preencha todos os dados obrigatórios');
+            }
+            if (!paymentMethod) return alert('Selecione uma forma de pagamento');
+
             localStorage.setItem('guestData', JSON.stringify({
                 name: formData.name,
                 phone: formData.phone,
@@ -105,230 +105,223 @@ export default function BarbershopPage() {
             }));
 
             await api.post('/appointments', {
-                professionalId: formData.professionalId,
+                professionalId: selectedProfessional.id,
                 serviceId: selectedService.id,
+                products: selectedProducts.map(p => p.id),
+                paymentMethod,
                 date: formData.date,
                 time: formData.time,
                 guestName: formData.name,
                 guestPhone: formData.phone,
                 guestEmail: formData.email,
-                guestBirthday: formData.birthday
+                guestBirthday: formData.birthday,
+                barbershopId: barbershop.id
             });
 
-            alert('Agendamento realizado com sucesso!');
-            setStep(1);
-            setFormData(prev => ({ ...prev, date: '', time: '' }));
+            setStep(5); // Success
         } catch (err) {
             alert(err.response?.data?.message || 'Erro ao agendar');
         }
     };
 
+    const nextStep = () => setStep(prev => prev + 1);
+    const prevStep = () => setStep(prev => prev - 1);
+
+    const formatCurrency = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const totalValue = (selectedService?.price ? Number(selectedService.price) : 0) +
+        selectedProducts.reduce((sum, p) => sum + Number(p.price), 0);
+
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-slate-950">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Carregando experiência...</p>
-            </div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
         </div>
     );
 
-    if (!barbershop) return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-6 text-center">
-            <div>
-                <h1 className="text-6xl font-black mb-4 tracking-tighter">404</h1>
-                <p className="text-slate-400 mb-8 uppercase text-xs font-bold tracking-widest">Barbearia não catalogada</p>
-                <a href="/" className="bg-orange-500 text-white px-12 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest">Retornar</a>
+    if (!barbershop) return <div className="text-white text-center pt-20">Barbearia não encontrada</div>;
+
+    // Success Screen
+    if (step === 5) return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center animate-in zoom-in">
+            <div className="bg-[#111827] w-full max-w-md p-10 rounded-[3rem] border border-slate-800 space-y-6">
+                <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <CalendarCheck className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="text-3xl font-black text-white uppercase">Agendado!</h2>
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-3 text-left">
+                    <p className="text-white text-sm flex justify-between">
+                        <span className="text-slate-500 uppercase font-bold text-[10px] tracking-widest">Serviço</span>
+                        <span className="font-bold">{selectedService?.name}</span>
+                    </p>
+                    <p className="text-white text-sm flex justify-between">
+                        <span className="text-slate-500 uppercase font-bold text-[10px] tracking-widest">Profissional</span>
+                        <span className="font-bold">{selectedProfessional?.name}</span>
+                    </p>
+                    <p className="text-white text-sm flex justify-between">
+                        <span className="text-slate-500 uppercase font-bold text-[10px] tracking-widest">Data</span>
+                        <span className="font-bold">{new Date(formData.date + 'T00:00:00').toLocaleDateString('pt-BR')} às {formData.time}</span>
+                    </p>
+                    {selectedProducts.length > 0 && (
+                        <p className="text-white text-sm flex justify-between">
+                            <span className="text-slate-500 uppercase font-bold text-[10px] tracking-widest">Adicionais</span>
+                            <span className="font-bold">{selectedProducts.length} itens</span>
+                        </p>
+                    )}
+                </div>
+                <button onClick={() => window.location.href = '/home'} className="w-full bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition">
+                    Voltar ao Início
+                </button>
             </div>
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-32">
-            {/* Header / Brand */}
-            <header className="bg-slate-900 text-white pt-20 pb-32 px-8 text-center rounded-b-[4rem] shadow-2xl relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-orange-500/20 to-transparent"></div>
-                <div className="relative z-10 space-y-4">
-                    <div className="w-20 h-20 bg-orange-500 rounded-3xl mx-auto flex items-center justify-center shadow-2xl shadow-orange-500/20 mb-6 border-4 border-slate-900">
-                        <Scissors className="w-10 h-10 text-white" />
-                    </div>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase">{barbershop.name}</h1>
-                    <div className="flex items-center justify-center gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        {barbershop.address && (
-                            <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(barbershop.address)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 hover:text-orange-500 transition-colors"
-                            >
-                                <MapPin className="w-4 h-4 text-orange-500" /> {barbershop.address}
-                            </a>
-                        )}
-                        {!barbershop.address && (
-                            <span className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-orange-500" /> Check-in Social
-                            </span>
-                        )}
-                    </div>
+        <div className="min-h-screen bg-slate-950 text-slate-100 pb-32">
+            <header className="px-6 py-6 flex items-center justify-between border-b border-slate-900 bg-[#111827]">
+                {step > 1 ? (
+                    <button onClick={prevStep} className="p-2 bg-slate-800 rounded-xl hover:bg-slate-700 transition"><ArrowLeft className="w-5 h-5" /></button>
+                ) : <div className="w-9"></div>}
+                <div className="text-center">
+                    <h1 className="font-black uppercase tracking-tight text-lg">{barbershop.name}</h1>
+                    <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Passo {step} de 4</p>
                 </div>
+                <div className="w-9"></div>
             </header>
 
-            <main className="container mx-auto px-6 -mt-16 relative z-20">
+            <main className="container mx-auto px-6 py-8 max-w-2xl">
+                {/* 1. Services */}
                 {step === 1 && (
-                    <div className="max-w-3xl mx-auto space-y-12">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {barbershop.services?.length > 0 ? (
-                                barbershop.services.map(service => (
-                                    <div key={service.id}
-                                        onClick={() => handleServiceSelect(service)}
-                                        className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between hover:border-orange-500 hover:shadow-2xl hover:shadow-orange-500/10 cursor-pointer transition-all group min-h-[220px]">
-                                        <div>
-                                            <h3 className="font-black text-2xl mb-2 group-hover:text-orange-500 transition-colors uppercase tracking-tight leading-none">{service.name}</h3>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                <Clock className="w-3.5 h-3.5" /> {service.duration} Minutos
-                                            </p>
-                                        </div>
-                                        <div className="mt-8 flex items-center justify-between">
-                                            <div className="text-2xl font-black text-slate-900 dark:text-white">R$ {service.price}</div>
-                                            <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-all">
-                                                <CalendarCheck className="w-5 h-5" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="col-span-full text-center py-20 bg-slate-50 dark:bg-slate-900 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-                                    <p className="text-slate-400 font-bold uppercase text-xs tracking-widest">Nenhum serviço disponível no momento</p>
+                    <div className="space-y-4 animate-in slide-in-from-right">
+                        <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Selecione o Serviço</h2>
+                        {barbershop.services?.map(service => (
+                            <div key={service.id} onClick={() => handleServiceSelect(service)} className="bg-[#1e293b] p-6 rounded-3xl border border-slate-800 hover:border-emerald-500 cursor-pointer flex justify-between items-center group">
+                                <div>
+                                    <h3 className="font-black text-white uppercase text-lg group-hover:text-emerald-500 transition">{service.name}</h3>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{service.duration} min</p>
                                 </div>
-                            )}
+                                <span className="font-black text-white text-lg">{formatCurrency(service.price)}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* 2. Professionals */}
+                {step === 2 && (
+                    <div className="space-y-4 animate-in slide-in-from-right">
+                        <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Quem vai te atender?</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            {barbershop.staff?.filter(s => s.role === 'BARBER').map(pro => (
+                                <div key={pro.id} onClick={() => handleProfessionalSelect(pro)} className="bg-[#1e293b] p-6 rounded-3xl border border-slate-800 hover:border-emerald-500 cursor-pointer text-center group">
+                                    <div className="w-16 h-16 bg-slate-900 rounded-full mx-auto mb-3 flex items-center justify-center font-black text-2xl text-white group-hover:text-emerald-500 transition border border-slate-800">
+                                        {pro.name.charAt(0)}
+                                    </div>
+                                    <h3 className="font-black text-white uppercase text-sm">{pro.name}</h3>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
 
-                {step === 2 && (
-                    <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <button onClick={() => setStep(1)} className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-orange-500 mb-10 transition-colors uppercase tracking-widest">
-                            &larr; Voltar para Serviços
+                {/* 3. Upsell (Adicionais) */}
+                {step === 3 && (
+                    <div className="space-y-6 animate-in slide-in-from-right">
+                        <div className="text-center">
+                            <h2 className="text-xl font-black text-white uppercase mb-1">Turbine seu visual</h2>
+                            <p className="text-slate-500 text-xs font-medium">Produtos recomendados para levar agora</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {products.map(product => {
+                                const selected = selectedProducts.find(p => p.id === product.id);
+                                return (
+                                    <div key={product.id} onClick={() => handleProductToggle(product)}
+                                        className={`bg-[#1e293b] p-4 rounded-3xl border cursor-pointer transition flex items-center gap-4 ${selected ? 'border-emerald-500 bg-emerald-500/5' : 'border-slate-800'}`}>
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition ${selected ? 'bg-emerald-500 text-white' : 'bg-slate-900 text-slate-600'}`}>
+                                            <ShoppingBag className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-white text-sm uppercase">{product.name}</h3>
+                                            <p className="text-emerald-500 font-black text-sm">{formatCurrency(product.price)}</p>
+                                        </div>
+                                        {selected && <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>}
+                                    </div>
+                                );
+                            })}
+                            {products.length === 0 && <p className="text-center text-slate-500 text-sm col-span-2">Nenhum produto disponível.</p>}
+                        </div>
+
+                        <div className="bg-[#111827] p-6 rounded-3xl border border-slate-800 flex justify-between items-center">
+                            <span className="text-slate-500 uppercase font-black text-xs tracking-widest">Total Estimado</span>
+                            <span className="text-2xl font-black text-white">{formatCurrency(totalValue)}</span>
+                        </div>
+
+                        <button onClick={nextStep} className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition">
+                            Continuar para Agendamento
                         </button>
+                    </div>
+                )}
 
-                        {successMessage ? (
-                            <div className="py-20 text-center space-y-6">
-                                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                                    <MessageCircle className="w-10 h-10" />
-                                </div>
-                                <h3 className="text-2xl font-black uppercase tracking-tighter">{successMessage}</h3>
-                                <p className="text-slate-500 font-medium italic">Redirecionando para o início...</p>
+                {/* 4. Form & Payment */}
+                {step === 4 && (
+                    <div className="space-y-6 animate-in slide-in-from-right">
+                        <div className="bg-[#1e293b] p-6 rounded-3xl border border-slate-800 space-y-4">
+                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Data e Horário</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input type="date" required value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500" />
+                                <input type="time" required value={formData.time} onChange={e => setFormData({ ...formData, time: e.target.value })} className="bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500" />
                             </div>
-                        ) : (
-                            <>
-                                <div className="mb-10 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 flex justify-between items-center group">
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Você selecionou</p>
-                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">{selectedService?.name}</h3>
+                        </div>
+
+                        <div className="bg-[#1e293b] p-6 rounded-3xl border border-slate-800 space-y-4">
+                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Seus Dados</h3>
+                            <input placeholder="Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none" />
+                            <input placeholder="Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none" />
+                        </div>
+
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest ml-1">Pagamento</h3>
+
+                            {mySubscription && mySubscription.remainingCuts > 0 && selectedProducts.length === 0 && (
+                                <div onClick={() => setPaymentMethod('SUBSCRIPTION')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between ${paymentMethod === 'SUBSCRIPTION' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-[#1e293b] border-slate-800 hover:border-slate-600'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <Star className="w-5 h-5" />
+                                        <div>
+                                            <p className="font-bold text-sm uppercase">Usar Assinatura</p>
+                                            <p className="text-[10px] opacity-80 font-bold uppercase tracking-widest">Restam {mySubscription.remainingCuts} cortes</p>
+                                        </div>
                                     </div>
-                                    <div className="text-3xl font-black text-orange-500 italic">R$ {selectedService?.price}</div>
+                                    {paymentMethod === 'SUBSCRIPTION' && <div className="w-4 h-4 bg-white rounded-full"></div>}
                                 </div>
+                            )}
 
-                                <form onSubmit={isWaitlistMode ? handleWaitlist : handleBook} className="space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu Nome</label>
-                                            <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" placeholder="Digite seu nome" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu WhatsApp</label>
-                                            <input required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold" placeholder="(00) 00000-0000" />
-                                        </div>
+                            <div onClick={() => setPaymentMethod('LOCAL')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between ${paymentMethod === 'LOCAL' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-[#1e293b] border-slate-800 hover:border-slate-600'}`}>
+                                <div className="flex items-center gap-3">
+                                    <Banknote className="w-5 h-5" />
+                                    <div>
+                                        <p className="font-bold text-sm uppercase">Pagar no Local</p>
+                                        <p className="text-[10px] opacity-80 font-bold uppercase tracking-widest">Dinheiro, Cartão ou Pix</p>
                                     </div>
+                                </div>
+                                {paymentMethod === 'LOCAL' && <div className="w-4 h-4 bg-white rounded-full"></div>}
+                            </div>
 
-                                    <div className="space-y-4">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center mb-4">Escolha a Data</label>
-                                        <input type="date" required value={formData.date} min={new Date().toISOString().split('T')[0]} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full p-5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl focus:ring-2 ring-orange-500 outline-none transition font-bold text-center" />
+                            <div className="opacity-50 pointer-events-none p-4 rounded-2xl border border-slate-800 bg-[#1e293b] flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <CreditCard className="w-5 h-5 text-slate-500" />
+                                    <div>
+                                        <p className="font-bold text-sm uppercase text-slate-400">Pagar Online</p>
+                                        <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Em breve</p>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                    {!isWaitlistMode && (
-                                        <div className="space-y-6">
-                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center mb-4">Horários Disponíveis</h4>
-
-                                            {loadingSlots ? (
-                                                <div className="text-center py-8 animate-pulse text-xs font-bold uppercase text-slate-400 tracking-widest">Sincronizando agenda...</div>
-                                            ) : (
-                                                <div className="space-y-8">
-                                                    {availability.map(pro => (
-                                                        <div key={pro.proId} className="space-y-4">
-                                                            <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
-                                                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Barbeiro {pro.proName}
-                                                            </p>
-                                                            <div className="grid grid-cols-4 gap-3">
-                                                                {pro.slots.map(slot => (
-                                                                    <button
-                                                                        key={slot}
-                                                                        type="button"
-                                                                        onClick={() => setFormData({ ...formData, time: slot, professionalId: pro.proId })}
-                                                                        className={`p-3 rounded-xl text-xs font-bold transition-all border ${formData.time === slot && formData.professionalId === pro.proId ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-orange-500'}`}
-                                                                    >
-                                                                        {slot}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            {pro.slots.length === 0 && (
-                                                                <p className="text-[10px] text-slate-400 italic">Este profissional não tem horários para hoje.</p>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {isWaitlistMode && !loadingSlots && (
-                                        <div className="p-8 bg-orange-500/5 border-2 border-dashed border-orange-500/20 rounded-[2rem] text-center space-y-4">
-                                            <p className="text-orange-500 font-black uppercase text-[10px] tracking-widest">Agenda Lotada para este dia!</p>
-                                            <p className="text-slate-500 text-xs font-medium">Não encontramos horários livres. Quer entrar na lista de espera? Avisamos você no WhatsApp se alguém cancelar!</p>
-                                            <button type="submit" className="w-full bg-orange-500 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-orange-500/20 hover:scale-[1.02] transition-transform">
-                                                ENTRAR NA LISTA DE ESPERA 📋
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {!isWaitlistMode && (
-                                        <button type="submit" disabled={!formData.time} className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-black hover:scale-[1.01] active:scale-95 transition-all mt-6 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed">
-                                            Confirmar Agendamento ✂️
-                                        </button>
-                                    )}
-                                </form>
-                            </>
-                        )}
+                        <button onClick={handleBook} className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20">
+                            Confirmar Agendamento
+                        </button>
                     </div>
                 )}
             </main>
-
-            {/* Direct WhatsApp Call to Action */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 p-6 border-t border-slate-100 dark:border-slate-800 md:hidden z-50">
-                <a
-                    href={`https://wa.me/55${barbershop.phone?.replace(/\D/g, '')}?text=Olá,%20gostaria%20de%20agendar%20um%20serviço.`}
-                    target="_blank"
-                    className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/20"
-                >
-                    <MessageCircle className="w-5 h-5" /> Falar no WhatsApp
-                </a>
-            </div>
-
-            {/* Floating WhatsApp Button for Desktop */}
-            <div className="hidden md:block">
-                <a
-                    href={`https://wa.me/55${barbershop.phone?.replace(/\D/g, '')}?text=Olá,%20gostaria%20de%20tirar%20uma%20dúvida.`}
-                    target="_blank"
-                    className="fixed bottom-12 right-12 bg-white dark:bg-slate-900 text-emerald-500 p-6 rounded-[2rem] shadow-2xl hover:scale-110 transition-all z-50 flex items-center gap-4 group border border-slate-100 dark:border-slate-800"
-                >
-                    <div className="flex flex-col items-end">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Dúvidas?</p>
-                        <p className="font-black text-slate-900 dark:text-white uppercase text-xs">Chamar no Whats</p>
-                    </div>
-                    <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                        <MessageCircle className="w-6 h-6" />
-                    </div>
-                </a>
-            </div>
         </div>
     );
 }
