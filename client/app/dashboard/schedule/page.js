@@ -25,7 +25,7 @@ export default function SchedulePage() {
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
             const [appRes, proRes] = await Promise.all([
-                api.get('/appointments/pro'),
+                api.get(`/appointments?barbershopId=${bId}`),
                 api.get(`/professionals?barbershopId=${bId}`)
             ]);
 

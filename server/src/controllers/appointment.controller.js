@@ -158,6 +158,38 @@ exports.getProAppointments = async (req, res) => {
     }
 };
 
+// Admin: Get ALL Appointments for Barbershop
+exports.getAllAppointments = async (req, res) => {
+    try {
+        const { barbershopId, start, end } = req.query;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const where = { barbershopId };
+
+        if (start && end) {
+            where.date = {
+                gte: new Date(start),
+                lte: new Date(end)
+            };
+        }
+
+        const bookings = await prisma.appointment.findMany({
+            where,
+            include: {
+                client: { select: { name: true, phone: true } },
+                service: true,
+                professional: { select: { id: true, name: true } }
+            },
+            orderBy: { date: 'asc' }
+        });
+
+        res.json(bookings);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching all appointments' });
+    }
+};
+
 exports.updateAppointmentStatus = async (req, res) => {
     try {
         const { id } = req.params;
