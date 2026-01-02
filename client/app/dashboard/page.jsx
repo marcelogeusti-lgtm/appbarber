@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { Users, Copy, TrendingUp, ShoppingBag } from 'lucide-react';
 import api from '../../lib/api';
 
-export default function DashboardPage() {
-    console.log('Dashboard Version 2.0 - Loaded');
+export default function DashboardPageV3() {
+    console.log('Dashboard Version 3.0 - JSX Fix');
     const [user, setUser] = useState(null);
     const [stats, setStats] = useState({ appointments: 0, revenue: 0, clients: 0 });
 
