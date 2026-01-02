@@ -150,42 +150,6 @@ export default function SettingsPage() {
                 </div>
             </form>
 
-            {/* Quick Links */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Link
-                    href="/dashboard/settings/branding"
-                    className="group bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 rounded-3xl p-8 hover:border-purple-500/50 transition-all hover:scale-[1.02] active:scale-95"
-                >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-purple-500/20 rounded-2xl group-hover:bg-purple-500 transition-colors">
-                            <Settings className="w-6 h-6 text-purple-500 group-hover:text-white transition-colors" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-black uppercase tracking-tight text-white">Identidade Visual</h3>
-                            <p className="text-xs text-slate-400 font-medium">Personalize cores e logo</p>
-                        </div>
-                    </div>
-                    <p className="text-xs text-slate-500 italic leading-relaxed">
-                        Configure as cores da sua marca e adicione sua logo para personalizar a experiência dos seus clientes.
-                    </p>
-                </Link>
-
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 opacity-50">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-slate-800 rounded-2xl">
-                            <Phone className="w-6 h-6 text-slate-600" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-black uppercase tracking-tight text-slate-600">WhatsApp</h3>
-                            <p className="text-xs text-slate-600 font-medium">Em breve</p>
-                        </div>
-                    </div>
-                    <p className="text-xs text-slate-600 italic leading-relaxed">
-                        Configure notificações automáticas via WhatsApp para seus clientes.
-                    </p>
-                </div>
-            </div>
-
             <div className="bg-orange-500/5 border border-orange-500/20 rounded-3xl p-8 space-y-4">
                 <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Atenção ao Slug ⚠️</h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed italic">
