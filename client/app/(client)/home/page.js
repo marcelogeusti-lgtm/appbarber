@@ -8,6 +8,7 @@ import api from '../../../lib/api';
 export default function ClientHome() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [bookingLoading, setBookingLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -24,6 +25,28 @@ export default function ClientHome() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.push('/login');
+    };
+
+    const handleBooking = async () => {
+        setBookingLoading(true);
+        try {
+            // Fetch last appointment to find "favorite" or last used barbershop
+            const res = await api.get('/appointments/me');
+            const appointments = res.data || [];
+
+            if (appointments.length > 0 && appointments[0].barbershop?.slug) {
+                // Redirect to the last visited barbershop
+                router.push(`/agendamento/${appointments[0].barbershop.slug}`);
+            } else {
+                // If no history, ask to find one (or redirect to search)
+                router.push('/search');
+            }
+        } catch (err) {
+            console.error('Error fetching history:', err);
+            router.push('/search'); // Fallback
+        } finally {
+            setBookingLoading(false);
+        }
     };
 
     if (loading) return null;
@@ -62,9 +85,13 @@ export default function ClientHome() {
                         <h2 className="text-3xl font-black text-white mb-2 leading-none">Visual novo?</h2>
                         <p className="text-orange-100 text-sm font-medium mb-6 opacity-90 max-w-[200px]">Agende seu horário agora e evite filas.</p>
 
-                        <Link href="/agendamento" className="bg-white text-orange-600 px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-colors inline-flex items-center gap-2 shadow-lg">
-                            Agendar Agora <ChevronRight className="w-4 h-4" />
-                        </Link>
+                        <button
+                            onClick={handleBooking}
+                            disabled={bookingLoading}
+                            className="bg-white text-orange-600 px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-colors inline-flex items-center gap-2 shadow-lg disabled:opacity-70"
+                        >
+                            {bookingLoading ? 'Carregando...' : 'Agendar Agora'} <ChevronRight className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
             </div>
