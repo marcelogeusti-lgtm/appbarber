@@ -6,8 +6,8 @@ const { format } = require('date-fns');
 
 exports.createAppointment = async (req, res) => {
     try {
-        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday } = req.body; // date: YYYY-MM-DD, time: HH:mm
-        let clientId = req.user?.id; // If logged in
+        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod } = req.body;
+        let clientId = req.user?.id;
 
         // Guest Handling
         if (!clientId) {
@@ -15,7 +15,6 @@ exports.createAppointment = async (req, res) => {
                 return res.status(400).json({ message: 'Nome e Telefone são obrigatórios para agendamento' });
             }
 
-            // Check if user exists by phone
             let user = await prisma.user.findUnique({ where: { phone: guestPhone } });
 
             if (!user) {
@@ -54,16 +53,22 @@ exports.createAppointment = async (req, res) => {
             where: { id: professionalId },
             include: { professionalProfile: { include: { schedules: true } } }
         });
-
         if (!pro) return res.status(404).json({ message: 'Professional not found' });
 
         // 2. Check Service Duration
         const service = await prisma.service.findUnique({ where: { id: serviceId } });
         if (!service) return res.status(404).json({ message: 'Service not found' });
 
+        // Check Products if any
+        let productItems = [];
+        if (products && products.length > 0) {
+            productItems = await prisma.product.findMany({
+                where: { id: { in: products } }
+            });
+        }
+
         // 3. Check Schedule Availability
         const endTime = new Date(appointmentDateTime.getTime() + service.duration * 60000);
-
         const conflicts = await prisma.appointment.findMany({
             where: {
                 professionalId,
@@ -82,25 +87,69 @@ exports.createAppointment = async (req, res) => {
             return (appointmentDateTime < conflictEnd && endTime > conflictStart);
         });
 
-        if (hasConflict) {
-            return res.status(400).json({ message: 'Time slot not available' });
-        }
+        if (hasConflict) return res.status(400).json({ message: 'Time slot not available' });
 
-        // 4. Create Appointment
-        const appointment = await prisma.appointment.create({
-            data: {
-                date: appointmentDateTime,
-                clientId,
-                professionalId,
-                serviceId,
-                barbershopId: service.barbershopId
-            },
-            include: {
-                client: true,
-                service: true,
-                professional: true
-            }
+        // 4. Create Appointment & Order via Transaction
+        const result = await prisma.$transaction(async (prisma) => {
+            // Map payment method
+            let method = 'CASH';
+            if (paymentMethod === 'SUBSCRIPTION') method = 'SUBSCRIPTION';
+            else if (paymentMethod === 'ONLINE') method = 'ONLINE';
+
+            // Create Appointment
+            const appointment = await prisma.appointment.create({
+                data: {
+                    date: appointmentDateTime,
+                    clientId,
+                    professionalId,
+                    serviceId,
+                    barbershopId: service.barbershopId,
+                    paymentMethod: method,
+                    paymentStatus: 'PENDING'
+                }
+            });
+
+            // Calculate Totals
+            const serviceTotal = Number(service.price);
+            const productsTotal = productItems.reduce((sum, p) => sum + Number(p.price), 0);
+            const total = serviceTotal + productsTotal;
+
+            // Create Order
+            const order = await prisma.order.create({
+                data: {
+                    appointmentId: appointment.id,
+                    barbershopId: service.barbershopId,
+                    clientId,
+                    professionalId,
+                    status: 'OPEN',
+                    subtotal: total,
+                    total: total,
+                    paymentMethod: method,
+                    items: {
+                        create: [
+                            {
+                                type: 'SERVICE',
+                                serviceId: service.id,
+                                quantity: 1,
+                                unitPrice: Number(service.price),
+                                total: Number(service.price)
+                            },
+                            ...productItems.map(p => ({
+                                type: 'PRODUCT',
+                                productId: p.id,
+                                quantity: 1,
+                                unitPrice: Number(p.price),
+                                total: Number(p.price)
+                            }))
+                        ]
+                    }
+                }
+            });
+
+            return { appointment, order };
         });
+
+        const { appointment, order } = result;
 
         // Trigger n8n Webhook (Async, don't block response)
         const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });
@@ -113,16 +162,17 @@ exports.createAppointment = async (req, res) => {
                     id: appointment.id,
                     date: date,
                     time: time,
-                    clientName: appointment.client?.name,
-                    clientPhone: appointment.client?.phone,
-                    serviceName: appointment.service?.name,
-                    servicePrice: appointment.service?.price,
-                    proName: appointment.professional?.name
+                    clientName: guestName,
+                    clientPhone: guestPhone,
+                    serviceName: service.name,
+                    products: productItems.map(p => p.name).join(', '),
+                    totalValue: order.total,
+                    paymentMethod
                 }
             }).catch(e => console.error('Webhook Error:', e.message));
         }
 
-        res.status(201).json({ appointment, isGuest: !req.user });
+        res.status(201).json({ appointment, order, isGuest: !req.user });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -166,6 +216,7 @@ exports.getAllAppointments = async (req, res) => {
 
         const where = { barbershopId };
 
+        // Optional Date Filtering
         if (start && end) {
             where.date = {
                 gte: new Date(start),
