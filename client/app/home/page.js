@@ -1,182 +1,128 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar, DollarSign, Bell, CheckCircle, Star, Play, Scissors, Users, BarChart3, Clock, Shield, Smartphone, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, Search, Package, Clock, LogOut, ChevronRight, Star, MapPin, User, Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import api from '../../lib/api';
 
-export default function LandingPage() {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+export default function ClientHome() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+            router.push('/login');
+            return;
+        }
+        setUser(JSON.parse(userStr));
+        setLoading(false);
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/login');
+    };
+
+    if (loading) return null;
 
     return (
-        <div className="min-h-screen bg-white font-sans text-slate-600">
-
-            {/* Navbar */}
-            <nav className="fixed w-full z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
-                <div className="container mx-auto px-6 h-20 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        {/* Logo Icon */}
-                        <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
-                            <Scissors className="text-white w-6 h-6" />
-                        </div>
-                        <span className="text-2xl font-black tracking-tight text-slate-900 uppercase">Corte & Conexão</span>
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-8">
-                        <Link href="#funcionalidades" className="text-sm font-bold text-slate-600 hover:text-orange-500 transition uppercase tracking-wide">Funcionalidades</Link>
-                        <Link href="#planos" className="text-sm font-bold text-slate-600 hover:text-orange-500 transition uppercase tracking-wide">Planos</Link>
-                        <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-orange-500 transition uppercase tracking-wide">Login</Link>
-                        <Link href="/register" className="bg-orange-500 text-white px-6 py-2.5 rounded hover:bg-orange-600 transition font-bold shadow-lg shadow-orange-500/30">
-                            TESTAR GRÁTIS
-                        </Link>
-                    </div>
-
-                    <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                        {isMenuOpen ? <X /> : <Menu />}
-                    </button>
+        <div className="min-h-screen bg-slate-950 text-white font-sans pb-24">
+            {/* Header */}
+            <header className="p-6 flex justify-between items-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-900">
+                <div>
+                    <p className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-0.5">Bem-vindo de volta,</p>
+                    <h1 className="text-2xl font-black text-white tracking-tight">{user?.name?.split(' ')[0]}</h1>
                 </div>
-            </nav>
-
-            {/* Hero Section (Dark Blue Background) */}
-            <section className="pt-32 pb-24 md:pt-48 md:pb-32 px-6 bg-slate-900 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
-
-                <div className="container mx-auto text-center relative z-10 max-w-4xl">
-                    <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
-                        Sistema Completo para <br />
-                        <span className="text-orange-500">Gestão de Barbearias</span>
-                    </h1>
-
-                    <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                        Organize sua agenda, controle o financeiro e fidelize seus clientes com o sistema mais completo do Brasil.
-                    </p>
-
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                        <Link href="/register" className="w-full md:w-auto bg-orange-500 text-white px-8 py-4 rounded font-bold text-lg hover:bg-orange-600 transition shadow-xl uppercase tracking-wide">
-                            Quero Testar Grátis
-                        </Link>
-                        <div className="flex gap-2 mt-4 md:mt-0">
-                            {/* Badge Placeholders similar to App Store */}
-                            <div className="bg-black border border-white/20 rounded px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-white/10 transition">
-                                <Smartphone className="w-5 h-5" /> <span className="text-xs text-left leading-tight">Disponível no<br /><span className="font-bold text-sm">Google Play</span></span>
-                            </div>
-                            <div className="bg-black border border-white/20 rounded px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-white/10 transition">
-                                <Smartphone className="w-5 h-5" /> <span className="text-xs text-left leading-tight">Baixar na<br /><span className="font-bold text-sm">App Store</span></span>
-                            </div>
-                        </div>
-                    </div>
+                <div className="relative cursor-pointer hover:bg-slate-900 p-2 rounded-full transition">
+                    <Bell className="w-6 h-6 text-slate-300" />
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-slate-950"></span>
                 </div>
-            </section>
+            </header>
 
-            {/* Features (Grid like the image) */}
-            <section id="funcionalidades" className="py-20 bg-slate-50">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Funcionalidades do Corte & Conexão</h2>
-                        <div className="w-20 h-1 bg-orange-500 mx-auto rounded-full"></div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <GridFeature icon={<Calendar className="w-8 h-8 text-blue-900" />} title="Agenda Online" />
-                        <GridFeature icon={<Users className="w-8 h-8 text-blue-900" />} title="Gestão de Equipe" />
-                        <GridFeature icon={<DollarSign className="w-8 h-8 text-blue-900" />} title="Financeiro Completo" />
-                        <GridFeature icon={<BarChart3 className="w-8 h-8 text-blue-900" />} title="Relatórios" />
-
-                        <GridFeature icon={<Bell className="w-8 h-8 text-blue-900" />} title="Lembretes SMS/Zap" />
-                        <GridFeature icon={<Star className="w-8 h-8 text-blue-900" />} title="Avaliações" />
-                        <GridFeature icon={<Shield className="w-8 h-8 text-blue-900" />} title="Controle de Acesso" />
-                        <GridFeature icon={<Clock className="w-8 h-8 text-blue-900" />} title="Histórico" />
-                    </div>
+            {/* Search Bar */}
+            <div className="px-6 mb-8">
+                <div className="bg-slate-900 rounded-2xl p-4 flex items-center gap-3 border border-slate-800 focus-within:border-orange-500/50 transition shadow-lg shadow-black/20">
+                    <Search className="w-5 h-5 text-slate-500" />
+                    <input
+                        type="text"
+                        placeholder="Buscar serviço ou profissional..."
+                        className="bg-transparent border-none outline-none text-white placeholder-slate-500 text-sm font-medium w-full"
+                    />
                 </div>
-            </section>
-
-            {/* Video / Case de Sucesso Section */}
-            <section className="py-20 bg-white">
-                <div className="container mx-auto px-6 text-center">
-                    <h2 className="text-3xl font-bold text-slate-900 mb-12">Case de Sucesso</h2>
-                    <div className="relative max-w-4xl mx-auto aspect-video bg-slate-900 rounded-2xl shadow-2xl overflow-hidden group cursor-pointer">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <Play className="w-8 h-8 text-white fill-current ml-1" />
-                            </div>
-                        </div>
-                        {/* Placeholder text for video */}
-                        <div className="absolute bottom-10 left-0 w-full text-center">
-                            <p className="text-white font-bold text-xl drop-shadow-md">Veja como a Barbearia "Cortes do Juca" cresceu 300%</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Pricing Section */}
-            <section id="planos" className="py-20 bg-slate-50">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Escolha seu Plano</h2>
-                        <p className="text-slate-500">Comece grátis. Cancele quando quiser.</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                        {/* Plan 1 */}
-                        <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">Mensal</h3>
-                            <div className="text-4xl font-extrabold text-blue-900 mb-6">R$ 89<span className="text-sm font-normal text-slate-500">/mês</span></div>
-                            <ul className="space-y-4 mb-8 text-slate-600">
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> Agenda Ilimitada</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> 1 Profissional</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> Financeiro Básico</li>
-                            </ul>
-                            <Link href="/register" className="block w-full text-center border-2 border-slate-900 text-slate-900 font-bold py-3 rounded hover:bg-slate-900 hover:text-white transition">Escolher Mensal</Link>
-                        </div>
-
-                        {/* Plan 2 (Featured) */}
-                        <div className="bg-white p-8 rounded-xl shadow-xl border-2 border-orange-500 relative transform md:-translate-y-4">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold tracking-wide">MAIS POPULAR</div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">Trimestral</h3>
-                            <div className="text-4xl font-extrabold text-blue-900 mb-6">R$ 79<span className="text-sm font-normal text-slate-500">/mês</span></div>
-                            <ul className="space-y-4 mb-8 text-slate-600">
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> Tudo do Mensal</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> 3 Profissionais</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> Disparos WhatsApp</li>
-                            </ul>
-                            <Link href="/register" className="block w-full text-center bg-orange-500 text-white font-bold py-3 rounded hover:bg-orange-600 transition shadow-lg">Escolher Trimestral</Link>
-                        </div>
-
-                        {/* Plan 3 */}
-                        <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">Anual</h3>
-                            <div className="text-4xl font-extrabold text-blue-900 mb-6">R$ 59<span className="text-sm font-normal text-slate-500">/mês</span></div>
-                            <ul className="space-y-4 mb-8 text-slate-600">
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> Tudo do pro</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> Profissionais Ilimitados</li>
-                                <li className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /> Domínio Grátis</li>
-                            </ul>
-                            <Link href="/register" className="block w-full text-center border-2 border-slate-900 text-slate-900 font-bold py-3 rounded hover:bg-slate-900 hover:text-white transition">Escolher Anual</Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-slate-900 text-slate-300 py-12">
-                <div className="container mx-auto px-6 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-8">
-                        <Scissors className="text-orange-500 w-6 h-6" />
-                        <span className="text-2xl font-black text-white uppercase">Corte & Conexão</span>
-                    </div>
-                    <p className="text-sm opacity-60">&copy; 2025 Corte & Conexão. Todos os direitos reservados.</p>
-                </div>
-            </footer>
-        </div>
-    );
-}
-
-function GridFeature({ icon, title }) {
-    return (
-        <div className="bg-white p-6 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition text-center flex flex-col items-center gap-4 group">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center group-hover:bg-blue-100 transition">
-                {icon}
             </div>
-            <h3 className="font-bold text-slate-900">{title}</h3>
+
+            {/* Hero CTA */}
+            <div className="px-6 mb-8">
+                <div className="relative bg-gradient-to-br from-orange-600 to-red-600 rounded-[2rem] p-6 shadow-2xl shadow-orange-900/20 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10"></div>
+
+                    <div className="relative z-10">
+                        <span className="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Novo</span>
+                        <h2 className="text-3xl font-black text-white mb-2 leading-none">Visual novo?</h2>
+                        <p className="text-orange-100 text-sm font-medium mb-6 opacity-90 max-w-[200px]">Agende seu horário agora e evite filas.</p>
+
+                        <Link href="/agendamento" className="bg-white text-orange-600 px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-colors inline-flex items-center gap-2 shadow-lg">
+                            Agendar Agora <ChevronRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Quick Actions Grid */}
+            <div className="px-6 mb-10">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 ml-1">Acesso Rápido</h3>
+                <div className="grid grid-cols-2 gap-4">
+                    <Link href="/packages" className="bg-slate-900 p-5 rounded-3xl border border-slate-800 hover:border-slate-700 transition group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                            <Package className="w-16 h-16 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-3">
+                            <Package className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <h4 className="font-bold text-white text-sm">Pacotes</h4>
+                        <p className="text-[10px] text-slate-500 font-medium mt-1">Economize nos cortes</p>
+                    </Link>
+
+                    <Link href="/history" className="bg-slate-900 p-5 rounded-3xl border border-slate-800 hover:border-slate-700 transition group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                            <Clock className="w-16 h-16 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-3">
+                            <Clock className="w-5 h-5 text-purple-500" />
+                        </div>
+                        <h4 className="font-bold text-white text-sm">Histórico</h4>
+                        <p className="text-[10px] text-slate-500 font-medium mt-1">Veja seus agendamentos</p>
+                    </Link>
+                </div>
+            </div>
+
+            {/* Recent/Featured Section (Optional) */}
+            <div className="px-6">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 ml-1">Para Você</h3>
+                <div className="bg-slate-900 rounded-3xl p-1 border border-slate-800">
+                    <div className="flex items-center gap-4 p-4">
+                        <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
+                            <Star className="w-6 h-6 text-yellow-500" />
+                        </div>
+                        <div className="flex-1">
+                            <h4 className="font-bold text-white text-sm">Avalie seu último corte</h4>
+                            <p className="text-[10px] text-slate-500">Ajude-nos a melhorar</p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-slate-600" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Logout */}
+            <div className="px-6 mt-8 text-center">
+                <button onClick={handleLogout} className="text-xs font-bold text-red-500 uppercase tracking-widest hover:text-red-400 transition flex items-center justify-center gap-2 mx-auto">
+                    <LogOut className="w-4 h-4" /> Sair do App
+                </button>
+            </div>
         </div>
     );
 }
