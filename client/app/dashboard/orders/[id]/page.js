@@ -80,7 +80,6 @@ export default function OrderDetailsPage() {
 
             await api.post(`/orders/${id}/items`, payload);
             fetchOrder(); // Refresh
-            setShowProductModal(false);
         } catch (err) {
             alert('Erro ao adicionar item');
         }

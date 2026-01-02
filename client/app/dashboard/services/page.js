@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, Scissors, Clock } from 'lucide-react';
 
 export default function ServicesPage() {
     const [services, setServices] = useState([]);

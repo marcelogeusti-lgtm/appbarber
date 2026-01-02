@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Users } from 'lucide-react';
+import { Users, Copy, TrendingUp, ShoppingBag } from 'lucide-react';
 import api from '../../lib/api';
 
 export default function DashboardPage() {
@@ -90,7 +90,7 @@ export default function DashboardPage() {
                             <div className="flex-1 w-full bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-[11px] text-emerald-500 break-all flex items-center justify-between group/link">
                                 {publicUrl || 'Sincronizando...'}
                                 <button onClick={copyToClipboard} className="ml-4 p-2 bg-slate-900 rounded-lg hover:bg-emerald-500 hover:text-white transition-all text-slate-500">
-                                    <FileText className="w-4 h-4" />
+                                    <Copy className="w-4 h-4" />
                                 </button>
                             </div>
                             <div className="flex gap-3 w-full md:w-auto">

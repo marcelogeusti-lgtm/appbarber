@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
-import { Plus, Search, ShoppingBag, Clock, CheckCircle, XCircle, DollarSign, Calendar, FileText } from 'lucide-react';
+import { Plus, Search, ShoppingBag, Clock, XCircle, DollarSign, Calendar, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 
 export default function OrdersPage() {
@@ -243,7 +243,7 @@ export default function OrdersPage() {
                                 </div>
                                 <div className="flex items-center gap-2 text-slate-500 group-hover:text-white transition-colors">
                                     <span className="text-[10px] font-black uppercase tracking-widest">Detalhes</span>
-                                    <FileText className="w-4 h-4" />
+                                    <ClipboardList className="w-4 h-4" />
                                 </div>
                             </div>
                         </div>

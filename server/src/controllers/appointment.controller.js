@@ -18,8 +18,23 @@ exports.createAppointment = async (req, res) => {
         const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod, createAccount, password } = req.body;
         let clientId = req.user?.id;
         let createdToken = null;
+        let currentUser = null;
 
-        // Guest Handling or Auto-Registration
+        // 1. Fetch Service & Pro details first to ensure they exist
+        const service = await prisma.service.findUnique({ where: { id: serviceId } });
+        if (!service) return res.status(404).json({ message: 'Serviço não encontrado' });
+
+        const pro = await prisma.user.findUnique({
+            where: { id: professionalId },
+            include: { professionalProfile: { include: { schedules: true } } }
+        });
+        if (!pro) return res.status(404).json({ message: 'Profissional não encontrado' });
+
+        const productItems = products.length > 0
+            ? await prisma.product.findMany({ where: { id: { in: products } } })
+            : [];
+
+        // 2. Guest Handling or Auto-Registration
         if (!clientId) {
             if (!guestName || !guestPhone) {
                 return res.status(400).json({ message: 'Nome e Telefone são obrigatórios para agendamento' });
@@ -84,6 +99,9 @@ exports.createAppointment = async (req, res) => {
                 }
             }
             clientId = user.id;
+            currentUser = user;
+        } else {
+            currentUser = await prisma.user.findUnique({ where: { id: clientId } });
         }
 
         // 3. Robust Availability Check (Avoid Overbooking)
@@ -125,18 +143,6 @@ exports.createAppointment = async (req, res) => {
         }
 
         // Check against existing appointments
-        const existingConflicting = await prisma.appointment.findFirst({
-            where: {
-                professionalId,
-                status: { not: 'CANCELLED' },
-                date: {
-                    gte: new Date(year, month - 1, day, 0, 0, 0),
-                    lte: new Date(year, month - 1, day, 23, 59, 59),
-                }
-            },
-            include: { service: true }
-        });
-
         // Double check all appointments of the day for specific overlap
         const dayAppointments = await prisma.appointment.findMany({
             where: {
@@ -235,8 +241,8 @@ exports.createAppointment = async (req, res) => {
                     id: appointment.id,
                     date: date,
                     time: time,
-                    clientName: guestName,
-                    clientPhone: guestPhone,
+                    clientName: currentUser?.name || guestName,
+                    clientPhone: currentUser?.phone || guestPhone,
                     serviceName: service.name,
                     products: productItems.map(p => p.name).join(', '),
                     totalValue: order.total,
@@ -245,10 +251,10 @@ exports.createAppointment = async (req, res) => {
             }).catch(e => console.error('Webhook Error:', e.message));
         }
 
-        const responseUser = user ? { id: user.id, name: user.name, email: user.email, role: user.role } : null;
+        const responseUser = currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role } : null;
         res.status(201).json({ appointment, order, token: createdToken, user: responseUser, isGuest: !req.user });
     } catch (error) {
-        console.error(error);
+        console.error('CREATE APPOINTMENT ERROR:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
