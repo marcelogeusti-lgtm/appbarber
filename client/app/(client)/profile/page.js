@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { User, Settings, LogOut, ChevronRight, Heart, MapPin, Shield, CreditCard, FileText } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { User, Settings, LogOut, ChevronRight, Heart, MapPin, Shield, CreditCard, File } from 'lucide-react';
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -27,7 +26,7 @@ export default function ProfilePage() {
         { icon: CreditCard, label: 'Meus Cartões', href: '#' },
         { icon: Settings, label: 'Preferências', href: '/profile/preferences' },
         { icon: Shield, label: 'Segurança', href: '#' },
-        { icon: FileText, label: 'Termos de Uso', href: '#' },
+        { icon: File, label: 'Termos de Uso', href: '#' },
     ];
 
     return (
