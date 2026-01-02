@@ -65,7 +65,7 @@ export default function ProfessionalsPage() {
         const days = [0, 1, 2, 3, 4, 5, 6];
         const initial = days.map(d => {
             const match = existing.find(s => s.dayOfWeek === d);
-            return match || { dayOfWeek: d, startTime: '09:00', endTime: '18:00', isOff: d === 0 };
+            return match || { dayOfWeek: d, startTime: '09:00', endTime: '18:00', breakStart: '12:00', breakEnd: '13:00', isOff: d === 0 };
         });
         setTempSchedules(initial);
         setEditingScheduleId(pro.id);
@@ -225,10 +225,30 @@ export default function ProfessionalsPage() {
                                         </button>
                                     </div>
                                     {!s.isOff && (
-                                        <div className="flex items-center gap-3">
-                                            <input type="time" value={s.startTime} onChange={e => updateTime(s.dayOfWeek, 'startTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold" />
-                                            <span className="text-slate-500 text-xs uppercase font-bold">até</span>
-                                            <input type="time" value={s.endTime} onChange={e => updateTime(s.dayOfWeek, 'endTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold" />
+                                        <div className="flex flex-col gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="space-y-1">
+                                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest pl-1">Entrada</p>
+                                                    <input type="time" value={s.startTime} onChange={e => updateTime(s.dayOfWeek, 'startTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
+                                                </div>
+                                                <span className="text-slate-500 text-[10px] uppercase font-bold mt-4">até</span>
+                                                <div className="space-y-1">
+                                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest pl-1">Saída</p>
+                                                    <input type="time" value={s.endTime} onChange={e => updateTime(s.dayOfWeek, 'endTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-3 border-t border-slate-800/50 pt-3">
+                                                <div className="space-y-1">
+                                                    <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest pl-1">Início Almoço</p>
+                                                    <input type="time" value={s.breakStart || '12:00'} onChange={e => updateTime(s.dayOfWeek, 'breakStart', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
+                                                </div>
+                                                <span className="text-slate-500 text-[10px] uppercase font-bold mt-4">até</span>
+                                                <div className="space-y-1">
+                                                    <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest pl-1">Fim Almoço</p>
+                                                    <input type="time" value={s.breakEnd || '13:00'} onChange={e => updateTime(s.dayOfWeek, 'breakEnd', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

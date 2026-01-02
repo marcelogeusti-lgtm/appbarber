@@ -31,6 +31,9 @@ export default function BarbershopPage() {
         password: ''
     });
 
+    const [availableSlots, setAvailableSlots] = useState([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+
     useEffect(() => {
         if (!slug) return;
 
@@ -73,6 +76,28 @@ export default function BarbershopPage() {
             setFormData(prev => ({ ...prev, ...JSON.parse(saved) }));
         }
     }, [slug]);
+
+    useEffect(() => {
+        if (!formData.date || !selectedProfessional || !barbershop) return;
+
+        async function fetchSlots() {
+            setLoadingSlots(true);
+            try {
+                // Pass selected service ID. In the future, we could pass multiple.
+                const res = await api.get(`/availability/${barbershop.id}/${formData.date}?serviceIds=${selectedService.id}`);
+
+                // The API returns an array of pros. We find our selected pro.
+                const proData = res.data.find(p => p.proId === selectedProfessional.id);
+                setAvailableSlots(proData?.slots || []);
+            } catch (err) {
+                console.error('Error fetching slots:', err);
+                setAvailableSlots([]);
+            } finally {
+                setLoadingSlots(false);
+            }
+        }
+        fetchSlots();
+    }, [formData.date, selectedProfessional, barbershop, selectedService]);
 
     const handleServiceSelect = (service) => {
         setSelectedService(service);
@@ -280,9 +305,42 @@ export default function BarbershopPage() {
                     <div className="space-y-6 animate-in slide-in-from-right">
                         <div className="bg-[#1e293b] p-6 rounded-3xl border border-slate-800 space-y-4">
                             <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Data e Horário</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input type="date" required value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500" />
-                                <input type="time" required value={formData.time} onChange={e => setFormData({ ...formData, time: e.target.value })} className="bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500" />
+                            <div className="grid grid-cols-1 gap-4">
+                                <input
+                                    type="date"
+                                    required
+                                    min={new Date().toISOString().split('T')[0]}
+                                    value={formData.date}
+                                    onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                    className="bg-slate-900 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500 w-full"
+                                />
+
+                                {formData.date && (
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Horários Disponíveis</p>
+                                        {loadingSlots ? (
+                                            <div className="flex items-center gap-2 text-slate-500 text-xs animate-pulse">
+                                                <Clock className="w-3 h-3" /> Calculando disponibilidade...
+                                            </div>
+                                        ) : availableSlots.length > 0 ? (
+                                            <div className="grid grid-cols-4 gap-2 h-40 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-700">
+                                                {availableSlots.map(slot => (
+                                                    <button
+                                                        key={slot}
+                                                        onClick={() => setFormData({ ...formData, time: slot })}
+                                                        className={`py-2 rounded-lg text-xs font-black transition ${formData.time === slot ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}
+                                                    >
+                                                        {slot}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="p-4 bg-orange-500/5 border border-orange-500/10 rounded-xl text-orange-500 text-[10px] font-bold uppercase">
+                                                Nenhum horário disponível para esta data.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

@@ -2,7 +2,16 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const axios = require('axios');
 const { format } = require('date-fns');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
+const generateToken = (user) => {
+    return jwt.sign(
+        { id: user.id, role: user.role, barbershopId: user.barbershopId || null },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+};
 
 exports.createAppointment = async (req, res) => {
     try {
@@ -77,48 +86,81 @@ exports.createAppointment = async (req, res) => {
             clientId = user.id;
         }
 
-        const appointmentDateTime = new Date(`${date}T${time}:00Z`);
+        // 3. Robust Availability Check (Avoid Overbooking)
+        // Parse requested date/time
+        const [year, month, day] = date.split('-').map(Number);
+        const [hour, min] = time.split(':').map(Number);
+        const reqStart = new Date(year, month - 1, day, hour, min, 0);
+        const reqEnd = new Date(reqStart.getTime() + service.duration * 60000);
 
-        // 1. Check if Professional Exists
-        const pro = await prisma.user.findUnique({
-            where: { id: professionalId },
-            include: { professionalProfile: { include: { schedules: true } } }
-        });
-        if (!pro) return res.status(404).json({ message: 'Professional not found' });
+        // Check if day is on/off
+        const dayOfWeek = reqStart.getDay();
+        const schedule = pro.professionalProfile?.schedules.find(s => s.dayOfWeek === dayOfWeek);
 
-        // 2. Check Service Duration
-        const service = await prisma.service.findUnique({ where: { id: serviceId } });
-        if (!service) return res.status(404).json({ message: 'Service not found' });
-
-        // Check Products if any
-        let productItems = [];
-        if (products && products.length > 0) {
-            productItems = await prisma.product.findMany({
-                where: { id: { in: products } }
-            });
+        if (!schedule || schedule.isOff) {
+            return res.status(400).json({ message: 'O profissional não atende neste dia.' });
         }
 
-        // 3. Check Schedule Availability
-        const endTime = new Date(appointmentDateTime.getTime() + service.duration * 60000);
-        const conflicts = await prisma.appointment.findMany({
+        // Check against work hours
+        const [wSH, wSM] = schedule.startTime.split(':').map(Number);
+        const [wEH, wEM] = schedule.endTime.split(':').map(Number);
+        const workStart = new Date(year, month - 1, day, wSH, wSM, 0);
+        const workEnd = new Date(year, month - 1, day, wEH, wEM, 0);
+
+        if (reqStart < workStart || reqEnd > workEnd) {
+            return res.status(400).json({ message: 'Horário fora do expediente do profissional.' });
+        }
+
+        // Check against professional's break (Lunch)
+        if (schedule.breakStart && schedule.breakEnd) {
+            const [bSH, bSM] = schedule.breakStart.split(':').map(Number);
+            const [bEH, bEM] = schedule.breakEnd.split(':').map(Number);
+            const breakStart = new Date(year, month - 1, day, bSH, bSM, 0);
+            const breakEnd = new Date(year, month - 1, day, bEH, bEM, 0);
+
+            // Overlap check
+            if (reqStart < breakEnd && reqEnd > breakStart) {
+                return res.status(400).json({ message: 'O horário selecionado conflita com o intervalo de pausa do profissional.' });
+            }
+        }
+
+        // Check against existing appointments
+        const existingConflicting = await prisma.appointment.findFirst({
             where: {
                 professionalId,
                 status: { not: 'CANCELLED' },
                 date: {
-                    lt: endTime,
-                    gte: appointmentDateTime
+                    gte: new Date(year, month - 1, day, 0, 0, 0),
+                    lte: new Date(year, month - 1, day, 23, 59, 59),
                 }
             },
             include: { service: true }
         });
 
-        const hasConflict = conflicts.some(conflict => {
-            const conflictStart = new Date(conflict.date);
-            const conflictEnd = new Date(conflictStart.getTime() + conflict.service.duration * 60000);
-            return (appointmentDateTime < conflictEnd && endTime > conflictStart);
+        // Double check all appointments of the day for specific overlap
+        const dayAppointments = await prisma.appointment.findMany({
+            where: {
+                professionalId,
+                date: {
+                    gte: new Date(year, month - 1, day, 0, 0, 0),
+                    lte: new Date(year, month - 1, day, 23, 59, 59)
+                },
+                status: { not: 'CANCELLED' }
+            },
+            include: { service: true }
         });
 
-        if (hasConflict) return res.status(400).json({ message: 'Time slot not available' });
+        const hasConflict = dayAppointments.some(app => {
+            const appStart = new Date(app.date);
+            const appEnd = new Date(appStart.getTime() + app.service.duration * 60000);
+            return (reqStart < appEnd && reqEnd > appStart);
+        });
+
+        if (hasConflict) {
+            return res.status(400).json({ message: 'Este horário já foi preenchido. Por favor, escolha outro.' });
+        }
+
+        const appointmentDateTime = reqStart; // Use the validated date object
 
         // 4. Create Appointment & Order via Transaction
         const result = await prisma.$transaction(async (prisma) => {
