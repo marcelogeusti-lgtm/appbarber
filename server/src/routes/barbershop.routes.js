@@ -1,5 +1,6 @@
 const express = require('express');
 const { getBarbershopBySlug, updateBarbershop, listBarbershops, searchBarbershops } = require('../controllers/barbershop.controller');
+const { protect, authorize } = require('../middlewares/auth.middleware');
 const { checkSubscription } = require('../middlewares/subscription.middleware');
 
 const router = express.Router();
