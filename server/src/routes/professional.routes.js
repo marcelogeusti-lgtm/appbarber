@@ -1,3 +1,4 @@
+const express = require('express');
 const { updateSchedule, getProfessional, listProfessionals, createProfessional } = require('../controllers/professional.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 const { checkSubscription } = require('../middlewares/subscription.middleware');
