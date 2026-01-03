@@ -1,7 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/order.controller');
-// const authMiddleware = require('../middlewares/auth'); // Assuming we have auth
+const { protect } = require('../middlewares/auth.middleware');
+const { checkSubscription } = require('../middlewares/subscription.middleware');
+
+// Public or Client routes might need protection but checkSubscription allows CLIENT role
+// Applying globally for safety, assuming protect handles auth
+router.use(protect);
+router.use(checkSubscription);
 
 router.get('/', orderController.listOrders);
 router.post('/', orderController.createOrder);

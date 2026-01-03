@@ -76,12 +76,48 @@ exports.updateSchedule = async (req, res) => {
 
 exports.createProfessional = async (req, res) => {
     try {
-        console.log('Creating Professional Body:', req.body); // Debug log
+        console.log('Creating Professional Body:', req.body);
+        const saasPlans = require('../config/saasPlans');
         const { name, email, password, phone, position, barbershopId } = req.body;
 
         if (!barbershopId) {
             return res.status(400).json({ message: 'ID da Barbearia é obrigatório' });
         }
+
+        // --- SAAS LIMIT CHECK START ---
+        // 1. Get Barbershop Plan
+        const barbershop = await prisma.barbershop.findUnique({
+            where: { id: barbershopId },
+            select: { saasPlan: true }
+        });
+
+        if (!barbershop) return res.status(404).json({ message: 'Barbearia não encontrada' });
+
+        const userPlan = barbershop.saasPlan || 'BASIC';
+        const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+
+        if (!planConfig) {
+            console.error(`Plan config not found for plan: ${userPlan}`);
+            // Fallback to basic if plan not found in config, or handle error
+        }
+
+        // 2. Count Active Barbers
+        // We count users with role BARBER associated with this shop
+        const activeBarbersCount = await prisma.user.count({
+            where: {
+                workedBarbershopId: barbershopId,
+                role: 'BARBER',
+            }
+        });
+
+        const isSuperAdmin = req.user && req.user.role === 'SUPER_ADMIN';
+
+        if (!isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
+            return res.status(403).json({
+                message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade para adicionar mais.`
+            });
+        }
+        // --- SAAS LIMIT CHECK END ---
 
         // Check if user already exists
         const existing = await prisma.user.findUnique({ where: { email } });
