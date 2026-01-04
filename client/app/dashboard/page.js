@@ -4,7 +4,6 @@ import { Users, Copy, TrendingUp, ShoppingBag } from 'lucide-react';
 import api from '../../lib/api';
 
 export default function DashboardPage() {
-    console.log('Dashboard Version 5.2 - Force Repaint');
     const [user, setUser] = useState(null);
     const [stats, setStats] = useState({ appointments: 0, revenue: 0, clients: 0 });
 

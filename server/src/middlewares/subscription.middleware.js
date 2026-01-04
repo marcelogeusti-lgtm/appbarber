@@ -1,6 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+const saasPlans = require('../config/saasPlans');
+
 exports.checkSubscription = async (req, res, next) => {
     try {
         // Ignorar verificação para Clientes e SUPER_ADMIN (mestre)
@@ -43,4 +45,33 @@ exports.checkSubscription = async (req, res, next) => {
         console.error('Subscription Check Error:', error);
         res.status(500).json({ message: 'Server error checking subscription' });
     }
+};
+
+exports.checkFeature = (feature) => {
+    return (req, res, next) => {
+        try {
+            // Bypass for Super Admin
+            if (req.user && req.user.role === 'SUPER_ADMIN') return next();
+
+            // Bypass for Clients (usually features are for admin usage, but if a client accesses a feature, assume allowed? No, features are SaaS features)
+            // Actually clients don't use SaaS features directly, they use the service.
+
+            const userPlan = req.user.saasPlan || 'BASIC'; // Default to BASIC if missing (should be set by checkSubscription)
+
+            const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+
+            if (planConfig.features.includes('all') || planConfig.features.includes(feature)) {
+                return next();
+            }
+
+            return res.status(403).json({
+                message: `Upgrade required via checkFeature`,
+                requiredFeature: feature,
+                currentPlan: userPlan
+            });
+        } catch (error) {
+            console.error('Feature Check Error:', error);
+            res.status(500).json({ message: 'Server error checking feature' });
+        }
+    };
 };

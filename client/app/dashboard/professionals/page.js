@@ -54,7 +54,13 @@ export default function ProfessionalsPage() {
             await fetchPros();
             alert('✅ Profissional cadastrado com sucesso!');
         } catch (err) {
-            alert('❌ Erro ao cadastrar: ' + (err.response?.data?.message || err.message));
+            console.error(err);
+            if (err.response?.status === 403 && err.response?.data?.message) {
+                // SaaS Limit Reached
+                alert(`⚠️ Atenção: ${err.response.data.message}`);
+            } else {
+                alert('❌ Erro ao cadastrar: ' + (err.response?.data?.message || err.message));
+            }
         } finally {
             setActionLoading(false);
         }

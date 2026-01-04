@@ -4,6 +4,7 @@ const axios = require('axios');
 const { format } = require('date-fns');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const saasPlans = require('../config/saasPlans');
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -234,7 +235,11 @@ exports.createAppointment = async (req, res) => {
         const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });
         const webhookUrl = barbershop?.webhookUrl;
 
-        if (webhookUrl) {
+        const userPlan = barbershop?.saasPlan || 'BASIC';
+        const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+        const hasWebhookFeature = planConfig.features.includes('all') || planConfig.features.includes('webhook');
+
+        if (webhookUrl && hasWebhookFeature) {
             axios.post(webhookUrl, {
                 event: 'appointment.created',
                 data: {
@@ -337,7 +342,11 @@ exports.updateAppointmentStatus = async (req, res) => {
             const barbershop = await prisma.barbershop.findUnique({ where: { id: appointment.barbershopId } });
             const webhookUrl = barbershop?.webhookUrl;
 
-            if (webhookUrl) {
+            const userPlan = barbershop?.saasPlan || 'BASIC';
+            const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+            const hasWebhookFeature = planConfig.features.includes('all') || planConfig.features.includes('webhook');
+
+            if (webhookUrl && hasWebhookFeature) {
                 axios.post(webhookUrl, {
                     event: 'appointment.cancelled',
                     data: {

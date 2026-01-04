@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const axios = require('axios');
+const saasPlans = require('../config/saasPlans');
 
 exports.addToWaitlist = async (req, res) => {
     try {
@@ -21,7 +22,11 @@ exports.addToWaitlist = async (req, res) => {
         const barbershop = await prisma.barbershop.findUnique({ where: { id: barbershopId } });
         const webhookUrl = barbershop?.webhookUrl;
 
-        if (webhookUrl) {
+        const userPlan = barbershop?.saasPlan || 'BASIC';
+        const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+        const hasWebhookFeature = planConfig.features.includes('all') || planConfig.features.includes('webhook');
+
+        if (webhookUrl && hasWebhookFeature) {
             axios.post(webhookUrl, {
                 event: 'waitlist.added',
                 data: {
