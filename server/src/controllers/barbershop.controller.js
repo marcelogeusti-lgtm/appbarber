@@ -50,6 +50,7 @@ exports.getBarbershopBySlug = async (req, res) => {
             where: { slug },
             include: {
                 services: true,
+                subscriptionPlans: true,
                 staff: {
                     where: { role: 'BARBER' },
                     select: {

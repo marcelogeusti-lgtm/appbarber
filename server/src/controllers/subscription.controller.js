@@ -43,3 +43,20 @@ exports.deletePlan = async (req, res) => {
         res.status(500).json({ message: 'Error deleting plan' });
     }
 };
+
+exports.getMyActiveSubscription = async (req, res) => {
+    try {
+        const sub = await prisma.userSubscription.findFirst({
+            where: {
+                userId: req.user.id,
+                status: 'ACTIVE',
+                endDate: { gte: new Date() }
+            },
+            include: { plan: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(sub);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching active subscription' });
+    }
+};
