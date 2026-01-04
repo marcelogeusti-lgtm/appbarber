@@ -6,6 +6,7 @@ import api from '../../lib/api';
 export default function DashboardPage() {
     const [user, setUser] = useState(null);
     const [stats, setStats] = useState({ appointments: 0, revenue: 0, clients: 0 });
+    const [publicUrl, setPublicUrl] = useState('');
 
     useEffect(() => {
         try {
@@ -21,6 +22,15 @@ export default function DashboardPage() {
             console.error('Error parsing user data:', err);
         }
     }, []);
+
+    useEffect(() => {
+        if (!user) return;
+        const origin = window.location.origin;
+        const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug;
+        if (slug) {
+            setPublicUrl(`${origin}/${slug}`);
+        }
+    }, [user]);
 
     const fetchStats = async () => {
         try {
@@ -38,12 +48,6 @@ export default function DashboardPage() {
     };
 
     if (!user) return <div className="p-8 text-center">Carregando...</div>;
-
-    const publicUrl = user?.barbershop?.slug
-        ? `https://corteconexao.com.br/agendamento/${user.barbershop.slug}`
-        : user?.ownedBarbershops?.[0]?.slug
-            ? `https://corteconexao.com.br/agendamento/${user.ownedBarbershops[0].slug}`
-            : '';
 
     const copyToClipboard = () => {
         if (!publicUrl) {
