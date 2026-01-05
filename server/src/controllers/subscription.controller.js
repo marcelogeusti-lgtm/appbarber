@@ -60,3 +60,47 @@ exports.getMyActiveSubscription = async (req, res) => {
         res.status(500).json({ message: 'Error fetching active subscription' });
     }
 };
+
+exports.purchasePlan = async (req, res) => {
+    try {
+        const { planId, paymentMethod } = req.body;
+        const userId = req.user.id;
+
+        const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
+        if (!plan) return res.status(404).json({ message: 'Plano não encontrado' });
+
+        // Calculate end date
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(startDate.getDate() + plan.validityDays);
+
+        // Create Subscription
+        const sub = await prisma.userSubscription.create({
+            data: {
+                userId,
+                planId,
+                startDate,
+                endDate,
+                remainingCuts: plan.quantityOfCuts,
+                status: 'ACTIVE'
+            }
+        });
+
+        // Optional: Record Transaction (income)
+        await prisma.transaction.create({
+            data: {
+                description: `Compra de Plano: ${plan.name}`,
+                amount: plan.price,
+                type: 'INCOME',
+                category: 'SUBSCRIPTION',
+                barbershopId: plan.barbershopId,
+                date: new Date()
+            }
+        });
+
+        res.status(201).json(sub);
+    } catch (error) {
+        console.error('Purchase Plan Error:', error);
+        res.status(500).json({ message: 'Erro ao processar compra do plano' });
+    }
+};

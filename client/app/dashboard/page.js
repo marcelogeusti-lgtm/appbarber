@@ -34,14 +34,8 @@ export default function DashboardPage() {
 
     const fetchStats = async () => {
         try {
-            const res = await api.get('/appointments/pro');
-            const data = res.data || [];
-            setStats({
-                appointments: data.length,
-                revenue: data.reduce((acc, curr) => acc + Number(curr?.service?.price || 0), 0),
-                clients: new Set(data.map(a => a.clientId)).size,
-                today: data.filter(a => a.date && new Date(a.date).toDateString() === new Date().toDateString()).length
-            });
+            const res = await api.get('/dashboard/stats');
+            setStats(res.data);
         } catch (err) {
             console.error('Error fetching stats:', err);
         }

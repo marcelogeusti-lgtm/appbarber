@@ -1,8 +1,32 @@
 'use client';
 import { Package } from 'lucide-react';
+import api from '../../lib/api';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function PackagesTab({ plans = [] }) {
+    const router = useRouter();
+    const [loading, setLoading] = useState(null);
     const formatCurrency = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const handlePurchase = async (pkg) => {
+        if (!confirm(`Deseja comprar o pacote "${pkg.name}" por ${formatCurrency(pkg.price)}?`)) return;
+
+        setLoading(pkg.id);
+        try {
+            await api.post('/subscription/purchase', {
+                planId: pkg.id,
+                paymentMethod: 'ONLINE' // Placeholder until payment gateway integration
+            });
+            alert('Pacote comprado com sucesso! Verifique seus agendamentos para usar.');
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || 'Erro ao comprar pacote.');
+        } finally {
+            setLoading(null);
+        }
+    };
 
     return (
         <div className="space-y-4 pb-24">
@@ -30,8 +54,12 @@ export default function PackagesTab({ plans = [] }) {
                                 <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Valor do Pacote</p>
                                 <p className="text-2xl font-black text-white">{formatCurrency(pkg.price)}</p>
                             </div>
-                            <button className="bg-white text-black px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition shadow-lg">
-                                Comprar
+                            <button
+                                onClick={() => handlePurchase(pkg)}
+                                disabled={loading === pkg.id}
+                                className={`bg-white text-black px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition shadow-lg ${loading === pkg.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {loading === pkg.id ? 'Comprando...' : 'Comprar'}
                             </button>
                         </div>
                     </div>

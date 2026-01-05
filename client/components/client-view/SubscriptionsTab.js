@@ -1,8 +1,32 @@
 'use client';
 import { Crown, Check } from 'lucide-react';
+import api from '../../lib/api';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SubscriptionsTab({ plans = [] }) {
+    const router = useRouter();
+    const [loading, setLoading] = useState(null);
     const formatCurrency = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const handlePurchase = async (plan) => {
+        if (!confirm(`Deseja assinar o plano "${plan.name}" por ${formatCurrency(plan.price)}?`)) return;
+
+        setLoading(plan.id);
+        try {
+            await api.post('/subscription/purchase', {
+                planId: plan.id,
+                paymentMethod: 'ONLINE' // Placeholder
+            });
+            alert('Assinatura realizada com sucesso!');
+            router.refresh();
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || 'Erro ao realizar assinatura.');
+        } finally {
+            setLoading(null);
+        }
+    };
 
     return (
         <div className="space-y-6 pb-24">
@@ -43,8 +67,12 @@ export default function SubscriptionsTab({ plans = [] }) {
                                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Valor do Plano</p>
                                     <p className="text-2xl font-black text-white">{formatCurrency(plan.price)}</p>
                                 </div>
-                                <button className="bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20">
-                                    Assinar Agora
+                                <button
+                                    onClick={() => handlePurchase(plan)}
+                                    disabled={loading === plan.id}
+                                    className={`bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20 ${loading === plan.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    {loading === plan.id ? 'Processando...' : 'Assinar Agora'}
                                 </button>
                             </div>
                         </div>

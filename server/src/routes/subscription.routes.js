@@ -7,5 +7,6 @@ router.post('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), subscriptionControl
 router.get('/', subscriptionController.getPlans);
 router.get('/my-active', protect, subscriptionController.getMyActiveSubscription);
 router.delete('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN'), subscriptionController.deletePlan);
+router.post('/purchase', protect, subscriptionController.purchasePlan);
 
 module.exports = router;
