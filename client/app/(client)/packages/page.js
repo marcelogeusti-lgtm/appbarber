@@ -1,77 +1,88 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Package, Check, ChevronRight, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
+import { Package, Calendar, Scissors, ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export default function PackagesPage() {
-    const [plans, setPlans] = useState([]);
+export default function MyPackagesPage() {
+    const router = useRouter();
+    const [subscription, setSubscription] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Placeholder: Fetch plans from API
-        // For now, we might not have a public 'plans' endpoint that is global, 
-        // usually plans are per barbershop. 
-        // But for a "Client App", maybe we show plans from their favorite shop?
-        // Or we show a generic "Explore Plans" if no context.
-        // For MVP, let's assume we show "No plans available" or mock data until backend is ready.
-        // Actually, better to fetch from the "last visited" shop if possible, similar to booking.
-        fetchPlans();
+        async function fetchSub() {
+            try {
+                const res = await api.get('/subscription/my-active');
+                setSubscription(res.data);
+            } catch (error) {
+                console.error('Erro ao buscar assinatura:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchSub();
     }, []);
 
-    const fetchPlans = async () => {
-        try {
-            // Attempt to get plans from user's context or last shop
-            // Since we don't have a direct "Global Plans" endpoint, we'll verify if we can get it via appointments
-            const res = await api.get('/appointments/me');
-            const appointments = res.data || [];
-
-            if (appointments.length > 0) {
-                // Get plans from the last barbershop?
-                // Currently we don't have a specific endpoint for "plans of barbershop X" that is public/client-accessible 
-                // without context. 
-                // We will leave this as a placeholder UI for now.
-            }
-            setLoading(false);
-        } catch (err) {
-            console.error(err);
-            setLoading(false);
-        }
-    };
+    if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Carregando...</div>;
 
     return (
-        <div className="min-h-screen bg-[#0a0f1a] text-white font-sans pb-24">
-            <header className="p-6 sticky top-0 bg-[#0a0f1a]/80 backdrop-blur-md z-10 flex items-center gap-4">
-                <Link href="/home" className="p-2 bg-slate-900 rounded-xl hover:bg-slate-800 transition">
-                    <ArrowLeft className="w-5 h-5 text-slate-400" />
-                </Link>
-                <h1 className="text-lg font-black uppercase tracking-wider">Meus Pacotes</h1>
+        <div className="min-h-screen bg-black text-white p-6">
+            <header className="flex items-center gap-4 mb-8">
+                <button onClick={() => router.back()} className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center">
+                    <ChevronLeft className="w-6 h-6 text-white" />
+                </button>
+                <h1 className="text-xl font-bold uppercase">Meus Pacotes e Assinaturas</h1>
             </header>
 
-            <div className="px-6 space-y-6">
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-[2rem] p-8 shadow-2xl shadow-blue-900/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                    <div className="relative z-10 text-center">
-                        <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <Package className="w-8 h-8 text-white" />
+            {subscription ? (
+                <div className="bg-gradient-to-br from-zinc-900 to-black border border-emerald-500/30 rounded-3xl p-6 relative overflow-hidden">
+                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl"></div>
+
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h2 className="text-2xl font-black text-white uppercase">{subscription.plan.name}</h2>
+                                <p className="text-emerald-500 text-xs font-bold uppercase tracking-widest">Ativo</p>
+                            </div>
+                            <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
+                                <Package className="w-6 h-6 text-emerald-500" />
+                            </div>
                         </div>
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Clube de Vantagens</h2>
-                        <p className="text-blue-100 text-sm font-medium mb-8">Assine e economize até 40% nos seus cortes mensais.</p>
 
-                        <button className="bg-white text-blue-600 w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition shadow-lg">
-                            Ver Planos Disponíveis
-                        </button>
+                        <div className="space-y-4">
+                            <div className="bg-black/50 p-4 rounded-2xl flex items-center gap-4">
+                                <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+                                    <Scissors className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-zinc-500 text-[10px] font-bold uppercase">Cortes Restantes</p>
+                                    <p className="text-xl font-bold text-white">{subscription.remainingCuts}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-black/50 p-4 rounded-2xl flex items-center gap-4">
+                                <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+                                    <Calendar className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-zinc-500 text-[10px] font-bold uppercase">Válido Até</p>
+                                    <p className="text-sm font-bold text-white">
+                                        {new Date(subscription.endDate).toLocaleDateString('pt-BR')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div className="space-y-4">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-2">Suas Assinaturas Ativas</h3>
-                    {/* Empty State */}
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 text-center dashed">
-                        <p className="text-slate-500 text-sm font-medium">Você ainda não possui assinaturas ativas.</p>
+            ) : (
+                <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mb-4">
+                        <Package className="w-8 h-8 text-zinc-600" />
                     </div>
+                    <h3 className="text-zinc-400 font-bold uppercase">Nenhum plano ativo</h3>
+                    <p className="text-zinc-600 text-xs mt-2 max-w-[200px]">Adquira um pacote ou assinatura na página da sua barbearia favorita.</p>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
