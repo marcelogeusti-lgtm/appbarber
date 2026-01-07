@@ -483,3 +483,23 @@ exports.updateAppointmentStatus = async (req, res) => {
         res.status(500).json({ message: 'Error updating status' });
     }
 };
+
+exports.getPendingFees = async (req, res) => {
+    try {
+        const { barbershopId } = req.query;
+        const userId = req.user.id;
+
+        const fees = await prisma.noShowRecord.findMany({
+            where: {
+                clientId: userId,
+                barbershopId: barbershopId,
+                status: 'PENDING'
+            }
+        });
+
+        res.json(fees);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching fees' });
+    }
+};
