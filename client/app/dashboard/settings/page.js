@@ -139,6 +139,65 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
+        </div>
+
+                {/* NO-SHOW SETTINGS */ }
+                <div className="pt-10 border-t border-slate-800 space-y-8">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 bg-red-500/10 text-red-500 rounded-xl">
+                            <Hash className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tight text-white">Política de No-Show</h2>
+                            <p className="text-slate-500 text-xs font-medium">Configure a taxa automática para clientes que faltam sem avisar.</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-6 rounded-3xl border border-slate-800 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-bold text-white uppercase tracking-wide">Habilitar Taxa de No-Show</label>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={barbershop.noShowEnabled || false} 
+                                    onChange={e => setBarbershop({ ...barbershop, noShowEnabled: e.target.checked })} 
+                                    className="sr-only peer" 
+                                />
+                                <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+
+                        {barbershop.noShowEnabled && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
+                                <div className="space-y-4">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+                                        Porcentagem da Taxa (%)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={barbershop.noShowPercent || 0}
+                                        onChange={e => setBarbershop({ ...barbershop, noShowPercent: parseFloat(e.target.value) })}
+                                        className="w-full p-5 bg-slate-900 border border-slate-800 rounded-2xl focus:ring-2 ring-emerald-500 outline-none transition font-bold text-white"
+                                    />
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+                                        Mensagem Explicativa (Opcional)
+                                    </label>
+                                    <input
+                                        value={barbershop.noShowText || ''}
+                                        onChange={e => setBarbershop({ ...barbershop, noShowText: e.target.value })}
+                                        className="w-full p-5 bg-slate-900 border border-slate-800 rounded-2xl focus:ring-2 ring-emerald-500 outline-none transition font-bold text-white text-sm"
+                                        placeholder="Ex: Taxa referente ao não comparecimento anterior."
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 <div className="pt-6 border-t border-slate-800 flex justify-end">
                     <button
                         type="submit"
@@ -148,14 +207,14 @@ export default function SettingsPage() {
                         {saving ? 'SALVANDO...' : <><Save className="w-4 h-4" /> SALVAR CONFIGURAÇÕES</>}
                     </button>
                 </div>
-            </form>
+            </form >
 
-            <div className="bg-[#111827] border border-emerald-500/10 rounded-3xl p-8 space-y-4">
-                <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest ring-1 ring-emerald-500/20 w-fit px-2 py-0.5 rounded">Nota Importante ⚠️</h4>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed italic uppercase tracking-tighter">
-                    Ao alterar o **Link Personalizado**, o acesso antigo deixará de funcionar imediatamente. Lembre-se de atualizar o link na biografia do seu Instagram e demais redes sociais.
-                </p>
-            </div>
+        <div className="bg-[#111827] border border-emerald-500/10 rounded-3xl p-8 space-y-4">
+            <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest ring-1 ring-emerald-500/20 w-fit px-2 py-0.5 rounded">Nota Importante ⚠️</h4>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed italic uppercase tracking-tighter">
+                Ao alterar o **Link Personalizado**, o acesso antigo deixará de funcionar imediatamente. Lembre-se de atualizar o link na biografia do seu Instagram e demais redes sociais.
+            </p>
         </div>
+        </div >
     );
 }
