@@ -139,9 +139,9 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-        </div>
 
-                {/* NO-SHOW SETTINGS */ }
+
+                {/* NO-SHOW SETTINGS */}
                 <div className="pt-10 border-t border-slate-800 space-y-8">
                     <div className="flex items-center gap-4">
                         <div className="p-2 bg-red-500/10 text-red-500 rounded-xl">
@@ -157,11 +157,11 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-white uppercase tracking-wide">Habilitar Taxa de No-Show</label>
                             <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={barbershop.noShowEnabled || false} 
-                                    onChange={e => setBarbershop({ ...barbershop, noShowEnabled: e.target.checked })} 
-                                    className="sr-only peer" 
+                                <input
+                                    type="checkbox"
+                                    checked={barbershop.noShowEnabled || false}
+                                    onChange={e => setBarbershop({ ...barbershop, noShowEnabled: e.target.checked })}
+                                    className="sr-only peer"
                                 />
                                 <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                             </label>
@@ -209,12 +209,12 @@ export default function SettingsPage() {
                 </div>
             </form >
 
-        <div className="bg-[#111827] border border-emerald-500/10 rounded-3xl p-8 space-y-4">
-            <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest ring-1 ring-emerald-500/20 w-fit px-2 py-0.5 rounded">Nota Importante ⚠️</h4>
-            <p className="text-xs text-slate-500 font-medium leading-relaxed italic uppercase tracking-tighter">
-                Ao alterar o **Link Personalizado**, o acesso antigo deixará de funcionar imediatamente. Lembre-se de atualizar o link na biografia do seu Instagram e demais redes sociais.
-            </p>
-        </div>
+            <div className="bg-[#111827] border border-emerald-500/10 rounded-3xl p-8 space-y-4">
+                <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest ring-1 ring-emerald-500/20 w-fit px-2 py-0.5 rounded">Nota Importante ⚠️</h4>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed italic uppercase tracking-tighter">
+                    Ao alterar o **Link Personalizado**, o acesso antigo deixará de funcionar imediatamente. Lembre-se de atualizar o link na biografia do seu Instagram e demais redes sociais.
+                </p>
+            </div>
         </div >
     );
 }
