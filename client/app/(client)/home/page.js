@@ -36,7 +36,7 @@ export default function ClientHome() {
 
             if (appointments.length > 0 && appointments[0].barbershop?.slug) {
                 // Redirect to the last visited barbershop
-                router.push(`/agendamento/${appointments[0].barbershop.slug}`);
+                router.push(`/${appointments[0].barbershop.slug}`);
             } else {
                 // If no history, ask to find one (or redirect to search)
                 router.push('/search');
