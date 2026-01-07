@@ -170,14 +170,14 @@ exports.createAppointment = async (req, res) => {
         const appointmentDateTime = reqStart; // Use the validated date object
 
         // 4. Create Appointment & Order via Transaction
-        const result = await prisma.$transaction(async (prisma) => {
+        const result = await prisma.$transaction(async (tx) => {
             // Map payment method
             let method = 'CASH';
             if (paymentMethod === 'SUBSCRIPTION') method = 'SUBSCRIPTION';
             else if (paymentMethod === 'ONLINE') method = 'ONLINE';
 
             // Create Appointment
-            const appointment = await prisma.appointment.create({
+            const appointment = await tx.appointment.create({
                 data: {
                     date: appointmentDateTime,
                     clientId,
@@ -192,9 +192,86 @@ exports.createAppointment = async (req, res) => {
             // Calculate Totals
             const serviceTotal = Number(service.price);
             const productsTotal = productItems.reduce((sum, p) => sum + Number(p.price), 0);
-            const total = serviceTotal + productsTotal;
+            let total = serviceTotal + productsTotal;
+
+            // Check for Pending No-Show Fees
+            const pendingFees = await tx.noShowRecord.findMany({
+                where: {
+                    clientId,
+                    barbershopId: service.barbershopId,
+                    status: 'PENDING'
+                }
+            });
+
+            let feeTotal = 0;
+            const feeItems = [];
+
+            if (pendingFees.length > 0) {
+                for (const fee of pendingFees) {
+                    feeTotal += fee.feeValue;
+                    feeItems.push({
+                        type: 'PRODUCT', // Using PRODUCT for simplicity, or add generic FEE type if preferred
+                        // Ideally we should have a 'FEE' type in OrderItem, but 'PRODUCT' works for display if name is set
+                        quantity: 1,
+                        unitPrice: fee.feeValue,
+                        total: fee.feeValue,
+                        // We can hack productId null, but store clear name description? 
+                        // OrderItem schema has productId optional.
+                        // But for now let's manually creating it in the array below.
+                    });
+
+                    // Mark fee as CHARGED (or associated to this order)
+                    // Currently NoShowRecord logic is simple. Let's mark it CHARGED.
+                    // Ideally we should link it to the Order to track payment, but keeping it simple as requested.
+                    await tx.noShowRecord.update({
+                        where: { id: fee.id },
+                        data: { status: 'CHARGED' }
+                    });
+                }
+                total += feeTotal;
+            }
 
             // Create Order
+            const orderItemsCreate = [
+                {
+                    type: 'SERVICE',
+                    serviceId: service.id,
+                    quantity: 1,
+                    unitPrice: Number(service.price),
+                    total: Number(service.price)
+                },
+                ...productItems.map(p => ({
+                    type: 'PRODUCT',
+                    productId: p.id,
+                    quantity: 1,
+                    unitPrice: Number(p.price),
+                    total: Number(p.price)
+                })),
+                // Add Fee Items manually since they don't have Service/Product ID
+                ...pendingFees.map(fee => ({
+                    type: 'PRODUCT', // Or 'FEE' if enum allows. Schema says 'String' so we can assume 'FEE' or 'NO_SHOW_FEE'
+                    quantity: 1,
+                    unitPrice: fee.feeValue,
+                    total: fee.feeValue,
+                    // Note: OrderItem schema doesn't have a 'name' field, it relies on relations.
+                    // This is a limitation. The 'name' is in Product/Service.
+                    // If we add an item without ID, frontend might show "Unknown".
+                    // Solution: We need to ensure Frontend displays this correctly.
+                    // Or, we create a specialized "No Show Product" automatically? 
+                    // Better: The User Prompt asked for "Exibição clara dessa taxa".
+                    // If OrderItem structure is rigid, maybe we just add to total and put in notes?
+                    // "Taxa de 20% referente ao não comparecimento em 12/08/2025"
+                }))
+            ];
+
+            // Wait, OrderItem table:
+            // type String
+            // serviceId?
+            // productId?
+            // If I create an item without ID, frontend needs to handle it.
+            // Let's check OrderItem schema: type is String.
+            // Let's use type='NO_SHOW_FEE' and handle frontend display.
+
             const order = await prisma.order.create({
                 data: {
                     appointmentId: appointment.id,
@@ -220,9 +297,16 @@ exports.createAppointment = async (req, res) => {
                                 quantity: 1,
                                 unitPrice: Number(p.price),
                                 total: Number(p.price)
+                            })),
+                            ...pendingFees.map(fee => ({
+                                type: 'NO_SHOW_FEE',
+                                quantity: 1,
+                                unitPrice: fee.feeValue,
+                                total: fee.feeValue
                             }))
                         ]
-                    }
+                    },
+                    notes: pendingFees.length > 0 ? `Inclui taxa de não comparecimento: ${pendingFees.length}x` : null
                 }
             });
 
@@ -359,6 +443,37 @@ exports.updateAppointmentStatus = async (req, res) => {
                         barbershopId: appointment.barbershopId
                     }
                 }).catch(e => console.error('Cancellation Webhook Error:', e.message));
+            }
+        }
+
+        // Handle NO_SHOW logic
+        if (status === 'NO_SHOW') {
+            const barbershop = await prisma.barbershop.findUnique({ where: { id: appointment.barbershopId } });
+
+            if (barbershop && barbershop.noShowEnabled) {
+                const servicePrice = Number(appointment.service.price);
+                const percent = barbershop.noShowPercent || 0;
+                const feeValue = servicePrice * (percent / 100);
+
+                // Create NoShowRecord if not exists for this appointment
+                const existingRecord = await prisma.noShowRecord.findUnique({
+                    where: { appointmentId: appointment.id }
+                });
+
+                if (!existingRecord && feeValue > 0) {
+                    await prisma.noShowRecord.create({
+                        data: {
+                            clientId: appointment.clientId,
+                            appointmentId: appointment.id,
+                            barbershopId: appointment.barbershopId,
+                            percentage: percent,
+                            baseValue: servicePrice,
+                            feeValue: feeValue,
+                            status: 'PENDING'
+                        }
+                    });
+                    console.log(`No-Show Fee Recorded: Client ${appointment.clientId}, Fee RS ${feeValue}`);
+                }
             }
         }
 

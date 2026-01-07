@@ -49,10 +49,15 @@ exports.getBarbershopBySlug = async (req, res) => {
         const barbershop = await prisma.barbershop.findUnique({
             where: { slug },
             include: {
-                services: true,
+                services: {
+                    where: { active: true }
+                },
                 subscriptionPlans: true,
                 staff: {
-                    where: { role: 'BARBER' },
+                    where: {
+                        role: 'BARBER',
+                        active: true
+                    },
                     select: {
                         id: true,
                         name: true,
@@ -80,7 +85,7 @@ exports.getBarbershopBySlug = async (req, res) => {
 exports.updateBarbershop = async (req, res) => {
     try {
         const { id } = req.params; // or derived from user token
-        const { name, address, phone, slug, webhookUrl } = req.body;
+        const { name, address, phone, slug, webhookUrl, noShowEnabled, noShowPercent, noShowText } = req.body;
 
         // Check ownership
         // Ideally use req.user.barbershopId or check ownerId
@@ -93,7 +98,16 @@ exports.updateBarbershop = async (req, res) => {
 
         const updated = await prisma.barbershop.update({
             where: { id },
-            data: { name, address, phone, slug, webhookUrl }
+            data: {
+                name,
+                address,
+                phone,
+                slug,
+                webhookUrl,
+                noShowEnabled,
+                noShowPercent: noShowPercent ? parseFloat(noShowPercent) : undefined,
+                noShowText
+            }
         });
 
         res.json(updated);

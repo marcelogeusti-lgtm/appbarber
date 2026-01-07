@@ -1,5 +1,5 @@
 const express = require('express');
-const { createAppointment, getMyAppointments, getProAppointments } = require('../controllers/appointment.controller');
+const { createAppointment, getMyAppointments, getProAppointments, getPendingFees } = require('../controllers/appointment.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -28,6 +28,7 @@ const optionalProtect = async (req, res, next) => {
 };
 
 router.post('/', optionalProtect, createAppointment);
+router.get('/pending-fees', protect, getPendingFees);
 router.get('/me', protect, getMyAppointments); // Client history
 router.get('/pro', protect, authorize('BARBER', 'ADMIN'), getProAppointments); // Pro View
 router.get('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), require('../controllers/appointment.controller').getAllAppointments); // Admin View

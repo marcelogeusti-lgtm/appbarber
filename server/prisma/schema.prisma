@@ -21,6 +21,7 @@ enum AppointmentStatus {
   CONFIRMED
   COMPLETED
   CANCELLED
+  NO_SHOW
 }
 
 enum PaymentStatus {
@@ -66,6 +67,7 @@ model User {
   birthday  DateTime?
   role      Role     @default(CLIENT)
   avatarUrl String?
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -90,6 +92,7 @@ model User {
   // Orders
   clientOrders       Order[] @relation("ClientOrders")
   professionalOrders Order[] @relation("ProfessionalOrders")
+  noShowRecords      NoShowRecord[]
 }
 
 model Barbershop {
@@ -100,6 +103,12 @@ model Barbershop {
   phone     String?
   logoUrl   String?
   webhookUrl String?
+  
+  // No-Show Settings
+  noShowEnabled Boolean @default(false)
+  noShowPercent Float   @default(0)
+  noShowText    String?
+  
   subscriptionStatus String @default("ACTIVE") // ACTIVE, OVERDUE, CANCELED
   saasPlan       String @default("BASIC")
   createdAt DateTime @default(now())
@@ -117,6 +126,35 @@ model Barbershop {
   subscriptionPlans SubscriptionPlan[]
   commissions  Commission[]
   orders       Order[]
+  noShowRecords NoShowRecord[]
+}
+
+enum NoShowStatus {
+  PENDING
+  CHARGED
+  WAIVED
+}
+
+model NoShowRecord {
+  id            String   @id @default(uuid())
+  
+  clientId      String
+  client        User     @relation(fields: [clientId], references: [id])
+  
+  appointmentId String   @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  
+  barbershopId  String
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  percentage    Float
+  baseValue     Float
+  feeValue      Float
+  
+  status        NoShowStatus @default(PENDING)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Professional {
@@ -184,6 +222,7 @@ model Appointment {
   transactions Transaction[]
   commissions  Commission[]
   order        Order?
+  noShowRecord NoShowRecord?
 }
 
 model Product {
@@ -193,6 +232,7 @@ model Product {
   price       Decimal  @db.Decimal(10, 2)
   costPrice   Decimal? @db.Decimal(10, 2)
   stock       Int      @default(0)
+  active      Boolean  @default(true)
   
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])

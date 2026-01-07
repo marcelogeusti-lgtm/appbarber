@@ -50,6 +50,7 @@ export default function BarbershopPage() {
 
     const [availableSlots, setAvailableSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
+    const [pendingFees, setPendingFees] = useState([]);
 
     useEffect(() => {
         if (!slug) return;
@@ -78,6 +79,12 @@ export default function BarbershopPage() {
                         const subRes = await api.get('/subscription/my-active');
                         if (subRes.data) setMySubscription(subRes.data);
                     } catch (e) { /* No sub */ }
+
+                    // Fetch Pending Fees
+                    try {
+                        const feesRes = await api.get(`/appointments/pending-fees?barbershopId=${res.data.id}`);
+                        setPendingFees(feesRes.data || []);
+                    } catch (e) { console.error('Error fetching fees', e); }
 
                     // Fetch Points (derived from completed appointments for now)
                     try {
@@ -145,8 +152,9 @@ export default function BarbershopPage() {
     const totalValue = useMemo(() => {
         const servicePrice = selectedService?.price ? Number(selectedService.price) : 0;
         const productsPrice = selectedProducts.reduce((sum, p) => sum + Number(p.price), 0);
-        return servicePrice + productsPrice;
-    }, [selectedService, selectedProducts]);
+        const feesTotal = pendingFees.reduce((sum, f) => sum + Number(f.feeValue), 0);
+        return servicePrice + productsPrice + feesTotal;
+    }, [selectedService, selectedProducts, pendingFees]);
 
     const handleBook = async () => {
         try {
@@ -355,9 +363,22 @@ export default function BarbershopPage() {
                                                     );
                                                 })}
                                             </div>
-                                            <div className="bg-slate-900 p-5 rounded-3xl border border-slate-800 flex justify-between items-center">
-                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Estimado</span>
-                                                <span className="text-xl font-black text-white">{formatCurrency(totalValue)}</span>
+                                            <div className="bg-slate-900 p-5 rounded-3xl border border-slate-800 flex flex-col gap-2">
+                                                <div className="flex justify-between items-center text-slate-400">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Subtotal</span>
+                                                    <span className="text-xs font-bold">{formatCurrency((selectedService?.price ? Number(selectedService.price) : 0) + selectedProducts.reduce((sum, p) => sum + Number(p.price), 0))}</span>
+                                                </div>
+                                                {pendingFees.length > 0 && (
+                                                    <div className="flex justify-between items-center text-red-400">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Taxa de No-show ({pendingFees.length}x)</span>
+                                                        <span className="text-xs font-bold">{formatCurrency(pendingFees.reduce((s, f) => s + Number(f.feeValue), 0))}</span>
+                                                    </div>
+                                                )}
+                                                <div className="h-px bg-slate-800 my-1"></div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Estimado</span>
+                                                    <span className="text-xl font-black text-white">{formatCurrency(totalValue)}</span>
+                                                </div>
                                             </div>
                                             <button onClick={nextStep} className="w-full bg-white text-black py-4 rounded-2xl font-black text-xs uppercase hover:bg-slate-200 transition">Continuar para Data e Hora</button>
                                         </div>
@@ -397,6 +418,24 @@ export default function BarbershopPage() {
                                             <div className="space-y-4">
                                                 <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none" />
                                                 <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none" />
+                                            </div>
+
+                                            {/* Final Summary */}
+                                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800/50 text-xs space-y-2">
+                                                <div className="flex justify-between text-slate-400">
+                                                    <span>Serviço + Produtos</span>
+                                                    <span>{formatCurrency((selectedService?.price ? Number(selectedService.price) : 0) + selectedProducts.reduce((sum, p) => sum + Number(p.price), 0))}</span>
+                                                </div>
+                                                {pendingFees.length > 0 && (
+                                                    <div className="flex justify-between text-red-400 font-bold">
+                                                        <span>Taxa No-show ({pendingFees.length}x)</span>
+                                                        <span>{formatCurrency(pendingFees.reduce((s, f) => s + Number(f.feeValue), 0))}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between text-white font-black text-sm pt-2 border-t border-slate-800">
+                                                    <span>TOTAL</span>
+                                                    <span>{formatCurrency(totalValue)}</span>
+                                                </div>
                                             </div>
 
                                             <div className="space-y-3">

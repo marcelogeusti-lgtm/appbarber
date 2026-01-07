@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 // Create Product
 exports.createProduct = async (req, res) => {
     try {
-        const { name, description, price, costPrice, stock, barbershopId } = req.body;
+        const { name, description, price, costPrice, stock, barbershopId, active } = req.body;
 
         const product = await prisma.product.create({
             data: {
@@ -13,6 +13,7 @@ exports.createProduct = async (req, res) => {
                 price: parseFloat(price),
                 costPrice: costPrice ? parseFloat(costPrice) : null,
                 stock: parseInt(stock),
+                active: active !== undefined ? active : true,
                 barbershopId
             }
         });
@@ -29,7 +30,11 @@ exports.getProducts = async (req, res) => {
     try {
         const { barbershopId } = req.query;
         const products = await prisma.product.findMany({
-            where: { barbershopId },
+            where: {
+                barbershopId,
+                active: true,
+                stock: { gt: 0 }
+            },
             orderBy: { name: 'asc' }
         });
         res.json(products);
@@ -42,7 +47,7 @@ exports.getProducts = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, costPrice, stock } = req.body;
+        const { name, description, price, costPrice, stock, active } = req.body;
 
         const product = await prisma.product.update({
             where: { id },
@@ -51,7 +56,8 @@ exports.updateProduct = async (req, res) => {
                 description,
                 price: parseFloat(price),
                 costPrice: costPrice ? parseFloat(costPrice) : null,
-                stock: parseInt(stock)
+                stock: parseInt(stock),
+                active
             }
         });
 

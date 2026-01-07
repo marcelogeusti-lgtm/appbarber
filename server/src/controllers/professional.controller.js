@@ -172,3 +172,38 @@ exports.listProfessionals = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.updateProfessional = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { active, name, phone, bio, position } = req.body;
+
+        const updated = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.update({
+                where: { id },
+                data: {
+                    active,
+                    name,
+                    phone
+                }
+            });
+
+            if (bio !== undefined || position !== undefined) {
+                const existingProfile = await tx.professional.findUnique({ where: { userId: id } });
+                if (existingProfile) {
+                    await tx.professional.update({
+                        where: { userId: id },
+                        data: { bio, position }
+                    });
+                }
+            }
+
+            return user;
+        });
+
+        res.json(updated);
+    } catch (error) {
+        console.error('Update Pro error:', error);
+        res.status(500).json({ message: 'Server error updating professional' });
+    }
+};
