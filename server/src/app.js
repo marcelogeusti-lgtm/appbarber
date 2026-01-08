@@ -43,6 +43,7 @@ app.use('/api/subscriptions', require('./routes/subscription.routes'));
 app.use('/api/commissions', require('./routes/commission.routes'));
 app.use('/api/orders', require('./routes/order.routes'));
 app.use('/api/products', require('./routes/product.routes'));
+app.use('/api/clients', require('./routes/client.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 
 // Error Handling Middleware
