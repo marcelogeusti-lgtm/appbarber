@@ -91,6 +91,22 @@ export default function ProfessionalsPage() {
         }
     };
 
+    const handleDeletePro = async (proId, proName) => {
+        if (!confirm(`Tem certeza que deseja remover o profissional ${proName}? Esta ação não pode ser desfeita e ele perderá o acesso de barbeiro.`)) return;
+
+        setActionLoading(true);
+        try {
+            await api.delete(`/professionals/${proId}`);
+            await fetchPros();
+            alert('✅ Profissional removido com sucesso!');
+        } catch (err) {
+            console.error(err);
+            alert('❌ Erro ao remover: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const toggleDayOff = (dayOfWeek) => {
         setTempSchedules(prev => prev.map(s => s.dayOfWeek === dayOfWeek ? { ...s, isOff: !s.isOff } : s));
     };
@@ -169,6 +185,15 @@ export default function ProfessionalsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pros.map(pro => (
                     <div key={pro.id} className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 hover:border-emerald-500/50 transition-all group relative">
+                        {/* Delete Button */}
+                        <button
+                            onClick={() => handleDeletePro(pro.id, pro.name)}
+                            className="absolute top-6 right-6 p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-red-500 hover:border-red-500/50 hover:bg-red-500/10 transition-all z-10"
+                            title="Remover Profissional"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+
                         <div className="flex items-center gap-4 mb-6">
                             <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center font-black text-2xl text-emerald-500 border border-slate-800 group-hover:scale-110 transition-transform">
                                 {pro.name.charAt(0)}

@@ -207,3 +207,49 @@ exports.updateProfessional = async (req, res) => {
         res.status(500).json({ message: 'Server error updating professional' });
     }
 };
+
+exports.deleteProfessional = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if professional exists
+        const pro = await prisma.user.findUnique({
+            where: { id },
+            include: { professionalProfile: true }
+        });
+
+        if (!pro || pro.role !== 'BARBER') {
+            return res.status(404).json({ message: 'Profissional não encontrado' });
+        }
+
+        // Perform Soft Delete:
+        // 1. Remove Professional Profile (so they don't show up as barber)
+        // 2. Change Role to CLIENT (removes access)
+        // 3. Set active = false (optional, but good for keeping history without access)
+
+        await prisma.$transaction(async (tx) => {
+            // Remove Schedules
+            if (pro.professionalProfile) {
+                await tx.schedule.deleteMany({ where: { professionalId: pro.professionalProfile.id } });
+                await tx.professional.delete({ where: { id: pro.professionalProfile.id } });
+            }
+
+            // Downgrade User
+            await tx.user.update({
+                where: { id },
+                data: {
+                    role: 'CLIENT',
+                    workedBarbershopId: null,
+                    // active: false // We can keep them active as client, or inactive. Let's keep active as client so history is preserved? 
+                    // Usually "Delete Employee" means "Remove from my team". 
+                    // Downgrading to CLIENT is the best practice to keep financial history.
+                }
+            });
+        });
+
+        res.json({ message: 'Profissional removido com sucesso' });
+    } catch (error) {
+        console.error('Delete Pro error:', error);
+        res.status(500).json({ message: 'Erro ao remover profissional' });
+    }
+};
