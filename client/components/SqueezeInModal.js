@@ -238,28 +238,37 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
                                 <div className="py-20 text-center text-slate-500 animate-pulse font-bold uppercase text-xs">Calculando horários...</div>
                             ) : (
                                 <div className="space-y-6">
-                                    {availability.filter(p => p.slots.length > 0).length === 0 ? (
+                                    {availability.length === 0 ? (
                                         <div className="text-center py-10">
                                             <AlertCircle className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-                                            <p className="text-slate-500 font-bold text-xs uppercase">Nenhum horário disponível para este serviço nesta data.</p>
+                                            <p className="text-slate-500 font-bold text-xs uppercase">Nenhum profissional encontrado para esta data.</p>
                                         </div>
                                     ) : (
-                                        availability.filter(p => p.slots.length > 0).map(pro => (
+                                        availability.map(pro => (
                                             <div key={pro.proId} className="space-y-3">
                                                 <div className="flex items-center gap-2">
-                                                    <User className="w-4 h-4 text-emerald-500" />
-                                                    <h3 className="text-sm font-black text-white uppercase tracking-tight">{pro.proName}</h3>
+                                                    <User className={`w-4 h-4 ${pro.slots.length > 0 ? 'text-emerald-500' : 'text-slate-600'}`} />
+                                                    <h3 className={`text-sm font-black uppercase tracking-tight ${pro.slots.length > 0 ? 'text-white' : 'text-slate-600'}`}>{pro.proName}</h3>
+                                                    {pro.slots.length === 0 && (
+                                                        <span className="text-[9px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded font-bold uppercase">Indisponível</span>
+                                                    )}
                                                 </div>
                                                 <div className="grid grid-cols-4 gap-2">
-                                                    {pro.slots.map(time => (
-                                                        <button
-                                                            key={time}
-                                                            onClick={() => handleSlotSelect(pro, time)}
-                                                            className={`p-2 rounded-lg text-xs font-bold transition border ${selectedSlot?.time === time && selectedSlot?.professional.proId === pro.proId ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-600'}`}
-                                                        >
-                                                            {time}
-                                                        </button>
-                                                    ))}
+                                                    {pro.slots.length > 0 ? (
+                                                        pro.slots.map(time => (
+                                                            <button
+                                                                key={time}
+                                                                onClick={() => handleSlotSelect(pro, time)}
+                                                                className={`p-2 rounded-lg text-xs font-bold transition border ${selectedSlot?.time === time && selectedSlot?.professional.proId === pro.proId ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-600'}`}
+                                                            >
+                                                                {time}
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        <div className="col-span-4 text-[10px] text-slate-600 font-medium italic">
+                                                            Nenhum horário livre ou escala não definida.
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))
