@@ -238,13 +238,19 @@ export default function DashboardPage() {
                     <QrCode className="w-6 h-6 text-slate-500 mb-4" />
                     <p className="font-bold text-foreground">Pix QR</p>
                 </div>
-            </div>            <a href="/dashboard/services" className="inline-block bg-emerald-500 text-white px-12 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-2xl shadow-emerald-500/40">
-                Cadastrar Meus Serviços
-            </a>
+            </div>
+
+            {stats.appointments === 0 && (
+                <div className="bg-emerald-500/5 p-12 rounded-[3.5rem] border-4 border-dashed border-border text-center">
+                    <div className="max-w-md mx-auto">
+                        <h2 className="text-2xl font-black text-foreground uppercase tracking-tighter mb-4">Primeiros Passos...</h2>
+                        <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-10">Configure seus serviços e comece a faturar hoje mesmo.</p>
+                        <a href="/dashboard/services" className="inline-block bg-emerald-500 text-white px-12 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-2xl shadow-emerald-500/40">
+                            Cadastrar Meus Serviços
+                        </a>
+                    </div>
+                </div>
+            )}
         </div>
-                </div >
-            )
-}
-        </div >
     );
 }
