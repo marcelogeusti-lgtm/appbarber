@@ -133,6 +133,7 @@ model Barbershop {
   orders       Order[]
   noShowRecords NoShowRecord[]
   webhooks     Webhook[]
+  notificationTemplates NotificationTemplate[]
 }
 
 enum NoShowStatus {
@@ -445,12 +446,17 @@ enum NotificationType {
 }
 
 model NotificationTemplate {
-  id          String           @id @default(uuid())
-  name        String
-  type        NotificationType @unique
-  content     String           @db.Text
-  active      Boolean          @default(true)
+  id           String           @id @default(uuid())
+  name         String
+  type         NotificationType
+  content      String           @db.Text
+  active       Boolean          @default(true)
   
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  barbershopId String?
+  barbershop   Barbershop?      @relation(fields: [barbershopId], references: [id])
+  
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([type, barbershopId])
 }

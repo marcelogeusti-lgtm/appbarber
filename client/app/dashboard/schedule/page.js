@@ -9,6 +9,7 @@ import DayDetailsModal from '../../../components/DayDetailsModal';
 import EditModal from '../../../components/EditModal';
 import AppointmentDetailsModal from '../../../components/AppointmentDetailsModal';
 import NewOrderModal from '../../../components/NewOrderModal';
+import PrintButton from '../../../components/PrintButton';
 
 export default function SchedulePage() {
     const [appointments, setAppointments] = useState([]);
@@ -216,6 +217,8 @@ export default function SchedulePage() {
                             </button>
                         ))}
                     </div>
+
+                    <PrintButton />
 
                     {/* Squeeze In Button */}
                     <button

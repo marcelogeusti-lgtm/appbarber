@@ -6,19 +6,36 @@ const emailProvider = require('./providers/EmailProvider');
 class CommunicationService {
 
 
+    async getTemplate(type, barbershopId) {
+        // Try to find specific override
+        const specific = await prisma.notificationTemplate.findFirst({
+            where: { type, barbershopId }
+        });
+        if (specific) return specific;
+
+        // Fallback to global
+        return await prisma.notificationTemplate.findFirst({
+            where: { type, barbershopId: null }
+        });
+    }
+
     // Send Confirmation Request
     async sendConfirmationRequest(appointment) {
         const { client, service, date, barbershop, professional } = appointment;
         const formattedDate = new Date(date).toLocaleString('pt-BR');
 
         // Fetch Template
-        const template = await prisma.notificationTemplate.findUnique({
-            where: { type: 'CONFIRMATION_REQUEST' }
-        });
+        const template = await this.getTemplate('CONFIRMATION_REQUEST', barbershop.id);
 
         let messageContent = template
             ? template.content
             : `Olá, ${client.name}! ✂️\n\nSeu agendamento na *${barbershop.name}* está quase confirmado.\n\n📅 Data: *${formattedDate}*\n💇‍♂️ Serviço: *${service.name}*\n💈 Profissional: *${professional.name}*\n\nResponda *1* para confirmar ou *2* para cancelar.`;
+
+        // Ensure template active
+        if (template && !template.active) {
+            console.log(`Template CONFIRMATION_REQUEST inactive for barbershop ${barbershop.id}`);
+            return;
+        }
 
         // Replace Variables
         messageContent = messageContent
