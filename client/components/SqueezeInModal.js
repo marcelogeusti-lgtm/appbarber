@@ -1,27 +1,48 @@
 'use client';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
-import { X, Search, Calendar, Clock, User, Scissors, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Search, Calendar, Clock, User, Scissors, AlertCircle, CheckCircle, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function SqueezeInModal({ isOpen, onClose, services, barbershopId, onConfirm }) {
-    const [step, setStep] = useState(1); // 1: Service, 2: Date, 3: Results/Selection
+    const [step, setStep] = useState(0); // 0: Client, 1: Service, 2: Date, 3: Results
     const [selectedService, setSelectedService] = useState(null);
+    const [selectedClient, setSelectedClient] = useState(null);
+    const [clients, setClients] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [targetDate, setTargetDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [availability, setAvailability] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [selectedSlot, setSelectedSlot] = useState(null); // { proId, time }
+    const [selectedSlot, setSelectedSlot] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
-            setStep(1);
+            setStep(0);
             setSelectedService(null);
+            setSelectedClient(null);
             setAvailability([]);
             setSelectedSlot(null);
             setTargetDate(format(new Date(), 'yyyy-MM-dd'));
+            fetchClients();
+            setSearchTerm('');
         }
     }, [isOpen]);
+
+    const fetchClients = async () => {
+        if (!barbershopId) return;
+        try {
+            const res = await api.get(`/clients?barbershopId=${barbershopId}`);
+            setClients(res.data);
+        } catch (error) {
+            console.error('Erro ao buscar clientes:', error);
+        }
+    };
+
+    const handleClientSelect = (client) => {
+        setSelectedClient(client);
+        setStep(1);
+    };
 
     const handleServiceSelect = (service) => {
         setSelectedService(service);
@@ -32,8 +53,6 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
         setStep(3);
         setLoading(true);
         try {
-            // Fetch availability for the specific service duration
-            // availability.controller expects serviceIds query param
             const res = await api.get(`/availability/${barbershopId}/${targetDate}`, {
                 params: { serviceIds: selectedService.id }
             });
@@ -56,16 +75,22 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
     };
 
     const confirmBooking = () => {
-        if (!selectedSlot) return;
+        if (!selectedSlot || !selectedClient) return;
         onConfirm({
             professionalId: selectedSlot.professional.proId,
             serviceId: selectedSlot.service.id,
+            clientId: selectedClient.id, // ID do cliente selecionado
             date: selectedSlot.date,
             time: selectedSlot.time,
             isSqueezeIn: true
         });
         onClose();
     };
+
+    const filteredClients = clients.filter(c =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.phone?.includes(searchTerm)
+    );
 
     if (!isOpen) return null;
 
@@ -77,10 +102,12 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
                     <div>
                         <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
-                            <Scissors className="text-emerald-500 w-5 h-5" /> Encaixe Inteligente
+                            <Scissors className="text-emerald-500 w-5 h-5" /> Novo Agendamento
                         </h2>
                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-                            Encontre horários compatíveis automaticamente
+                            {step === 0 ? 'Selecione o Cliente' :
+                                step === 1 ? 'Selecione o Serviço' :
+                                    step === 2 ? 'Escolha a Data' : 'Horários Disponíveis'}
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition text-slate-400 hover:text-white">
@@ -91,10 +118,54 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
+                    {/* Step 0: Client Selection */}
+                    {step === 0 && (
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar cliente por nome ou telefone..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-4 pl-12 pr-4 text-white outline-none focus:border-emerald-500 transition"
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                                {filteredClients.map(client => (
+                                    <button
+                                        key={client.id}
+                                        onClick={() => handleClientSelect(client)}
+                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-900 border border-transparent hover:border-slate-800 transition text-left group"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                                            {client.name[0]}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-200 group-hover:text-emerald-400 transition-colors">{client.name}</p>
+                                            <p className="text-xs text-slate-500">{client.phone || 'Sem telefone'}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                                {filteredClients.length === 0 && (
+                                    <p className="text-center text-slate-500 text-xs py-4">Nenhum cliente encontrado.</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Step 1: Services */}
                     {step === 1 && (
                         <div className="space-y-4">
-                            <p className="text-sm text-slate-400 font-medium">Selecione o serviço para calcular a duração:</p>
+                            <button onClick={() => setStep(0)} className="text-xs text-slate-500 hover:text-white mb-2 flex items-center gap-1">← Voltar para Clientes</button>
+                            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-4 flex items-center gap-3">
+                                <User className="w-4 h-4 text-emerald-500" />
+                                <span className="text-sm font-bold text-white">{selectedClient?.name}</span>
+                            </div>
+
+                            <p className="text-sm text-slate-400 font-medium">Selecione o serviço:</p>
                             <div className="grid gap-3">
                                 {services.map(srv => (
                                     <button
@@ -118,13 +189,19 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
                     {/* Step 2: Date */}
                     {step === 2 && (
                         <div className="space-y-6">
-                            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
-                                <span className="text-xs font-black text-white uppercase tracking-widest">Serviço Selecionado:</span>
-                                <span className="text-xs text-emerald-500 font-bold uppercase">{selectedService?.name} ({selectedService?.duration} min)</span>
+                            <div className="flex gap-2">
+                                <div className="flex-1 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
+                                    <span className="block text-slate-500 uppercase font-bold text-[10px]">Cliente</span>
+                                    <span className="font-bold text-white">{selectedClient?.name}</span>
+                                </div>
+                                <div className="flex-1 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
+                                    <span className="block text-slate-500 uppercase font-bold text-[10px]">Serviço</span>
+                                    <span className="font-bold text-emerald-500">{selectedService?.name}</span>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Data do Encaixe</label>
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Data do Agendamento</label>
                                 <input
                                     type="date"
                                     value={targetDate}
@@ -152,12 +229,13 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
                     {step === 3 && (
                         <div className="space-y-6">
                             <div className="flex gap-2 overflow-x-auto pb-2">
+                                <span className="whitespace-nowrap bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 text-[10px] font-bold text-slate-400 uppercase">{selectedClient?.name}</span>
                                 <span className="whitespace-nowrap bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 text-[10px] font-bold text-slate-400 uppercase">{selectedService?.name}</span>
                                 <span className="whitespace-nowrap bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 text-[10px] font-bold text-slate-400 uppercase">{format(new Date(targetDate), 'dd/MM/yyyy')}</span>
                             </div>
 
                             {loading ? (
-                                <div className="py-20 text-center text-slate-500 animate-pulse font-bold uppercase text-xs">Calculando encaixes possíveis...</div>
+                                <div className="py-20 text-center text-slate-500 animate-pulse font-bold uppercase text-xs">Calculando horários...</div>
                             ) : (
                                 <div className="space-y-6">
                                     {availability.filter(p => p.slots.length > 0).length === 0 ? (
@@ -199,13 +277,13 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
                             onClick={confirmBooking}
                             className="w-full bg-white text-[#111827] hover:bg-slate-200 p-4 rounded-xl font-black uppercase tracking-widest transition shadow-lg flex items-center justify-center gap-2"
                         >
-                            <CheckCircle className="w-4 h-4" /> Confirmar Agendamento ({selectedSlot.time})
+                            <CheckCircle className="w-4 h-4" /> Confirmar ({selectedSlot.time})
                         </button>
                         <button
                             onClick={() => { setSelectedSlot(null); setStep(2); }}
                             className="w-full mt-2 text-slate-500 hover:text-slate-300 p-2 text-xs font-bold uppercase tracking-widest"
                         >
-                            Alterar Filtros
+                            Alterar Data
                         </button>
                     </div>
                 )}
