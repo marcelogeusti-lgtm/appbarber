@@ -71,16 +71,16 @@ export default function Sidebar({ user, isLocked, logout }) {
     );
 
     return (
-        <aside className="w-72 bg-[#111827] border-r border-slate-800/50 hidden md:flex flex-col h-screen sticky top-0">
+        <aside className="w-72 bg-card border-r border-border hidden md:flex flex-col h-screen sticky top-0">
             {/* Header */}
-            <div className="p-6 border-b border-slate-800/50">
+            <div className="p-6 border-b border-border">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
                         <Store className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-white italic tracking-tight">Barbe<span className="text-emerald-500">On</span></h2>
-                        <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Gestão Premium</p>
+                        <h2 className="text-lg font-black text-foreground italic tracking-tight">Barbe<span className="text-emerald-500">On</span></h2>
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Gestão Premium</p>
                     </div>
                 </div>
             </div>
@@ -126,14 +126,14 @@ export default function Sidebar({ user, isLocked, logout }) {
             </nav>
 
             {/* Footer / User Info */}
-            <div className="p-4 border-t border-slate-800/50 bg-[#0f1523]">
-                <div className={`flex items-center gap-3 p-3 rounded-xl border border-slate-800/50 bg-slate-900/50 ${isLocked ? 'opacity-50' : ''}`}>
-                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
-                        <span className="text-sm font-bold text-slate-300">{user?.name?.[0]}</span>
+            <div className="p-4 border-t border-border bg-background/50">
+                <div className={`flex items-center gap-3 p-3 rounded-xl border border-border bg-card ${isLocked ? 'opacity-50' : ''}`}>
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-border">
+                        <span className="text-sm font-bold text-foreground">{user?.name?.[0]}</span>
                     </div>
                     <div className="flex-1 overflow-hidden">
-                        <p className="text-xs font-bold text-white truncate">{user?.name}</p>
-                        <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
+                        <p className="text-xs font-bold text-foreground truncate">{user?.name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                     </div>
                 </div>
                 <button

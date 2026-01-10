@@ -4,17 +4,23 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Base HSL values for Tailwind/Shadcn */
+    --background: 210 40% 98%;
+    /* #f8fafc - Light Mode Default */
+    --foreground: 215 48% 11%;
+    /* #0f172a */
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* #ffffff */
+    --card-foreground: 215 48% 11%;
+    /* #0f172a */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 48% 11%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 142 71% 45%;
+    /* #22c55e - Green */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -30,29 +36,59 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 142 71% 45%;
+    /* Match primary */
 
     --radius: 0.5rem;
+
+    /* Custom Aliases for strict usage if needed */
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-primary: #0f172a;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  /* Explicit Light Theme (redundant but safe) */
+  [data-theme="light"] {
+    --background: 210 40% 98%;
+    --foreground: 215 48% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 48% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 48% 11%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --card: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --border: 220 13% 91%;
+    /* #e5e7eb */
+  }
+
+  /* Dark Theme - The Premium Look */
+  [data-theme="dark"] {
+    --background: 220 48% 8%;
+    /* #0b1220 - Main Dark BG */
+    --foreground: 210 40% 98%;
+    /* #f8fafc */
+
+    --card: 220 39% 11%;
+    /* #111827 - Card BG */
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 220 39% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 142 71% 45%;
+    /* #22c55e */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
+    /* #9ca3af */
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
@@ -60,9 +96,10 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 215 28% 17%;
+    /* #1f2937 */
+    --input: 215 28% 17%;
+    --ring: 142 71% 45%;
   }
 }
 

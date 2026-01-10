@@ -54,130 +54,197 @@ export default function DashboardPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-[2rem] border border-slate-800 shadow-sm relative overflow-hidden group">
-                <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center font-black text-2xl border border-emerald-500/20 shadow-inner">
-                        {user.name?.charAt(0)}
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Olá, {user.name}! ✂️</h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{user.role === 'SUPER_ADMIN' ? '👑 Master System' : user.role === 'ADMIN' ? '🏢 Gestor Barber' : '✂️ Elite Barber'}</p>
-                        </div>
-                    </div>
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2rem] border border-border shadow-sm relative overflow-hidden group">
+                <div className="relative z-10">
+                    <h1 className="text-3xl font-black text-foreground mb-2 tracking-tight">
+                        Olá, {user?.name?.split(' ')[0]}! 👋
+                    </h1>
+                    <p className="text-muted-foreground font-medium">
+                        Aqui está o resumo da sua barbearia hoje.
+                    </p>
                 </div>
-                <div className="flex items-center gap-4">
-                    <a href="/home" className="bg-slate-950 text-slate-500 hover:text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-800 transition-all flex items-center gap-2">
-                        Ver como Cliente
-                    </a>
+                <div className="flex items-center gap-3 relative z-10">
+                    <div className="px-4 py-2 bg-background/50 backdrop-blur-md rounded-xl border border-border flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Sistema Online</span>
+                    </div>
+                    <button className="px-4 py-2 bg-background/50 hover:bg-emerald-500/10 border border-border hover:border-emerald-500/50 rounded-xl transition-all group">
+                        <RefreshCw className="w-4 h-4 text-muted-foreground group-hover:text-emerald-500" />
+                    </button>
                 </div>
+                {/* Decorative BG Gradient */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2 group-hover:bg-emerald-500/20 transition-all duration-1000"></div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 relative overflow-hidden group">
-                    <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all"></div>
-
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-6">
-                            <div className="p-2 bg-emerald-500 text-white rounded-lg"><Users className="w-4 h-4" /></div>
-                            <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Link de Agendamento Profissional</h3>
-                        </div>
-
-                        <div className="flex flex-col md:flex-row items-center gap-4">
-                            <div className="flex-1 w-full bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-[11px] text-emerald-500 break-all flex items-center justify-between group/link">
-                                {publicUrl || 'Sincronizando...'}
-                                <button onClick={copyToClipboard} className="ml-4 p-2 bg-slate-900 rounded-lg hover:bg-emerald-500 hover:text-white transition-all text-slate-500">
-                                    <Copy className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <div className="flex gap-3 w-full md:w-auto">
-                                <a
-                                    href={publicUrl}
-                                    target="_blank"
-                                    className="flex-1 md:flex-none bg-white text-slate-950 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition text-center shadow-xl"
-                                >
-                                    Abrir Página
-                                </a>
-                            </div>
-                        </div>
-                        <p className="text-[9px] text-slate-600 mt-5 uppercase font-bold tracking-widest italic">Este link é a porta de entrada para novos agendamentos 24h por dia.</p>
-                    </div>
-                </div>
-
-                <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 flex flex-col justify-center items-center text-center">
-                    <h3 className="text-slate-500 text-xs font-black uppercase tracking-widest mb-4">Atendimentos Hoje</h3>
-                    <p className="text-7xl font-black text-white hover:text-emerald-500 transition-colors uppercase leading-none">{stats.today || 0}</p>
-                    <div className="mt-4 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-                        <p className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">Atendimento Dinâmico</p>
-                    </div>
-                </div>
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatsCard
+                    title="Faturamento Hoje"
+                    value={todayStats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    icon={DollarSign}
+                    trend="+12% vs ontem"
+                    color="text-emerald-500"
+                    bg="bg-emerald-500/10"
+                />
+                <StatsCard
+                    title="Agendamentos"
+                    value={todayStats.appointments}
+                    icon={Calendar}
+                    trend="4 para hoje"
+                    color="text-blue-500"
+                    bg="bg-blue-500/10"
+                />
+                <StatsCard
+                    title="Clientes Novos"
+                    value={todayStats.newClients}
+                    icon={Users}
+                    trend="2 nesta semana"
+                    color="text-purple-500"
+                    bg="bg-purple-500/10"
+                />
+                <StatsCard
+                    title="Ticket Médio"
+                    value="R$ 85,00"
+                    icon={TrendingUp}
+                    trend="Estável"
+                    color="text-orange-500"
+                    bg="bg-orange-500/10"
+                />
             </div>
 
-            {/* Dashboard Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-[#111827] p-10 rounded-[2.5rem] border border-slate-800 relative group overflow-hidden">
-                    <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12 group-hover:scale-110 transition-transform">
-                        <TrendingUp className="w-32 h-32 text-emerald-500" />
+            {/* Main Content Area */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Today's Schedule */}
+                <div className="md:col-span-2 bg-card p-8 rounded-[2.5rem] border border-border relative overflow-hidden group">
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                        <div>
+                            <h2 className="text-xl font-black text-foreground">Agenda de Hoje</h2>
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Próximos atendimentos</p>
+                        </div>
+                        <Link href="/dashboard/schedule" className="p-3 bg-background hover:bg-emerald-500 hover:text-white rounded-xl transition-all group-hover:scale-110">
+                            <ArrowRight className="w-5 h-5" />
+                        </Link>
                     </div>
-                    <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-6 border-b border-slate-800 pb-4">Performance Histórica</h3>
-                    <div className="flex flex-col gap-2">
-                        <p className="text-5xl font-black text-white uppercase tracking-tighter transition-all group-hover:translate-x-3">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.revenue)}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Faturamento acumulado em serviços</p>
+
+                    <div className="space-y-4 relative z-10">
+                        {loading ? (
+                            <p className="text-slate-500 text-sm">Carregando...</p>
+                        ) : appointments.length === 0 ? (
+                            <div className="text-center py-12">
+                                <p className="text-slate-500 mb-4">Nenhum agendamento para hoje.</p>
+                                <Link href="/dashboard/schedule" className="text-emerald-500 font-bold text-sm hover:underline">
+                                    Ver agenda completa
+                                </Link>
+                            </div>
+                        ) : (
+                            appointments.slice(0, 3).map((apt, i) => (
+                                <div key={i} className="flex items-center gap-4 p-4 bg-background/50 rounded-2xl border border-border hover:border-emerald-500/30 transition-all">
+                                    <div className="flex flex-col items-center justify-center w-14 h-14 bg-card rounded-xl border border-border shadow-sm">
+                                        <span className="text-xs font-bold text-emerald-500">{format(new Date(apt.date), 'HH:mm')}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-foreground">{apt.client?.name || apt.guestName || 'Cliente'}</h3>
+                                        <p className="text-xs text-muted-foreground">{apt.service?.name} • {apt.professional?.name}</p>
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${apt.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                        {apt.status === 'COMPLETED' ? 'Concluído' : 'Confirmado'}
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 
-                <div className="bg-[#111827] p-10 rounded-[2.5rem] border border-slate-800 relative group">
-                    <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-6 border-b border-slate-800 pb-4">Nossa Comunidade</h3>
-                    <div className="flex flex-col gap-2">
-                        <p className="text-6xl font-black text-white uppercase tracking-tighter group-hover:translate-x-3 transition-all">
-                            {stats.clients}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Clientes reais na sua base</p>
+                {/* Quick Actions */}
+                <div className="bg-card p-8 rounded-[2.5rem] border border-border flex flex-col justify-center items-center text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                        <Scissors className="w-8 h-8 text-white" />
                     </div>
-                </div>
-            </div>
-
-            {/* Experience Box */}
-            <div className="bg-slate-950 rounded-[3rem] p-12 border border-slate-800 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                    <ShoppingBag className="w-64 h-64" />
-                </div>
-                <div className="relative z-10 max-w-2xl">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter text-white mb-6">A experiência <span className="text-emerald-500">Premium</span> de agendamento.</h2>
-                    <p className="text-slate-400 font-medium mb-10 leading-relaxed uppercase text-xs tracking-widest">
-                        O Barbe-On foi desenhado para eliminar fricção. Seu cliente não precisa de apps pesados ou cadastros complexos.
+                    <h3 className="text-lg font-black text-foreground mb-2">Novo Agendamento</h3>
+                    <p className="text-muted-foreground text-xs mb-8 leading-relaxed max-w-[200px]">
+                        Adicione um cliente na agenda rapidamente sem sair daqui.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-[#111827] p-6 rounded-3xl border border-slate-800 hover:border-emerald-500/50 transition-all">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-2">Simplicidade</p>
-                            <p className="text-[11px] font-bold text-white tracking-tight uppercase">Acesso direto via QR Code ou Link Bio</p>
+                    <Link href="/dashboard/schedule" className="w-full py-4 bg-foreground text-background font-bold rounded-xl hover:bg-emerald-500 hover:text-white transition-all shadow-xl hover:shadow-emerald-500/20">
+                        Agendar Agora
+                    </Link>
+                </div>
+            </div>
+
+            {/* Performance & Marketing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-card p-10 rounded-[2.5rem] border border-border relative group overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-500">
+                                <TrendingUp className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-lg font-black text-foreground">Desempenho</h3>
                         </div>
-                        <div className="bg-[#111827] p-6 rounded-3xl border border-slate-800 hover:border-emerald-500/50 transition-all">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-2">Agilidade</p>
-                            <p className="text-[11px] font-bold text-white tracking-tight uppercase">Seleção de profissional em 3 toques</p>
+                        <div className="space-y-6">
+                            <div>
+                                <div className="flex justify-between text-xs font-bold mb-2">
+                                    <span className="text-muted-foreground">Meta Mensal</span>
+                                    <span className="text-foreground">75%</span>
+                                </div>
+                                <div className="h-2 bg-background rounded-full overflow-hidden">
+                                    <div className="h-full w-3/4 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full"></div>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                Você está indo muito bem! Faltam apenas <span className="text-purple-400 font-bold">R$ 1.250,00</span> para bater sua meta de faturamento.
+                            </p>
                         </div>
-                        <div className="bg-[#111827] p-6 rounded-3xl border border-slate-800 hover:border-emerald-500/50 transition-all">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-2">Retenção</p>
-                            <p className="text-[11px] font-bold text-white tracking-tight uppercase">Histórico e fidelidade automático</p>
+                    </div>
+                </div>
+
+                <div className="bg-card p-10 rounded-[2.5rem] border border-border relative group">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500">
+                            <Share2 className="w-6 h-6" />
                         </div>
+                        <h3 className="text-lg font-black text-foreground">Marketing Rápido</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button className="p-4 bg-background rounded-2xl border border-border hover:border-emerald-500/50 transition-all group/btn text-left">
+                            <MessageCircle className="w-5 h-5 text-emerald-500 mb-3" />
+                            <p className="text-xs font-bold text-foreground mb-1">Promoção WhatsApp</p>
+                            <p className="text-[10px] text-muted-foreground">Enviar oferta relâmpago</p>
+                        </button>
+                        <button className="p-4 bg-background rounded-2xl border border-border hover:border-blue-500/50 transition-all group/btn text-left">
+                            <Instagram className="w-5 h-5 text-blue-500 mb-3" />
+                            <p className="text-xs font-bold text-foreground mb-1">Stories Insta</p>
+                            <p className="text-[10px] text-muted-foreground">Gerar arte do dia</p>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {stats.appointments === 0 && (
-                <div className="bg-emerald-500/5 p-12 rounded-[3.5rem] border-4 border-dashed border-slate-800 text-center">
-                    <div className="max-w-md mx-auto">
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Primeiros Passos...</h2>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-10">Configure seus serviços e comece a faturar hoje mesmo.</p>
-                        <a href="/dashboard/services" className="inline-block bg-emerald-500 text-white px-12 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-2xl shadow-emerald-500/40">
-                            Cadastrar Meus Serviços
-                        </a>
-                    </div>
+            {/* Quick Access Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-card p-6 rounded-3xl border border-border hover:border-emerald-500/50 transition-all">
+                    <Settings className="w-6 h-6 text-slate-500 mb-4" />
+                    <p className="font-bold text-foreground">Ajustes</p>
                 </div>
-            )}
+                <div className="bg-card p-6 rounded-3xl border border-border hover:border-emerald-500/50 transition-all">
+                    <Users className="w-6 h-6 text-slate-500 mb-4" />
+                    <p className="font-bold text-foreground">Equipe</p>
+                </div>
+                <div className="bg-card p-6 rounded-3xl border border-border hover:border-emerald-500/50 transition-all">
+                    <Star className="w-6 h-6 text-slate-500 mb-4" />
+                    <p className="font-bold text-foreground">Avaliações</p>
+                </div>
+                <div className="bg-card p-6 rounded-3xl border border-border hover:border-emerald-500/50 transition-all">
+                    <QrCode className="w-6 h-6 text-slate-500 mb-4" />
+                    <p className="font-bold text-foreground">Pix QR</p>
+                </div>
+            </div>            <a href="/dashboard/services" className="inline-block bg-emerald-500 text-white px-12 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-2xl shadow-emerald-500/40">
+                Cadastrar Meus Serviços
+            </a>
         </div>
+                </div >
+            )
+}
+        </div >
     );
 }

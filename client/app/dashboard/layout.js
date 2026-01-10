@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }) {
 
     return (
         <SocketProvider>
-            <div className="flex min-h-screen bg-[#0a0f1a] text-slate-300 font-sans selection:bg-emerald-500/30">
+            <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-emerald-500/30">
                 {/* Sidebar Component */}
                 <Sidebar user={user} isLocked={isLocked} logout={logout} />
 

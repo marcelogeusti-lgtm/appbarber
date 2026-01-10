@@ -4,7 +4,7 @@ import ThemeToggle from './ThemeToggle';
 
 export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashier }) {
     return (
-        <header className="h-20 bg-[#111827] border-b border-slate-800/50 px-8 flex items-center justify-between sticky top-0 z-40 backdrop-blur-sm bg-opacity-90">
+        <header className="h-20 bg-card/90 border-b border-border px-8 flex items-center justify-between sticky top-0 z-40 backdrop-blur-sm">
             {/* Mobile Menu & Brand */}
             <div className="flex items-center gap-4 md:hidden">
                 <button

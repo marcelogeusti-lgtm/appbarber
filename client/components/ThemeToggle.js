@@ -11,11 +11,6 @@ export default function ThemeToggle() {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
         document.documentElement.setAttribute('data-theme', savedTheme);
-        if (savedTheme === 'light') {
-            document.body.classList.add('light-mode');
-        } else {
-            document.body.classList.remove('light-mode');
-        }
     }, []);
 
     const toggleTheme = async () => {
@@ -23,12 +18,6 @@ export default function ThemeToggle() {
         setTheme(newTheme);
         localStorage.setItem('theme', newTheme);
         document.documentElement.setAttribute('data-theme', newTheme);
-
-        if (newTheme === 'light') {
-            document.body.classList.add('light-mode');
-        } else {
-            document.body.classList.remove('light-mode');
-        }
 
         // Optional: Persist to backend if logged in
         try {
