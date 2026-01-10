@@ -7,9 +7,20 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    // Connect to database
-    await prisma.$connect();
-    console.log('✅ Connected to Database (PostgreSQL)');
+    // Connect to database with retry
+    let retries = 5;
+    while (retries > 0) {
+      try {
+        await prisma.$connect();
+        console.log('✅ Connected to Database (PostgreSQL)');
+        break;
+      } catch (error) {
+        retries -= 1;
+        console.error(`❌ Database connection failed. Retries left: ${retries}`, error.message);
+        if (retries === 0) throw error;
+        await new Promise(res => setTimeout(res, 3000));
+      }
+    }
 
     const http = require('http');
     const server = http.createServer(app);
@@ -26,7 +37,7 @@ async function main() {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    console.error('❌ Fatal: Database connection failed after retries:', error);
     process.exit(1);
   }
 }
