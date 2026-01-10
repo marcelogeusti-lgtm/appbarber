@@ -17,7 +17,7 @@ const generateToken = (user) => {
 
 exports.createAppointment = async (req, res) => {
     try {
-        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod, createAccount, password, isSqueezeIn } = req.body;
+        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod, createAccount, password, isSqueezeIn, reminderMinutes } = req.body;
         let clientId = req.user?.id;
         let createdToken = null;
         let currentUser = null;
@@ -191,7 +191,8 @@ exports.createAppointment = async (req, res) => {
                     barbershopId: service.barbershopId,
                     paymentMethod: method,
                     paymentStatus: 'PENDING',
-                    isSqueezeIn: isSqueezeIn || false
+                    isSqueezeIn: isSqueezeIn || false,
+                    reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
                 }
             });
 
@@ -442,10 +443,62 @@ exports.updateAppointmentStatus = async (req, res) => {
         const { status } = req.body; // CONFIRMED, COMPLETED, CANCELLED
 
         const appointment = await prisma.appointment.update({
-            where: { id },
-            data: { status },
-            include: { client: true, service: true, professional: true }
+            where: { id: id },
+            data: { status: status },
+            include: {
+                client: true,
+                service: {
+                    include: {
+                        commissionOverrides: true
+                    }
+                },
+                professional: true
+            }
         });
+
+        // Trigger Commission Calculation on COMPLETED
+        if (status === 'COMPLETED') {
+            try {
+                const service = appointment.service;
+                const proId = appointment.professionalId;
+                const servicePrice = Number(service.price);
+
+                // Check for override
+                const override = service.commissionOverrides?.find(o => o.professionalId === proId);
+
+                let commType = override ? override.type : service.commissionType;
+                let commValue = override ? Number(override.value) : Number(service.commissionValue);
+
+                let calculatedAmount = 0;
+                if (commType === 'PERCENTAGE') {
+                    calculatedAmount = servicePrice * (commValue / 100);
+                } else {
+                    calculatedAmount = commValue;
+                }
+
+                // Check if commission already exists for this appointment
+                const existingComm = await prisma.commission.findFirst({
+                    where: { appointmentId: id }
+                });
+
+                if (!existingComm && calculatedAmount > 0) {
+                    await prisma.commission.create({
+                        data: {
+                            barberId: proId,
+                            barbershopId: appointment.barbershopId,
+                            appointmentId: id,
+                            type: 'SERVICE',
+                            description: `Comissão: ${service.name} (${appointment.client?.name})`,
+                            amount: calculatedAmount,
+                            percentage: commType === 'PERCENTAGE' ? commValue : null,
+                            status: 'PENDING'
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error calculating commission:', err);
+            }
+        }
 
         // Trigger n8n on cancellation to notify waitlist
         if (status === 'CANCELLED') {

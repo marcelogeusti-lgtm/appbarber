@@ -97,6 +97,7 @@ model User {
   professionalOrders Order[] @relation("ProfessionalOrders")
   noShowRecords      NoShowRecord[]
   communicationLogs  CommunicationLog[] @relation("ClientCommunications")
+  commissionOverrides ProfessionalServiceCommission[]
 }
 
 model Barbershop {
@@ -174,6 +175,27 @@ model Professional {
   schedules Schedule[]
 }
 
+enum CommissionCalculationType {
+  PERCENTAGE
+  FIXED
+}
+
+model ProfessionalServiceCommission {
+  id             String @id @default(uuid())
+  serviceId      String
+  service        Service @relation(fields: [serviceId], references: [id])
+  professionalId String
+  professional   User    @relation(fields: [professionalId], references: [id])
+  
+  type           CommissionCalculationType
+  value          Decimal @db.Decimal(10, 2)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([serviceId, professionalId])
+}
+
 model Service {
   id           String @id @default(uuid())
   name         String
@@ -182,12 +204,18 @@ model Service {
   duration     Int      // Minutes
   active       Boolean  @default(true)
   
+  // Commission Config
+  commissionType  CommissionCalculationType @default(PERCENTAGE)
+  commissionValue Decimal                   @default(0) @db.Decimal(10, 2)
+  
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
 
   appointments Appointment[]
   waitlist     Waitlist[]
   orderItems   OrderItem[]
+  
+  commissionOverrides ProfessionalServiceCommission[]
 }
 
 model Schedule {
@@ -208,6 +236,9 @@ model Appointment {
   status    AppointmentStatus @default(PENDING)
   notes     String?
   isSqueezeIn Boolean @default(false)
+  
+  reminderMinutes Int? // Minutes before appointment to send reminder
+  reminderSent    Boolean @default(false)
   
   clientId  String
   client    User     @relation("ClientAppointments", fields: [clientId], references: [id])

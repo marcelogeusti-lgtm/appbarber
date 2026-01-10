@@ -2,7 +2,8 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // List Clients of a Barbershop
-// Strategy: Find users who have at least one Appointment or Order with this barbershop
+// List Clients of a Barbershop
+// Strategy: Find users who have at least one Appointment, Order, or Manual Entry with this barbershop
 exports.listClients = async (req, res) => {
     try {
         const { barbershopId } = req.query;
@@ -15,9 +16,15 @@ exports.listClients = async (req, res) => {
             distinct: ['clientId']
         });
 
-        // Find IDs from orders (if necessary, though usually linked to appointment)
-        // A client might have bought a product directly (Walk-in) which created an Order
+        // Find IDs from orders
         const orderClients = await prisma.order.findMany({
+            where: { barbershopId },
+            select: { clientId: true },
+            distinct: ['clientId']
+        });
+
+        // Find IDs from communication logs (Manual Adds)
+        const logClients = await prisma.communicationLog.findMany({
             where: { barbershopId },
             select: { clientId: true },
             distinct: ['clientId']
@@ -25,7 +32,8 @@ exports.listClients = async (req, res) => {
 
         const clientIds = new Set([
             ...appointmentClients.map(a => a.clientId),
-            ...orderClients.map(o => o.clientId)
+            ...orderClients.map(o => o.clientId),
+            ...logClients.map(l => l.clientId)
         ]);
 
         // Fetch User Details
@@ -85,6 +93,59 @@ exports.listClients = async (req, res) => {
     } catch (error) {
         console.error('List Clients Error:', error);
         res.status(500).json({ message: 'Server error fetching clients' });
+    }
+};
+
+exports.createClient = async (req, res) => {
+    try {
+        const { name, phone, email, notes, barbershopId } = req.body;
+
+        if (!name || !phone || !barbershopId) {
+            return res.status(400).json({ message: 'Nome, Telefone e Barbearia são obrigatórios' });
+        }
+
+        // Check if user exists
+        let user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { phone },
+                    ...(email ? [{ email }] : [])
+                ]
+            }
+        });
+
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    name,
+                    phone,
+                    email: email || null,
+                    role: 'CLIENT'
+                }
+            });
+        } else {
+            // Optional: Update name if provided and inconsistent? 
+            // Better keep existing unless explicit update requested.
+            // Just link.
+        }
+
+        // Ensure Link (Create Log) to make them appear in the list
+        await prisma.communicationLog.create({
+            data: {
+                barbershopId,
+                clientId: user.id,
+                channel: 'PORTAL',
+                direction: 'INBOUND',
+                type: 'MANUAL',
+                content: `Cliente cadastrado manualmente. Obs: ${notes || '-'}`,
+                status: 'READ'
+            }
+        });
+
+        res.status(201).json(user);
+    } catch (error) {
+        console.error('Create Client Error:', error);
+        res.status(500).json({ message: 'Erro ao cadastrar cliente' });
     }
 };
 

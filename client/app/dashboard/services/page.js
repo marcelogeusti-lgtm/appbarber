@@ -3,17 +3,33 @@ import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { Plus, Trash2, Edit2, X, Scissors, Clock } from 'lucide-react';
 
-export default function ServicesPageJS() {
-    console.log('Services Version JS - Restore');
+export default function ServicesPage() {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({ name: '', price: '', duration: '', description: '' });
+    const [professionals, setProfessionals] = useState([]);
+    const [formData, setFormData] = useState({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] });
 
     useEffect(() => {
         fetchServices();
+        fetchProfessionals();
     }, []);
+
+    const fetchProfessionals = async () => {
+        const userStr = localStorage.getItem('user');
+        if (!userStr) return;
+        const user = JSON.parse(userStr);
+        const id = user.barbershopId || user.barbershop?.id;
+        if (id) {
+            try {
+                const res = await api.get(`/professionals?barbershopId=${id}`);
+                setProfessionals(Array.isArray(res.data) ? res.data : []);
+            } catch (e) {
+                console.error('Error fetching professionals', e);
+            }
+        }
+    };
 
     const fetchServices = async () => {
         try {
@@ -55,6 +71,9 @@ export default function ServicesPageJS() {
                 price: parseFloat(formData.price),
                 duration: parseInt(formData.duration),
                 description: formData.description.trim(),
+                commissionType: formData.commissionType,
+                commissionValue: formData.commissionValue ? parseFloat(formData.commissionValue) : 0,
+                overrides: formData.overrides,
                 barbershopId
             };
 
@@ -64,7 +83,7 @@ export default function ServicesPageJS() {
                 await api.post('/services', payload);
             }
 
-            setFormData({ name: '', price: '', duration: '', description: '' });
+            setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] });
             setIsAdding(false);
             setEditingId(null);
             fetchServices();
@@ -75,14 +94,41 @@ export default function ServicesPageJS() {
     };
 
     const handleEdit = (service) => {
+        const overrides = service.commissionOverrides?.map(o => ({
+            professionalId: o.professionalId,
+            type: o.type,
+            value: o.value
+        })) || [];
+
         setFormData({
             name: service.name,
             price: service.price,
             duration: service.duration,
-            description: service.description || ''
+            description: service.description || '',
+            commissionType: service.commissionType || 'PERCENTAGE',
+            commissionValue: service.commissionValue || '',
+            overrides
         });
         setEditingId(service.id);
         setIsAdding(true);
+    };
+
+    const toggleOverride = (proId) => {
+        const current = formData.overrides || [];
+        const exists = current.find(o => o.professionalId === proId);
+        if (exists) {
+            setFormData({ ...formData, overrides: current.filter(o => o.professionalId !== proId) });
+        } else {
+            setFormData({ ...formData, overrides: [...current, { professionalId: proId, type: formData.commissionType, value: formData.commissionValue }] });
+        }
+    };
+
+    const updateOverride = (proId, field, value) => {
+        const current = formData.overrides || [];
+        setFormData({
+            ...formData,
+            overrides: current.map(o => o.professionalId === proId ? { ...o, [field]: value } : o)
+        });
     };
 
     const handleDelete = async (id) => {
@@ -125,11 +171,12 @@ export default function ServicesPageJS() {
                         <h2 className="text-xl font-bold uppercase tracking-wider text-white">
                             {editingId ? 'Editar Serviço' : 'Novo Serviço'}
                         </h2>
-                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', price: '', duration: '', description: '' }); }} className="text-slate-400 hover:text-red-500 transition">
+                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] }); }} className="text-slate-400 hover:text-red-500 transition">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Basic Info */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nome do Serviço</label>
                             <input
@@ -170,6 +217,80 @@ export default function ServicesPageJS() {
                                 className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
                             />
                         </div>
+
+                        {/* Commission Section */}
+                        <div className="md:col-span-2 border-t border-slate-800 pt-6 mt-2">
+                            <h3 className="text-white font-bold text-lg mb-4">Comissão do Serviço</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tipo de Comissão</label>
+                                    <select
+                                        value={formData.commissionType}
+                                        onChange={e => setFormData({ ...formData, commissionType: e.target.value })}
+                                        className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                    >
+                                        <option value="PERCENTAGE">Porcentagem (%)</option>
+                                        <option value="FIXED">Valor Fixo (R$)</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Valor</label>
+                                    <input
+                                        type="number"
+                                        placeholder={formData.commissionType === 'PERCENTAGE' ? 'Ex: 40' : 'Ex: 20.00'}
+                                        value={formData.commissionValue}
+                                        onChange={e => setFormData({ ...formData, commissionValue: e.target.value })}
+                                        className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Overrides */}
+                            <div className="mt-6">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2 block">Regras Específicas por Funcionário</label>
+                                <div className="bg-slate-950 rounded-xl p-4 space-y-3 border border-slate-800 max-h-60 overflow-y-auto">
+                                    {professionals.map(pro => {
+                                        const userObj = pro.user || pro;
+                                        const proId = userObj.id;
+                                        const proName = userObj.name || 'Profissional';
+
+                                        const override = formData.overrides?.find(o => o.professionalId === proId);
+
+                                        return (
+                                            <div key={proId} className="flex items-center gap-3 p-2 rounded-lg bg-slate-900/50">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!override}
+                                                    onChange={() => toggleOverride(proId)}
+                                                    className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-emerald-500 accent-emerald-500"
+                                                />
+                                                <span className="text-sm font-bold text-slate-300 flex-1">{proName}</span>
+                                                {override && (
+                                                    <div className="flex gap-2">
+                                                        <select
+                                                            value={override.type}
+                                                            onChange={(e) => updateOverride(proId, 'type', e.target.value)}
+                                                            className="bg-slate-950 border border-slate-700 text-xs text-white rounded p-1 outline-none"
+                                                        >
+                                                            <option value="PERCENTAGE">%</option>
+                                                            <option value="FIXED">R$</option>
+                                                        </select>
+                                                        <input
+                                                            type="number"
+                                                            value={override.value}
+                                                            onChange={(e) => updateOverride(proId, 'value', e.target.value)}
+                                                            className="w-20 bg-slate-950 border border-slate-700 text-xs text-white rounded p-1 outline-none"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                    {professionals.length === 0 && <p className="text-xs text-slate-500 italic">Nenhum profissional encontrado.</p>}
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="md:col-span-2 pt-4">
                             <button type="submit" className="w-full bg-white text-slate-900 p-4 rounded-xl font-black uppercase tracking-widest transition hover:bg-slate-200 shadow-lg">
                                 {editingId ? 'ATUALIZAR SERVIÇO' : 'CADASTRAR SERVIÇO'}

@@ -30,6 +30,7 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "morgan": "^1.10.0",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.12",
     "pg": "^8.11.0",
     "prisma": "^5.0.0",

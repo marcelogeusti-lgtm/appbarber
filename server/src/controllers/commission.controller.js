@@ -64,11 +64,15 @@ exports.getCommissionsReport = async (req, res) => {
             // Total de serviços
             const totalServices = barberAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
 
-            // Comissão por serviços (50%)
-            const serviceCommission = totalServices * 0.5;
-
-            // Comissões de produtos (simulado)
+            // Fetch stored commissions for this barber
             const barberCommissions = commissions.filter(c => c.barberId === barber.id);
+
+            // Comissão por serviços (From Commission Table)
+            const serviceCommission = barberCommissions
+                .filter(c => c.type === 'SERVICE')
+                .reduce((sum, c) => sum + Number(c.amount), 0);
+
+            // Comissões de produtos
             const productCommission = barberCommissions
                 .filter(c => c.type === 'PRODUCT')
                 .reduce((sum, c) => sum + Number(c.amount), 0);
@@ -83,13 +87,13 @@ exports.getCommissionsReport = async (req, res) => {
                 .filter(c => c.type === 'EXTRA')
                 .reduce((sum, c) => sum + Number(c.amount), 0);
 
-            // Compras de produto (débito)
+            // Compras de produto (débito) - items in commission table with negative amount
             const productPurchases = barberCommissions
                 .filter(c => c.amount < 0)
                 .reduce((sum, c) => sum + Math.abs(Number(c.amount)), 0);
 
-            // Total de comissões
-            const totalCommissions = serviceCommission + productCommission + subscriptionCommission + extras;
+            // Total de comissões (Líquido)
+            const totalCommissions = serviceCommission + productCommission + subscriptionCommission + extras - productPurchases;
 
             // Comissões pagas vs pendentes
             const paidCommissions = barberCommissions

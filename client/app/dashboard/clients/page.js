@@ -1,14 +1,16 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar } from 'lucide-react';
+import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar, Plus } from 'lucide-react';
 import api from '../../../lib/api';
 import ClientDetailsModal from '../../../components/ClientDetailsModal';
+import NewClientModal from '../../../components/NewClientModal';
 
 export default function ClientsPage() {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedClient, setSelectedClient] = useState(null);
+    const [isNewClientModalOpen, setIsNewClientModalOpen] = useState(false);
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -72,6 +74,13 @@ export default function ClientsPage() {
                     <h1 className="text-2xl font-black text-white italic tracking-tight">Gestão de Clientes</h1>
                     <p className="text-slate-400 text-sm mt-1">Visualize e gerencie a base de clientes da barbearia</p>
                 </div>
+                <button
+                    onClick={() => setIsNewClientModalOpen(true)}
+                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
+                >
+                    <Plus className="w-5 h-5" />
+                    Novo Cliente
+                </button>
             </div>
 
             {/* Filters */}
@@ -180,6 +189,16 @@ export default function ClientsPage() {
                 onClose={() => setSelectedClient(null)}
                 clientId={selectedClient?.id}
                 user={user}
+            />
+
+            <NewClientModal
+                isOpen={isNewClientModalOpen}
+                onClose={() => setIsNewClientModalOpen(false)}
+                onSuccess={() => {
+                    const id = user?.barbershop?.id || user?.barbershopId;
+                    if (id) fetchClients(id);
+                }}
+                barbershopId={user?.barbershop?.id || user?.barbershopId}
             />
         </div>
     );

@@ -45,7 +45,8 @@ export default function BarbershopPage() {
         date: '',
         time: '',
         createAccount: false,
-        password: ''
+        password: '',
+        reminderMinutes: '60'
     });
 
     const [availableSlots, setAvailableSlots] = useState([]);
@@ -176,7 +177,8 @@ export default function BarbershopPage() {
                 guestBirthday: formData.birthday,
                 barbershopId: barbershop.id,
                 createAccount: formData.createAccount,
-                password: formData.password
+                password: formData.password,
+                reminderMinutes: formData.reminderMinutes ? parseInt(formData.reminderMinutes) : null
             });
 
             if (formData.createAccount && res.data.token) {
@@ -418,6 +420,30 @@ export default function BarbershopPage() {
                                             <div className="space-y-4">
                                                 <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none" />
                                                 <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none" />
+                                            </div>
+
+                                            {/* Reminder Selection */}
+                                            <div className="space-y-3">
+                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <Clock className="w-3 h-3 text-emerald-500" />
+                                                    Lembrete no WhatsApp
+                                                </h3>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {[
+                                                        { label: '30 min antes', value: '30' },
+                                                        { label: '1 hora antes', value: '60' },
+                                                        { label: '2 horas antes', value: '120' },
+                                                        { label: 'Não lembrar', value: '' }
+                                                    ].map(opt => (
+                                                        <button
+                                                            key={opt.value}
+                                                            onClick={() => setFormData({ ...formData, reminderMinutes: opt.value })}
+                                                            className={`p-3 rounded-xl border text-[10px] font-black uppercase transition ${formData.reminderMinutes === opt.value ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
+                                                        >
+                                                            {opt.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             {/* Final Summary */}

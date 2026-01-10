@@ -75,6 +75,53 @@ class CommunicationService {
         }
     }
 
+    // Send Appointment Reminder
+    async sendAppointmentReminder(appointment) {
+        const { client, service, date, barbershop, professional } = appointment;
+        const formattedDate = new Date(date).toLocaleString('pt-BR');
+
+        // Fetch Template
+        const template = await this.getTemplate('REMINDER', barbershop.id);
+
+        let messageContent = template
+            ? template.content
+            : `Olá, ${client.name}! 🔔\n\nLembramos do seu agendamento na *${barbershop.name}*.\n\n📅 Data: *${formattedDate}*\n💇‍♂️ Serviço: *${service.name}*\n💈 Profissional: *${professional.name}*\n\nEstamos te esperando!`;
+
+        // Ensure template active
+        if (template && !template.active) {
+            console.log(`Template REMINDER inactive for barbershop ${barbershop.id}`);
+            return;
+        }
+
+        // Replace Variables
+        messageContent = messageContent
+            .replace('{{clientName}}', client.name)
+            .replace('{{barbershopName}}', barbershop.name)
+            .replace('{{date}}', new Date(date).toLocaleDateString('pt-BR'))
+            .replace('{{time}}', new Date(date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))
+            .replace('{{serviceName}}', service.name)
+            .replace('{{professionalName}}', professional.name);
+
+        // 1. WhatsApp
+        if (client.phone) {
+            const phone = client.phone.replace(/\D/g, '');
+            const targetPhone = phone.startsWith('55') ? phone : `55${phone}`;
+
+            if (whatsAppProvider.status !== 'CONNECTED') {
+                console.log('WhatsApp disconnected, skipping reminder.');
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'SKIPPED');
+            } else {
+                try {
+                    await whatsAppProvider.sendText(targetPhone, messageContent);
+                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'SENT');
+                } catch (error) {
+                    console.error('Failed to send WA Reminder:', error);
+                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'FAILED');
+                }
+            }
+        }
+    }
+
 
     async log(appointment, channel, direction, type, content, status) {
         try {
