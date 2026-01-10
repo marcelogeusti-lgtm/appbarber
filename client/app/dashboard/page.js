@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Users, Copy, TrendingUp, ShoppingBag } from 'lucide-react';
+import {
+    Users, Copy, TrendingUp, ShoppingBag, RefreshCw, DollarSign, Calendar,
+    ArrowRight, Scissors, Share2, Instagram, Settings, Star, QrCode, MessageCircle
+} from 'lucide-react';
 import api from '../../lib/api';
 
 export default function DashboardPage() {
