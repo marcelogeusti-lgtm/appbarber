@@ -251,9 +251,10 @@ export default function SchedulePage() {
             <div className="bg-[#111827] rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden min-h-[600px]">
                 {activeTab === 'appointments' && (
                     <>
-                        {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} />}
-                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} />}
-                        {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} />}
+
+                        {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleEditClick} />}
+                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleEditClick} />}
+                        {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleEditClick} />}
                     </>
                 )}
 
@@ -470,7 +471,8 @@ function DayView({ appointments, professionals, selectedPro, onEdit }) {
     );
 }
 
-function WeekView({ currentDate, getFilteredAppointments, professionals, selectedPro, onDayClick }) {
+
+function WeekView({ currentDate, getFilteredAppointments, professionals, selectedPro, onDayClick, onEdit }) {
     const weekStart = startOfWeek(currentDate);
     const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
 
@@ -482,7 +484,7 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                 return (
                     <div
                         key={i}
-                        onClick={() => onDayClick(day)}
+                        onClick={() => onDayClick(day)} // Still opens DayDetailsModal if clicking emptiness
                         className={`min-h-[500px] border-r border-slate-800 flex flex-col cursor-pointer hover:bg-slate-800/20 transition ${isToday ? 'bg-emerald-500/5' : ''}`}
                     >
                         <div className="p-6 text-center border-b border-slate-800">
@@ -493,7 +495,14 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                         </div>
                         <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[600px] scrollbar-hide py-4">
                             {dayApps.sort((a, b) => new Date(a.date) - new Date(b.date)).map(app => (
-                                <div key={app.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-sm hover:border-emerald-500/40 transition-all group group">
+                                <div
+                                    key={app.id}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent opening DayDetailsModal
+                                        onEdit && onEdit(app);
+                                    }}
+                                    className="p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-sm hover:border-emerald-500/40 transition-all group group hover:bg-slate-900 cursor-pointer"
+                                >
                                     <p className="font-black text-[11px] text-white leading-none tracking-widest">{format(new Date(app.date), 'HH:mm')}</p>
                                     <p className="text-[10px] font-bold text-slate-500 mt-2 truncate group-hover:text-slate-300 transition-colors uppercase">{app.client?.name}</p>
                                     <div className="flex items-center gap-1.5 mt-2">
@@ -516,7 +525,7 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
     );
 }
 
-function MonthView({ currentDate, getFilteredAppointments, professionals, selectedPro, onDayClick }) {
+function MonthView({ currentDate, getFilteredAppointments, professionals, selectedPro, onDayClick, onEdit }) {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const weekStart = startOfWeek(monthStart);
@@ -551,7 +560,14 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
                         </div>
                         <div className="space-y-1.5">
                             {dayApps.slice(0, 3).map(app => (
-                                <div key={app.id} className="text-[8px] bg-slate-950 px-2 py-1.5 rounded-lg font-black text-slate-400 truncate border border-slate-800 group-hover:border-emerald-500/30">
+                                <div
+                                    key={app.id}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit && onEdit(app);
+                                    }}
+                                    className="text-[8px] bg-slate-950 px-2 py-1.5 rounded-lg font-black text-slate-400 truncate border border-slate-800 group-hover:border-emerald-500/30 hover:border-emerald-500 transition-colors cursor-pointer"
+                                >
                                     <span className="text-emerald-500 font-mono">{format(new Date(app.date), 'HH:mm')}</span> {app.client?.name}
                                 </div>
                             ))}
@@ -565,6 +581,7 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
         </div>
     );
 }
+
 
 function EmptyState() {
     return (
