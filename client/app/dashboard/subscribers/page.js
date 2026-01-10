@@ -19,16 +19,24 @@ export default function SubscribersPage() {
 
     const fetchSubscribers = async () => {
         try {
-            // Mocking for UI demonstration, will connect to backend analytics later
-            const mockSubscribers = [
-                { id: '596160', name: 'Abel Vargas', plan: 'Corte e Barba Essencial', joined: '18/07/2023', expiry: '18/08/2024', ltv: 'R$ 1.200', status: 'ACTIVE' },
-                { id: '864118', name: 'Abilio Pereira de Faria', plan: 'Clube One', joined: '21/04/2023', expiry: '21/08/2024', ltv: 'R$ 800', status: 'ACTIVE' },
-                { id: '814422', name: 'Abner Sousa Nascimento', plan: 'Clube One', joined: '06/02/2023', expiry: '06/08/2024', ltv: 'R$ 1.100', status: 'EXPIRED' },
-                { id: '945842', name: 'Adriano Gomes Dias', plan: 'Corte e Barba Flex', joined: '12/05/2023', expiry: '12/08/2024', ltv: 'R$ 450', status: 'ACTIVE' },
-                { id: '106136', name: 'Adriano Tupy', plan: 'Barba Essencial', joined: '28/06/2023', expiry: '28/08/2024', ltv: 'R$ 300', status: 'CANCELLED' },
-            ];
-            setSubscribers(mockSubscribers);
-            setStats({ active: 931, expired: 60, cancelled: 600, total: 1591 });
+            const { data } = await api.get('/subscriptions/list');
+
+            // Transform dates and format money
+            const formatted = data.map(sub => ({
+                ...sub,
+                joined: new Date(sub.joined).toLocaleDateString('pt-BR'),
+                expiry: new Date(sub.expiry).toLocaleDateString('pt-BR'),
+                ltv: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.ltv || 0)
+            }));
+
+            setSubscribers(formatted);
+
+            // Calculate stats dynamically
+            const active = formatted.filter(s => s.status === 'ACTIVE').length;
+            const expired = formatted.filter(s => s.status === 'EXPIRED').length;
+            const cancelled = formatted.filter(s => s.status === 'CANCELLED').length;
+
+            setStats({ active, expired, cancelled, total: formatted.length });
             setLoading(false);
         } catch (err) {
             console.error(err);
@@ -56,7 +64,7 @@ export default function SubscribersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-10 rounded-[2.5rem] border border-slate-800 shadow-sm">
                 <div>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Clube de Membros</h1>
-                    <p className="text-slate-500 text-sm font-medium italic mt-2 uppercase tracking-widest text-[10px]">Gestão estratégica de receita recorrente e fidelidade</p>
+                    <p className="text-slate-500 text-sm font-medium italic mt-2 uppercase tracking-widest text-[10px]">Gestão de assinaturas e recorrência da barbearia</p>
                 </div>
                 <button className="flex items-center gap-3 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-[1.02] transition-all active:scale-95">
                     <Download className="w-4 h-4" /> Exportar Dados
@@ -87,7 +95,7 @@ export default function SubscribersPage() {
                     color="red"
                 />
                 <KPICard
-                    label="Database Total"
+                    label="Total de Membros"
                     value={stats.total}
                     desc="Histórico acumulado"
                     icon={<Users className="w-6 h-6" />}

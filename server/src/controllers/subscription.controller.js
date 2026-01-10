@@ -98,9 +98,49 @@ exports.purchasePlan = async (req, res) => {
             }
         });
 
-        res.status(201).json(sub);
-    } catch (error) {
-        console.error('Purchase Plan Error:', error);
         res.status(500).json({ message: 'Erro ao processar compra do plano' });
+    }
+};
+
+exports.getSubscribers = async (req, res) => {
+    try {
+        const barbershopId = req.user.barbershopId;
+
+        const subscribers = await prisma.userSubscription.findMany({
+            where: {
+                plan: {
+                    barbershopId
+                }
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        phone: true,
+                        email: true
+                    }
+                },
+                plan: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Format for frontend
+        const formatted = subscribers.map(sub => ({
+            id: sub.user.id,
+            name: sub.user.name,
+            plan: sub.plan.name,
+            joined: sub.startDate,
+            expiry: sub.endDate,
+            ltv: sub.plan.price, // Simplified LTV for now
+            status: sub.status,
+            remainingCuts: sub.remainingCuts
+        }));
+
+        res.json(formatted);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching subscribers' });
     }
 };
