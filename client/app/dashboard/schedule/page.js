@@ -25,7 +25,8 @@ export default function SchedulePage() {
     const [viewingAppointment, setViewingAppointment] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // ... (keep state definitions)
+    const [isSqueezeInOpen, setIsSqueezeInOpen] = useState(false);
+    const [dayDetailsDate, setDayDetailsDate] = useState(null);
 
     const [loadedRange, setLoadedRange] = useState({ start: null, end: null });
     const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
