@@ -5,6 +5,7 @@ const { format } = require('date-fns');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const saasPlans = require('../config/saasPlans');
+const communicationService = require('../services/communication/CommunicationService');
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -318,7 +319,26 @@ exports.createAppointment = async (req, res) => {
             return { appointment, order };
         });
 
+
         const { appointment, order } = result;
+
+        // --- NEW: Internal Communication Service (WhatsApp/Email) ---
+        // Fetch full details to ensure we have all names/phones for the message
+        // This is non-blocking (async) to keep response fast
+        (async () => {
+            try {
+                const fullApp = await prisma.appointment.findUnique({
+                    where: { id: appointment.id },
+                    include: { client: true, service: true, professional: true, barbershop: true }
+                });
+                if (fullApp) {
+                    await communicationService.sendConfirmationRequest(fullApp);
+                }
+            } catch (err) {
+                console.error('Error sending auto-confirmation:', err);
+            }
+        })();
+        // ------------------------------------------------------------
 
         // Trigger n8n Webhook (Async, don't block response)
         const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });
