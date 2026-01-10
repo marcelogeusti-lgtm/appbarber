@@ -27,17 +27,23 @@ export default function AuthPage() {
         setLoading(true);
         setError('');
         try {
+            console.log('Attempting login...');
             const res = await api.post('/auth/login', loginData);
+            console.log('Login success:', res.data);
+
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
 
+            console.log('Redirecting...');
             if (res.data.user.role === 'CLIENT') {
-                router.push('/home'); // Client Area
+                router.push('/home');
             } else {
-                router.push('/dashboard'); // Admin Area
+                router.push('/dashboard');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Erro ao entrar. Verifique suas credenciais.');
+            console.error('Login error:', err);
+            const msg = err.response?.data?.message || err.message || 'Erro de conexão. Verifique se o servidor está rodando.';
+            setError(`Falha ao entrar: ${msg}`);
         } finally {
             setLoading(false);
         }

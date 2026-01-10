@@ -12,28 +12,48 @@ import { SocketProvider } from '../../contexts/SocketContext';
 
 export default function DashboardLayout({ children }) {
     const router = useRouter();
-    const [user, setUser] = useState(null);
-    const [isCashierOpen, setIsCashierOpen] = useState(false);
-    const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
-    const [isTransactionOpen, setIsTransactionOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) router.push('/login');
+        const checkAuth = () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    router.push('/login');
+                    return;
+                }
 
-            const userData = localStorage.getItem('user');
-            if (userData) setUser(JSON.parse(userData));
-        } catch (err) {
-            console.error('Error parsing user data in layout:', err);
-            router.push('/login');
-        }
+                const userData = localStorage.getItem('user');
+                if (userData) {
+                    setUser(JSON.parse(userData));
+                    setLoading(false);
+                } else {
+                    // Token exists but no user data? Invalid state.
+                    localStorage.removeItem('token');
+                    router.push('/login');
+                }
+            } catch (err) {
+                console.error('Error parsing user data in layout:', err);
+                localStorage.clear();
+                router.push('/login');
+            }
+        };
+
+        checkAuth();
     }, [router]);
 
     const logout = () => {
         localStorage.clear();
         router.push('/login');
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     if (!user) return null;
 
