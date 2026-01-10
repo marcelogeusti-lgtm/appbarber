@@ -85,7 +85,6 @@ exports.createProfessional = async (req, res) => {
         }
 
         // --- SAAS LIMIT CHECK START ---
-        // 1. Get Barbershop Plan
         const barbershop = await prisma.barbershop.findUnique({
             where: { id: barbershopId },
             select: { saasPlan: true }
@@ -96,13 +95,6 @@ exports.createProfessional = async (req, res) => {
         const userPlan = barbershop.saasPlan || 'BASIC';
         const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
 
-        if (!planConfig) {
-            console.error(`Plan config not found for plan: ${userPlan}`);
-            // Fallback to basic if plan not found in config, or handle error
-        }
-
-        // 2. Count Active Barbers
-        // We count users with role BARBER associated with this shop
         const activeBarbersCount = await prisma.user.count({
             where: {
                 workedBarbershopId: barbershopId,
@@ -114,19 +106,60 @@ exports.createProfessional = async (req, res) => {
 
         if (!isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
             return res.status(403).json({
-                message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade para adicionar mais.`
+                message: `Limite de barbeiros atingido para o plano ${planConfig.name} ({activeBarbersCount}/{planConfig.maxBarbers}). Faça upgrade.`
             });
         }
         // --- SAAS LIMIT CHECK END ---
 
         // Check if user already exists
-        const existing = await prisma.user.findUnique({ where: { email } });
-        if (existing) return res.status(400).json({ message: 'E-mail já cadastrado' });
+        const existing = await prisma.user.findUnique({
+            where: { email },
+            include: { professionalProfile: true }
+        });
 
-        // Hash Password
+        if (existing) {
+            // IF ALREADY A BARBER/ADMIN/OWNER
+            if (existing.role !== 'CLIENT') {
+                return res.status(400).json({ message: 'E-mail já está em uso por outro membro da equipe ou administrador.' });
+            }
+
+            // IF CLIENT -> UPGRADE TO BARBER (Re-hire logic)
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            const updatedUser = await prisma.$transaction(async (tx) => {
+                const user = await tx.user.update({
+                    where: { id: existing.id },
+                    data: {
+                        role: 'BARBER',
+                        workedBarbershopId: barbershopId,
+                        password: hashedPassword, // Reset password for new access
+                        name, // Update details if changed
+                        phone
+                    }
+                });
+
+                if (existing.professionalProfile) {
+                    await tx.professional.update({
+                        where: { id: existing.professionalProfile.id },
+                        data: { position: position || 'Barbeiro' }
+                    });
+                } else {
+                    await tx.professional.create({
+                        data: {
+                            userId: user.id,
+                            position: position || 'Barbeiro'
+                        }
+                    });
+                }
+                return user;
+            });
+
+            return res.status(201).json(updatedUser);
+        }
+
+        // NEW USER CREATION
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create User and Profile in Transaction
         const user = await prisma.$transaction(async (tx) => {
             const newUser = await tx.user.create({
                 data: {
