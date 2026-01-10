@@ -88,6 +88,7 @@ model User {
   proAppointments    Appointment[] @relation("ProAppointments")
   subscriptions      UserSubscription[]
   commissions        Commission[]
+  waitlistEntries    Waitlist[] @relation("ProWaitlist")
   
   // Orders
   clientOrders       Order[] @relation("ClientOrders")
@@ -200,6 +201,7 @@ model Appointment {
   date      DateTime
   status    AppointmentStatus @default(PENDING)
   notes     String?
+  isSqueezeIn Boolean @default(false)
   
   clientId  String
   client    User     @relation("ClientAppointments", fields: [clientId], references: [id])
@@ -277,6 +279,9 @@ model Waitlist {
   serviceId    String
   service      Service    @relation(fields: [serviceId], references: [id])
 
+  professionalId String?
+  professional   User?      @relation("ProWaitlist", fields: [professionalId], references: [id])
+  
   createdAt    DateTime @default(now())
 }
 

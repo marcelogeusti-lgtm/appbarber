@@ -16,7 +16,7 @@ const generateToken = (user) => {
 
 exports.createAppointment = async (req, res) => {
     try {
-        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod, createAccount, password } = req.body;
+        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod, createAccount, password, isSqueezeIn } = req.body;
         let clientId = req.user?.id;
         let createdToken = null;
         let currentUser = null;
@@ -164,7 +164,11 @@ exports.createAppointment = async (req, res) => {
         });
 
         if (hasConflict) {
-            return res.status(400).json({ message: 'Este horário já foi preenchido. Por favor, escolha outro.' });
+            if (isSqueezeIn) {
+                console.log('Squeeze-in allowed despite conflict.');
+            } else {
+                return res.status(400).json({ message: 'Este horário já foi preenchido. Por favor, escolha outro.' });
+            }
         }
 
         const appointmentDateTime = reqStart; // Use the validated date object
@@ -185,7 +189,8 @@ exports.createAppointment = async (req, res) => {
                     serviceId,
                     barbershopId: service.barbershopId,
                     paymentMethod: method,
-                    paymentStatus: 'PENDING'
+                    paymentStatus: 'PENDING',
+                    isSqueezeIn: isSqueezeIn || false
                 }
             });
 

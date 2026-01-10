@@ -1,40 +1,67 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
-import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function SchedulePage() {
     const [appointments, setAppointments] = useState([]);
+    const [waitlist, setWaitlist] = useState([]);
     const [professionals, setProfessionals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedPro, setSelectedPro] = useState('all');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState('day'); // day, week, month
+    const [activeTab, setActiveTab] = useState('appointments'); // appointments, waitlist
 
     useEffect(() => {
         fetchData();
-    }, []);
+        fetchWaitlist();
+    }, [selectedPro, currentDate]); // Refetch when Pro/Date changes
 
     const fetchData = async () => {
+        try {
+            setLoading(true);
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+
+            // Appointments
+            const appRes = await api.get(`/appointments?barbershopId=${bId}`);
+            setAppointments(appRes.data);
+
+            // Professionals (only once ideally, but here for safety)
+            if (professionals.length === 0) {
+                const proRes = await api.get(`/professionals?barbershopId=${bId}`);
+                setProfessionals(proRes.data);
+            }
+
+            setLoading(false);
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+        }
+    };
+
+    const fetchWaitlist = async () => {
         try {
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const user = JSON.parse(userStr);
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
-            const [appRes, proRes] = await Promise.all([
-                api.get(`/appointments?barbershopId=${bId}`),
-                api.get(`/professionals?barbershopId=${bId}`)
-            ]);
-
-            setAppointments(appRes.data);
-            setProfessionals(proRes.data);
-            setLoading(false);
+            const res = await api.get(`/waitlist`, {
+                params: {
+                    barbershopId: bId,
+                    date: currentDate.toISOString(),
+                    professionalId: selectedPro
+                }
+            });
+            setWaitlist(res.data);
         } catch (err) {
             console.error(err);
-            setLoading(false);
         }
     };
 
@@ -59,70 +86,168 @@ export default function SchedulePage() {
         });
     };
 
-    if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Sincronizando agenda...</div>;
+    const handleSqueezeIn = async () => {
+        // Simple prompt based squeeze-in for now or open modal
+        // Ideally reuse a Global Booking Modal with preset data
+        alert("Para realizar um encaixe, utilize o botão 'Novo Agendamento' no menu lateral e marque a opção 'Encaixe' (se disponível) ou apenas force o horário.");
+    };
+
+    if (loading && professionals.length === 0) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Sincronizando agenda...</div>;
+
+    const selectedProData = professionals.find(p => p.id === selectedPro);
 
     return (
         <div className="space-y-6 pb-20 text-slate-300">
-            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-[#111827] p-8 rounded-3xl border border-slate-800 shadow-sm">
-                <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Agenda Operacional</h1>
-                    <p className="text-slate-500 text-sm font-medium italic">Monitoramento e gestão de horários em tempo real</p>
+            {/* Header Redesign */}
+            <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-sm relative overflow-hidden">
+                <div className="relative z-10 w-full xl:w-auto">
+                    <h1 className="text-3xl font-black uppercase tracking-tighter text-white mb-4">Agenda Operacional</h1>
+
+                    {/* Professional Selector (Dropdown) */}
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="relative group">
+                            <select
+                                value={selectedPro}
+                                onChange={(e) => setSelectedPro(e.target.value)}
+                                className="appearance-none bg-slate-950 text-white pl-12 pr-12 py-4 rounded-2xl border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-black text-xs uppercase tracking-widest cursor-pointer hover:bg-slate-900 transition min-w-[280px]"
+                            >
+                                <option value="all">Todos Profissionais</option>
+                                {professionals.map(pro => (
+                                    <option key={pro.id} value={pro.id}>{pro.name}</option>
+                                ))}
+                            </select>
+                            <User className="w-5 h-5 text-emerald-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-[10px]">
+                                ▼
+                            </div>
+                        </div>
+
+                        {/* Date Navigation */}
+                        <div className="flex items-center gap-3 bg-slate-950 p-2 rounded-2xl border border-slate-800 w-full sm:w-auto justify-between sm:justify-start">
+                            <button onClick={prev} className="p-2 hover:bg-[#111827] rounded-xl transition shadow-sm"><ChevronLeft className="w-5 h-5 text-slate-500" /></button>
+                            <div className="px-4 text-center min-w-[140px]">
+                                <p className="font-black text-xs text-white uppercase tracking-widest">
+                                    {viewMode === 'day' ? format(currentDate, 'dd MMMM', { locale: ptBR }) :
+                                        viewMode === 'week' ? `Semana ${format(startOfWeek(currentDate), 'dd/MM')}` :
+                                            format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+                                </p>
+                            </div>
+                            <button onClick={next} className="p-2 hover:bg-[#111827] rounded-xl transition shadow-sm"><ChevronRight className="w-5 h-5 text-slate-500" /></button>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full lg:w-auto">
-                    <div className="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 w-full md:w-auto">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto relative z-10">
+
+                    {/* View Mode */}
+                    <div className="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 w-full sm:w-auto">
                         {['day', 'week', 'month'].map(v => (
                             <button
                                 key={v}
                                 onClick={() => setViewMode(v)}
-                                className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === v ? 'bg-[#111827] text-emerald-500 shadow-xl border border-emerald-500/10' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === v ? 'bg-[#111827] text-emerald-500 shadow-xl border border-emerald-500/10' : 'text-slate-500 hover:text-slate-300'}`}
                             >
                                 {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mês'}
                             </button>
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-3 bg-slate-950 p-2 rounded-2xl border border-slate-800 w-full md:w-auto justify-between md:justify-start">
-                        <button onClick={prev} className="p-2 hover:bg-[#111827] rounded-xl transition shadow-sm"><ChevronLeft className="w-5 h-5 text-slate-500" /></button>
-                        <div className="px-4 text-center min-w-[140px]">
-                            <p className="font-black text-xs text-emerald-500 uppercase tracking-widest">
-                                {viewMode === 'day' ? format(currentDate, 'dd MMMM', { locale: ptBR }) :
-                                    viewMode === 'week' ? `Semana de ${format(startOfWeek(currentDate), 'dd/MM')}` :
-                                        format(currentDate, 'MMMM yyyy', { locale: ptBR })}
-                            </p>
-                        </div>
-                        <button onClick={next} className="p-2 hover:bg-[#111827] rounded-xl transition shadow-sm"><ChevronRight className="w-5 h-5 text-slate-500" /></button>
-                    </div>
+                    {/* Squeeze In Button */}
+                    <button
+                        onClick={handleSqueezeIn}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-100 text-[#111827] px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition shadow-xl shadow-white/5"
+                    >
+                        <PlusCircle className="w-4 h-4" /> Encaixe Rápido
+                    </button>
                 </div>
             </header>
 
-            <div className="flex items-center gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            {/* Tabs Navigation (Only for Day View & Specific Pro preferably, but valid generally) */}
+            <div className="flex items-center gap-4 border-b border-slate-800/50 pb-1 overflow-x-auto">
                 <button
-                    onClick={() => setSelectedPro('all')}
-                    className={`px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap border ${selectedPro === 'all' ? 'bg-white text-[#111827] border-white shadow-xl shadow-white/5' : 'bg-[#111827] text-slate-500 border-slate-800 hover:border-slate-700'}`}
+                    onClick={() => setActiveTab('appointments')}
+                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'appointments' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
                 >
-                    Todos Profissionais
+                    Agendamentos
                 </button>
-                {professionals.map(pro => (
-                    <button
-                        key={pro.id}
-                        onClick={() => setSelectedPro(pro.id)}
-                        className={`px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-2 ${selectedPro === pro.id ? 'bg-emerald-500 text-white border-emerald-500 shadow-xl shadow-emerald-500/20' : 'bg-[#111827] text-slate-500 border-slate-800 hover:border-slate-700'}`}
-                    >
-                        <div className={`w-1.5 h-1.5 rounded-full ${selectedPro === pro.id ? 'bg-white' : 'bg-emerald-500'}`}></div>
-                        {pro.name}
-                    </button>
-                ))}
+                <button
+                    onClick={() => setActiveTab('waitlist')}
+                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 flex items-center gap-2 ${activeTab === 'waitlist' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+                >
+                    Lista de Espera
+                    {waitlist.length > 0 && <span className="bg-emerald-500 text-[#111827] px-1.5 py-0.5 rounded text-[9px]">{waitlist.length}</span>}
+                </button>
+                <button
+                    onClick={() => setActiveTab('availability')}
+                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'availability' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+                >
+                    Horários Livres
+                </button>
             </div>
 
-            <div className="bg-[#111827] rounded-[2rem] border border-slate-800 shadow-2xl overflow-hidden min-h-[500px]">
-                {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} />}
-                {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} />}
-                {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} />}
+            <div className="bg-[#111827] rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden min-h-[600px]">
+                {activeTab === 'appointments' && (
+                    <>
+                        {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} />}
+                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} />}
+                        {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} />}
+                    </>
+                )}
+
+                {activeTab === 'waitlist' && (
+                    <WaitlistView waitlist={waitlist} professionals={professionals} />
+                )}
+
+                {activeTab === 'availability' && (
+                    <div className="p-20 text-center">
+                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Visualização de horários livres em desenvolvimento.</p>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+
+function WaitlistView({ waitlist, professionals }) {
+    if (waitlist.length === 0) return (
+        <div className="py-40 text-center space-y-6">
+            <div className="w-24 h-24 bg-slate-950 rounded-[2.5rem] border border-slate-800 flex items-center justify-center mx-auto text-slate-700 shadow-inner">
+                <Clock className="w-10 h-10" />
+            </div>
+            <div className="max-w-xs mx-auto">
+                <h3 className="text-xl font-black text-white uppercase tracking-tighter">Lista Vazia</h3>
+                <p className="text-slate-600 text-[11px] font-bold uppercase tracking-widest mt-2 leading-relaxed">Nenhum cliente na lista de espera para este dia.</p>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="divide-y divide-slate-800/50">
+            {waitlist.map(entry => (
+                <div key={entry.id} className="p-8 hover:bg-emerald-500/5 transition flex items-center justify-between group">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center text-slate-500 font-black text-xl">
+                            {entry.clientName?.charAt(0)}
+                        </div>
+                        <div>
+                            <h4 className="font-black text-lg text-white uppercase tracking-tight">{entry.clientName}</h4>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 mb-2">{entry.service?.name}</p>
+                            <span className="bg-slate-950 text-slate-400 border border-slate-800 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                Aguardando desde {format(new Date(entry.createdAt), 'HH:mm')}
+                            </span>
+                        </div>
+                    </div>
+                    <button className="bg-emerald-500 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20">
+                        Agendar
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ... Keep DayView, WeekView, MonthView, EmptyState as is (or include them below if replacing entire file)
+// Since I am rewriting the file, I must include them.
 
 function DayView({ appointments, professionals, selectedPro }) {
     if (appointments.length === 0) return <EmptyState />;
@@ -137,13 +262,13 @@ function DayView({ appointments, professionals, selectedPro }) {
                         <p className="text-[10px] text-emerald-500 font-black uppercase mt-2 tracking-widest border border-emerald-500/20 px-2 py-0.5 rounded">Confirmado</p>
                     </div>
 
-                    <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-3 cursor-pointer" onClick={() => alert(`Detalhes do Agendamento:\nCliente: ${app.client?.name}\nServiço: ${app.service?.name}\nProfissional: ${app.professional?.name || 'N/A'}\nNotas: ${app.notes || 'Nenhuma'}`)}>
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center text-slate-500 font-black group-hover:scale-110 transition-transform">
                                 {app.client?.name.charAt(0)}
                             </div>
                             <div>
-                                <h4 className="font-black text-lg uppercase tracking-tight text-white">{app.client?.name}</h4>
+                                <h4 className="font-black text-lg uppercase tracking-tight text-white group-hover:text-emerald-500 transition-colors">{app.client?.name}</h4>
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-700"></div> {app.client?.phone}
                                 </p>
@@ -156,6 +281,11 @@ function DayView({ appointments, professionals, selectedPro }) {
                             <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-950/50 px-4 py-2 rounded-xl border border-slate-800">
                                 <User className="w-3.5 h-3.5 text-slate-600" /> {app.summaryProName || professionals.find(p => p.id === app.professionalId)?.name}
                             </span>
+                            {app.isSqueezeIn && (
+                                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
+                                    Encaixe
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -215,6 +345,7 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                                         <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
                                         <p className="text-[9px] text-emerald-500 font-black uppercase truncate tracking-tighter">{app.service?.name}</p>
                                     </div>
+                                    {app.isSqueezeIn && <div className="mt-1 text-[8px] text-orange-500 uppercase font-black">Encaixe</div>}
                                 </div>
                             ))}
                             {dayApps.length === 0 && (

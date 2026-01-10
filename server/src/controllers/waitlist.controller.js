@@ -5,7 +5,8 @@ const saasPlans = require('../config/saasPlans');
 
 exports.addToWaitlist = async (req, res) => {
     try {
-        const { barbershopId, serviceId, date, name, phone } = req.body;
+        const { barbershopId, serviceId, date, name, phone, professionalId } = req.body;
+        // console.log('Waitlist Data:', { barbershopId, serviceId, date, name, phone, professionalId });
 
         const waitlistEntry = await prisma.waitlist.create({
             data: {
@@ -13,7 +14,8 @@ exports.addToWaitlist = async (req, res) => {
                 serviceId,
                 date: new Date(date),
                 clientName: name,
-                clientPhone: phone
+                clientPhone: phone,
+                professionalId: professionalId || null
             },
             include: { service: true }
         });
@@ -49,9 +51,26 @@ exports.addToWaitlist = async (req, res) => {
 
 exports.getWaitlist = async (req, res) => {
     try {
-        const { barbershopId } = req.query;
+        const { barbershopId, date, professionalId } = req.query;
+
+        const where = { barbershopId };
+        if (date) {
+            const startStr = date.split('T')[0];
+            const startDate = new Date(startStr);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 1);
+
+            where.date = {
+                gte: startDate,
+                lt: endDate
+            };
+        }
+        if (professionalId && professionalId !== 'all') {
+            where.professionalId = professionalId;
+        }
+
         const list = await prisma.waitlist.findMany({
-            where: { barbershopId },
+            where,
             include: { service: true },
             orderBy: { createdAt: 'asc' }
         });
