@@ -5,7 +5,9 @@ const { format } = require('date-fns');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const saasPlans = require('../config/saasPlans');
+const notificationController = require('../controllers/notification.controller');
 const communicationService = require('../services/communication/CommunicationService');
+
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -195,6 +197,17 @@ exports.createAppointment = async (req, res) => {
                     reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
                 }
             });
+
+            // --- Notification Trigger ---
+            // Notify Professional
+            await notificationController.createNotification({
+                userId: professionalId,
+                title: 'Novo Agendamento',
+                message: `Novo agendamento com ${currentUser?.name || guestName} para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
+                type: 'appointment',
+                appointmentId: appointment.id
+            });
+            // ----------------------------
 
             // Calculate Totals
             const serviceTotal = Number(service.price);

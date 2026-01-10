@@ -98,6 +98,27 @@ model User {
   noShowRecords      NoShowRecord[]
   communicationLogs  CommunicationLog[] @relation("ClientCommunications")
   commissionOverrides ProfessionalServiceCommission[]
+
+  // Preferences
+  theme String @default("dark")
+  
+  // Notifications
+  notifications Notification[]
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   // appointment, payment, order, system
+  isRead    Boolean  @default(false)
+  
+  appointmentId String?
+  orderId       String?
+
+  createdAt DateTime @default(now())
 }
 
 model Barbershop {

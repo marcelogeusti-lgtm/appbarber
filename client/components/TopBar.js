@@ -1,4 +1,6 @@
-import { Menu, Bell, Search, Star, Wallet } from 'lucide-react';
+import { Menu, Search, Wallet } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
+import ThemeToggle from './ThemeToggle';
 
 export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashier }) {
     return (
@@ -43,14 +45,8 @@ export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashie
                         <Wallet className="w-5 h-5" />
                         <span className="text-xs font-bold hidden xl:block">R$ Caixa</span>
                     </button>
-                    <button className="p-2 text-slate-400 hover:text-yellow-400 transition-colors relative group">
-                        <Star className="w-5 h-5" />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    </button>
-                    <button className="p-2 text-slate-400 hover:text-white transition-colors relative">
-                        <Bell className="w-5 h-5" />
-                        <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                    </button>
+                    <ThemeToggle />
+                    <NotificationCenter />
                 </div>
 
                 {isLocked && (

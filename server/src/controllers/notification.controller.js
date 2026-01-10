@@ -85,3 +85,84 @@ exports.saveTemplate = async (req, res) => {
         res.status(500).json({ message: 'Error saving template' });
     }
 };
+
+// --- User Notifications Logic ---
+
+exports.getNotifications = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const notifications = await prisma.notification.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: limit,
+            skip: skip
+        });
+
+        const unreadCount = await prisma.notification.count({
+            where: { userId, isRead: false }
+        });
+
+        res.json({ notifications, unreadCount });
+    } catch (error) {
+        console.error('Get notifications error:', error);
+        res.status(500).json({ message: 'Error fetching notifications' });
+    }
+};
+
+exports.markAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+
+        await prisma.notification.updateMany({
+            where: { id, userId }, // Ensure ownership
+            data: { isRead: true }
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Mark read error:', error);
+        res.status(500).json({ message: 'Error marking notification' });
+    }
+};
+
+exports.markAllAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        await prisma.notification.updateMany({
+            where: { userId, isRead: false },
+            data: { isRead: true }
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Mark all read error:', error);
+        res.status(500).json({ message: 'Error marking all notifications' });
+    }
+};
+
+// Helper function to create notification (internal use)
+exports.createNotification = async ({ userId, title, message, type, appointmentId, orderId }) => {
+    try {
+        await prisma.notification.create({
+            data: {
+                userId,
+                title,
+                message,
+                type,
+                appointmentId,
+                orderId
+            }
+        });
+
+        // TODO: Emit Socket event if needed
+        // if (global.io) { global.io.to(userId).emit('new_notification', ...); }
+    } catch (error) {
+        console.error('Create notification error:', error);
+    }
+};
