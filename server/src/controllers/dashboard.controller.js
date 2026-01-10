@@ -5,50 +5,39 @@ exports.getDashboardStats = async (req, res) => {
     try {
         const userId = req.user.id;
         const todayCommon = new Date();
-        // Set to beginning of today (local time assumption or UTC? Server is likely UTC, but let's try to match "Today" logic)
-        // Usually best to use startOfDay and endOfDay
         const startOfDay = new Date(todayCommon.setHours(0, 0, 0, 0));
         const endOfDay = new Date(todayCommon.setHours(23, 59, 59, 999));
 
-        // Using Promise.all for parallel execution
-        const [totalAppointments, appointmentsWithService, totalClients, todayAppointments] = await Promise.all([
-            // 1. Total Appointments (Count)
+        // Optimized Queries using Prisma Raw SQL for Aggregations
+        const [
+            totalAppointments,
+            revenueResult,
+            clientsResult,
+            todayAppointments
+        ] = await Promise.all([
+            // 1. Total Appointments Count (Standard Prisma is efficient for count)
             prisma.appointment.count({
                 where: { professionalId: userId }
             }),
 
-            // 2. Revenue (Sum of service price) - Replicating current logic: All appointments for this pro
-            // We fetch service price for all appointments. 
-            // Aggregation in Prisma for related fields is tricky if not directly on the model.
-            // Since Service price is on Service model, we can't do aggregate on Appointment directly for it easily without join.
-            // But we can aggregate Order total if we trust it.
-            // Existing code: appointments.reduce((acc, curr) => acc + Number(curr?.service?.price || 0), 0)
-            // Let's rely on Order table if possible? 
-            // "order" table has "total". 
-            // Let's try to fetch Order sums. 
-            // But wait, existing code ignores products.
-            // If I switch to Order, it includes products. 
-            // To be safe and identical, I will fetch appointments with select service price.
-            // This is still O(N) but only fetching one field, much lighter than full json.
-            // ACTUALLY: Prisma aggregate doesn't support relations.
-            // Let's execute raw SQL or just fetch ids and prices.
-            prisma.appointment.findMany({
-                where: { professionalId: userId },
-                select: {
-                    service: {
-                        select: {
-                            price: true
-                        }
-                    }
-                }
-            }),
+            // 2. Revenue (Sum of Service Price) - SQL Aggregation
+            // "Service" table joins "Appointment"
+            // Note: Adjust table names if Prisma maps them differently (e.g. lowercase). 
+            // Prisma default is PascalCase models -> PascalCase or lowercase tables depending on DB.
+            // Assuming standard Prisma naming: "Appointment", "Service"
+            prisma.$queryRaw`
+                SELECT SUM(s.price) as total 
+                FROM "Appointment" a 
+                JOIN "Service" s ON a."serviceId" = s.id 
+                WHERE a."professionalId" = ${userId}
+            `,
 
-            // 3. Total Clients (Unique)
-            prisma.appointment.findMany({
-                where: { professionalId: userId },
-                distinct: ['clientId'],
-                select: { clientId: true }
-            }),
+            // 3. Total Clients (Unique Count)
+            prisma.$queryRaw`
+                SELECT COUNT(DISTINCT "clientId") as count 
+                FROM "Appointment" 
+                WHERE "professionalId" = ${userId}
+            `,
 
             // 4. Today's Appointments
             prisma.appointment.count({
@@ -62,16 +51,19 @@ exports.getDashboardStats = async (req, res) => {
             })
         ]);
 
-        // Calculate Revenue in JS from the lighter payload
-        // Decimal to Number
-        const revenue = appointmentsWithService.reduce((acc, curr) => {
-            return acc + (Number(curr.service?.price) || 0);
-        }, 0);
+        // Process Results
+        // raw query returns array of objects, e.g. [{ total: 123.45 }]
+        // values might be BigInt or Decimal
 
-        const clientsCount = totalClients.length;
+        const revenueRaw = revenueResult[0]?.total || 0;
+        // Convert to number safely
+        const revenue = Number(revenueRaw);
 
-        // Structure matches what the frontend expects or better?
-        // Frontend expects: { appointments: number, revenue: number, clients: number, today: number }
+        // Client count
+        // PostgreSQL COUNT returns BigInt, which JSON.stringify can't handle directly, so we Number() it.
+        const clientsRaw = clientsResult[0]?.count || 0;
+        const clientsCount = Number(clientsRaw);
+
 
         res.json({
             appointments: totalAppointments,
