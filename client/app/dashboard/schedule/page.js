@@ -7,30 +7,26 @@ import { ptBR } from 'date-fns/locale';
 import SqueezeInModal from '../../../components/SqueezeInModal';
 import DayDetailsModal from '../../../components/DayDetailsModal';
 import EditModal from '../../../components/EditModal';
-import NewOrderModal from '../../../components/NewOrderModal'; // Assuming we might reuse this for the actual creation if needing payments, but SqueezeIn confirms directly for now.
+import AppointmentDetailsModal from '../../../components/AppointmentDetailsModal';
+import NewOrderModal from '../../../components/NewOrderModal';
 
 export default function SchedulePage() {
     const [appointments, setAppointments] = useState([]);
     const [waitlist, setWaitlist] = useState([]);
     const [professionals, setProfessionals] = useState([]);
-    const [services, setServices] = useState([]); // New Services State
+    const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedPro, setSelectedPro] = useState('all');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState('day');
     const [activeTab, setActiveTab] = useState('appointments');
     const [editingAppointment, setEditingAppointment] = useState(null);
+    const [viewingAppointment, setViewingAppointment] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // Modals State
-    const [isSqueezeInOpen, setIsSqueezeInOpen] = useState(false);
-    const [dayDetailsDate, setDayDetailsDate] = useState(null); // If set, modal is open
+    // ... (useEffect and fetchData remain same) ...
 
-    useEffect(() => {
-        fetchData();
-        fetchWaitlist();
-    }, [selectedPro, currentDate]); // Refetch when Pro/Date changes
-
+    // ... (handleSqueezeInConfirm remains same) ...
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -114,21 +110,27 @@ export default function SchedulePage() {
         });
     };
 
-
     const handleSqueezeIn = async () => {
-        // Simple prompt based squeeze-in for now or open modal
-        // Ideally reuse a Global Booking Modal with preset data
         alert("Para realizar um encaixe, utilize o botão 'Novo Agendamento' no menu lateral e marque a opção 'Encaixe' (se disponível) ou apenas force o horário.");
     };
 
-    const handleEditClick = (appointment) => {
+    const handleViewClick = (appointment) => {
+        setViewingAppointment(appointment);
+    };
+
+    const handleEditFromDetails = () => {
+        if (!viewingAppointment) return;
+        setViewingAppointment(null); // Close details
+
+        // Prepare for edit
         setEditingAppointment({
-            ...appointment,
-            dateOnly: format(new Date(appointment.date), 'yyyy-MM-dd'),
-            timeOnly: format(new Date(appointment.date), 'HH:mm'),
+            ...viewingAppointment,
+            dateOnly: format(new Date(viewingAppointment.date), 'yyyy-MM-dd'),
+            timeOnly: format(new Date(viewingAppointment.date), 'HH:mm'),
         });
         setIsEditModalOpen(true);
     };
+
 
     const handleUpdateAppointment = async () => {
         if (!editingAppointment) return;
@@ -252,9 +254,10 @@ export default function SchedulePage() {
                 {activeTab === 'appointments' && (
                     <>
 
-                        {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleEditClick} />}
-                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleEditClick} />}
-                        {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleEditClick} />}
+
+                        {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} />}
+                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
+                        {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                     </>
                 )}
 
@@ -278,12 +281,20 @@ export default function SchedulePage() {
             />
 
 
+
             <DayDetailsModal
                 isOpen={!!dayDetailsDate}
                 onClose={() => setDayDetailsDate(null)}
                 date={dayDetailsDate || new Date()}
                 appointments={dayDetailsDate ? getFilteredAppointments(dayDetailsDate) : []}
                 professionals={professionals}
+            />
+
+            <AppointmentDetailsModal
+                isOpen={!!viewingAppointment}
+                onClose={() => setViewingAppointment(null)}
+                appointment={viewingAppointment}
+                onEdit={handleEditFromDetails}
             />
 
             <EditModal
