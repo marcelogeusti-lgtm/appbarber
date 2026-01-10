@@ -25,7 +25,8 @@ exports.getDashboardStats = async (req, res) => {
             yesterdayRevenueResult,
             totalClientsCount, // Total unique clients
             todayAppointmentsCount,
-            newClientsResult
+            newClientsResult,
+            totalRevenueResult // Added
         ] = await Promise.all([
             // 1. Total Appointments (Lifetime)
             prisma.appointment.count({
@@ -89,12 +90,22 @@ exports.getDashboardStats = async (req, res) => {
                     WHERE "professionalId" = ${userId} 
                     AND date < ${startOfDay}
                 )
-             `
+             `,
+
+            // 7. Total Revenue (Lifetime) - RESTORED
+            prisma.$queryRaw`
+                SELECT SUM(s.price) as total 
+                FROM "Appointment" a 
+                JOIN "Service" s ON a."serviceId" = s.id 
+                WHERE a."professionalId" = ${userId}
+                AND a.status != 'CANCELLED'
+            `
         ]);
 
         // Process Revenue
         const revenueToday = Number(todayRevenueResult[0]?.total || 0);
         const revenueYesterday = Number(yesterdayRevenueResult[0]?.total || 0);
+        const revenueTotal = Number(totalRevenueResult[0]?.total || 0); // Process total revenue
 
         // Calculate Trend
         let revenueTrend = "0% vs ontem";
@@ -114,6 +125,7 @@ exports.getDashboardStats = async (req, res) => {
             appointmentsTotal: totalAppointments,
             appointmentsToday: todayAppointmentsCount,
             revenueToday: revenueToday,
+            revenueTotal: revenueTotal,
             revenueTrend: revenueTrend,
             clientsTotal: clientsCount,
             newClientsToday: newClientsToday
