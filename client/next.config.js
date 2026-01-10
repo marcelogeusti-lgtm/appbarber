@@ -12,12 +12,9 @@ const nextConfig = {
         // !! WARN !!
         ignoreBuildErrors: true,
     },
-    experimental: {
-        missingSuspenseWithCSRBailout: false,
-    },
+    experimental: {},
     // Fix for potential image host issues if you use external images
     images: {
-        startOptimizationWarning: false,
         remotePatterns: [
             {
                 protocol: "https",
