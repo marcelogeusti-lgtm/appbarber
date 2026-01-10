@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar } from 'lucide-react';
-import api from '../../lib/api';
-import ClientDetailsModal from '../../components/ClientDetailsModal';
+import api from '../../../lib/api';
+import ClientDetailsModal from '../../../components/ClientDetailsModal';
 
 export default function ClientsPage() {
     const [clients, setClients] = useState([]);
