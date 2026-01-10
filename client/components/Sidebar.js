@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Calendar, Users, Scissors, Package,
     ShoppingBag, Receipt, DollarSign, PieChart, Wallet,
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
-    Store, CreditCard, UserCheck, ScrollText
+    Store, CreditCard, UserCheck, ScrollText, MessageSquare
 } from 'lucide-react';
 
 export default function Sidebar({ user, isLocked, logout }) {
@@ -92,6 +92,7 @@ export default function Sidebar({ user, isLocked, logout }) {
                 <div className="space-y-1">
                     <MenuItem href="/dashboard" icon={LayoutDashboard} label="Visão Geral" />
                     <MenuItem href="/dashboard/schedule" icon={Calendar} label="Agenda" />
+                    <MenuItem href="/dashboard/crm" icon={MessageSquare} label="CRM" badge="Novo" />
                 </div>
 
                 {/* Cadastros */}
