@@ -191,6 +191,10 @@ exports.closeOrder = async (req, res) => {
         const { id } = req.params;
         const { paymentMethod, discount } = req.body;
 
+        if (!paymentMethod) {
+            return res.status(400).json({ message: 'Selecione a forma de pagamento.' });
+        }
+
         const order = await prisma.order.findUnique({ where: { id } });
         if (!order) return res.status(404).json({ message: 'Comanda não encontrada.' });
 
@@ -202,10 +206,11 @@ exports.closeOrder = async (req, res) => {
             data: {
                 status: 'PAID',
                 paymentStatus: 'PAID',
-                paymentMethod,
+                paymentMethod, // Now validated against new enum via Prisma (or string if loose)
                 discount: finalDiscount,
                 total: finalTotal,
                 paidAt: new Date(),
+                // status: 'CLOSED' // User wants PAID/CLOSED logic. Usually PAID implies CLOSED for simple flows.
                 status: 'CLOSED'
             }
         });

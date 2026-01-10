@@ -33,7 +33,9 @@ enum PaymentStatus {
 enum PaymentMethod {
   ONLINE
   CASH
-  CARD
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
   SUBSCRIPTION
 }
 
