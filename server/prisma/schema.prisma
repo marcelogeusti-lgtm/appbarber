@@ -421,6 +421,7 @@ model OrderItem {
   
   createdAt   DateTime @default(now())
 }
+
 model Webhook {
   id           String   @id @default(uuid())
   url          String
@@ -433,4 +434,23 @@ model Webhook {
   
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+enum NotificationType {
+  CONFIRMATION_REQUEST
+  REMINDER
+  CANCELLATION
+  COMPLETED
+  NO_SHOW
+}
+
+model NotificationTemplate {
+  id          String           @id @default(uuid())
+  name        String
+  type        NotificationType @unique
+  content     String           @db.Text
+  active      Boolean          @default(true)
+  
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }

@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+require('dotenv').config();
 const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
@@ -101,7 +102,33 @@ async function main() {
         }
     });
 
+
+    // 7. Create Default Notification Templates
+    const templates = [
+        {
+            name: 'Confirmação de Agendamento',
+            type: 'CONFIRMATION_REQUEST',
+            content: 'Olá, {{clientName}}! ✂️\n\nSeu agendamento na *{{barbershopName}}* está quase confirmado.\n\n📅 Data: *{{date}}* às *{{time}}*\n💇‍♂️ Serviço: *{{serviceName}}*\n💈 Profissional: *{{professionalName}}*\n\nResponda *1* para confirmar ou *2* para cancelar.'
+        },
+        {
+            name: 'Lembrete de Agendamento',
+            type: 'REMINDER',
+            content: 'Lembrete ⏰\n\nOlá {{clientName}}, você tem um horário agendado hoje às *{{time}}* na *{{barbershopName}}*.\n\nEstamos te esperando!'
+        }
+    ];
+
+    for (const tpl of templates) {
+        await prisma.notificationTemplate.upsert({
+            where: { type: tpl.type },
+            update: { content: tpl.content },
+            create: tpl
+        });
+    }
+
+    console.log('✅ Default Templates created');
+
     console.log('✅ Seed completed!');
+
 }
 
 main()
