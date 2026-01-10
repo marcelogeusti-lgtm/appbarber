@@ -257,3 +257,20 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+function StatsCard({ title, value, icon: Icon, trend, color, bg }) {
+    return (
+        <div className="bg-card p-6 rounded-3xl border border-border hover:border-emerald-500/50 transition-all group">
+            <div className="flex justify-between items-start mb-4">
+                <div className={`p-3 rounded-2xl ${bg} ${color} group-hover:scale-110 transition-transform`}>
+                    <Icon className="w-6 h-6" />
+                </div>
+                <span className="text-xs font-bold bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-lg">
+                    {trend}
+                </span>
+            </div>
+            <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">{title}</p>
+            <h3 className="text-2xl font-black text-foreground">{value}</h3>
+        </div>
+    );
+}
