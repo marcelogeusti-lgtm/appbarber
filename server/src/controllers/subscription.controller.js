@@ -98,6 +98,9 @@ exports.purchasePlan = async (req, res) => {
             }
         });
 
+        res.status(201).json(sub);
+    } catch (error) {
+        console.error('Purchase Plan Error:', error);
         res.status(500).json({ message: 'Erro ao processar compra do plano' });
     }
 };
