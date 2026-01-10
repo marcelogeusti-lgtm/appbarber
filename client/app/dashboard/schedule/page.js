@@ -25,10 +25,55 @@ export default function SchedulePage() {
     const [viewingAppointment, setViewingAppointment] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // ... (useEffect and fetchData remain same) ...
+    // ... (keep state definitions)
 
-    // ... (handleSqueezeInConfirm remains same) ...
-    const fetchData = async () => {
+    const [loadedRange, setLoadedRange] = useState({ start: null, end: null });
+
+    useEffect(() => {
+        fetchResources();
+    }, []);
+
+    useEffect(() => {
+        const start = startOfMonth(subMonths(currentDate, 1));
+        const end = endOfMonth(addMonths(currentDate, 1));
+
+        // Simple check to see if we moved comfortably outside loaded range
+        // For simplicity, let's just refetch if we move months.
+        // Or better: Always fetch the 3-month window if strictly needed, 
+        // but to avoid flickering let's just do it.
+        // Optimization: Use a debounce or check if date is within "safe zone" of loadedRange.
+        // MVP: Fetch on month change.
+
+        const startStr = start.toISOString();
+        const endStr = end.toISOString();
+
+        fetchAppointments(startStr, endStr);
+    }, [currentDate]); // This triggers on every navigation. Ideally we debounce or check bounds.
+
+    const fetchResources = async () => {
+        try {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+
+            // Professionals
+            if (professionals.length === 0) {
+                const proRes = await api.get(`/professionals?barbershopId=${bId}`);
+                setProfessionals(proRes.data);
+            }
+
+            // Services
+            if (services.length === 0) {
+                const srvRes = await api.get(`/services?barbershopId=${bId}&active=true`);
+                setServices(srvRes.data);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const fetchAppointments = async (start, end) => {
         try {
             setLoading(true);
             const userStr = localStorage.getItem('user');
@@ -36,22 +81,14 @@ export default function SchedulePage() {
             const user = JSON.parse(userStr);
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
-            // Appointments
-            const appRes = await api.get(`/appointments?barbershopId=${bId}`);
+            const appRes = await api.get(`/appointments`, {
+                params: {
+                    barbershopId: bId,
+                    start,
+                    end
+                }
+            });
             setAppointments(appRes.data);
-
-            // Professionals (only once ideally, but here for safety)
-            if (professionals.length === 0) {
-                const proRes = await api.get(`/professionals?barbershopId=${bId}`);
-                setProfessionals(proRes.data);
-            }
-
-            // Services (for Squeeze In)
-            if (services.length === 0) {
-                const srvRes = await api.get(`/services?barbershopId=${bId}&active=true`);
-                setServices(srvRes.data);
-            }
-
             setLoading(false);
         } catch (err) {
             console.error(err);
