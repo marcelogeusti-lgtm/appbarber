@@ -418,3 +418,16 @@ model OrderItem {
   
   createdAt   DateTime @default(now())
 }
+model Webhook {
+  id           String   @id @default(uuid())
+  url          String
+  secret       String?
+  events       String[] // e.g. ["payment.approved", "whatsapp.received"]
+  active       Boolean  @default(true)
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

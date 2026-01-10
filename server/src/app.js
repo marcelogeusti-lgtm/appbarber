@@ -54,6 +54,7 @@ app.use('/api/stock', stockRoutes);
 app.use('/api/clients', require('./routes/client.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/communication', communicationRoutes);
+app.use('/api/webhooks', require('./routes/webhook.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

@@ -14,20 +14,38 @@ export default function ClientsPage() {
     useEffect(() => {
         const userData = localStorage.getItem('user');
         if (userData) {
-            const parsedUser = JSON.parse(userData);
-            setUser(parsedUser);
-            if (parsedUser.barbershop?.id) {
-                fetchClients(parsedUser.barbershop.id);
+            try {
+                const parsedUser = JSON.parse(userData);
+                setUser(parsedUser);
+                // Ensure we have a barbershopId
+                if (parsedUser.barbershop?.id) {
+                    fetchClients(parsedUser.barbershop.id);
+                } else if (parsedUser.barbershopId) {
+                    fetchClients(parsedUser.barbershopId);
+                } else {
+                    console.warn("No barbershop ID found for user");
+                    setLoading(false);
+                }
+            } catch (e) {
+                console.error("Error parsing user data", e);
+                setLoading(false);
             }
+        } else {
+            setLoading(false);
         }
     }, []);
 
     const fetchClients = async (barbershopId) => {
         try {
             const res = await api.get(`/clients?barbershopId=${barbershopId}`);
-            setClients(res.data);
+            if (Array.isArray(res.data)) {
+                setClients(res.data);
+            } else {
+                setClients([]);
+            }
         } catch (error) {
             console.error('Error fetching clients:', error);
+            setClients([]);
         } finally {
             setLoading(false);
         }
