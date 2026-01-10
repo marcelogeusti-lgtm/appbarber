@@ -4,16 +4,24 @@ import api from '../../../lib/api';
 import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import SqueezeInModal from '../../../components/SqueezeInModal';
+import DayDetailsModal from '../../../components/DayDetailsModal';
+import NewOrderModal from '../../../components/NewOrderModal'; // Assuming we might reuse this for the actual creation if needing payments, but SqueezeIn confirms directly for now.
 
 export default function SchedulePage() {
     const [appointments, setAppointments] = useState([]);
     const [waitlist, setWaitlist] = useState([]);
     const [professionals, setProfessionals] = useState([]);
+    const [services, setServices] = useState([]); // New Services State
     const [loading, setLoading] = useState(true);
     const [selectedPro, setSelectedPro] = useState('all');
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [viewMode, setViewMode] = useState('day'); // day, week, month
-    const [activeTab, setActiveTab] = useState('appointments'); // appointments, waitlist
+    const [viewMode, setViewMode] = useState('day');
+    const [activeTab, setActiveTab] = useState('appointments');
+
+    // Modals State
+    const [isSqueezeInOpen, setIsSqueezeInOpen] = useState(false);
+    const [dayDetailsDate, setDayDetailsDate] = useState(null); // If set, modal is open
 
     useEffect(() => {
         fetchData();
@@ -38,10 +46,27 @@ export default function SchedulePage() {
                 setProfessionals(proRes.data);
             }
 
+            // Services (for Squeeze In)
+            if (services.length === 0) {
+                const srvRes = await api.get(`/services?barbershopId=${bId}&active=true`);
+                setServices(srvRes.data);
+            }
+
             setLoading(false);
         } catch (err) {
             console.error(err);
             setLoading(false);
+        }
+    };
+
+    const handleSqueezeInConfirm = async (bookingData) => {
+        try {
+            await api.post('/appointments', bookingData);
+            alert('Encaixe realizado com sucesso!');
+            fetchData(); // Refresh calendar
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao realizar encaixe: ' + (error.response?.data?.message || error.message));
         }
     };
 
@@ -154,7 +179,7 @@ export default function SchedulePage() {
 
                     {/* Squeeze In Button */}
                     <button
-                        onClick={handleSqueezeIn}
+                        onClick={() => setIsSqueezeInOpen(true)}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-100 text-[#111827] px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition shadow-xl shadow-white/5"
                     >
                         <PlusCircle className="w-4 h-4" /> Encaixe Rápido
@@ -189,8 +214,8 @@ export default function SchedulePage() {
                 {activeTab === 'appointments' && (
                     <>
                         {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} />}
-                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} />}
-                        {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} />}
+                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} />}
+                        {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} />}
                     </>
                 )}
 
@@ -204,6 +229,22 @@ export default function SchedulePage() {
                     </div>
                 )}
             </div>
+
+            <SqueezeInModal
+                isOpen={isSqueezeInOpen}
+                onClose={() => setIsSqueezeInOpen(false)}
+                services={services}
+                barbershopId={localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).barbershopId || JSON.parse(localStorage.getItem('user')).barbershop?.id || JSON.parse(localStorage.getItem('user')).ownedBarbershops?.[0]?.id) : null}
+                onConfirm={handleSqueezeInConfirm}
+            />
+
+            <DayDetailsModal
+                isOpen={!!dayDetailsDate}
+                onClose={() => setDayDetailsDate(null)}
+                date={dayDetailsDate || new Date()}
+                appointments={dayDetailsDate ? getFilteredAppointments(dayDetailsDate) : []}
+                professionals={professionals}
+            />
         </div>
     );
 }
@@ -319,7 +360,7 @@ function DayView({ appointments, professionals, selectedPro }) {
     );
 }
 
-function WeekView({ currentDate, getFilteredAppointments, professionals, selectedPro }) {
+function WeekView({ currentDate, getFilteredAppointments, professionals, selectedPro, onDayClick }) {
     const weekStart = startOfWeek(currentDate);
     const days = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
 
@@ -329,7 +370,11 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                 const dayApps = getFilteredAppointments(day);
                 const isToday = isSameDay(day, new Date());
                 return (
-                    <div key={i} className={`min-h-[500px] border-r border-slate-800 flex flex-col ${isToday ? 'bg-emerald-500/5' : ''}`}>
+                    <div
+                        key={i}
+                        onClick={() => onDayClick(day)}
+                        className={`min-h-[500px] border-r border-slate-800 flex flex-col cursor-pointer hover:bg-slate-800/20 transition ${isToday ? 'bg-emerald-500/5' : ''}`}
+                    >
                         <div className="p-6 text-center border-b border-slate-800">
                             <p className="text-[10px] font-black uppercase text-slate-600 tracking-[0.2em] mb-2">{format(day, 'EEE', { locale: ptBR })}</p>
                             <p className={`w-10 h-10 flex items-center justify-center mx-auto rounded-xl font-black text-sm tracking-tighter ${isToday ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20' : 'text-slate-200 border border-slate-800 bg-slate-950'}`}>
@@ -338,7 +383,7 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                         </div>
                         <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[600px] scrollbar-hide py-4">
                             {dayApps.sort((a, b) => new Date(a.date) - new Date(b.date)).map(app => (
-                                <div key={app.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-sm hover:border-emerald-500/40 transition-all group group cursor-pointer">
+                                <div key={app.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-sm hover:border-emerald-500/40 transition-all group group">
                                     <p className="font-black text-[11px] text-white leading-none tracking-widest">{format(new Date(app.date), 'HH:mm')}</p>
                                     <p className="text-[10px] font-bold text-slate-500 mt-2 truncate group-hover:text-slate-300 transition-colors uppercase">{app.client?.name}</p>
                                     <div className="flex items-center gap-1.5 mt-2">
@@ -361,7 +406,7 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
     );
 }
 
-function MonthView({ currentDate, getFilteredAppointments, professionals, selectedPro }) {
+function MonthView({ currentDate, getFilteredAppointments, professionals, selectedPro, onDayClick }) {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const weekStart = startOfWeek(monthStart);
@@ -379,7 +424,11 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
                 const isCurrentMonth = isSameMonth(day, monthStart);
                 const isToday = isSameDay(day, new Date());
                 return (
-                    <div key={i} className={`min-h-[140px] p-4 border-r border-b border-slate-800 group hover:bg-emerald-500/5 transition-all ${!isCurrentMonth ? 'opacity-10 bg-slate-950 pointer-events-none' : ''}`}>
+                    <div
+                        key={i}
+                        onClick={() => onDayClick(day)}
+                        className={`min-h-[140px] p-4 border-r border-b border-slate-800 group hover:bg-emerald-500/5 transition-all cursor-pointer ${!isCurrentMonth ? 'opacity-10 bg-slate-950 pointer-events-none' : ''}`}
+                    >
                         <div className="flex justify-between items-center mb-4">
                             <span className={`text-[12px] font-black tracking-tighter ${isToday ? 'bg-emerald-500 text-white w-7 h-7 flex items-center justify-center rounded-lg shadow-lg shadow-emerald-500/20' : 'text-slate-600'}`}>
                                 {format(day, 'd')}
