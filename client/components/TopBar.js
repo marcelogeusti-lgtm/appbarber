@@ -70,7 +70,6 @@ export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashie
                     </div>
                 </div>
             </div>
-        </div>
         </header >
     );
 }
