@@ -4,11 +4,21 @@ import {
     Users, Copy, TrendingUp, ShoppingBag, RefreshCw, DollarSign, Calendar,
     ArrowRight, Scissors, Share2, Instagram, Settings, Star, QrCode, MessageCircle
 } from 'lucide-react';
+import Link from 'next/link';
+import { format } from 'date-fns';
 import api from '../../lib/api';
 
 export default function DashboardPage() {
     const [user, setUser] = useState(null);
-    const [stats, setStats] = useState({ appointments: 0, revenue: 0, clients: 0 });
+    const [todayStats, setTodayStats] = useState({
+        appointments: 0,
+        revenue: 0,
+        newClients: 0, // Changed from clients to newClients to match usage
+        revenueTrend: '+0% vs ontem',
+        appointmentsTrend: '0 para hoje'
+    });
+    const [appointments, setAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [publicUrl, setPublicUrl] = useState('');
 
     useEffect(() => {
@@ -18,11 +28,14 @@ export default function DashboardPage() {
                 const parsedUser = JSON.parse(u);
                 setUser(parsedUser);
                 if (parsedUser.role === 'ADMIN' || parsedUser.role === 'BARBER') {
-                    fetchStats();
+                    fetchData();
+                } else {
+                    setLoading(false);
                 }
             }
         } catch (err) {
             console.error('Error parsing user data:', err);
+            setLoading(false);
         }
     }, []);
 
@@ -35,16 +48,47 @@ export default function DashboardPage() {
         }
     }, [user]);
 
-    const fetchStats = async () => {
+    const fetchData = async () => {
         try {
-            const res = await api.get('/dashboard/stats');
-            setStats(res.data);
+            setLoading(true);
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return;
+            const userObj = JSON.parse(userStr);
+            const bId = userObj.barbershopId || userObj.barbershop?.id || userObj.ownedBarbershops?.[0]?.id;
+
+            // 1. Fetch Stats
+            try {
+                const statsRes = await api.get('/dashboard/stats');
+                setTodayStats({
+                    revenue: statsRes.data.revenueToday || 0,
+                    appointments: statsRes.data.appointmentsToday || 0,
+                    newClients: statsRes.data.newClientsToday || 0,
+                    revenueTrend: statsRes.data.revenueTrend || '0% vs ontem',
+                    appointmentsTrend: `${statsRes.data.appointmentsToday || 0} para hoje`
+                });
+            } catch (e) {
+                console.error("Failed to fetch stats", e);
+            }
+
+            // 2. Fetch Today's Appointments
+            const today = new Date().toISOString().split('T')[0];
+            const appRes = await api.get(`/appointments`, {
+                params: {
+                    barbershopId: bId,
+                    start: `${today}T00:00:00.000Z`,
+                    end: `${today}T23:59:59.999Z`
+                }
+            });
+            setAppointments(appRes.data || []);
+
         } catch (err) {
-            console.error('Error fetching stats:', err);
+            console.error('Error fetching dashboard data:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    if (!user) return <div className="p-8 text-center">Carregando...</div>;
+    if (!user) return <div className="p-8 text-center text-slate-500 font-bold uppercase text-xs animate-pulse">Carregando painel...</div>;
 
     const copyToClipboard = () => {
         if (!publicUrl) {
@@ -71,8 +115,11 @@ export default function DashboardPage() {
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Sistema Online</span>
                     </div>
-                    <button className="px-4 py-2 bg-background/50 hover:bg-emerald-500/10 border border-border hover:border-emerald-500/50 rounded-xl transition-all group">
-                        <RefreshCw className="w-4 h-4 text-muted-foreground group-hover:text-emerald-500" />
+                    <button
+                        onClick={fetchData}
+                        className="px-4 py-2 bg-background/50 hover:bg-emerald-500/10 border border-border hover:border-emerald-500/50 rounded-xl transition-all group"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-muted-foreground group-hover:text-emerald-500 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
                 {/* Decorative BG Gradient */}
@@ -85,7 +132,7 @@ export default function DashboardPage() {
                     title="Faturamento Hoje"
                     value={todayStats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     icon={DollarSign}
-                    trend="+12% vs ontem"
+                    trend={todayStats.revenueTrend}
                     color="text-emerald-500"
                     bg="bg-emerald-500/10"
                 />
@@ -93,7 +140,7 @@ export default function DashboardPage() {
                     title="Agendamentos"
                     value={todayStats.appointments}
                     icon={Calendar}
-                    trend="4 para hoje"
+                    trend={todayStats.appointmentsTrend}
                     color="text-blue-500"
                     bg="bg-blue-500/10"
                 />
@@ -101,7 +148,7 @@ export default function DashboardPage() {
                     title="Clientes Novos"
                     value={todayStats.newClients}
                     icon={Users}
-                    trend="2 nesta semana"
+                    trend="Nesta semana"
                     color="text-purple-500"
                     bg="bg-purple-500/10"
                 />
@@ -124,30 +171,30 @@ export default function DashboardPage() {
                             <h2 className="text-xl font-black text-foreground">Agenda de Hoje</h2>
                             <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Próximos atendimentos</p>
                         </div>
-                        <Link href="/dashboard/schedule" className="p-3 bg-background hover:bg-emerald-500 hover:text-white rounded-xl transition-all group-hover:scale-110">
+                        <a href="/dashboard/schedule" className="p-3 bg-background hover:bg-emerald-500 hover:text-white rounded-xl transition-all group-hover:scale-110">
                             <ArrowRight className="w-5 h-5" />
-                        </Link>
+                        </a>
                     </div>
 
                     <div className="space-y-4 relative z-10">
                         {loading ? (
-                            <p className="text-slate-500 text-sm">Carregando...</p>
+                            <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest animate-pulse">Carregando agenda...</p>
                         ) : appointments.length === 0 ? (
                             <div className="text-center py-12">
-                                <p className="text-slate-500 mb-4">Nenhum agendamento para hoje.</p>
-                                <Link href="/dashboard/schedule" className="text-emerald-500 font-bold text-sm hover:underline">
+                                <p className="text-slate-500 mb-4 font-bold text-xs uppercase tracking-widest">Nenhum agendamento para hoje.</p>
+                                <a href="/dashboard/schedule" className="text-emerald-500 font-bold text-xs uppercase tracking-widest hover:underline">
                                     Ver agenda completa
-                                </Link>
+                                </a>
                             </div>
                         ) : (
                             appointments.slice(0, 3).map((apt, i) => (
                                 <div key={i} className="flex items-center gap-4 p-4 bg-background/50 rounded-2xl border border-border hover:border-emerald-500/30 transition-all">
                                     <div className="flex flex-col items-center justify-center w-14 h-14 bg-card rounded-xl border border-border shadow-sm">
-                                        <span className="text-xs font-bold text-emerald-500">{format(new Date(apt.date), 'HH:mm')}</span>
+                                        <span className="text-xs font-bold text-emerald-500">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-foreground">{apt.client?.name || apt.guestName || 'Cliente'}</h3>
-                                        <p className="text-xs text-muted-foreground">{apt.service?.name} • {apt.professional?.name}</p>
+                                        <h3 className="font-bold text-foreground text-sm uppercase tracking-tight">{apt.client?.name || apt.guestName || 'Cliente'}</h3>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{apt.service?.name} • {apt.professional?.name}</p>
                                     </div>
                                     <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${apt.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
                                         {apt.status === 'COMPLETED' ? 'Concluído' : 'Confirmado'}

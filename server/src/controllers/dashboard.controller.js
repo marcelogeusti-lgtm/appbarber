@@ -5,71 +5,118 @@ exports.getDashboardStats = async (req, res) => {
     try {
         const userId = req.user.id;
         const todayCommon = new Date();
-        const startOfDay = new Date(todayCommon.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(todayCommon.setHours(23, 59, 59, 999));
 
-        // Optimized Queries using Prisma Raw SQL for Aggregations
+        // Define Today's Range
+        const startOfDay = new Date(todayCommon);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(todayCommon);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Define Yesterday's Range
+        const startOfYesterday = new Date(startOfDay);
+        startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+        const endOfYesterday = new Date(endOfDay);
+        endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+
+        // Optimized Queries
         const [
-            totalAppointments,
-            revenueResult,
-            clientsResult,
-            todayAppointments
+            totalAppointments, // Total lifetime appointments (keep for reference if needed, or remove if unused by frontend)
+            todayRevenueResult,
+            yesterdayRevenueResult,
+            totalClientsCount, // Total unique clients
+            todayAppointmentsCount,
+            newClientsResult
         ] = await Promise.all([
-            // 1. Total Appointments Count (Standard Prisma is efficient for count)
+            // 1. Total Appointments (Lifetime)
             prisma.appointment.count({
                 where: { professionalId: userId }
             }),
 
-            // 2. Revenue (Sum of Service Price) - SQL Aggregation
-            // "Service" table joins "Appointment"
-            // Note: Adjust table names if Prisma maps them differently (e.g. lowercase). 
-            // Prisma default is PascalCase models -> PascalCase or lowercase tables depending on DB.
-            // Assuming standard Prisma naming: "Appointment", "Service"
+            // 2. Today's Revenue
             prisma.$queryRaw`
                 SELECT SUM(s.price) as total 
                 FROM "Appointment" a 
                 JOIN "Service" s ON a."serviceId" = s.id 
                 WHERE a."professionalId" = ${userId}
+                AND a.date >= ${startOfDay} AND a.date <= ${endOfDay}
+                AND a.status != 'CANCELLED'
             `,
 
-            // 3. Total Clients (Unique Count)
+            // 3. Yesterday's Revenue
+            prisma.$queryRaw`
+                SELECT SUM(s.price) as total 
+                FROM "Appointment" a 
+                JOIN "Service" s ON a."serviceId" = s.id 
+                WHERE a."professionalId" = ${userId}
+                AND a.date >= ${startOfYesterday} AND a.date <= ${endOfYesterday}
+                AND a.status != 'CANCELLED'
+            `,
+
+            // 4. Total Clients
             prisma.$queryRaw`
                 SELECT COUNT(DISTINCT "clientId") as count 
                 FROM "Appointment" 
                 WHERE "professionalId" = ${userId}
             `,
 
-            // 4. Today's Appointments
+            // 5. Today's Appointments
             prisma.appointment.count({
                 where: {
                     professionalId: userId,
                     date: {
                         gte: startOfDay,
                         lte: endOfDay
-                    }
+                    },
+                    status: { not: 'CANCELLED' }
                 }
-            })
+            }),
+
+            // 6. New Clients Today (First appointment ever created today)
+            // This is an approximation. Ideally we check "Client" creation date, but if Client is shared, 
+            // maybe "First appointment with this professional" is better. 
+            // For now, let's count appointments today where it is the client's FIRST appointment with this pro.
+            // OR simpler: Clients created today (if we track createdAt).
+            // Assuming Client model has createdAt. Let's try to infer from appointments for robustness if Client doesn't track relative to Pro.
+            // Let's stick to: Clients who had their FIRST appointment today.
+            prisma.$queryRaw`
+                SELECT COUNT(DISTINCT a."clientId") as count
+                FROM "Appointment" a
+                WHERE a."professionalId" = ${userId}
+                AND a.date >= ${startOfDay} AND a.date <= ${endOfDay}
+                AND a."clientId" NOT IN (
+                    SELECT "clientId" 
+                    FROM "Appointment" 
+                    WHERE "professionalId" = ${userId} 
+                    AND date < ${startOfDay}
+                )
+             `
         ]);
 
-        // Process Results
-        // raw query returns array of objects, e.g. [{ total: 123.45 }]
-        // values might be BigInt or Decimal
+        // Process Revenue
+        const revenueToday = Number(todayRevenueResult[0]?.total || 0);
+        const revenueYesterday = Number(yesterdayRevenueResult[0]?.total || 0);
 
-        const revenueRaw = revenueResult[0]?.total || 0;
-        // Convert to number safely
-        const revenue = Number(revenueRaw);
+        // Calculate Trend
+        let revenueTrend = "0% vs ontem";
+        if (revenueYesterday > 0) {
+            const percent = ((revenueToday - revenueYesterday) / revenueYesterday) * 100;
+            const sign = percent >= 0 ? '+' : '';
+            revenueTrend = `${sign}${percent.toFixed(0)}% vs ontem`;
+        } else if (revenueToday > 0) {
+            revenueTrend = "+100% vs ontem";
+        }
 
-        // Client count
-        // PostgreSQL COUNT returns BigInt, which JSON.stringify can't handle directly, so we Number() it.
-        const clientsRaw = clientsResult[0]?.count || 0;
-        const clientsCount = Number(clientsRaw);
-
+        // Process Counts
+        const clientsCount = Number(totalClientsCount[0]?.count || 0);
+        const newClientsToday = Number(newClientsResult[0]?.count || 0);
 
         res.json({
-            appointments: totalAppointments,
-            revenue: revenue,
-            clients: clientsCount,
-            today: todayAppointments
+            appointmentsTotal: totalAppointments,
+            appointmentsToday: todayAppointmentsCount,
+            revenueToday: revenueToday,
+            revenueTrend: revenueTrend,
+            clientsTotal: clientsCount,
+            newClientsToday: newClientsToday
         });
 
     } catch (error) {
