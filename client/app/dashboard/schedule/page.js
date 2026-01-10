@@ -28,27 +28,28 @@ export default function SchedulePage() {
     // ... (keep state definitions)
 
     const [loadedRange, setLoadedRange] = useState({ start: null, end: null });
+    const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
 
     useEffect(() => {
         fetchResources();
     }, []);
 
     useEffect(() => {
-        const start = startOfMonth(subMonths(currentDate, 1));
-        const end = endOfMonth(addMonths(currentDate, 1));
+        const thisMonth = format(currentDate, 'yyyy-MM');
 
-        // Simple check to see if we moved comfortably outside loaded range
-        // For simplicity, let's just refetch if we move months.
-        // Or better: Always fetch the 3-month window if strictly needed, 
-        // but to avoid flickering let's just do it.
-        // Optimization: Use a debounce or check if date is within "safe zone" of loadedRange.
-        // MVP: Fetch on month change.
+        // Only fetch if we haven't fetched for this month's context yet
+        // This prevents reloading on every day change
+        if (thisMonth !== lastFetchedMonth) {
+            const start = startOfMonth(subMonths(currentDate, 1));
+            const end = endOfMonth(addMonths(currentDate, 1));
 
-        const startStr = start.toISOString();
-        const endStr = end.toISOString();
+            const startStr = start.toISOString();
+            const endStr = end.toISOString();
 
-        fetchAppointments(startStr, endStr);
-    }, [currentDate]); // This triggers on every navigation. Ideally we debounce or check bounds.
+            fetchAppointments(startStr, endStr);
+            setLastFetchedMonth(thisMonth);
+        }
+    }, [currentDate, lastFetchedMonth]);
 
     const fetchResources = async () => {
         try {
@@ -75,7 +76,10 @@ export default function SchedulePage() {
 
     const fetchAppointments = async (start, end) => {
         try {
-            setLoading(true);
+            // Only show full loading on first load or significant changes
+            // For background updates we might want a subtler indicator, but for now let's keep it responsive
+            if (!lastFetchedMonth) setLoading(true);
+
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const user = JSON.parse(userStr);
