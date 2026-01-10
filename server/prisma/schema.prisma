@@ -132,6 +132,7 @@ model Barbershop {
   commissions  Commission[]
   orders       Order[]
   noShowRecords NoShowRecord[]
+  webhooks     Webhook[]
 }
 
 enum NoShowStatus {
