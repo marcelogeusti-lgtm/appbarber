@@ -10,6 +10,13 @@ const serviceRoutes = require('./routes/service.routes');
 const professionalRoutes = require('./routes/professional.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const financeRoutes = require('./routes/finance.routes');
+const subscriptionRoutes = require('./routes/subscription.routes');
+const productRoutes = require('./routes/product.routes');
+const stockRoutes = require('./routes/stock.routes');
+const orderRoutes = require('./routes/order.routes');
+const communicationRoutes = require('./routes/communication.routes');
+const waitlistRoutes = require('./routes/waitlist.routes');
+const clientRoutes = require('./routes/client.routes'); // Assuming this is also needed based on the snippet
 
 const app = express();
 
@@ -38,13 +45,15 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/transactions', require('./routes/transaction.routes'));
 app.use('/api/availability', require('./routes/availability.routes'));
-app.use('/api/waitlist', require('./routes/waitlist.routes'));
-app.use('/api/subscriptions', require('./routes/subscription.routes'));
+app.use('/api/waitlist', waitlistRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/commissions', require('./routes/commission.routes'));
-app.use('/api/orders', require('./routes/order.routes'));
-app.use('/api/products', require('./routes/product.routes'));
+app.use('/api/orders', orderRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/stock', stockRoutes);
 app.use('/api/clients', require('./routes/client.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
+app.use('/api/communication', communicationRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

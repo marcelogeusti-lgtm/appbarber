@@ -94,6 +94,7 @@ model User {
   clientOrders       Order[] @relation("ClientOrders")
   professionalOrders Order[] @relation("ProfessionalOrders")
   noShowRecords      NoShowRecord[]
+  communicationLogs  CommunicationLog[] @relation("ClientCommunications")
 }
 
 model Barbershop {
@@ -119,6 +120,7 @@ model Barbershop {
   owner     User     @relation("BarbershopOwner", fields: [ownerId], references: [id])
 
   staff     User[]   @relation("BarbershopStaff")
+  communicationLogs CommunicationLog[]
   services  Service[]
   products  Product[]
   appointments Appointment[]
@@ -223,6 +225,7 @@ model Appointment {
 
   transactions Transaction[]
   commissions  Commission[]
+  communicationLogs CommunicationLog[]
   order        Order?
   noShowRecord NoShowRecord?
 }
@@ -269,19 +272,44 @@ model Transaction {
 }
 model Waitlist {
   id           String   @id @default(uuid())
-  date         DateTime
   clientName   String
   clientPhone  String
-  
+  date         DateTime
+  notes        String?
+  status       String   @default("WAITING") // WAITING, NOTIFIED, COMPLETED, CANCELLED
+
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
-  
+
   serviceId    String
   service      Service    @relation(fields: [serviceId], references: [id])
 
   professionalId String?
   professional   User?      @relation("ProWaitlist", fields: [professionalId], references: [id])
-  
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+// Communication Module
+model CommunicationLog {
+  id           String   @id @default(uuid())
+  channel      String   // WHATSAPP, EMAIL, PORTAL
+  direction    String   // INBOUND, OUTBOUND
+  type         String   // CONFIRMATION_REQUEST, REMINDER, MANUAL, REPLY
+  content      String
+  status       String   // SENT, READ, FAILED
+  metadata     Json?    // MessageID, remoteJid, etc.
+
+  clientId     String
+  client       User     @relation("ClientCommunications", fields: [clientId], references: [id])
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
   createdAt    DateTime @default(now())
 }
 

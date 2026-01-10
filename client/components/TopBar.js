@@ -1,6 +1,10 @@
-import { Menu, Bell, Search, Star, Wallet } from 'lucide-react';
+import { useState } from 'react';
+import { Menu, Bell, Search, Star, Wallet, Smartphone } from 'lucide-react';
+import ConnectWhatsAppModal from './ConnectWhatsAppModal';
 
 export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashier }) {
+    const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+
     return (
         <header className="h-20 bg-[#111827] border-b border-slate-800/50 px-8 flex items-center justify-between sticky top-0 z-40 backdrop-blur-sm bg-opacity-90">
             {/* Mobile Menu & Brand */}
@@ -36,6 +40,15 @@ export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashie
                 {/* Notifications & Favorites */}
                 <div className="flex items-center gap-2 border-r border-slate-700 pr-6">
                     <button
+                        onClick={() => setIsWhatsAppOpen(true)}
+                        className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 mr-2 group"
+                        title="Conectar WhatsApp"
+                    >
+                        <Smartphone className="w-5 h-5 group-hover:animate-pulse" />
+                        <span className="text-xs font-bold hidden xl:block">Whatsapp</span>
+                    </button>
+
+                    <button
                         onClick={onOpenCashier}
                         className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 mr-2"
                         title="Abrir Caixa"
@@ -70,6 +83,8 @@ export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashie
                     </div>
                 </div>
             </div>
+
+            <ConnectWhatsAppModal isOpen={isWhatsAppOpen} onClose={() => setIsWhatsAppOpen(false)} />
         </header>
     );
 }
