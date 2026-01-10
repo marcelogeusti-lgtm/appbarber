@@ -11,7 +11,14 @@ async function main() {
     await prisma.$connect();
     console.log('✅ Connected to Database (PostgreSQL)');
 
-    app.listen(PORT, '0.0.0.0', () => {
+    const http = require('http');
+    const server = http.createServer(app);
+    const socket = require('./socket');
+
+    // Init Socket
+    socket.init(server);
+
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (error) {
