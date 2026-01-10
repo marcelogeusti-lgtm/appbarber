@@ -19,12 +19,18 @@ class CommunicationService {
 
             const message = `Olá, ${client.name}! ✂️\n\nSeu agendamento na *${barbershop.name}* está quase confirmado.\n\n📅 Data: *${formattedDate}*\n💇‍♂️ Serviço: *${service.name}*\n💈 Profissional: *${professional.name}*\n\nResponda *1* para confirmar ou *2* para cancelar.`;
 
-            try {
-                await whatsAppProvider.sendText(targetPhone, message);
-                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', message, 'SENT');
-            } catch (error) {
-                console.error('Failed to send WA:', error);
-                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', message, 'FAILED');
+            // Check connection first
+            if (whatsAppProvider.status !== 'CONNECTED') {
+                console.log('WhatsApp disconnected, skipping confirmation request.');
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', message, 'SKIPPED');
+            } else {
+                try {
+                    await whatsAppProvider.sendText(targetPhone, message);
+                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', message, 'SENT');
+                } catch (error) {
+                    console.error('Failed to send WA:', error);
+                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', message, 'FAILED');
+                }
             }
         }
 
