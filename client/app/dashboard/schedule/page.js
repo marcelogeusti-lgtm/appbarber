@@ -6,6 +6,7 @@ import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterv
 import { ptBR } from 'date-fns/locale';
 import SqueezeInModal from '../../../components/SqueezeInModal';
 import DayDetailsModal from '../../../components/DayDetailsModal';
+import EditModal from '../../../components/EditModal';
 import NewOrderModal from '../../../components/NewOrderModal'; // Assuming we might reuse this for the actual creation if needing payments, but SqueezeIn confirms directly for now.
 
 export default function SchedulePage() {
@@ -18,6 +19,8 @@ export default function SchedulePage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState('day');
     const [activeTab, setActiveTab] = useState('appointments');
+    const [editingAppointment, setEditingAppointment] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // Modals State
     const [isSqueezeInOpen, setIsSqueezeInOpen] = useState(false);
@@ -111,10 +114,45 @@ export default function SchedulePage() {
         });
     };
 
+
     const handleSqueezeIn = async () => {
         // Simple prompt based squeeze-in for now or open modal
         // Ideally reuse a Global Booking Modal with preset data
         alert("Para realizar um encaixe, utilize o botão 'Novo Agendamento' no menu lateral e marque a opção 'Encaixe' (se disponível) ou apenas force o horário.");
+    };
+
+    const handleEditClick = (appointment) => {
+        setEditingAppointment({
+            ...appointment,
+            dateOnly: format(new Date(appointment.date), 'yyyy-MM-dd'),
+            timeOnly: format(new Date(appointment.date), 'HH:mm'),
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateAppointment = async () => {
+        if (!editingAppointment) return;
+        try {
+            setLoading(true);
+            const newDateTime = `${editingAppointment.dateOnly}T${editingAppointment.timeOnly}:00`;
+
+            await api.patch(`/appointments/${editingAppointment.id}`, {
+                date: new Date(newDateTime).toISOString(),
+                status: editingAppointment.status,
+                serviceId: editingAppointment.serviceId,
+                professionalId: editingAppointment.professionalId,
+                notes: editingAppointment.notes
+            });
+
+            setIsEditModalOpen(false);
+            setEditingAppointment(null);
+            fetchData();
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao atualizar agendamento');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (loading && professionals.length === 0) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Sincronizando agenda...</div>;
@@ -238,6 +276,7 @@ export default function SchedulePage() {
                 onConfirm={handleSqueezeInConfirm}
             />
 
+
             <DayDetailsModal
                 isOpen={!!dayDetailsDate}
                 onClose={() => setDayDetailsDate(null)}
@@ -245,6 +284,77 @@ export default function SchedulePage() {
                 appointments={dayDetailsDate ? getFilteredAppointments(dayDetailsDate) : []}
                 professionals={professionals}
             />
+
+            <EditModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                title="Editar Agendamento"
+                onSave={handleUpdateAppointment}
+                loading={loading}
+            >
+                {editingAppointment && (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase">Data</label>
+                                <input
+                                    type="date"
+                                    value={editingAppointment.dateOnly}
+                                    onChange={(e) => setEditingAppointment({ ...editingAppointment, dateOnly: e.target.value })}
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase">Horário</label>
+                                <input
+                                    type="time"
+                                    value={editingAppointment.timeOnly}
+                                    onChange={(e) => setEditingAppointment({ ...editingAppointment, timeOnly: e.target.value })}
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
+                            <select
+                                value={editingAppointment.status}
+                                onChange={(e) => setEditingAppointment({ ...editingAppointment, status: e.target.value })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                            >
+                                <option value="PENDING">Pendente</option>
+                                <option value="CONFIRMED">Confirmado</option>
+                                <option value="COMPLETED">Concluído</option>
+                                <option value="CANCELLED">Cancelado</option>
+                                <option value="NO_SHOW">Não Compareceu</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase">Profissional</label>
+                            <select
+                                value={editingAppointment.professionalId}
+                                onChange={(e) => setEditingAppointment({ ...editingAppointment, professionalId: e.target.value })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                            >
+                                {professionals.map(pro => (
+                                    <option key={pro.id} value={pro.id}>{pro.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase">Notas</label>
+                            <textarea
+                                value={editingAppointment.notes || ''}
+                                onChange={(e) => setEditingAppointment({ ...editingAppointment, notes: e.target.value })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500 h-24 resize-none"
+                                placeholder="Notas internas..."
+                            />
+                        </div>
+                    </div>
+                )}
+            </EditModal>
         </div>
     );
 }
@@ -290,7 +400,7 @@ function WaitlistView({ waitlist, professionals }) {
 // ... Keep DayView, WeekView, MonthView, EmptyState as is (or include them below if replacing entire file)
 // Since I am rewriting the file, I must include them.
 
-function DayView({ appointments, professionals, selectedPro }) {
+function DayView({ appointments, professionals, selectedPro, onEdit }) {
     if (appointments.length === 0) return <EmptyState />;
     return (
         <div className="divide-y divide-slate-800/50">
@@ -303,7 +413,7 @@ function DayView({ appointments, professionals, selectedPro }) {
                         <p className="text-[10px] text-emerald-500 font-black uppercase mt-2 tracking-widest border border-emerald-500/20 px-2 py-0.5 rounded">Confirmado</p>
                     </div>
 
-                    <div className="flex-1 space-y-3 cursor-pointer" onClick={() => alert(`Detalhes do Agendamento:\nCliente: ${app.client?.name}\nServiço: ${app.service?.name}\nProfissional: ${app.professional?.name || 'N/A'}\nNotas: ${app.notes || 'Nenhuma'}`)}>
+                    <div className="flex-1 space-y-3 cursor-pointer" onClick={() => onEdit && onEdit(app)}>
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center text-slate-500 font-black group-hover:scale-110 transition-transform">
                                 {app.client?.name.charAt(0)}
