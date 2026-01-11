@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../lib/api';
+import { DashboardSkeleton } from '../../components/ui/Skeleton';
 
 export default function DashboardPage() {
     const [user, setUser] = useState(null);
@@ -71,7 +72,16 @@ export default function DashboardPage() {
         };
     }, []);
 
-    if (!user) return <div className="min-h-screen bg-[#0F111A] flex items-center justify-center text-emerald-500 font-bold animate-pulse">Carregando...</div>;
+    useEffect(() => {
+        if (!user) return;
+        const origin = window.location.origin;
+        const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug;
+        if (slug) {
+            setPublicUrl(`${origin}/${slug}`);
+        }
+    }, [user]);
+
+    if (loading || !user) return <DashboardSkeleton />;
 
     const copyToClipboard = () => {
         if (!publicUrl) return;

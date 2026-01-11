@@ -6,17 +6,31 @@ import {
     ChevronLeft, ShoppingBag, Clock, CalendarCheck,
     Banknote, CreditCard, ArrowLeft
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import api from '../../lib/api';
 
-// Sub-components
-import ServicesTab from '../../components/client-view/ServicesTab';
-import DetailsTab from '../../components/client-view/DetailsTab';
-import ProfessionalsTab from '../../components/client-view/ProfessionalsTab';
-import ProductsTab from '../../components/client-view/ProductsTab';
-import LoyaltyTab from '../../components/client-view/LoyaltyTab';
-import PackagesTab from '../../components/client-view/PackagesTab';
-import SubscriptionsTab from '../../components/client-view/SubscriptionsTab';
-import ReviewsTab from '../../components/client-view/ReviewsTab';
+// Dynamic Sub-components (Lazy Loaded)
+const ServicesTab = dynamic(() => import('../../components/client-view/ServicesTab'), {
+    loading: () => <TabSkeleton />,
+    ssr: false // Optimization: These are interactive tabs, mostly client-side
+});
+const DetailsTab = dynamic(() => import('../../components/client-view/DetailsTab'), { loading: () => <TabSkeleton /> });
+const ProfessionalsTab = dynamic(() => import('../../components/client-view/ProfessionalsTab'), { loading: () => <TabSkeleton /> });
+const ProductsTab = dynamic(() => import('../../components/client-view/ProductsTab'), { loading: () => <TabSkeleton /> });
+const LoyaltyTab = dynamic(() => import('../../components/client-view/LoyaltyTab'), { loading: () => <TabSkeleton /> });
+const PackagesTab = dynamic(() => import('../../components/client-view/PackagesTab'), { loading: () => <TabSkeleton /> });
+const SubscriptionsTab = dynamic(() => import('../../components/client-view/SubscriptionsTab'), { loading: () => <TabSkeleton /> });
+const ReviewsTab = dynamic(() => import('../../components/client-view/ReviewsTab'), { loading: () => <TabSkeleton /> });
+
+function TabSkeleton() {
+    return (
+        <div className="animate-pulse space-y-4">
+            <div className="h-10 bg-white/5 rounded-xl w-3/4"></div>
+            <div className="h-32 bg-white/5 rounded-xl"></div>
+            <div className="h-32 bg-white/5 rounded-xl"></div>
+        </div>
+    )
+}
 
 export default function BarbershopPage() {
     const params = useParams();

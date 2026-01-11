@@ -29,6 +29,12 @@ exports.createProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
     try {
         const { barbershopId } = req.query;
+
+        // Security: Prevent listing all products if no shop is specified
+        if (!barbershopId) {
+            return res.status(400).json({ message: 'Barbershop ID is required' });
+        }
+
         const products = await prisma.product.findMany({
             where: {
                 barbershopId,
