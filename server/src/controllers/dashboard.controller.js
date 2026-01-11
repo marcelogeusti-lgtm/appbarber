@@ -4,6 +4,8 @@ const prisma = new PrismaClient();
 exports.getDashboardStats = async (req, res) => {
     try {
         const userId = req.user.id;
+        console.log(`[Dashboard] Fetching stats for user: ${userId}`);
+
         const todayCommon = new Date();
 
         // Define Today's Range
@@ -20,13 +22,13 @@ exports.getDashboardStats = async (req, res) => {
 
         // Optimized Queries
         const [
-            totalAppointments, // Total lifetime appointments (keep for reference if needed, or remove if unused by frontend)
+            totalAppointments,
             todayRevenueResult,
             yesterdayRevenueResult,
-            totalClientsCount, // Total unique clients
+            totalClientsCount,
             todayAppointmentsCount,
             newClientsResult,
-            totalRevenueResult // Added
+            totalRevenueResult
         ] = await Promise.all([
             // 1. Total Appointments (Lifetime)
             prisma.appointment.count({
@@ -72,13 +74,7 @@ exports.getDashboardStats = async (req, res) => {
                 }
             }),
 
-            // 6. New Clients Today (First appointment ever created today)
-            // This is an approximation. Ideally we check "Client" creation date, but if Client is shared, 
-            // maybe "First appointment with this professional" is better. 
-            // For now, let's count appointments today where it is the client's FIRST appointment with this pro.
-            // OR simpler: Clients created today (if we track createdAt).
-            // Assuming Client model has createdAt. Let's try to infer from appointments for robustness if Client doesn't track relative to Pro.
-            // Let's stick to: Clients who had their FIRST appointment today.
+            // 6. New Clients Today
             prisma.$queryRaw`
                 SELECT COUNT(DISTINCT a."clientId") as count
                 FROM "Appointment" a
@@ -92,7 +88,7 @@ exports.getDashboardStats = async (req, res) => {
                 )
              `,
 
-            // 7. Total Revenue (Lifetime) - RESTORED
+            // 7. Total Revenue (Lifetime)
             prisma.$queryRaw`
                 SELECT SUM(s.price) as total 
                 FROM "Appointment" a 
@@ -102,10 +98,12 @@ exports.getDashboardStats = async (req, res) => {
             `
         ]);
 
-        // Process Revenue
-        const revenueToday = Number(todayRevenueResult[0]?.total || 0);
-        const revenueYesterday = Number(yesterdayRevenueResult[0]?.total || 0);
-        const revenueTotal = Number(totalRevenueResult[0]?.total || 0); // Process total revenue
+        console.log('[Dashboard] Raw Revenue Results:', { today: todayRevenueResult, yesterday: yesterdayRevenueResult, total: totalRevenueResult });
+
+        // Process Revenue with safe parsing
+        const revenueToday = todayRevenueResult?.[0]?.total ? Number(todayRevenueResult[0].total) : 0;
+        const revenueYesterday = yesterdayRevenueResult?.[0]?.total ? Number(yesterdayRevenueResult[0].total) : 0;
+        const revenueTotal = totalRevenueResult?.[0]?.total ? Number(totalRevenueResult[0].total) : 0;
 
         // Calculate Trend
         let revenueTrend = "0% vs ontem";
@@ -117,22 +115,28 @@ exports.getDashboardStats = async (req, res) => {
             revenueTrend = "+100% vs ontem";
         }
 
-        // Process Counts
-        const clientsCount = Number(totalClientsCount[0]?.count || 0);
-        const newClientsToday = Number(newClientsResult[0]?.count || 0);
+        // Process Counts with safe parsing
+        // BigInt handling: prisma $queryRaw returns BigInt for COUNT on some drivers/versions, ensure we convert to Number
+        const parseCount = (res) => {
+            const val = res?.[0]?.count;
+            return val ? Number(val) : 0;
+        };
+
+        const clientsCount = parseCount(totalClientsCount);
+        const newClientsToday = parseCount(newClientsResult);
 
         res.json({
             appointmentsTotal: totalAppointments,
             appointmentsToday: todayAppointmentsCount,
-            revenueToday: revenueToday,
-            revenueTotal: revenueTotal,
-            revenueTrend: revenueTrend,
+            revenueToday,
+            revenueTotal,
+            revenueTrend,
             clientsTotal: clientsCount,
-            newClientsToday: newClientsToday
+            newClientsToday
         });
 
     } catch (error) {
         console.error('Error fetching dashboard stats:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error fetching dashboard stats' });
     }
 };

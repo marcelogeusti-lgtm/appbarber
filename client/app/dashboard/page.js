@@ -16,58 +16,60 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [publicUrl, setPublicUrl] = useState('');
 
+    const [error, setError] = useState(null);
+
     useEffect(() => {
-        try {
-            const u = localStorage.getItem('user');
-            if (u) {
-                const parsedUser = JSON.parse(u);
-                setUser(parsedUser);
-                if (parsedUser.role === 'ADMIN' || parsedUser.role === 'BARBER') {
-                    fetchData();
-                } else {
+        let isMounted = true;
+
+        const initDashboard = async () => {
+            try {
+                const u = localStorage.getItem('user');
+                if (!u) {
                     setLoading(false);
+                    return;
                 }
+
+                const parsedUser = JSON.parse(u);
+                if (isMounted) setUser(parsedUser);
+
+                if (parsedUser.role === 'ADMIN' || parsedUser.role === 'BARBER') {
+                    // Fetch Data directly here
+                    try {
+                        // Parallelize requests for speed
+                        const [statsRes] = await Promise.all([
+                            api.get('/dashboard/stats')
+                        ]);
+
+                        if (isMounted) {
+                            setStats({
+                                revenue: statsRes.data.revenueToday || 0,
+                                revenueTotal: statsRes.data.revenueTotal || 0,
+                                appointments: statsRes.data.appointmentsToday || 0,
+                                clients: statsRes.data.clientsTotal || 0
+                            });
+                        }
+                    } catch (fetchErr) {
+                        console.error("Dashboard fetch error:", fetchErr);
+                        if (isMounted) {
+                            setError("Falha ao carregar dados. Verifique sua conexão.");
+                            // Still show partial/zero stats if possible, or just keep loading false
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Dashboard initialization error:", err);
+                if (isMounted) setError("Erro crítico ao inicializar dashboard.");
+            } finally {
+                if (isMounted) setLoading(false);
             }
-        } catch (err) {
-            console.error('Error parsing user data:', err);
-            setLoading(false);
-        }
+        };
+
+        initDashboard();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
-
-    useEffect(() => {
-        if (!user) return;
-        const origin = window.location.origin;
-        const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug;
-        if (slug) {
-            setPublicUrl(`${origin}/${slug}`);
-        }
-    }, [user]);
-
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-
-            // Optimization: Change sequential awaits to Promise.all to load faster
-            const [statsRes] = await Promise.all([
-                api.get('/dashboard/stats').catch(e => {
-                    console.error("Failed to fetch stats", e);
-                    return { data: {} };
-                })
-            ]);
-
-            setStats({
-                revenue: statsRes.data.revenueToday || 0,
-                revenueTotal: statsRes.data.revenueTotal || 0, // Fallback if API doesn't send total yet, assumes 0
-                appointments: statsRes.data.appointmentsToday || 0,
-                clients: statsRes.data.clientsTotal || 0
-            });
-
-        } catch (err) {
-            console.error('Error fetching dashboard data:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     if (!user) return <div className="min-h-screen bg-[#0F111A] flex items-center justify-center text-emerald-500 font-bold animate-pulse">Carregando...</div>;
 
