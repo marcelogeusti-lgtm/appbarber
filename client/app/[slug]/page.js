@@ -69,52 +69,57 @@ export default function BarbershopPage() {
 
     useEffect(() => {
         if (!slug) return;
-        async function loadData() {
+
+        // 1. Critical Data: Barbershop Info (Header + Services + Staff)
+        async function loadBarbershop() {
             try {
                 const res = await api.get(`/barbershops/${slug}`);
                 setBarbershop(res.data);
+                setLoading(false); // <--- SHOW UI NOW!
 
-                // Load Products
-                const prodRes = await api.get(`/products?barbershopId=${res.data.id}`);
-                setProducts(prodRes.data);
+                // 2. Secondary Data: Products (Background)
+                loadProducts(res.data.id);
 
-                // Check User Data (if logged in)
-                const userStr = localStorage.getItem('user');
-                if (userStr) {
-                    const user = JSON.parse(userStr);
-                    setFormData(prev => ({
-                        ...prev,
-                        name: user.name || prev.name,
-                        phone: user.phone || prev.phone,
-                        email: user.email || prev.email
-                    }));
+                // 3. User Data (Background)
+                loadUserData(res.data.id);
 
-                    // Fetch Active Sub
-                    try {
-                        const subRes = await api.get('/subscription/my-active');
-                        if (subRes.data) setMySubscription(subRes.data);
-                    } catch (e) { /* No sub */ }
-
-                    // Fetch Pending Fees
-                    try {
-                        const feesRes = await api.get(`/appointments/pending-fees?barbershopId=${res.data.id}`);
-                        setPendingFees(feesRes.data || []);
-                    } catch (e) { console.error('Error fetching fees', e); }
-
-                    // Fetch Points (derived from completed appointments for now)
-                    try {
-                        const appRes = await api.get('/appointments/me');
-                        const completed = appRes.data.filter(a => a.status === 'COMPLETED').length;
-                        setPoints(completed * 10); // 10 points per cut
-                    } catch (e) { /* No history */ }
-                }
             } catch (err) {
                 console.error(err);
-            } finally {
-                setLoading(false);
+                setLoading(false); // Stop loading even on error
             }
         }
-        loadData();
+
+        async function loadProducts(id) {
+            try {
+                const prodRes = await api.get(`/products?barbershopId=${id}`);
+                setProducts(prodRes.data);
+            } catch (e) { console.error('Error loading products', e); }
+        }
+
+        async function loadUserData(barbershopId) {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                setFormData(prev => ({
+                    ...prev,
+                    name: user.name || prev.name,
+                    phone: user.phone || prev.phone,
+                    email: user.email || prev.email
+                }));
+
+                // Parallel fetches for user specific info
+                Promise.allSettled([
+                    api.get('/subscription/my-active').then(res => setMySubscription(res.data || null)),
+                    api.get(`/appointments/pending-fees?barbershopId=${barbershopId}`).then(res => setPendingFees(res.data || [])),
+                    api.get('/appointments/me').then(res => {
+                        const completed = res.data.filter(a => a.status === 'COMPLETED').length;
+                        setPoints(completed * 10);
+                    })
+                ]).catch(console.error);
+            }
+        }
+
+        loadBarbershop();
 
         const saved = localStorage.getItem('guestData');
         if (saved) {
