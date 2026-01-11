@@ -13,6 +13,10 @@ import { SocketProvider } from '../../contexts/SocketContext';
 export default function DashboardLayout({ children }) {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const [isCashierOpen, setIsCashierOpen] = useState(false);
+    const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
+    const [isTransactionOpen, setIsTransactionOpen] = useState(false);
 
     useEffect(() => {
         const checkAuth = () => {
