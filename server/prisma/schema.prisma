@@ -13,6 +13,7 @@ enum Role {
   SUPER_ADMIN
   ADMIN
   BARBER
+  BARBER_CONSULTA
   CLIENT
 }
 
@@ -70,6 +71,7 @@ model User {
   role      Role     @default(CLIENT)
   avatarUrl String?
   active    Boolean  @default(true)
+  tempPasswordExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
