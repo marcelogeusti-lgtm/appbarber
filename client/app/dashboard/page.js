@@ -75,7 +75,8 @@ export default function DashboardPage() {
     useEffect(() => {
         if (!user) return;
         const origin = window.location.origin;
-        const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug;
+        // Support for Owners (ownedBarbershops) and Staff (workedBarbershop)
+        const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug || user.workedBarbershop?.slug;
         if (slug) {
             setPublicUrl(`${origin}/${slug}`);
         }
