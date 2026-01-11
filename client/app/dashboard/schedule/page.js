@@ -30,6 +30,7 @@ export default function SchedulePage() {
 
     const [loadedRange, setLoadedRange] = useState({ start: null, end: null });
     const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
+    const [barbershopId, setBarbershopId] = useState(null);
 
     useEffect(() => {
         fetchResources();
@@ -58,6 +59,7 @@ export default function SchedulePage() {
             if (!userStr) return;
             const user = JSON.parse(userStr);
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+            setBarbershopId(bId);
 
             // Professionals
             if (professionals.length === 0) {
@@ -321,7 +323,7 @@ export default function SchedulePage() {
                 isOpen={isSqueezeInOpen}
                 onClose={() => setIsSqueezeInOpen(false)}
                 services={services}
-                barbershopId={localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).barbershopId || JSON.parse(localStorage.getItem('user')).barbershop?.id || JSON.parse(localStorage.getItem('user')).ownedBarbershops?.[0]?.id) : null}
+                barbershopId={barbershopId}
                 onConfirm={handleSqueezeInConfirm}
             />
 
