@@ -17,6 +17,7 @@ export default function DashboardLayout({ children }) {
     const [isCashierOpen, setIsCashierOpen] = useState(false);
     const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
     const [isTransactionOpen, setIsTransactionOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const checkAuth = () => {
@@ -72,8 +73,14 @@ export default function DashboardLayout({ children }) {
     return (
         <SocketProvider>
             <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-emerald-500/30">
-                {/* Sidebar Component */}
-                <Sidebar user={user} isLocked={isLocked} logout={logout} />
+                {/* Sidebar Component - Responsive */}
+                <Sidebar
+                    user={user}
+                    isLocked={isLocked}
+                    logout={logout}
+                    isOpen={isMobileMenuOpen}
+                    onClose={() => setIsMobileMenuOpen(false)}
+                />
 
                 {/* Cashier Panel */}
                 <CashierPanel
@@ -109,11 +116,11 @@ export default function DashboardLayout({ children }) {
                 />
 
                 {/* Main Content */}
-                <div className="flex-1 flex flex-col min-h-screen relative">
+                <div className="flex-1 flex flex-col min-h-screen relative w-full">
                     <TopBar
                         user={user}
                         isLocked={isLocked}
-                        onMobileMenuClick={() => { }}
+                        onMobileMenuClick={() => setIsMobileMenuOpen(true)}
                         onOpenCashier={() => setIsCashierOpen(true)}
                     />
 

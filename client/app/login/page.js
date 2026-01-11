@@ -56,7 +56,13 @@ export default function AuthPage() {
         try {
             const res = await api.post('/auth/register', registerData);
             localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data.user));
+
+            // Fix: Ensure barbershop data is available immediately for the dashboard
+            const userData = res.data.user;
+            if (res.data.barbershop) {
+                userData.ownedBarbershops = [res.data.barbershop];
+            }
+            localStorage.setItem('user', JSON.stringify(userData));
 
             if (res.data.user.role === 'CLIENT') {
                 router.push('/home');
