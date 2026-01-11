@@ -13,7 +13,8 @@ export const SocketProvider = ({ children }) => {
     useEffect(() => {
         // Assume API_URL is localhost:3001 or from env
         // We can derive it from api.defaults.baseURL or just hardcode for now based on dev environment
-        const URL = 'http://localhost:3001';
+        // Use env var or fallback
+        const URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
         const newSocket = io(URL, {
             transports: ['websocket'],
