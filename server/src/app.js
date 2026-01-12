@@ -14,7 +14,7 @@ const subscriptionRoutes = require('./routes/subscription.routes');
 const productRoutes = require('./routes/product.routes');
 const stockRoutes = require('./routes/stock.routes');
 const orderRoutes = require('./routes/order.routes');
-const communicationRoutes = require('./routes/communication.routes');
+
 const waitlistRoutes = require('./routes/waitlist.routes');
 const clientRoutes = require('./routes/client.routes'); // Assuming this is also needed based on the snippet
 
@@ -53,9 +53,10 @@ app.use('/api/products', productRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/clients', require('./routes/client.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
-app.use('/api/communication', communicationRoutes);
+
 app.use('/api/webhooks', require('./routes/webhook.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
+app.use('/api/packages', require('./routes/package.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

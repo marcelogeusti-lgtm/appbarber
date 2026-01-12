@@ -121,7 +121,6 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                     <div className="space-y-1">
                         <MenuItem href="/dashboard" icon={LayoutDashboard} label="Visão Geral" />
                         <MenuItem href="/dashboard/schedule" icon={Calendar} label="Agenda" />
-                        <MenuItem href="/dashboard/crm" icon={MessageSquare} label="CRM" badge="Novo" />
                     </div>
 
                     <div className="h-px bg-white/5 mx-2 my-2"></div>
@@ -152,7 +151,6 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
 
                     {/* Configurações */}
                     <MenuGroup title="Configurações" id="config" icon={Settings}>
-                        <MenuItem href="/dashboard/whatsapp" icon={MessageCircle} label="Integração WhatsApp" />
                         <MenuItem href="/dashboard/settings" icon={Settings} label="Ajustes do Sistema" />
                     </MenuGroup>
 

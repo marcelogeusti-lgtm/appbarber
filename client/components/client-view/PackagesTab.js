@@ -14,7 +14,7 @@ export default function PackagesTab({ plans = [] }) {
 
         setLoading(pkg.id);
         try {
-            await api.post('/subscription/purchase', {
+            await api.post('/packages/purchase', {
                 planId: pkg.id,
                 paymentMethod: 'ONLINE' // Placeholder until payment gateway integration
             });
@@ -38,10 +38,10 @@ export default function PackagesTab({ plans = [] }) {
                                 <h3 className="font-black text-white text-lg uppercase tracking-tight max-w-[70%]">{pkg.name}</h3>
                                 <div className="flex gap-2 mt-2">
                                     <span className="inline-block bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-widest">
-                                        {pkg.quantityOfCuts} Cortes
+                                        {pkg.totalQuantity || pkg.quantityOfCuts} Cortes
                                     </span>
                                     <span className="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-widest">
-                                        Validez: {pkg.validityDays} dias
+                                        Validade: {pkg.validityDays} dias
                                     </span>
                                 </div>
                             </div>

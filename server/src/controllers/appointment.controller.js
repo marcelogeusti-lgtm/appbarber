@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const saasPlans = require('../config/saasPlans');
 const notificationController = require('../controllers/notification.controller');
-const communicationService = require('../services/communication/CommunicationService');
+const whatsappNotifier = require('../services/notificationService/whatsappNotifier');
 
 
 const generateToken = (user) => {
@@ -131,7 +131,6 @@ exports.createAppointment = async (req, res) => {
                             });
                         } catch (e) {
                             console.warn('Failed to update existing user info:', e.message);
-                            // Do not crash if unique constraint fails on update (e.g. email already taken by ANOTHER user)
                         }
                     }
                 }
@@ -175,21 +174,19 @@ exports.createAppointment = async (req, res) => {
             return res.status(400).json({ message: 'Horário fora do expediente do profissional.' });
         }
 
-        // Check against professional's break (Lunch)
+        // Check against professional's break
         if (schedule.breakStart && schedule.breakEnd) {
             const [bSH, bSM] = schedule.breakStart.split(':').map(Number);
             const [bEH, bEM] = schedule.breakEnd.split(':').map(Number);
             const breakStart = new Date(year, month - 1, day, bSH, bSM, 0);
             const breakEnd = new Date(year, month - 1, day, bEH, bEM, 0);
 
-            // Overlap check
             if (reqStart < breakEnd && reqEnd > breakStart) {
                 return res.status(400).json({ message: 'O horário selecionado conflita com o intervalo de pausa do profissional.' });
             }
         }
 
         // Check against existing appointments
-        // Double check all appointments of the day for specific overlap
         const dayAppointments = await prisma.appointment.findMany({
             where: {
                 professionalId,
@@ -237,12 +234,41 @@ exports.createAppointment = async (req, res) => {
                     // If method is CASH (Local), we immediately CONFIRM it because we trust the user showing up (or use No-Show fees).
                     // If ONLINE, it might be PENDING until payment webhook.
                     // Request says: "Ao finalizar ... O status deve ser: Confirmado"
-                    paymentStatus: method === 'CASH' ? 'PENDING_ON_SITE' : 'PENDING',
-                    status: method === 'CASH' ? 'CONFIRMED' : 'SCHEDULED', // Using CONFIRMED for local to appear on dashboard immediately
+                    paymentStatus: method === 'CASH' ? 'PENDING_ON_SITE' : (method === 'SUBSCRIPTION' ? 'PAID' : 'PENDING'),
+                    status: method === 'CASH' ? 'CONFIRMED' : (method === 'SUBSCRIPTION' ? 'CONFIRMED' : 'SCHEDULED'), // Subscription is instant confirmed
                     isSqueezeIn: isSqueezeIn || false,
                     reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
                 }
             });
+
+            // --- PACKAGE / SUBSCRIPTION USAGE ---
+            if (method === 'SUBSCRIPTION') {
+                if (!clientId) throw new Error('Cliente não identificado para uso de pacote.');
+
+                // We need to require packageController here (avoid circular dependency if top-level)
+                const packageController = require('../controllers/package.controller');
+
+                // Determine effective service ID (mapped variable)
+                // We already have 'serviceId' in scope.
+
+                const usedPackage = await packageController.checkAndUsePackage(clientId, serviceId, service.barbershopId);
+
+                if (!usedPackage) {
+                    // If we are inside a transaction, throwing error rolls it back.
+                    throw new Error('Você não possui créditos ativos neste pacote para este serviço.');
+                }
+
+                // Link usage to appointment
+                await tx.packageUsage.create({
+                    data: {
+                        clientPackageId: usedPackage.id,
+                        appointmentId: appointment.id
+                    }
+                });
+
+                console.log(`[Package] Used 1 credit from Package ${usedPackage.package.name} for Client ${clientId}`);
+            }
+            // ------------------------------------
 
             // --- Notification Trigger ---
             // Notify Professional
@@ -294,17 +320,6 @@ exports.createAppointment = async (req, res) => {
             if (pendingFees.length > 0) {
                 for (const fee of pendingFees) {
                     feeTotal += fee.feeValue;
-                    feeItems.push({
-                        type: 'PRODUCT', // Using PRODUCT for simplicity, or add generic FEE type if preferred
-                        // Ideally we should have a 'FEE' type in OrderItem, but 'PRODUCT' works for display if name is set
-                        quantity: 1,
-                        unitPrice: fee.feeValue,
-                        total: fee.feeValue,
-                        // We can hack productId null, but store clear name description? 
-                        // OrderItem schema has productId optional.
-                        // But for now let's manually creating it in the array below.
-                    });
-
                     // Mark fee as CHARGED (or associated to this order)
                     // Currently NoShowRecord logic is simple. Let's mark it CHARGED.
                     // Ideally we should link it to the Order to track payment, but keeping it simple as requested.
@@ -317,38 +332,6 @@ exports.createAppointment = async (req, res) => {
             }
 
             // Create Order
-            const orderItemsCreate = [
-                {
-                    type: 'SERVICE',
-                    serviceId: service.id,
-                    quantity: 1,
-                    unitPrice: Number(service.price),
-                    total: Number(service.price)
-                },
-                ...productItems.map(p => ({
-                    type: 'PRODUCT',
-                    productId: p.id,
-                    quantity: 1,
-                    unitPrice: Number(p.price),
-                    total: Number(p.price)
-                })),
-                // Add Fee Items manually since they don't have Service/Product ID
-                ...pendingFees.map(fee => ({
-                    type: 'PRODUCT', // Or 'FEE' if enum allows. Schema says 'String' so we can assume 'FEE' or 'NO_SHOW_FEE'
-                    quantity: 1,
-                    unitPrice: fee.feeValue,
-                    total: fee.feeValue,
-                    // Note: OrderItem schema doesn't have a 'name' field, it relies on relations.
-                    // This is a limitation. The 'name' is in Product/Service.
-                    // If we add an item without ID, frontend might show "Unknown".
-                    // Solution: We need to ensure Frontend displays this correctly.
-                    // Or, we create a specialized "No Show Product" automatically? 
-                    // Better: The User Prompt asked for "Exibição clara dessa taxa".
-                    // If OrderItem structure is rigid, maybe we just add to total and put in notes?
-                    // "Taxa de 20% referente ao não comparecimento em 12/08/2025"
-                }))
-            ];
-
             // Wait, OrderItem table:
             // type String
             // serviceId?
@@ -401,10 +384,8 @@ exports.createAppointment = async (req, res) => {
 
         const { appointment, order } = result;
 
-        // --- NEW: Internal Communication Service (WhatsApp/Email) ---
-        // SAFE ASYNC BLOCK: We use setImmediate to detach this from request flow
+        // --- NEW: WhatsApp Notification (Decoupled & Safe) ---
         setImmediate(async () => {
-            console.log('[AUTO] Starting Post-Appointment Automation...');
             try {
                 const fullApp = await prisma.appointment.findUnique({
                     where: { id: appointment.id },
@@ -412,39 +393,13 @@ exports.createAppointment = async (req, res) => {
                 });
 
                 if (fullApp) {
-                    await communicationService.sendConfirmationRequest(fullApp);
+                    await whatsappNotifier.sendConfirmation(fullApp);
                 }
             } catch (err) {
-                console.error('[AUTO] Automation Failed:', err.message);
+                console.error('[AUTO] Notification Failed:', err.message);
             }
         });
-        // ------------------------------------------------------------
-
-        // --- NEW: Chat Module Integration ---
-        // Auto-create conversation context
-        try {
-            const chatController = require('../controllers/chat.controller');
-            const conversation = await chatController.findOrCreateConversation(
-                service.barbershopId,
-                clientId,
-                appointment.id
-            );
-
-            // Optional: Send initial system message or just create context?
-            // "Quando criar conversa: 1️⃣ Ao confirmar um agendamento"
-            // We just ensure it exists.
-
-            // Also notify professional via internal message?
-            // await chatController.internalCreateMessage(
-            //    conversation.id,
-            //    `Agendamento confirmado para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
-            //    'SYSTEM',
-            //    'SYSTEM'
-            // );
-        } catch (chatErr) {
-            console.error('Failed to auto-create conversation:', chatErr.message);
-        }
-        // ------------------------------------
+        // -----------------------------------------------------
 
         // Trigger n8n Webhook (Async, don't block response)
         const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });

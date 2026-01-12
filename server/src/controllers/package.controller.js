@@ -149,3 +149,57 @@ exports.checkAndUsePackage = async (clientId, serviceId, barbershopId) => {
 
     return selectedPkg;
 };
+
+exports.purchasePackage = async (req, res) => {
+    try {
+        const { planId, paymentMethod } = req.body;
+        const clientId = req.user.id;
+
+        // Note: Frontend sends 'planId', which maps to Package ID
+        const pkg = await prisma.barbershopPackage.findUnique({ where: { id: planId } });
+        if (!pkg) return res.status(404).json({ message: 'Pacote não encontrado' });
+
+        const startDate = new Date();
+        const endDate = addDays(startDate, pkg.validityDays);
+
+        // Transaction: Create ClientPackage & Financial Record
+        const result = await prisma.$transaction(async (tx) => {
+            const clientPackage = await tx.clientPackage.create({
+                data: {
+                    clientId,
+                    packageId: planId,
+                    totalQuantity: pkg.totalQuantity,
+                    remainingQuantity: pkg.totalQuantity,
+                    startDate,
+                    endDate,
+                    status: 'ACTIVE'
+                }
+            });
+
+            // Record Income Transaction
+            await tx.transaction.create({
+                data: {
+                    description: `Venda de Pacote: ${pkg.name}`,
+                    amount: pkg.price,
+                    type: 'INCOME',
+                    category: 'PACKAGE',
+                    barbershopId: pkg.barbershopId,
+                    date: new Date()
+                }
+            });
+
+            return clientPackage;
+        });
+
+        // Trigger CRM Sync
+        try {
+            const crmController = require('../controllers/crm.controller');
+            setImmediate(() => crmController.syncClientStatus(pkg.barbershopId, clientId));
+        } catch (e) { console.error('CRM Sync failed', e); }
+
+        res.json(result);
+    } catch (error) {
+        console.error('Purchase Package Error:', error);
+        res.status(500).json({ message: 'Erro ao processar compra do pacote' });
+    }
+};
