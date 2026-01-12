@@ -145,6 +145,33 @@ export default function MyDataPage() {
                             />
                         </div>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Data de Nascimento</label>
+                            <input
+                                type="date"
+                                name="birthDate"
+                                value={formData.birthDate || ''}
+                                onChange={handleChange}
+                                className="w-full bg-[#111111] border border-slate-800 rounded-xl py-4 px-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Gênero</label>
+                            <select
+                                name="gender"
+                                value={formData.gender || ''}
+                                onChange={handleChange}
+                                className="w-full bg-[#111111] border border-slate-800 rounded-xl py-4 px-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition appearance-none"
+                            >
+                                <option value="">Selecione</option>
+                                <option value="masculino">Masculino</option>
+                                <option value="feminino">Feminino</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 {message.text && (
