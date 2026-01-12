@@ -35,7 +35,7 @@ export default function ClientLayout({ children }) {
     const tabs = [
         { name: 'Início', href: '/home', icon: Home },
         { name: 'Buscar', href: '/search', icon: Search },
-        { name: 'Meus Agendamentos', href: '/appointments', icon: Calendar },
+        { name: 'Agendamentos', href: '/appointments', icon: Calendar },
     ];
 
     const profileMenuItems = [
