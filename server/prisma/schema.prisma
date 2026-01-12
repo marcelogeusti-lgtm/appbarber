@@ -107,6 +107,7 @@ model User {
   // Notifications
   notifications Notification[]
   conversations Conversation[] @relation("ClientConversations")
+  barbershopRelations BarbershopClient[]
 }
 
 model Notification {
@@ -165,6 +166,7 @@ model Barbershop {
   webhooks     Webhook[]
   notificationTemplates NotificationTemplate[]
   conversations Conversation[]
+  clients       BarbershopClient[]
 }
 
 enum NoShowStatus {
@@ -569,4 +571,40 @@ model Message {
   status         String   @default("SENT") // SENT, DELIVERED, READ, FAILED
   
   createdAt      DateTime @default(now())
+}
+
+// --- CRM Module ---
+
+enum CrmStatus {
+  NEW             // 1st Appointment
+  RECURRING       // 2+ Appointments
+  ACTIVE_PACKAGE  // Has Active Subscription
+  INACTIVE        // No visit for X Days
+  ABSENT          // No-Show last time
+}
+
+model BarbershopClient {
+  id            String   @id @default(uuid())
+  
+  barbershopId  String
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  clientId      String
+  client        User     @relation(fields: [clientId], references: [id])
+  
+  // Computed / Cached Metrics
+  totalVisits   Int      @default(0)
+  lastVisit     DateTime?
+  totalSpent    Float    @default(0)
+  
+  status        CrmStatus @default(NEW)
+  internalNotes String?   @db.Text
+  
+  // Custom Settings per client?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([barbershopId, clientId])
+  @@index([status])
 }
