@@ -61,6 +61,22 @@ export default function ClientLayout({ children }) {
                     </div>
                 </Link>
 
+                {/* Desktop Navigation */}
+                <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+                    {tabs.map((tab) => {
+                        const isActive = pathname.startsWith(tab.href);
+                        return (
+                            <Link
+                                key={tab.href}
+                                href={tab.href}
+                                className={`text-sm font-medium transition-colors ${isActive ? 'text-emerald-500 font-bold' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                {tab.name}
+                            </Link>
+                        )
+                    })}
+                </nav>
+
                 {/* Profile Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                     <button
