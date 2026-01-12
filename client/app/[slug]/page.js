@@ -184,22 +184,56 @@ export default function BarbershopPage() {
             }
             if (!paymentMethod) return alert('Selecione uma forma de pagamento');
 
-            const res = await api.post('/appointments', {
-                professionalId: selectedProfessional.id,
-                serviceId: selectedService.id,
-                products: selectedProducts.map(p => p.id),
-                paymentMethod,
-                date: formData.date,
-                time: formData.time,
-                guestName: formData.name,
-                guestPhone: formData.phone,
-                guestEmail: formData.email,
-                guestBirthday: formData.birthday,
-                barbershopId: barbershop.id,
-                createAccount: formData.createAccount,
-                password: formData.password,
-                reminderMinutes: formData.reminderMinutes ? parseInt(formData.reminderMinutes) : null
-            });
+            // Payload Standardized (Snake Case)
+            const userStr = localStorage.getItem('user');
+            const currentUser = userStr ? JSON.parse(userStr) : null;
+
+            const payload = {
+                // Standard Fields
+                cliente_id: currentUser?.id || null,
+                cliente_nome: formData.name,
+                cliente_telefone: formData.phone,
+
+                barbearia_id: barbershop.id,
+                barbearia_nome: barbershop.name,
+
+                barbeiro_id: selectedProfessional.id,
+                barbeiro_nome: selectedProfessional.name,
+
+                servicos: [
+                    {
+                        servico_id: selectedService.id,
+                        nome: selectedService.name,
+                        valor: Number(selectedService.price),
+                        duracao_minutos: selectedService.duration
+                    }
+                ],
+
+                // Products (maintaining functionality)
+                produtos: selectedProducts.map(p => ({
+                    produto_id: p.id,
+                    nome: p.name,
+                    valor: Number(p.price)
+                })),
+
+                data: formData.date,
+                horario: formData.time,
+
+                valor_total: totalValue, // Calculated in frontend as requested
+
+                forma_pagamento: "local", // Fixed for now as per request "forma_pagamento: 'local'"
+                status: "confirmado",
+
+                // Essential Extras for Account/Logic
+                email: formData.email,
+                data_nascimento: formData.birthday,
+                criar_conta: formData.createAccount,
+                senha: formData.password,
+                lembrete_minutos: formData.reminderMinutes ? parseInt(formData.reminderMinutes) : null,
+                is_squeeze_in: false // Default
+            };
+
+            const res = await api.post('/appointments', payload);
 
             if (formData.createAccount && res.data.token) {
                 localStorage.setItem('token', res.data.token);
@@ -208,6 +242,7 @@ export default function BarbershopPage() {
 
             setStep(5); // Success State
         } catch (err) {
+            console.error(err);
             alert(err.response?.data?.message || 'Erro ao agendar');
         }
     };

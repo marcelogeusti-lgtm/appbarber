@@ -19,12 +19,34 @@ const generateToken = (user) => {
 
 exports.createAppointment = async (req, res) => {
     try {
-        const { professionalId, serviceId, date, time, guestName, guestPhone, guestEmail, guestBirthday, products = [], paymentMethod, createAccount, password, isSqueezeIn, reminderMinutes } = req.body;
-        let clientId = req.user?.id;
+        // Mapping Snake Case Payload to Internal Variables
+        const {
+            cliente_id, cliente_nome, cliente_telefone, email, data_nascimento,
+            barbeiro_id, servicos, produtos = [],
+            data, horario,
+            criar_conta, senha,
+            lembrete_minutos, is_squeeze_in
+        } = req.body;
+
+        // Legacy/Internal mapping
+        const professionalId = barbeiro_id;
+        // Assuming single service selection for now as per schema logic, taking the first one
+        const serviceId = servicos && servicos.length > 0 ? servicos[0].servico_id : null;
+        const guestName = cliente_nome;
+        const guestPhone = cliente_telefone;
+        const guestEmail = email;
+        const guestBirthday = data_nascimento;
+        const createAccount = criar_conta;
+        const password = senha;
+        const reminderMinutes = lembrete_minutos;
+        const isSqueezeIn = is_squeeze_in;
+
+        let clientId = req.user?.id || cliente_id; // Auth token or payload id
         let createdToken = null;
         let currentUser = null;
 
         // 1. Fetch Service & Pro details first to ensure they exist
+        if (!serviceId) return res.status(400).json({ message: 'Serviço é obrigatório' });
         const service = await prisma.service.findUnique({ where: { id: serviceId } });
         if (!service) return res.status(404).json({ message: 'Serviço não encontrado' });
 
@@ -34,8 +56,9 @@ exports.createAppointment = async (req, res) => {
         });
         if (!pro) return res.status(404).json({ message: 'Profissional não encontrado' });
 
-        const productItems = products.length > 0
-            ? await prisma.product.findMany({ where: { id: { in: products } } })
+        const productIds = produtos.map(p => p.produto_id || p);
+        const productItems = productIds.length > 0
+            ? await prisma.product.findMany({ where: { id: { in: productIds } } })
             : [];
 
         // 2. Guest Handling or Auto-Registration
@@ -410,20 +433,30 @@ exports.createAppointment = async (req, res) => {
                 event: 'appointment.created',
                 data: {
                     id: appointment.id,
-                    date: date,
-                    time: time,
+                    date: data, // Using mapped variable
+                    time: horario, // Using mapped variable
                     clientName: currentUser?.name || guestName,
                     clientPhone: currentUser?.phone || guestPhone,
                     serviceName: service.name,
                     products: productItems.map(p => p.name).join(', '),
                     totalValue: order.total,
-                    paymentMethod
+                    paymentMethod: req.body.forma_pagamento
                 }
             }).catch(e => console.error('Webhook Error:', e.message));
         }
 
         const responseUser = currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role } : null;
-        res.status(201).json({ appointment, order, token: createdToken, user: responseUser, isGuest: !req.user });
+        res.status(201).json({
+            appointment_id: appointment.id,
+            status: "confirmado",
+            mensagem: "Agendamento realizado com sucesso",
+            // Keeping original fields just in case frontend needs them for now, but following success spec
+            appointment,
+            order,
+            token: createdToken,
+            user: responseUser,
+            isGuest: !req.user
+        });
     } catch (error) {
         // Detailed logging
         console.error('------- CRITICAL APPOINTMENT ERROR -------');
