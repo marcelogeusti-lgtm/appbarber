@@ -16,31 +16,25 @@ export default function ClientLayout({ children }) {
     return (
         <div className="flex flex-col min-h-screen bg-slate-950">
             {/* Desktop Top Navbar */}
-            <header className="hidden md:flex items-center justify-between px-8 py-5 bg-slate-950 border-b border-slate-900 sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+            <header className="hidden md:flex items-center justify-between px-8 py-4 bg-black border-b border-white/10 sticky top-0 z-50">
                 <div className="flex items-center gap-12">
                     {/* Logo */}
-                    <Link href="/home" className="flex items-center gap-2 group">
-                        <div className="bg-emerald-500 rounded-lg p-1.5 group-hover:scale-105 transition">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-black">
-                                <path d="M7 21C2.5 16.5 2 11 4 7C5.5 4 10 3 13 4C17 6 19 10 19 14.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M12 21V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
+                    <Link href="/home" className="flex items-center">
+                        <div className="bg-[#0D4A85] px-4 py-1.5 rounded-full flex items-center justify-center border border-white/10 shadow-lg shadow-blue-500/20">
+                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">appbarber</span>
                         </div>
-                        <span className="text-xl font-black tracking-tighter text-white">APP<span className="text-emerald-500">BARBER</span></span>
                     </Link>
 
                     {/* Desktop Navigation Links */}
-                    <nav className="flex items-center gap-8">
+                    <nav className="flex items-center gap-6">
                         {tabs.map((tab) => {
-                            const Icon = tab.icon;
                             const isActive = pathname.startsWith(tab.href);
                             return (
                                 <Link
                                     key={tab.href}
                                     href={tab.href}
-                                    className={`flex items-center gap-2 text-sm font-bold uppercase tracking-wide transition-colors ${isActive ? 'text-emerald-500' : 'text-slate-400 hover:text-white'}`}
+                                    className={`text-sm font-medium transition-colors ${isActive ? 'text-[#3B9EFF]' : 'text-slate-400 hover:text-white'}`}
                                 >
-                                    <Icon className={`w-4 h-4 ${isActive ? 'stroke-[3px]' : 'stroke-2'}`} />
                                     {tab.name}
                                 </Link>
                             )
@@ -49,12 +43,21 @@ export default function ClientLayout({ children }) {
                 </div>
 
                 {/* Desktop User Actions */}
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3 pl-4 border-l border-slate-800">
-                        <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-slate-400">
-                            <User className="w-5 h-5" />
+                <div className="flex items-center gap-6 text-slate-400">
+                    <button className="hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg></button>
+                    <button className="hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg></button>
+                    <div className="flex items-center gap-1 cursor-pointer hover:text-white">
+                        <span className="text-xs font-bold">BR</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+
+                    <div className="relative">
+                        <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center border border-white/10 overflow-hidden cursor-pointer hover:border-white/30 transition">
+                            <img src="https://github.com/marcelogeusti.png" alt="User" className="w-full h-full object-cover opacity-80" />
                         </div>
-                        <span className="hidden lg:block text-xs font-bold text-slate-300">Minha Conta</span>
+                        <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-slate-900 rounded-full flex items-center justify-center border border-black">
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
                     </div>
                 </div>
             </header>

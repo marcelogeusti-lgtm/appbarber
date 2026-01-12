@@ -1,14 +1,16 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar, Search, Package, Clock, LogOut, ChevronRight, Star, MapPin, User, Bell } from 'lucide-react';
+import { Search, ChevronRight, MapPin, Star, Play, Apple, ArrowUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '../../../lib/api';
 
 export default function ClientHome() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [bookingLoading, setBookingLoading] = useState(false);
+    const [lastAppointment, setLastAppointment] = useState(null);
+    const [recentBarbershops, setRecentBarbershops] = useState([]);
+    const [favorites, setFavorites] = useState([]);
     const router = useRouter();
 
     useEffect(() => {
@@ -18,131 +20,236 @@ export default function ClientHome() {
             return;
         }
         setUser(JSON.parse(userStr));
-        setLoading(false);
+        fetchData();
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.push('/login');
-    };
-
-    const handleBooking = async () => {
-        setBookingLoading(true);
+    const fetchData = async () => {
         try {
-            // Fetch last appointment to find "favorite" or last used barbershop
+            // Fetch last appointment
             const res = await api.get('/appointments/me');
-            const appointments = res.data || [];
+            const apps = res.data || [];
 
-            if (appointments.length > 0 && appointments[0].barbershop?.slug) {
-                // Redirect to the last visited barbershop
-                router.push(`/${appointments[0].barbershop.slug}`);
-            } else {
-                // If no history, ask to find one (or redirect to search)
-                router.push('/search');
+            // Last appointment is the first one (assuming sorted by date desc or taking the most recent)
+            // Filter only upcoming or really the last one? The text says "Último agendamento". It usually implies the last one made or the next one.
+            // Let's assume it's the next upcoming one, or if none, the last completed.
+            // For now, let's take the first one from the list.
+            if (apps.length > 0) {
+                setLastAppointment(apps[0]); // Adjust based on API sort order
             }
+
+            // Mock Favorites/Recents from appointments for now standard
+            // Get unique barbershops from history
+            const shops = [];
+            const seen = new Set();
+            for (const app of apps) {
+                if (app.barbershop && !seen.has(app.barbershop.id)) {
+                    seen.add(app.barbershop.id);
+                    shops.push(app.barbershop);
+                }
+            }
+            setRecentBarbershops(shops.slice(0, 2)); // Take first 2
+            setFavorites(shops.slice(0, 1)); // Mock
+
         } catch (err) {
-            console.error('Error fetching history:', err);
-            router.push('/search'); // Fallback
+            console.error(err);
         } finally {
-            setBookingLoading(false);
+            setLoading(false);
         }
     };
 
     if (loading) return null;
 
+    // Helper functions for formatting
+    const formatDate = () => {
+        // "Segunda, 12 jan 2026"
+        return new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+    };
+
     return (
-        <div className="min-h-screen bg-slate-950 text-white font-sans pb-24">
-            {/* Header */}
-            {/* Header */}
-            <header className="p-6 flex justify-between items-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10">
-                <div>
-                    <p className="text-slate-400 text-sm font-medium mb-0.5">Olá, <span className="text-white font-bold">{user?.name?.split(' ')[0] || 'Cliente'}</span></p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+        <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#3B9EFF]/30">
+
+            <main className="max-w-6xl mx-auto px-6 md:px-12 py-10">
+                {/* Greeting */}
+                <div className="mb-8">
+                    <h1 className="text-2xl font-normal text-slate-300">
+                        Olá, <span className="text-[#3B9EFF] font-bold">{user?.name?.split(' ')[0] || 'Visitante'}</span>
+                    </h1>
+                    <p className="text-sm text-slate-500 capitalize mt-1 text-[13px]">{formatDate()}</p>
                 </div>
-                <div className="relative cursor-pointer hover:bg-slate-900 p-2 rounded-full transition">
-                    <Bell className="w-6 h-6 text-white" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-950"></span>
+
+                {/* Search Input */}
+                <div className="mb-12 relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                        <Search className="w-5 h-5 text-slate-500 group-focus-within:text-white transition" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Encontre um estabelecimento"
+                        onClick={() => router.push('/search')}
+                        className="w-full bg-[#111111] border border-white/5 rounded-lg py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-[#3B9EFF]/50 focus:border-[#3B9EFF]/50 transition shadow-lg shadow-black/50 cursor-pointer hover:bg-[#151515]"
+                        readOnly
+                    />
                 </div>
-            </header>
 
-            {/* Search Bar - Redirects to Search Tab */}
-            <div className="px-6 mb-8">
-                <Link href="/search" className="bg-slate-900 rounded-2xl p-4 flex items-center gap-3 border border-slate-800 active:scale-95 transition shadow-lg shadow-black/20">
-                    <Search className="w-5 h-5 text-slate-400" />
-                    <span className="text-slate-500 text-sm font-medium">Encontre um estabelecimento...</span>
-                </Link>
-            </div>
+                {/* Last Appointment */}
+                {lastAppointment && (
+                    <div className="mb-10 animate-in slide-in-from-bottom-4 duration-700">
+                        <h2 className="text-white font-medium text-lg mb-4">Último agendamento</h2>
+                        <div className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer" onClick={() => router.push(`/appointments`)}>
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1 relative">
+                                    {/* Logo Placeholer */}
+                                    <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center font-bold text-xs">
+                                        {lastAppointment.barbershop?.name?.[0] || 'B'}
+                                    </div>
+                                    <div className="absolute bottom-0 right-0 bg-[#3B9EFF] rounded-full p-0.5 border border-[#111111]">
+                                        <svg className="w-2 h-2 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-white text-sm">{lastAppointment.barbershop?.name}</h3>
+                                    <p className="text-slate-500 text-xs">{lastAppointment.service?.name || 'Serviço'}</p>
+                                </div>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-[#3B9EFF] transition">
+                                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
-            {/* Hero CTA */}
-            <div className="px-6 mb-8">
-                <div className="relative bg-gradient-to-br from-orange-600 to-red-600 rounded-[2rem] p-6 shadow-2xl shadow-orange-900/20 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10"></div>
+                {/* Favorites */}
+                <div className="mb-10 animate-in slide-in-from-bottom-6 duration-700 delay-100">
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-medium text-lg">Favoritos</h2>
+                        <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button>
+                    </div>
 
-                    <div className="relative z-10">
-                        <span className="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Novo</span>
-                        <h2 className="text-3xl font-black text-white mb-2 leading-none">Visual novo?</h2>
-                        <p className="text-orange-100 text-sm font-medium mb-6 opacity-90 max-w-[200px]">Agende seu horário agora e evite filas.</p>
-
-                        <button
-                            onClick={handleBooking}
-                            disabled={bookingLoading}
-                            className="bg-white text-orange-600 px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-colors inline-flex items-center gap-2 shadow-lg disabled:opacity-70"
-                        >
-                            {bookingLoading ? 'Carregando...' : 'Agendar Agora'} <ChevronRight className="w-4 h-4" />
-                        </button>
+                    <div className="space-y-3">
+                        {/* Mock Favorite Card */}
+                        <div className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
+                                    {/* Logo */}
+                                    <span className="text-[9px] font-bold text-yellow-500">CORTE</span>
+                                    <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-white text-sm">Corte e Conexão...</h3>
+                                    <p className="text-slate-500 text-xs">Avenida José...</p>
+                                </div>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-[#3B9EFF] transition">
+                                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Quick Actions Grid */}
-            <div className="px-6 mb-10">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 ml-1">Acesso Rápido</h3>
-                <div className="grid grid-cols-2 gap-4">
-                    <Link href="/packages" className="bg-slate-900 p-5 rounded-3xl border border-slate-800 hover:border-slate-700 transition group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
-                            <Package className="w-16 h-16 text-white" />
-                        </div>
-                        <div className="w-10 h-10 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-3">
-                            <Package className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <h4 className="font-bold text-white text-sm">Pacotes</h4>
-                        <p className="text-[10px] text-slate-500 font-medium mt-1">Economize nos cortes</p>
-                    </Link>
+                {/* Recent Access */}
+                <div className="animate-in slide-in-from-bottom-8 duration-700 delay-200">
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-medium text-lg">Últimos acessos</h2>
+                        <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button>
+                    </div>
 
-                    <Link href="/history" className="bg-slate-900 p-5 rounded-3xl border border-slate-800 hover:border-slate-700 transition group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
-                            <Clock className="w-16 h-16 text-white" />
+                    <div className="space-y-3">
+                        {/* Mock Recent Card */}
+                        <div className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
+                                    <span className="text-[9px] font-bold text-yellow-500">CORTE</span>
+                                    <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-white text-sm">Corte e Conexão...</h3>
+                                    <p className="text-slate-500 text-xs">Avenida José...</p>
+                                </div>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-[#3B9EFF] transition">
+                                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
+                            </div>
                         </div>
-                        <div className="w-10 h-10 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-3">
-                            <Clock className="w-5 h-5 text-purple-500" />
-                        </div>
-                        <h4 className="font-bold text-white text-sm">Histórico</h4>
-                        <p className="text-[10px] text-slate-500 font-medium mt-1">Veja seus agendamentos</p>
-                    </Link>
-                </div>
-            </div>
-
-            {/* Recent/Featured Section (Optional) */}
-            <div className="px-6">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 ml-1">Para Você</h3>
-                <div className="bg-slate-900 rounded-3xl p-1 border border-slate-800">
-                    <div className="flex items-center gap-4 p-4">
-                        <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
-                            <Star className="w-6 h-6 text-yellow-500" />
-                        </div>
-                        <div className="flex-1">
-                            <h4 className="font-bold text-white text-sm">Avalie seu último corte</h4>
-                            <p className="text-[10px] text-slate-500">Ajude-nos a melhorar</p>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-slate-600" />
                     </div>
                 </div>
-            </div>
 
-            {/* Logout */}
+            </main>
 
+            {/* Footer */}
+            <footer className="border-t border-white/5 bg-[#08080A] pt-16 pb-8">
+                <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+
+                    {/* Brand */}
+                    <div>
+                        <div className="bg-[#0D4A85] px-4 py-1.5 rounded-lg inline-flex items-center justify-center border border-white/10 shadow-lg shadow-blue-500/10 mb-6">
+                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">appbarber</span>
+                        </div>
+                        <p className="text-slate-500 text-xs leading-relaxed max-w-[200px]">
+                            Uma nova experiência para uma antiga tradição.
+                        </p>
+                        <div className="flex gap-4 mt-6">
+                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">f</div>
+                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">in</div>
+                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">yt</div>
+                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">x</div>
+                        </div>
+                    </div>
+
+                    {/* Quick Access */}
+                    <div>
+                        <h4 className="text-white font-bold text-sm mb-6">Acesso rápido</h4>
+                        <ul className="space-y-3 text-sm text-slate-500">
+                            <li><Link href="/home" className="hover:text-[#3B9EFF] transition">Início</Link></li>
+                            <li><Link href="/search" className="hover:text-[#3B9EFF] transition">Encontrar estabelecimentos</Link></li>
+                            <li><Link href="/appointments" className="hover:text-[#3B9EFF] transition">Meus agendamentos</Link></li>
+                            <li><Link href="/profile" className="hover:text-[#3B9EFF] transition">Favoritos</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* More */}
+                    <div>
+                        <h4 className="text-white font-bold text-sm mb-6">Mais</h4>
+                        <ul className="space-y-3 text-sm text-slate-500">
+                            <li><Link href="/terms" className="hover:text-[#3B9EFF] transition">Termos de uso</Link></li>
+                            <li><Link href="/privacy" className="hover:text-[#3B9EFF] transition">Preferências de cookies</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* App Download */}
+                    <div>
+                        <h4 className="text-white font-bold text-sm mb-6">Baixe nosso App</h4>
+                        <div className="space-y-3">
+                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-[#3B9EFF]/50 transition group">
+                                <Apple className="w-5 h-5 text-white group-hover:text-[#3B9EFF]" />
+                                <div className="text-left">
+                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Download on the</p>
+                                    <p className="text-xs text-white font-bold">App Store</p>
+                                </div>
+                            </button>
+                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-[#3B9EFF]/50 transition group">
+                                <Play className="w-5 h-5 text-white group-hover:text-[#3B9EFF] fill-current" />
+                                <div className="text-left">
+                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Get it on</p>
+                                    <p className="text-xs text-white font-bold">Google Play</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div className="mt-8">
+                            <h4 className="text-white font-bold text-sm mb-2">É um gestor?</h4>
+                            <p className="text-xs text-slate-500 mb-4">Cadastre seu estabelecimento e comece a receber agendamentos online.</p>
+                            <Link href="/register" className="bg-[#0E1218] border border-white/10 text-white text-xs font-bold py-2 px-6 rounded-lg hover:bg-white hover:text-black transition">Saiba mais</Link>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="max-w-6xl mx-auto px-6 md:px-12 border-t border-white/5 pt-8 flex items-center justify-between">
+                    <p className="text-slate-600 text-xs text-[11px]">© 2026 StarApp Sistemas. Todos os direitos reservados.</p>
+                    <button className="bg-[#0E1218] border border-white/10 p-2 rounded-lg hover:border-white/30 transition">
+                        <ArrowUp className="w-4 h-4 text-slate-400" />
+                    </button>
+                </div>
+            </footer>
         </div>
     );
 }
