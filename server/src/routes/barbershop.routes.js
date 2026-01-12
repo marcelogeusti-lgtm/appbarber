@@ -1,5 +1,5 @@
 const express = require('express');
-const { getBarbershopBySlug, updateBarbershop, listBarbershops, searchBarbershops, updateSaasPlan } = require('../controllers/barbershop.controller');
+const { getBarbershopBySlug, updateBarbershop, listBarbershops, searchBarbershops, updateSaasPlan, getMyBarbershop } = require('../controllers/barbershop.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 const { checkSubscription } = require('../middlewares/subscription.middleware');
 
@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/', protect, authorize('SUPER_ADMIN'), listBarbershops);
 router.get('/search', searchBarbershops);
+router.get('/me', protect, getMyBarbershop);
 router.get('/:slug', getBarbershopBySlug);
 router.put('/:id/plan', protect, authorize('SUPER_ADMIN'), updateSaasPlan);
 router.put('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, updateBarbershop);

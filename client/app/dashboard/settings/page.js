@@ -16,25 +16,36 @@ export default function SettingsPage() {
 
     const fetchBarbershop = async () => {
         try {
+            // Priority: Fetch from /me route using token
+            try {
+                const res = await api.get('/barbershops/me');
+                setBarbershop(res.data);
+                setLoading(false);
+                return; // Success
+            } catch (meError) {
+                console.warn('Failed to fetch via /me, checking fallback...', meError);
+            }
+
+            // Fallback: Use local storage (Legacy)
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
-            if (!bId) {
-                setMessage({ type: 'error', text: 'Barbearia não encontrada no seu perfil.' });
+            // Try explicit slug
+            const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug;
+            if (slug) {
+                const res = await api.get(`/barbershops/${slug}`);
+                setBarbershop(res.data);
                 setLoading(false);
                 return;
             }
 
-            // We need a way to get by ID, but for now let's use the slug from user object to fetch full data
-            const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug;
-            const res = await api.get(`/barbershops/${slug}`);
-            setBarbershop(res.data);
+            setMessage({ type: 'error', text: 'Barbearia não encontrada. Faça login novamente.' });
             setLoading(false);
         } catch (err) {
             console.error(err);
             setLoading(false);
+            setMessage({ type: 'error', text: 'Erro ao carregar dados da barbearia.' });
         }
     };
 
