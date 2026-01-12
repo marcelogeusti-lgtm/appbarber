@@ -94,7 +94,27 @@ function deg2rad(deg) {
 // Private: Get My Barbershop (Logged User)
 exports.getMyBarbershop = async (req, res) => {
     try {
-        const barbershopId = req.user.barbershopId;
+        let barbershopId = req.user.barbershopId;
+
+        // Fallback: If token doesn't have ID (old token or login issue), lookup in DB
+        // This is critical to prevent "Not Found" errors if the token payload is stale.
+        if (!barbershopId) {
+            const user = await prisma.user.findUnique({
+                where: { id: req.user.id },
+                include: {
+                    ownedBarbershops: true,
+                    // If workedBarbershop relation exists, check it too, 
+                    // assuming 'workedBarbershop' is the relation name based on 'workedBarbershopId' field
+                    workedBarbershop: true
+                }
+            });
+
+            if (user) {
+                // Prioritize ownership, then employment
+                barbershopId = user.ownedBarbershops?.[0]?.id || user.workedBarbershopId;
+            }
+        }
+
         if (!barbershopId) {
             return res.status(404).json({ message: 'No barbershop associated with this user' });
         }
@@ -105,26 +125,9 @@ exports.getMyBarbershop = async (req, res) => {
                 services: {
                     where: { active: true }
                 },
-                subscriptionPlans: true, // If relation exists, otherwise remove, assuming schema doesn't have it directly or it was named saasPlan enum? 
-                // Wait, schema has `saasPlan` string, no subscriptionPlans relation shown in schema.prisma viewed earlier clearly. 
-                // BUT `getBarbershopBySlug` in original file had `subscriptionPlans: true`. 
-                // Checking schema... `Barbershop` model has `saasPlan String`. It does NOT have `subscriptionPlans` relation.
-                // It has `packages`. Let's stick to what was there or keep it safe. 
-                // The original file had `subscriptionPlans: true` in `getBarbershopBySlug` line 103. 
-                // If the schema verification didn't show it, it might crash. 
-                // Use the same include as getBarbershopBySlug but safely.
+                // Removed subscriptionPlans as it might not be a valid relation
             }
         });
-
-        // Fix for potentially missing relation in include if it was invalid:
-        // Actually, let's copy the include from getBarbershopBySlug from the file view I saw earlier.
-        // It had `subscriptionPlans: true`. If that works for slug, it works here.
-        // HOWEVER, checking the schema I read in step 159, Barbershop has:
-        // services, products, appointments, transactions, waitlist, packages, commissions, orders, noShowRecords, webhooks, notificationTemplates.
-        // It DOES NOT have subscriptionPlans.
-        // So `getBarbershopBySlug` might be failing too if that line is executed! 
-        // But the user said "Nome da barbearia foi apagado", implies it loads partially or fails.
-        // I will remove `subscriptionPlans: true` from my new function to be safe.
 
         if (!barbershop) {
             return res.status(404).json({ message: 'Barbershop not found' });
