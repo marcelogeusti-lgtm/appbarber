@@ -28,7 +28,7 @@ export default function DashboardPage() {
     }, []);
 
     // React Query for Stats
-    const { data: stats, isLoading, isError } = useQuery({
+    const { data: stats = { revenue: 0, revenueTotal: 0, appointments: 0, clients: 0 }, isLoading, isError } = useQuery({
         queryKey: ['dashboardStats'],
         queryFn: async () => {
             const res = await api.get('/dashboard/stats');
@@ -44,6 +44,7 @@ export default function DashboardPage() {
     });
 
     if (!user || isLoading) return <DashboardSkeleton />;
+    if (isError) return <div className="p-8 text-center text-red-500">Erro ao carregar dados.</div>;
 
     const copyToClipboard = () => {
         if (!publicUrl) return;
@@ -118,7 +119,7 @@ export default function DashboardPage() {
                 {/* Today's Appointments Card */}
                 <div className="bg-[#151821] rounded-[2rem] p-8 border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Atendimentos Hoje</span>
-                    <h2 className="text-6xl font-black text-white mb-4">{loading ? '-' : stats.appointments}</h2>
+                    <h2 className="text-6xl font-black text-white mb-4">{stats.appointments}</h2>
                     <div className="bg-emerald-900/30 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
                         Atendimento Dinâmico
                     </div>
@@ -131,7 +132,7 @@ export default function DashboardPage() {
                 <div className="bg-[#151821] rounded-[2rem] p-8 border border-white/5 relative overflow-hidden min-h-[180px]">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-2">Performance Histórica</span>
                     <h3 className="text-4xl font-black text-white mb-1">
-                        {loading ? '...' : stats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        {stats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </h3>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Faturamento Acumulado (Hoje)</p>
 
@@ -146,7 +147,7 @@ export default function DashboardPage() {
                 {/* Community Metric */}
                 <div className="bg-[#151821] rounded-[2rem] p-8 border border-white/5 min-h-[180px]">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-2">Nossa Comunidade</span>
-                    <h3 className="text-4xl font-black text-white mb-1">{loading ? '-' : stats.clients}</h3>
+                    <h3 className="text-4xl font-black text-white mb-1">{stats.clients}</h3>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Clientes reais na sua base</p>
                 </div>
             </div>
