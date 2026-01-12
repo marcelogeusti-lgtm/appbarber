@@ -5,42 +5,90 @@ const saasPlans = require('../config/saasPlans');
 // Public: Search Barbershops
 exports.searchBarbershops = async (req, res) => {
     try {
-        const { term, type } = req.query; // type: NAME, CITY, NEARBY
+        const { term, type, city, lat, lng } = req.query; // type: NAME, CITY, NEARBY
 
+        // Base Query
         let where = {};
 
+        // 1. Text Search (Name or Address)
         if (term) {
-            const lowerTerm = term.toLowerCase();
-            // Ideally use full-text search or ILIKE if Postgres
-            // For simplicity/Prisma SQLite/MySQL compatibility often contains is used
-
-            if (type === 'CITY') {
-                where = { address: { contains: term } };
-            } else {
-                // Default NAME or generic search
-                where = {
-                    OR: [
-                        { name: { contains: term } },
-                        { address: { contains: term } }
-                    ]
-                };
-            }
+            where.OR = [
+                { name: { contains: term, mode: 'insensitive' } },
+                { address: { contains: term, mode: 'insensitive' } }
+            ];
         }
+
+        // 2. City Filter
+        // If type is CITY or if explicit city param is provided
+        if ((type === 'CITY' && term) || city) {
+            // If searching by city logic
+            where.address = { contains: term || city, mode: 'insensitive' };
+        }
+
+        // 3. Nearby Logic (Simplified for SQLite/Postgres without spatial extension)
+        // If we have lat/lng, we fetch candidates and filter/sort in JS, 
+        // OR better: if Prisma + Postgres + PostGIS is not available, we can't do ST_Distance easily in standard Prisma.
+        // We will fetch limited results and sort in memory if needed, or rely on client sorting.
+        // For 'NEARBY' without lat/lng, we can't do much.
+
+        let orderBy = undefined;
+        // If simple ordering needed
+        // orderBy = { name: 'asc' }; 
 
         const barbershops = await prisma.barbershop.findMany({
             where,
             include: {
-                services: { take: 1 }, // Show at least one service/price
+                services: {
+                    take: 1,
+                    where: { active: true }
+                },
+                // Include Review Rating average? (If implemented)
             },
-            take: 20
+            take: 50
         });
 
-        res.json(barbershops);
+        // Post-processing for Distance (if lat/lng provided)
+        let results = barbershops.map(shop => {
+            let distance = null;
+            if (lat && lng && shop.latitude && shop.longitude) {
+                distance = calculateDistance(parseFloat(lat), parseFloat(lng), shop.latitude, shop.longitude);
+            }
+            return { ...shop, distance }; // distance in km
+        });
+
+        // 4. Sort by Distance if 'NEARBY'
+        if (type === 'NEARBY' && lat && lng) {
+            results.sort((a, b) => {
+                if (a.distance === null) return 1;
+                if (b.distance === null) return -1;
+                return a.distance - b.distance;
+            });
+        }
+
+        res.json(results);
     } catch (error) {
         console.error('Search error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// Helper: Haversine Formula for distance
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return parseFloat(d.toFixed(1));
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+}
 
 // Public: Get Barbershop by Slug
 exports.getBarbershopBySlug = async (req, res) => {

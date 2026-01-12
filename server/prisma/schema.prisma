@@ -131,6 +131,10 @@ model Barbershop {
   phone     String?
   logoUrl   String?
   webhookUrl String?
+
+  // Geolocalização
+  latitude  Float?
+  longitude Float?
   
   // No-Show Settings
   noShowEnabled Boolean @default(false)
