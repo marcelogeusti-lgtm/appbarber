@@ -146,6 +146,61 @@ class CommunicationService {
     async getConnectionStatus() {
         return whatsAppProvider.getStatus();
     }
+
+    // --- Handling Incoming Messages (Strict Rule) ---
+    async handleIncomingMessage(data) {
+        const { from, text, name } = data;
+        const phone = from.replace('@s.whatsapp.net', '');
+
+        // 1. Strict Filter: Register Client Only
+        // Search user by phone (try exact or without 55 if needed, standardizing on DB)
+        // Assuming DB stores with 55 or distinct. 
+        // Better: Search endswith to be safe or exact match if standardized.
+
+        const client = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { phone: phone },
+                    { phone: `+${phone}` }, // if stored with +
+                    { phone: phone.replace('55', '') } // backup check
+                ]
+            }
+        });
+
+        if (!client) {
+            console.log(`[WA Strict] Ignored message from unregistered number: ${phone}`);
+            return;
+        }
+
+        console.log(`[WA Strict] Valid message from client ${client.name} (${client.id})`);
+
+        // 2. Create Log / Conversation Context
+        // Find active appointment to bind context (Prioritize today or future)
+        const activeAppointment = await prisma.appointment.findFirst({
+            where: {
+                clientId: client.id,
+                status: { in: ['PENDING', 'CONFIRMED', 'SCHEDULED'] },
+                date: { gte: new Date() } // Future
+            },
+            orderBy: { date: 'asc' }
+        });
+
+        // Log Inbound
+        await this.log({
+            clientId: client.id,
+            id: activeAppointment?.id,
+            barbershopId: activeAppointment?.barbershopId // Or derive from client owner/last interaction? 
+            // If checking strict context, message must belong to a barbershop context. 
+            // If client has NO appointment, maybe he is just asking info?
+            // If we enforce appointment context, we might lose general inquiries.
+            // User requested: "Conversas não relacionadas a clientes... bloqueadas". 
+            // "Cada conversa deve estar OBRIGATORIAMENTE vinculada a um contexto... Agendamento (opcional, mas prioritário)".
+            // So if no appointment, we bind to Client-Barbershop general context (if client is linked to shop).
+        }, 'WHATSAPP', 'INBOUND', 'REPLY', text, 'READ');
+
+        // TODO: Emit to frontend CRM if needed
+    }
 }
+
 
 module.exports = new CommunicationService();

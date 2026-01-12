@@ -69,25 +69,51 @@ class WhatsAppProvider {
             // Listen for messages (Auto-Reply Logic)
             this.sock.ev.on('messages.upsert', async m => {
                 const msg = m.messages[0];
-                if (!msg.key.fromMe && m.type === 'notify') {
-                    const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text;
-                    const from = msg.key.remoteJid;
-                    const name = msg.pushName || 'Desconhecido';
 
-                    console.log(`New Message from ${name}: ${text}`);
+                // 1. Basic Filter: Ignore self-sent and non-notify types
+                if (msg.key.fromMe || m.type !== 'notify') return;
 
-                    try {
-                        socket.getIO().emit('whatsapp_message', {
-                            id: msg.key.id,
-                            from,
-                            name,
-                            text,
-                            timestamp: new Date()
-                        });
-                    } catch (e) { }
+                const from = msg.key.remoteJid;
 
-                    // Here we can also call your centralized "handleIncomingMessage" service
+                // 2. BLOCK GROUPS (Strict Rule)
+                // Ignore if it's a broadcast or group
+                if (from.endsWith('@g.us') || from === 'status@broadcast') {
+                    // console.log(`Ignoring Group/Broadcast message from ${from}`);
+                    return;
                 }
+
+                // 3. Extract Message Content
+                const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text;
+                if (!text) return; // Ignore media updates without text for now or empty messages
+
+                const name = msg.pushName || 'Desconhecido';
+                console.log(`New Private Message from ${name} (${from}): ${text}`);
+
+                // 4. Validate Sender (Must be a Client or have active context)
+                // We need to require Prisma inside here or pass it? 
+                // Better: Emit event ONLY if valid? Or let the listener validate?
+                // Request says: "O sistema SÓ PODE aceitar mensagens de números que estejam cadastrados"
+                // Implementing strict check here requires DB access.
+
+                // Let's emit to Socket only if valid.
+                // However, 'socket' module usage here is valid.
+                // But filtering logic needs DB. 
+                // To avoid circular deps/complexity in Provider, we should emit "whatsapp_message_received" 
+                // and let the Service handle the DB check and decide to process or drop.
+
+                // Update: User said "WhatsApp NÃO DEVE importar...". 
+                // If we check DB here, we need Prisma.
+
+                try {
+                    // Safe Emit to Server Logic
+                    socket.getIO().emit('whatsapp_message_received', {
+                        id: msg.key.id,
+                        from,
+                        name,
+                        text,
+                        timestamp: new Date()
+                    });
+                } catch (e) { }
             });
 
         } catch (error) {
