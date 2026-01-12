@@ -44,15 +44,21 @@ exports.createAppointment = async (req, res) => {
                 return res.status(400).json({ message: 'Nome e Telefone são obrigatórios para agendamento' });
             }
 
+            // Normalize phone
+            const phone = guestPhone.replace(/\D/g, '');
+
             // Check if user exists by phone OR email (if email provided)
             let user = await prisma.user.findFirst({
                 where: {
                     OR: [
-                        { phone: guestPhone },
+                        { phone: phone }, // Match sanitized phone
+                        { phone: guestPhone }, // Match raw phone just in case
                         ...(guestEmail ? [{ email: guestEmail }] : [])
                     ]
                 }
             });
+
+            const validBirthday = guestBirthday && guestBirthday.trim() !== '' ? new Date(guestBirthday) : null;
 
             if (createAccount) {
                 if (!guestEmail || !password) {
@@ -66,9 +72,9 @@ exports.createAppointment = async (req, res) => {
                 user = await prisma.user.create({
                     data: {
                         name: guestName,
-                        phone: guestPhone,
+                        phone: guestPhone, // Save as provided or sanitized? Keeping provided for display formatting
                         email: guestEmail,
-                        birthday: guestBirthday ? new Date(guestBirthday) : null,
+                        birthday: validBirthday,
                         role: 'CLIENT',
                         password: hashedPassword
                     }
@@ -82,7 +88,7 @@ exports.createAppointment = async (req, res) => {
                             name: guestName,
                             phone: guestPhone,
                             email: guestEmail || null,
-                            birthday: guestBirthday ? new Date(guestBirthday) : null,
+                            birthday: validBirthday,
                             role: 'CLIENT',
                             password: null // No password for guest
                         }
@@ -91,14 +97,19 @@ exports.createAppointment = async (req, res) => {
                     // Update missing optional info if provided
                     const updates = {};
                     if (guestEmail && !user.email) updates.email = guestEmail;
-                    if (guestBirthday && !user.birthday) updates.birthday = new Date(guestBirthday);
+                    if (validBirthday && !user.birthday) updates.birthday = validBirthday;
                     if (guestName && user.name !== guestName) updates.name = guestName; // Keep name updated
 
                     if (Object.keys(updates).length > 0) {
-                        await prisma.user.update({
-                            where: { id: user.id },
-                            data: updates
-                        });
+                        try {
+                            await prisma.user.update({
+                                where: { id: user.id },
+                                data: updates
+                            });
+                        } catch (e) {
+                            console.warn('Failed to update existing user info:', e.message);
+                            // Do not crash if unique constraint fails on update (e.g. email already taken by ANOTHER user)
+                        }
                     }
                 }
             }
@@ -109,9 +120,17 @@ exports.createAppointment = async (req, res) => {
         }
 
         // 3. Robust Availability Check (Avoid Overbooking)
+        if (!date || !date.includes('-')) return res.status(400).json({ message: 'Data inválida.' });
+        if (!time || !time.includes(':')) return res.status(400).json({ message: 'Horário inválido.' });
+
         // Parse requested date/time
         const [year, month, day] = date.split('-').map(Number);
         const [hour, min] = time.split(':').map(Number);
+
+        if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(min)) {
+            return res.status(400).json({ message: 'Formato de data ou hora inválido.' });
+        }
+
         const reqStart = new Date(year, month - 1, day, hour, min, 0);
         const reqEnd = new Date(reqStart.getTime() + service.duration * 60000);
 
@@ -406,8 +425,18 @@ exports.createAppointment = async (req, res) => {
         const responseUser = currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role } : null;
         res.status(201).json({ appointment, order, token: createdToken, user: responseUser, isGuest: !req.user });
     } catch (error) {
-        console.error('CREATE APPOINTMENT ERROR:', error);
-        res.status(500).json({ message: 'Server error' });
+        // Detailed logging
+        console.error('------- CRITICAL APPOINTMENT ERROR -------');
+        console.error('Message:', error.message);
+        console.error('Stack:', error.stack);
+        if (error.code) console.error('Prisma Code:', error.code);
+        if (error.meta) console.error('Prisma Meta:', error.meta);
+        console.error('------------------------------------------');
+
+        res.status(500).json({
+            message: 'Ocorreu um erro interno ao processar seu agendamento. Por favor, tente novamente ou contate o suporte.',
+            debug: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 
