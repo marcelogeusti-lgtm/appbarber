@@ -192,7 +192,11 @@ exports.createAppointment = async (req, res) => {
                     serviceId,
                     barbershopId: service.barbershopId,
                     paymentMethod: method,
-                    paymentStatus: 'PENDING',
+                    // If method is CASH (Local), we immediately CONFIRM it because we trust the user showing up (or use No-Show fees).
+                    // If ONLINE, it might be PENDING until payment webhook.
+                    // Request says: "Ao finalizar ... O status deve ser: Confirmado"
+                    paymentStatus: method === 'CASH' ? 'PENDING_ON_SITE' : 'PENDING',
+                    status: method === 'CASH' ? 'CONFIRMED' : 'SCHEDULED', // Using CONFIRMED for local to appear on dashboard immediately
                     isSqueezeIn: isSqueezeIn || false,
                     reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
                 }
@@ -200,14 +204,33 @@ exports.createAppointment = async (req, res) => {
 
             // --- Notification Trigger ---
             // Notify Professional
-            await notificationController.createNotification({
-                userId: professionalId,
-                title: 'Novo Agendamento',
-                message: `Novo agendamento com ${currentUser?.name || guestName} para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
-                type: 'appointment',
-                appointmentId: appointment.id
-            });
+            // Wrap in safe catch to not block transaction? No, notifications are critical enough but shouldn't rollback DB.
+            // Moving outside transaction usually better, but for now inside is fine or just ignore error.
+            try {
+                await notificationController.createNotification({
+                    userId: professionalId,
+                    title: 'Novo Agendamento',
+                    message: `Novo agendamento com ${currentUser?.name || guestName} para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
+                    type: 'appointment',
+                    appointmentId: appointment.id
+                });
+            } catch (e) {
+                console.error('Falha ao criar notificação interna:', e.message);
+            }
             // ----------------------------
+
+            // --- Notification for Client (In-App) ---
+            if (clientId) {
+                try {
+                    await notificationController.createNotification({
+                        userId: clientId,
+                        title: 'Agendamento Confirmado',
+                        message: `Seu horário para ${service.name} está confirmado para ${format(appointmentDateTime, 'dd/MM HH:mm')}.`,
+                        type: 'appointment',
+                        appointmentId: appointment.id
+                    });
+                } catch (e) { console.error('Falha ao notificar cliente:', e.message); }
+            }
 
             // Calculate Totals
             const serviceTotal = Number(service.price);
