@@ -1,64 +1,86 @@
 'use client';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Search, Calendar, User, LogOut } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, Search, Calendar, User, LogOut, ChevronDown, Menu as MenuIcon } from 'lucide-react';
 
 export default function ClientLayout({ children }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [dropdownRef]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/login');
+    };
 
     const tabs = [
         { name: 'Início', href: '/home', icon: Home },
         { name: 'Buscar', href: '/search', icon: Search },
         { name: 'Agendamentos', href: '/appointments', icon: Calendar },
-        { name: 'Menu', href: '/profile', icon: User },
     ];
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-950">
-            {/* Desktop Top Navbar */}
-            <header className="hidden md:flex items-center justify-between px-8 py-4 bg-black border-b border-white/10 sticky top-0 z-50">
-                <div className="flex items-center gap-12">
-                    {/* Logo */}
-                    <Link href="/home" className="flex items-center">
-                        <div className="bg-emerald-600 px-4 py-1.5 rounded-full flex items-center justify-center border border-white/10 shadow-lg shadow-emerald-500/20">
-                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">barberon</span>
-                        </div>
-                    </Link>
+        <div className="flex flex-col min-h-screen bg-[#050505]">
 
-                    {/* Desktop Navigation Links */}
-                    <nav className="flex items-center gap-6">
-                        {tabs.map((tab) => {
-                            const isActive = pathname.startsWith(tab.href);
-                            return (
-                                <Link
-                                    key={tab.href}
-                                    href={tab.href}
-                                    className={`text-sm font-medium transition-colors ${isActive ? 'text-emerald-500' : 'text-slate-400 hover:text-white'}`}
-                                >
-                                    {tab.name}
-                                </Link>
-                            )
-                        })}
-                    </nav>
-                </div>
+            {/* GLOBAL HEADER (Mobile + Desktop) */}
+            <header className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
 
-                {/* Desktop User Actions */}
-                <div className="flex items-center gap-6 text-slate-400">
-                    <button className="hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg></button>
-                    <button className="hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg></button>
-                    <div className="flex items-center gap-1 cursor-pointer hover:text-white">
-                        <span className="text-xs font-bold">BR</span>
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                {/* Logo */}
+                <Link href="/home" className="flex items-center">
+                    <div className="bg-emerald-600 px-3 py-1 rounded-full flex items-center justify-center border border-white/10 shadow-lg shadow-emerald-500/20">
+                        <span className="text-white font-bold text-xs tracking-wider uppercase font-sans">Barberon</span>
                     </div>
+                </Link>
 
-                    <div className="relative">
-                        <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center border border-white/10 overflow-hidden cursor-pointer hover:border-white/30 transition">
-                            <img src="https://github.com/marcelogeusti.png" alt="User" className="w-full h-full object-cover opacity-80" />
+                {/* Profile Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                    <button
+                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                        className="flex items-center gap-2 hover:bg-white/5 p-1 rounded-full pr-3 transition border border-transparent hover:border-white/10"
+                    >
+                        <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 border border-white/5 overflow-hidden">
+                            <User className="w-4 h-4" />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-slate-900 rounded-full flex items-center justify-center border border-black">
-                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                        <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isProfileOpen && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-[#111111] border border-slate-800 rounded-xl shadow-2xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
+                            <div className="px-4 py-2 border-b border-slate-800/50 mb-1">
+                                <p className="text-[10px] uppercase font-bold text-slate-500">Minha Conta</p>
+                            </div>
+
+                            <Link
+                                href="/profile"
+                                onClick={() => setIsProfileOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition"
+                            >
+                                <User className="w-4 h-4" /> Meus Dados
+                            </Link>
+
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 transition mt-1 border-t border-slate-800/50"
+                            >
+                                <LogOut className="w-4 h-4" /> Sair
+                            </button>
                         </div>
-                    </div>
+                    )}
                 </div>
             </header>
 
@@ -66,9 +88,9 @@ export default function ClientLayout({ children }) {
                 {children}
             </main>
 
-            {/* Mobile Bottom Navigation Bar - Hidden on Desktop */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 pb-safe pt-2 px-2 z-50">
-                <div className="flex justify-around items-end">
+            {/* Bottom Navigation */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#08080A]/95 backdrop-blur-lg border-t border-white/5 pb-safe pt-2 px-6 z-50">
+                <div className="flex justify-between items-center px-4">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = pathname.startsWith(tab.href);
@@ -77,15 +99,10 @@ export default function ClientLayout({ children }) {
                             <Link
                                 key={tab.href}
                                 href={tab.href}
-                                className={`flex flex-col items-center justify-center p-2 w-full transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${isActive ? 'text-emerald-500' : 'text-slate-500 hover:text-slate-300'}`}
                             >
-                                <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-slate-800 -translate-y-1' : ''}`}>
-                                    <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                                    {isActive && (
-                                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full"></div>
-                                    )}
-                                </div>
-                                <span className={`text-[10px] font-bold mt-1 tracking-wide ${isActive ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+                                <Icon className={`w-6 h-6 mb-1 ${isActive ? 'fill-current' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className={`text-[10px] font-medium tracking-wide ${isActive ? 'opacity-100' : 'opacity-70'}`}>
                                     {tab.name}
                                 </span>
                             </Link>
