@@ -51,6 +51,13 @@ export default function SettingsPage() {
 
     const handleSave = async (e) => {
         e.preventDefault();
+
+        // Client-side validation for Slug
+        if (!barbershop.slug || barbershop.slug.trim().length === 0) {
+            setMessage({ type: 'error', text: 'O Link (Slug) não pode ficar vazio.' });
+            return;
+        }
+
         setSaving(true);
         setMessage(null);
         try {

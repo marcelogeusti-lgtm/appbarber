@@ -192,20 +192,26 @@ exports.updateBarbershop = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
+        // Protect against overwriting slug with empty string
+        const dataToUpdate = {
+            name,
+            address,
+            phone,
+            webhookUrl,
+            noShowEnabled,
+            noShowPercent: noShowPercent ? parseFloat(noShowPercent) : undefined,
+            noShowText,
+            logoUrl,
+            bannerUrls
+        };
+
+        if (slug && typeof slug === 'string' && slug.trim().length > 0) {
+            dataToUpdate.slug = slug;
+        }
+
         const updated = await prisma.barbershop.update({
             where: { id },
-            data: {
-                name,
-                address,
-                phone,
-                slug,
-                webhookUrl,
-                noShowEnabled,
-                noShowPercent: noShowPercent ? parseFloat(noShowPercent) : undefined,
-                noShowText,
-                logoUrl,
-                bannerUrls
-            }
+            data: dataToUpdate
         });
 
         res.json(updated);
