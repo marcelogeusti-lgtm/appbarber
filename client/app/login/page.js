@@ -36,7 +36,7 @@ export default function AuthPage() {
 
             console.log('Redirecting...');
             if (res.data.user.role === 'CLIENT') {
-                router.push('/home');
+                router.push('/search');
             } else {
                 router.push('/dashboard');
             }
@@ -65,7 +65,7 @@ export default function AuthPage() {
             localStorage.setItem('user', JSON.stringify(userData));
 
             if (res.data.user.role === 'CLIENT') {
-                router.push('/home');
+                router.push('/search');
             } else {
                 router.push('/dashboard');
             }
