@@ -160,7 +160,7 @@ model Barbershop {
   orders       Order[]
   noShowRecords NoShowRecord[]
   webhooks     Webhook[]
-  notificationTemplates NotificationTemplate[]
+
 }
 
 enum NoShowStatus {
