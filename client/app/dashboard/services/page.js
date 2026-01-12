@@ -1,65 +1,50 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { Plus, Trash2, Edit2, X, Scissors, Clock } from 'lucide-react';
 
 export default function ServicesPage() {
-    const [services, setServices] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [professionals, setProfessionals] = useState([]);
     const [formData, setFormData] = useState({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] });
+    // User state for query dependency
+    const [user, setUser] = useState(null);
+    const [barbershopId, setBarbershopId] = useState(null);
 
     useEffect(() => {
-        fetchServices();
-        fetchProfessionals();
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const parsed = JSON.parse(userStr);
+            setUser(parsed);
+            const bId = parsed.barbershopId || parsed.barbershop?.id || parsed.ownedBarbershops?.[0]?.id;
+            setBarbershopId(bId);
+        }
     }, []);
 
-    const fetchProfessionals = async () => {
-        const userStr = localStorage.getItem('user');
-        if (!userStr) return;
-        const user = JSON.parse(userStr);
-        const id = user.barbershopId || user.barbershop?.id;
-        if (id) {
-            try {
-                const res = await api.get(`/professionals?barbershopId=${id}`);
-                setProfessionals(Array.isArray(res.data) ? res.data : []);
-            } catch (e) {
-                console.error('Error fetching professionals', e);
-            }
-        }
-    };
-
-    const fetchServices = async () => {
-        try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) return;
-            const user = JSON.parse(userStr);
-            const barbershopId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
-            if (!barbershopId) {
-                setLoading(false);
-                return;
-            }
-
+    // Queries
+    const { data: services = [], isLoading: loadingServices } = useQuery({
+        queryKey: ['services', barbershopId],
+        queryFn: async () => {
             const res = await api.get(`/services?barbershopId=${barbershopId}`);
-            setServices(res.data);
-            setLoading(false);
-        } catch (err) {
-            console.error(err);
-            setLoading(false);
-        }
-    };
+            return res.data;
+        },
+        enabled: !!barbershopId,
+    });
+
+    const { data: professionals = [] } = useQuery({
+        queryKey: ['professionals', barbershopId],
+        queryFn: async () => {
+            const res = await api.get(`/professionals?barbershopId=${barbershopId}`);
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!barbershopId,
+    });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) throw new Error('Usuário não autenticado');
-            const user = JSON.parse(userStr);
-            const barbershopId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
             if (!barbershopId) {
                 alert('Erro: Sua conta não está vinculada a uma barbearia.');
                 return;
@@ -86,7 +71,9 @@ export default function ServicesPage() {
             setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] });
             setIsAdding(false);
             setEditingId(null);
-            fetchServices();
+
+            // Invalidate to refetch
+            queryClient.invalidateQueries(['services', barbershopId]);
         } catch (err) {
             console.error('Submit Service Error:', err);
             alert('Erro ao salvar serviço: ' + (err.response?.data?.message || err.message));
@@ -135,13 +122,13 @@ export default function ServicesPage() {
         if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
         try {
             await api.delete(`/services/${id}`);
-            fetchServices();
+            queryClient.invalidateQueries(['services', barbershopId]);
         } catch (err) {
             alert('Erro ao excluir serviço');
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Carregando serviços...</div>;
+    if (loadingServices) return <div className="p-8 text-center">Carregando serviços...</div>;
 
     return (
         <div className="space-y-8 pb-20">

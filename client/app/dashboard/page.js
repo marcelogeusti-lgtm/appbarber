@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
     Copy, ExternalLink, Scissors, CheckCircle, ShoppingBag, ArrowRight
 } from 'lucide-react';
@@ -9,80 +10,40 @@ import { DashboardSkeleton } from '../../components/ui/Skeleton';
 
 export default function DashboardPage() {
     const [user, setUser] = useState(null);
-    const [stats, setStats] = useState({
-        revenue: 0,
-        appointments: 0,
-        clients: 0,
-    });
-    const [loading, setLoading] = useState(true);
     const [publicUrl, setPublicUrl] = useState('');
 
-    const [error, setError] = useState(null);
-
+    // Initial User Setup
     useEffect(() => {
-        let isMounted = true;
+        const u = localStorage.getItem('user');
+        if (u) {
+            const parsedUser = JSON.parse(u);
+            setUser(parsedUser);
 
-        const initDashboard = async () => {
-            try {
-                const u = localStorage.getItem('user');
-                if (!u) {
-                    setLoading(false);
-                    return;
-                }
-
-                const parsedUser = JSON.parse(u);
-                if (isMounted) setUser(parsedUser);
-
-                if (parsedUser.role === 'ADMIN' || parsedUser.role === 'BARBER') {
-                    // Fetch Data directly here
-                    try {
-                        // Parallelize requests for speed
-                        const [statsRes] = await Promise.all([
-                            api.get('/dashboard/stats')
-                        ]);
-
-                        if (isMounted) {
-                            setStats({
-                                revenue: statsRes.data.revenueToday || 0,
-                                revenueTotal: statsRes.data.revenueTotal || 0,
-                                appointments: statsRes.data.appointmentsToday || 0,
-                                clients: statsRes.data.clientsTotal || 0
-                            });
-                        }
-                    } catch (fetchErr) {
-                        console.error("Dashboard fetch error:", fetchErr);
-                        if (isMounted) {
-                            setError("Falha ao carregar dados. Verifique sua conexão.");
-                            // Still show partial/zero stats if possible, or just keep loading false
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error("Dashboard initialization error:", err);
-                if (isMounted) setError("Erro crítico ao inicializar dashboard.");
-            } finally {
-                if (isMounted) setLoading(false);
+            const origin = window.location.origin;
+            const slug = parsedUser.barbershop?.slug || parsedUser.ownedBarbershops?.[0]?.slug || parsedUser.workedBarbershop?.slug;
+            if (slug) {
+                setPublicUrl(`${origin}/${slug}`);
             }
-        };
-
-        initDashboard();
-
-        return () => {
-            isMounted = false;
-        };
+        }
     }, []);
 
-    useEffect(() => {
-        if (!user) return;
-        const origin = window.location.origin;
-        // Support for Owners (ownedBarbershops) and Staff (workedBarbershop)
-        const slug = user.barbershop?.slug || user.ownedBarbershops?.[0]?.slug || user.workedBarbershop?.slug;
-        if (slug) {
-            setPublicUrl(`${origin}/${slug}`);
-        }
-    }, [user]);
+    // React Query for Stats
+    const { data: stats, isLoading, isError } = useQuery({
+        queryKey: ['dashboardStats'],
+        queryFn: async () => {
+            const res = await api.get('/dashboard/stats');
+            return {
+                revenue: res.data.revenueToday || 0,
+                revenueTotal: res.data.revenueTotal || 0,
+                appointments: res.data.appointmentsToday || 0,
+                clients: res.data.clientsTotal || 0
+            };
+        },
+        enabled: !!user && (user.role === 'ADMIN' || user.role === 'BARBER'),
+        staleTime: 30000, // 30 seconds fresh
+    });
 
-    if (loading || !user) return <DashboardSkeleton />;
+    if (!user || isLoading) return <DashboardSkeleton />;
 
     const copyToClipboard = () => {
         if (!publicUrl) return;

@@ -286,6 +286,11 @@ model Appointment {
   communicationLogs CommunicationLog[]
   order        Order?
   noShowRecord NoShowRecord?
+
+  @@index([professionalId])
+  @@index([date])
+  @@index([status])
+  @@index([professionalId, date, status])
 }
 
 model Product {
