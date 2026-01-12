@@ -161,7 +161,7 @@ export default function SettingsPage() {
                                         onChange={(e) => {
                                             const file = e.target.files[0];
                                             if (file) {
-                                                if (file.size > 500000) return alert('A imagem deve ter no máximo 500KB');
+                                                if (file.size > 4000000) return alert('A imagem deve ter no máximo 4MB');
                                                 const reader = new FileReader();
                                                 reader.onloadend = () => setBarbershop({ ...barbershop, logoUrl: reader.result });
                                                 reader.readAsDataURL(file);
@@ -169,7 +169,7 @@ export default function SettingsPage() {
                                         }}
                                     />
                                 </div>
-                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide group-hover:text-emerald-500 transition">Clique para alterar</p>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide group-hover:text-emerald-500 transition">Clique para alterar (Max 4MB)</p>
                             </div>
                         </div>
 
@@ -178,9 +178,9 @@ export default function SettingsPage() {
                             <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
                                 Fotos do Espaço ({barbershop.bannerUrls?.length || 0}/3)
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                 {(barbershop.bannerUrls || []).map((url, idx) => (
-                                    <div key={idx} className="relative aspect-square bg-slate-900 rounded-xl overflow-hidden group border border-slate-800">
+                                    <div key={idx} className="relative aspect-video bg-slate-900 rounded-xl overflow-hidden group border border-slate-800">
                                         <img src={url} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
                                         <button
                                             type="button"
@@ -195,7 +195,7 @@ export default function SettingsPage() {
                                     </div>
                                 ))}
                                 {(barbershop.bannerUrls?.length || 0) < 3 && (
-                                    <div className="relative aspect-square bg-slate-950 border border-dashed border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-900 hover:border-emerald-500/50 transition cursor-pointer">
+                                    <div className="relative aspect-video bg-slate-950 border border-dashed border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-900 hover:border-emerald-500/50 transition cursor-pointer">
                                         <span className="text-2xl text-slate-600">+</span>
                                         <input
                                             type="file"
@@ -204,7 +204,7 @@ export default function SettingsPage() {
                                             onChange={(e) => {
                                                 const file = e.target.files[0];
                                                 if (file) {
-                                                    if (file.size > 500000) return alert('A imagem deve ter no máximo 500KB');
+                                                    if (file.size > 4000000) return alert('A imagem deve ter no máximo 4MB');
                                                     const reader = new FileReader();
                                                     reader.onloadend = () => {
                                                         const newBanners = [...(barbershop.bannerUrls || []), reader.result];
@@ -214,6 +214,7 @@ export default function SettingsPage() {
                                                 }
                                             }}
                                         />
+                                        <span className="absolute bottom-2 text-[8px] text-slate-500 uppercase font-bold tracking-widest">Add Banner (16:9)</span>
                                     </div>
                                 )}
                             </div>
