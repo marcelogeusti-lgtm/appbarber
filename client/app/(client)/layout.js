@@ -2,16 +2,21 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Search, Calendar, User, LogOut, ChevronDown, Menu as MenuIcon } from 'lucide-react';
+import { Home, Search, Calendar, User, LogOut, ChevronDown, Heart, CreditCard, Repeat, Package, Clock, MessageSquare, UserCircle } from 'lucide-react';
 
 export default function ClientLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [user, setUser] = useState(null);
     const dropdownRef = useRef(null);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            setUser(JSON.parse(userStr));
+        }
+
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsProfileOpen(false);
@@ -19,7 +24,7 @@ export default function ClientLayout({ children }) {
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [dropdownRef]);
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -30,14 +35,24 @@ export default function ClientLayout({ children }) {
     const tabs = [
         { name: 'Início', href: '/home', icon: Home },
         { name: 'Buscar', href: '/search', icon: Search },
-        { name: 'Agendamentos', href: '/appointments', icon: Calendar },
+        { name: 'Meus Agendamentos', href: '/appointments', icon: Calendar },
+    ];
+
+    const profileMenuItems = [
+        { icon: UserCircle, label: 'Perfil', href: '/profile' }, // Maps to "Meus Dados"
+        { icon: Heart, label: 'Favoritos', href: '/favorites' },
+        { icon: CreditCard, label: 'Meus Cartões', href: '/cards' },
+        { icon: Repeat, label: 'Assinaturas', href: '/subscriptions' },
+        { icon: Package, label: 'Pacotes', href: '/packages' }, // Existing
+        { icon: Clock, label: 'Histórico', href: '/history' }, // Existing
+        { icon: MessageSquare, label: 'Ouvidoria', href: '/support' },
     ];
 
     return (
         <div className="flex flex-col min-h-screen bg-[#050505]">
 
             {/* GLOBAL HEADER (Mobile + Desktop) */}
-            <header className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
 
                 {/* Logo */}
                 <Link href="/home" className="flex items-center">
@@ -50,35 +65,52 @@ export default function ClientLayout({ children }) {
                 <div className="relative" ref={dropdownRef}>
                     <button
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-2 hover:bg-white/5 p-1 rounded-full pr-3 transition border border-transparent hover:border-white/10"
+                        className="flex items-center gap-3 hover:bg-white/5 p-1 pr-3 rounded-full transition border border-transparent hover:border-white/10 group"
                     >
-                        <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 border border-white/5 overflow-hidden">
-                            <User className="w-4 h-4" />
+                        <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 border border-white/5 overflow-hidden ring-2 ring-transparent group-hover:ring-white/10 transition">
+                            {user?.avatarUrl ? (
+                                <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
+                            ) : (
+                                <User className="w-5 h-5" />
+                            )}
                         </div>
-                        <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-emerald-500' : ''}`} />
                     </button>
 
                     {/* Dropdown Menu */}
                     {isProfileOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-[#111111] border border-slate-800 rounded-xl shadow-2xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
-                            <div className="px-4 py-2 border-b border-slate-800/50 mb-1">
-                                <p className="text-[10px] uppercase font-bold text-slate-500">Minha Conta</p>
+                        <div className="absolute right-0 top-full mt-3 w-64 bg-[#111111] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200">
+
+                            {/* User Info Header */}
+                            <div className="px-5 py-4 border-b border-white/5 mb-2 bg-white/2">
+                                <p className="text-sm font-bold text-white leading-tight">{user?.name || 'Visitante'}</p>
+                                <p className="text-xs text-slate-500 mt-0.5 truncate">{user?.email || 'Faça login'}</p>
                             </div>
 
-                            <Link
-                                href="/profile"
-                                onClick={() => setIsProfileOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition"
-                            >
-                                <User className="w-4 h-4" /> Meus Dados
-                            </Link>
+                            {/* Menu Items */}
+                            <div className="space-y-0.5 px-2">
+                                {profileMenuItems.map((item, index) => (
+                                    <Link
+                                        key={index}
+                                        href={item.href}
+                                        onClick={() => setIsProfileOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition group"
+                                    >
+                                        <item.icon className="w-4 h-4 text-slate-500 group-hover:text-emerald-500 transition-colors" />
+                                        <span className="font-medium">{item.label}</span>
+                                    </Link>
+                                ))}
+                            </div>
 
-                            <button
-                                onClick={handleLogout}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 transition mt-1 border-t border-slate-800/50"
-                            >
-                                <LogOut className="w-4 h-4" /> Sair
-                            </button>
+                            {/* Logout */}
+                            <div className="mt-2 pt-2 border-t border-white/5 px-2">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition font-medium"
+                                >
+                                    <LogOut className="w-4 h-4" /> Sair
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
