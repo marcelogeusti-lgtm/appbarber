@@ -33,16 +33,17 @@ const syncClientStatus = async (barbershopId, clientId) => {
         let newStatus = 'NEW';
 
         // Check Active Package (High Priority)
-        const activeSub = await prisma.userSubscription.findFirst({
+        const activePkg = await prisma.clientPackage.findFirst({
             where: {
-                userId: clientId,
-                plan: { barbershopId }, // Linked to this shop
+                clientId,
+                package: { barbershopId }, // Linked to this shop via relation
                 status: 'ACTIVE',
+                remainingQuantity: { gt: 0 },
                 endDate: { gte: new Date() }
             }
         });
 
-        if (activeSub) {
+        if (activePkg) {
             newStatus = 'ACTIVE_PACKAGE';
         } else {
             // Logic Hierarchy

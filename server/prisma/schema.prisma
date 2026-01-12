@@ -90,7 +90,7 @@ model User {
   
   // As a professional (service provider)
   proAppointments    Appointment[] @relation("ProAppointments")
-  subscriptions      UserSubscription[]
+  packages           ClientPackage[]
   commissions        Commission[]
   waitlistEntries    Waitlist[] @relation("ProWaitlist")
   
@@ -159,7 +159,7 @@ model Barbershop {
   appointments Appointment[]
   transactions Transaction[]
   waitlist     Waitlist[]
-  subscriptionPlans SubscriptionPlan[]
+  packages     BarbershopPackage[]
   commissions  Commission[]
   orders       Order[]
   noShowRecords NoShowRecord[]
@@ -246,6 +246,7 @@ model Service {
   appointments Appointment[]
   waitlist     Waitlist[]
   orderItems   OrderItem[]
+  packages     BarbershopPackage[]
   
   commissionOverrides ProfessionalServiceCommission[]
 }
@@ -301,7 +302,9 @@ model Appointment {
   @@index([status])
   @@index([professionalId, date, status])
   
+  
   conversations Conversation[]
+  packageUsage  PackageUsage[]
 }
 
 model Product {
@@ -387,34 +390,64 @@ model CommunicationLog {
   createdAt    DateTime @default(now())
 }
 
-model SubscriptionPlan {
+// --- Package / Loyalty Module ---
+
+model BarbershopPackage {
   id            String   @id @default(uuid())
   name          String
-  price         Float
-  quantityOfCuts Int
-  validityDays  Int
+  description   String?
+  price         Decimal  @db.Decimal(10, 2)
+  
+  // Rules
+  validityDays  Int      // How many days it lasts
+  services      Service[] // Services included in this package
+  
+  // Credits
+  totalQuantity Int      // Total credits (e.g., 5 cuts)
+  
+  active        Boolean  @default(true)
   
   barbershopId  String
   barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
   
-  subscriptions UserSubscription[]
+  clientPackages ClientPackage[]
+  
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
-model UserSubscription {
+model ClientPackage {
   id              String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
+  clientId        String
+  client          User     @relation(fields: [clientId], references: [id])
   
-  planId          String
-  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  packageId       String
+  package         BarbershopPackage @relation(fields: [packageId], references: [id])
   
   startDate       DateTime @default(now())
   endDate         DateTime
-  remainingCuts   Int
-  status          String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  
+  totalQuantity   Int
+  remainingQuantity Int
+  
+  status          String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
   
   createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  usageHistory    PackageUsage[]
+}
+
+model PackageUsage {
+  id              String   @id @default(uuid())
+  
+  clientPackageId String
+  clientPackage   ClientPackage @relation(fields: [clientPackageId], references: [id])
+  
+  appointmentId   String
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
+  
+  usedAt          DateTime @default(now())
 }
 
 model Commission {
