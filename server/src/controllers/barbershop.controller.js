@@ -151,7 +151,7 @@ exports.getBarbershopBySlug = async (req, res) => {
                 services: {
                     where: { active: true }
                 },
-                subscriptionPlans: true,
+                packages: true,
                 staff: {
                     where: {
                         role: 'BARBER',
