@@ -420,6 +420,32 @@ exports.createAppointment = async (req, res) => {
         });
         // ------------------------------------------------------------
 
+        // --- NEW: Chat Module Integration ---
+        // Auto-create conversation context
+        try {
+            const chatController = require('../controllers/chat.controller');
+            const conversation = await chatController.findOrCreateConversation(
+                service.barbershopId,
+                clientId,
+                appointment.id
+            );
+
+            // Optional: Send initial system message or just create context?
+            // "Quando criar conversa: 1️⃣ Ao confirmar um agendamento"
+            // We just ensure it exists.
+
+            // Also notify professional via internal message?
+            // await chatController.internalCreateMessage(
+            //    conversation.id,
+            //    `Agendamento confirmado para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
+            //    'SYSTEM',
+            //    'SYSTEM'
+            // );
+        } catch (chatErr) {
+            console.error('Failed to auto-create conversation:', chatErr.message);
+        }
+        // ------------------------------------
+
         // Trigger n8n Webhook (Async, don't block response)
         const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });
         const webhookUrl = barbershop?.webhookUrl;

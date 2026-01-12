@@ -106,6 +106,7 @@ model User {
   
   // Notifications
   notifications Notification[]
+  conversations Conversation[] @relation("ClientConversations")
 }
 
 model Notification {
@@ -163,6 +164,7 @@ model Barbershop {
   noShowRecords NoShowRecord[]
   webhooks     Webhook[]
   notificationTemplates NotificationTemplate[]
+  conversations Conversation[]
 }
 
 enum NoShowStatus {
@@ -296,6 +298,8 @@ model Appointment {
   @@index([date])
   @@index([status])
   @@index([professionalId, date, status])
+  
+  conversations Conversation[]
 }
 
 model Product {
@@ -523,4 +527,46 @@ model NotificationTemplate {
   updatedAt    DateTime         @updatedAt
 
   @@unique([type, barbershopId])
+}
+
+// --- Internal Chat Module ---
+
+model Conversation {
+  id            String   @id @default(uuid())
+  
+  barbershopId  String
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+
+  clientId      String
+  client        User     @relation("ClientConversations", fields: [clientId], references: [id])
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  status        String   @default("OPEN") // OPEN, CLOSED, ARCHIVED
+  
+  messages      Message[]
+
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([barbershopId])
+  @@index([clientId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderId       String // User ID (Barber/Admin or Client)
+  senderType     String // CLIENT, BARBER, SYSTEM
+
+  content        String   @db.Text
+  
+  channel        String   @default("APP") // APP, WHATSAPP
+  status         String   @default("SENT") // SENT, DELIVERED, READ, FAILED
+  
+  createdAt      DateTime @default(now())
 }
