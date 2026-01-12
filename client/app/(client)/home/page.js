@@ -29,16 +29,11 @@ export default function ClientHome() {
             const res = await api.get('/appointments/me');
             const apps = res.data || [];
 
-            // Last appointment is the first one (assuming sorted by date desc or taking the most recent)
-            // Filter only upcoming or really the last one? The text says "Último agendamento". It usually implies the last one made or the next one.
-            // Let's assume it's the next upcoming one, or if none, the last completed.
-            // For now, let's take the first one from the list.
             if (apps.length > 0) {
-                setLastAppointment(apps[0]); // Adjust based on API sort order
+                setLastAppointment(apps[0]);
             }
 
-            // Mock Favorites/Recents from appointments for now standard
-            // Get unique barbershops from history
+            // Mock Favorites/Recents from appointments logic
             const shops = [];
             const seen = new Set();
             for (const app of apps) {
@@ -47,8 +42,8 @@ export default function ClientHome() {
                     shops.push(app.barbershop);
                 }
             }
-            setRecentBarbershops(shops.slice(0, 2)); // Take first 2
-            setFavorites(shops.slice(0, 1)); // Mock
+            setRecentBarbershops(shops.slice(0, 2));
+            setFavorites(shops.slice(0, 1));
 
         } catch (err) {
             console.error(err);
@@ -59,20 +54,18 @@ export default function ClientHome() {
 
     if (loading) return null;
 
-    // Helper functions for formatting
     const formatDate = () => {
-        // "Segunda, 12 jan 2026"
-        return new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+        return new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#3B9EFF]/30">
+        <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-emerald-500/30">
 
             <main className="max-w-6xl mx-auto px-6 md:px-12 py-10">
                 {/* Greeting */}
                 <div className="mb-8">
                     <h1 className="text-2xl font-normal text-slate-300">
-                        Olá, <span className="text-[#3B9EFF] font-bold">{user?.name?.split(' ')[0] || 'Visitante'}</span>
+                        Olá, <span className="text-emerald-500 font-bold">{user?.name?.split(' ')[0] || 'Visitante'}</span>
                     </h1>
                     <p className="text-sm text-slate-500 capitalize mt-1 text-[13px]">{formatDate()}</p>
                 </div>
@@ -84,9 +77,9 @@ export default function ClientHome() {
                     </div>
                     <input
                         type="text"
-                        placeholder="Encontre um estabelecimento"
+                        placeholder="Procurar estabelecimento"
                         onClick={() => router.push('/search')}
-                        className="w-full bg-[#111111] border border-white/5 rounded-lg py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-[#3B9EFF]/50 focus:border-[#3B9EFF]/50 transition shadow-lg shadow-black/50 cursor-pointer hover:bg-[#151515]"
+                        className="w-full bg-[#111111] border border-white/5 rounded-lg py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition shadow-lg shadow-black/50 cursor-pointer hover:bg-[#151515]"
                         readOnly
                     />
                 </div>
@@ -95,23 +88,25 @@ export default function ClientHome() {
                 {lastAppointment && (
                     <div className="mb-10 animate-in slide-in-from-bottom-4 duration-700">
                         <h2 className="text-white font-medium text-lg mb-4">Último agendamento</h2>
-                        <div className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer" onClick={() => router.push(`/appointments`)}>
+                        <div
+                            className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer"
+                            onClick={() => router.push(`/${lastAppointment.barbershop?.slug || ''}`)}
+                        >
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1 relative">
-                                    {/* Logo Placeholer */}
-                                    <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center font-bold text-xs">
+                                    <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center font-bold text-xs overflow-hidden">
                                         {lastAppointment.barbershop?.name?.[0] || 'B'}
                                     </div>
-                                    <div className="absolute bottom-0 right-0 bg-[#3B9EFF] rounded-full p-0.5 border border-[#111111]">
+                                    <div className="absolute bottom-0 right-0 bg-emerald-500 rounded-full p-0.5 border border-[#111111]">
                                         <svg className="w-2 h-2 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                     </div>
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-white text-sm">{lastAppointment.barbershop?.name}</h3>
-                                    <p className="text-slate-500 text-xs">{lastAppointment.service?.name || 'Serviço'}</p>
+                                    <p className="text-slate-500 text-xs">{lastAppointment.service?.name || 'Serviço Agendado'}</p>
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-[#3B9EFF] transition">
+                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-emerald-500 transition">
                                 <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
                             </div>
                         </div>
@@ -126,23 +121,29 @@ export default function ClientHome() {
                     </div>
 
                     <div className="space-y-3">
-                        {/* Mock Favorite Card */}
-                        <div className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
-                                    {/* Logo */}
-                                    <span className="text-[9px] font-bold text-yellow-500">CORTE</span>
-                                    <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
+                        {favorites.length > 0 ? favorites.map(shop => (
+                            <div
+                                key={shop.id}
+                                className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer"
+                                onClick={() => router.push(`/${shop.slug}`)}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
+                                        <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
+                                        <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-white text-sm">{shop.name}</h3>
+                                        <p className="text-slate-500 text-xs">{shop.address || 'Endereço não informado'}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-white text-sm">Corte e Conexão...</h3>
-                                    <p className="text-slate-500 text-xs">Avenida José...</p>
+                                <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-emerald-500 transition">
+                                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-[#3B9EFF] transition">
-                                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
-                            </div>
-                        </div>
+                        )) : (
+                            <p className="text-slate-600 text-xs italic">Você ainda não tem favoritos.</p>
+                        )}
                     </div>
                 </div>
 
@@ -154,22 +155,29 @@ export default function ClientHome() {
                     </div>
 
                     <div className="space-y-3">
-                        {/* Mock Recent Card */}
-                        <div className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
-                                    <span className="text-[9px] font-bold text-yellow-500">CORTE</span>
-                                    <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
+                        {recentBarbershops.length > 0 ? recentBarbershops.map(shop => (
+                            <div
+                                key={shop.id}
+                                className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer"
+                                onClick={() => router.push(`/${shop.slug}`)}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
+                                        <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
+                                        <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-white text-sm">{shop.name}</h3>
+                                        <p className="text-slate-500 text-xs">{shop.address || 'Endereço não informado'}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-white text-sm">Corte e Conexão...</h3>
-                                    <p className="text-slate-500 text-xs">Avenida José...</p>
+                                <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-emerald-500 transition">
+                                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-[#3B9EFF] transition">
-                                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
-                            </div>
-                        </div>
+                        )) : (
+                            <p className="text-slate-600 text-xs italic">Nenhum acesso recente.</p>
+                        )}
                     </div>
                 </div>
 
@@ -181,8 +189,8 @@ export default function ClientHome() {
 
                     {/* Brand */}
                     <div>
-                        <div className="bg-[#0D4A85] px-4 py-1.5 rounded-lg inline-flex items-center justify-center border border-white/10 shadow-lg shadow-blue-500/10 mb-6">
-                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">appbarber</span>
+                        <div className="bg-emerald-600 px-4 py-1.5 rounded-lg inline-flex items-center justify-center border border-white/10 shadow-lg shadow-emerald-500/10 mb-6">
+                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">barberon</span>
                         </div>
                         <p className="text-slate-500 text-xs leading-relaxed max-w-[200px]">
                             Uma nova experiência para uma antiga tradição.
@@ -199,10 +207,10 @@ export default function ClientHome() {
                     <div>
                         <h4 className="text-white font-bold text-sm mb-6">Acesso rápido</h4>
                         <ul className="space-y-3 text-sm text-slate-500">
-                            <li><Link href="/home" className="hover:text-[#3B9EFF] transition">Início</Link></li>
-                            <li><Link href="/search" className="hover:text-[#3B9EFF] transition">Encontrar estabelecimentos</Link></li>
-                            <li><Link href="/appointments" className="hover:text-[#3B9EFF] transition">Meus agendamentos</Link></li>
-                            <li><Link href="/profile" className="hover:text-[#3B9EFF] transition">Favoritos</Link></li>
+                            <li><Link href="/home" className="hover:text-emerald-500 transition">Início</Link></li>
+                            <li><Link href="/search" className="hover:text-emerald-500 transition">Encontrar estabelecimentos</Link></li>
+                            <li><Link href="/appointments" className="hover:text-emerald-500 transition">Meus agendamentos</Link></li>
+                            <li><Link href="/profile" className="hover:text-emerald-500 transition">Favoritos</Link></li>
                         </ul>
                     </div>
 
@@ -210,8 +218,8 @@ export default function ClientHome() {
                     <div>
                         <h4 className="text-white font-bold text-sm mb-6">Mais</h4>
                         <ul className="space-y-3 text-sm text-slate-500">
-                            <li><Link href="/terms" className="hover:text-[#3B9EFF] transition">Termos de uso</Link></li>
-                            <li><Link href="/privacy" className="hover:text-[#3B9EFF] transition">Preferências de cookies</Link></li>
+                            <li><Link href="/terms" className="hover:text-emerald-500 transition">Termos de uso</Link></li>
+                            <li><Link href="/privacy" className="hover:text-emerald-500 transition">Preferências de cookies</Link></li>
                         </ul>
                     </div>
 
@@ -219,15 +227,15 @@ export default function ClientHome() {
                     <div>
                         <h4 className="text-white font-bold text-sm mb-6">Baixe nosso App</h4>
                         <div className="space-y-3">
-                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-[#3B9EFF]/50 transition group">
-                                <Apple className="w-5 h-5 text-white group-hover:text-[#3B9EFF]" />
+                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-emerald-500/50 transition group">
+                                <Apple className="w-5 h-5 text-white group-hover:text-emerald-500" />
                                 <div className="text-left">
                                     <p className="text-[9px] text-slate-500 uppercase font-bold">Download on the</p>
                                     <p className="text-xs text-white font-bold">App Store</p>
                                 </div>
                             </button>
-                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-[#3B9EFF]/50 transition group">
-                                <Play className="w-5 h-5 text-white group-hover:text-[#3B9EFF] fill-current" />
+                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-emerald-500/50 transition group">
+                                <Play className="w-5 h-5 text-white group-hover:text-emerald-500 fill-current" />
                                 <div className="text-left">
                                     <p className="text-[9px] text-slate-500 uppercase font-bold">Get it on</p>
                                     <p className="text-xs text-white font-bold">Google Play</p>

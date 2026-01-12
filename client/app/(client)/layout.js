@@ -20,8 +20,8 @@ export default function ClientLayout({ children }) {
                 <div className="flex items-center gap-12">
                     {/* Logo */}
                     <Link href="/home" className="flex items-center">
-                        <div className="bg-[#0D4A85] px-4 py-1.5 rounded-full flex items-center justify-center border border-white/10 shadow-lg shadow-blue-500/20">
-                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">appbarber</span>
+                        <div className="bg-emerald-600 px-4 py-1.5 rounded-full flex items-center justify-center border border-white/10 shadow-lg shadow-emerald-500/20">
+                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">barberon</span>
                         </div>
                     </Link>
 
@@ -33,7 +33,7 @@ export default function ClientLayout({ children }) {
                                 <Link
                                     key={tab.href}
                                     href={tab.href}
-                                    className={`text-sm font-medium transition-colors ${isActive ? 'text-[#3B9EFF]' : 'text-slate-400 hover:text-white'}`}
+                                    className={`text-sm font-medium transition-colors ${isActive ? 'text-emerald-500' : 'text-slate-400 hover:text-white'}`}
                                 >
                                     {tab.name}
                                 </Link>
