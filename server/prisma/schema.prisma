@@ -130,6 +130,7 @@ model Barbershop {
   address   String?
   phone     String?
   logoUrl   String?
+  bannerUrls String[] @default([])
   webhookUrl String?
 
   // Geolocalização

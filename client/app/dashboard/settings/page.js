@@ -129,6 +129,98 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
+                {/* IMAGES SETTINGS */}
+                <div className="pt-10 border-t border-slate-800 space-y-8">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl">
+                            <Settings className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tight text-white">Identidade Visual</h2>
+                            <p className="text-slate-500 text-xs font-medium">Personalize a logo e fotos do seu estabelecimento.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        {/* LOGO */}
+                        <div className="space-y-4">
+                            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+                                Logo da Barbearia
+                            </label>
+                            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 group hover:border-emerald-500/50 transition">
+                                <div className="w-32 h-32 bg-[#111] rounded-full flex items-center justify-center overflow-hidden border-2 border-slate-800 relative">
+                                    {barbershop.logoUrl ? (
+                                        <img src={barbershop.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-4xl font-black text-slate-700 uppercase">{barbershop.name?.[0]}</span>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                if (file.size > 500000) return alert('A imagem deve ter no máximo 500KB');
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => setBarbershop({ ...barbershop, logoUrl: reader.result });
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide group-hover:text-emerald-500 transition">Clique para alterar</p>
+                            </div>
+                        </div>
+
+                        {/* BANNERS */}
+                        <div className="space-y-4">
+                            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+                                Fotos do Espaço ({barbershop.bannerUrls?.length || 0}/3)
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {(barbershop.bannerUrls || []).map((url, idx) => (
+                                    <div key={idx} className="relative aspect-square bg-slate-900 rounded-xl overflow-hidden group border border-slate-800">
+                                        <img src={url} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newBanners = barbershop.bannerUrls.filter((_, i) => i !== idx);
+                                                setBarbershop({ ...barbershop, bannerUrls: newBanners });
+                                            }}
+                                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white font-bold text-xs uppercase transition"
+                                        >
+                                            Remover
+                                        </button>
+                                    </div>
+                                ))}
+                                {(barbershop.bannerUrls?.length || 0) < 3 && (
+                                    <div className="relative aspect-square bg-slate-950 border border-dashed border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-900 hover:border-emerald-500/50 transition cursor-pointer">
+                                        <span className="text-2xl text-slate-600">+</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    if (file.size > 500000) return alert('A imagem deve ter no máximo 500KB');
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        const newBanners = [...(barbershop.bannerUrls || []), reader.result];
+                                                        setBarbershop({ ...barbershop, bannerUrls: newBanners });
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
 
                 {/* NO-SHOW SETTINGS */}

@@ -233,8 +233,18 @@ export default function BarbershopPage() {
     return (
         <div className="min-h-screen bg-black text-white font-sans selection:bg-emerald-500/30 overflow-x-hidden">
             {/* Header / Cover */}
-            <header className="relative h-64 w-full">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/90 z-10"></div>
+            <header className="relative h-64 w-full overflow-hidden">
+                {barbershop.bannerUrls && barbershop.bannerUrls.length > 0 ? (
+                    <div className="absolute inset-0 z-0">
+                        {/* Simple Carousel or Random Display - For now showing the first one or random */}
+                        <img src={barbershop.bannerUrls[0]} alt="Banner" className="w-full h-full object-cover opacity-60" />
+                    </div>
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-black z-0"></div>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black z-10"></div>
+
                 <button onClick={() => window.history.back()} className="absolute top-6 left-1/2 -translate-x-1/2 sm:left-6 sm:translate-x-0 z-20 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:bg-black/70 transition">
                     <ChevronLeft className="w-6 h-6" />
                 </button>
@@ -245,14 +255,18 @@ export default function BarbershopPage() {
 
                 <div className="absolute -bottom-12 left-0 right-0 z-20 px-6 flex flex-col items-center text-center">
                     <div className="w-24 h-24 rounded-full bg-[#111] border-4 border-black shadow-2xl flex items-center justify-center overflow-hidden mb-3">
-                        <span className="font-black text-3xl text-emerald-500 tracking-tighter">{barbershop.name.charAt(0)}</span>
+                        {barbershop.logoUrl ? (
+                            <img src={barbershop.logoUrl} alt={barbershop.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="font-black text-3xl text-emerald-500 tracking-tighter">{barbershop.name.charAt(0)}</span>
+                        )}
                     </div>
                     <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold mb-1">
                         {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-3 h-3 fill-yellow-500" />)}
                         <span className="text-white ml-2">5.0</span>
                     </div>
-                    <h1 className="text-2xl font-black uppercase tracking-tight text-white mb-1 leading-none">{barbershop.name}</h1>
-                    <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest max-w-[80%]">
+                    <h1 className="text-2xl font-black uppercase tracking-tight text-white mb-1 leading-none drop-shadow-lg">{barbershop.name}</h1>
+                    <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold uppercase tracking-widest max-w-[80%] drop-shadow-md">
                         <MapPin className="w-3 h-3 text-emerald-500 flex-shrink-0" />
                         <span className="truncate">{barbershop.address || 'Endereço não informado'}</span>
                     </div>
