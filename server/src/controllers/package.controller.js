@@ -69,11 +69,8 @@ exports.assignPackageToClient = async (req, res) => {
             }
         });
 
-        // Trigger CRM Update to mark ACTIVE_PACKAGE
-        try {
-            const crmController = require('../controllers/crm.controller');
-            setImmediate(() => crmController.syncClientStatus(pkg.barbershopId, clientId));
-        } catch (e) { }
+        // CRM Sync Removed
+
 
         res.json(clientPackage);
     } catch (error) {
@@ -191,11 +188,8 @@ exports.purchasePackage = async (req, res) => {
             return clientPackage;
         });
 
-        // Trigger CRM Sync
-        try {
-            const crmController = require('../controllers/crm.controller');
-            setImmediate(() => crmController.syncClientStatus(pkg.barbershopId, clientId));
-        } catch (e) { console.error('CRM Sync failed', e); }
+        // CRM Sync Removed (Decoupled)
+
 
         res.json(result);
     } catch (error) {

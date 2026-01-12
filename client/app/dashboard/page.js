@@ -12,19 +12,41 @@ export default function DashboardPage() {
     const [user, setUser] = useState(null);
     const [publicUrl, setPublicUrl] = useState('');
 
-    // Initial User Setup
+    // Initial User Setup & Fresh Data Fetch
     useEffect(() => {
-        const u = localStorage.getItem('user');
-        if (u) {
-            const parsedUser = JSON.parse(u);
-            setUser(parsedUser);
+        const fetchFreshData = async () => {
+            const u = localStorage.getItem('user');
+            if (u) {
+                const parsedUser = JSON.parse(u);
+                setUser(parsedUser);
 
-            const origin = window.location.origin;
-            const slug = parsedUser.barbershop?.slug || parsedUser.ownedBarbershops?.[0]?.slug || parsedUser.workedBarbershop?.slug;
-            if (slug) {
-                setPublicUrl(`${origin}/${slug}`);
+                // Try to find slug from local first for immediate render
+                const localSlug = parsedUser.barbershop?.slug || parsedUser.ownedBarbershops?.[0]?.slug || parsedUser.workedBarbershop?.slug;
+                if (localSlug) {
+                    const origin = window.location.origin;
+                    setPublicUrl(`${origin}/${localSlug}`);
+                }
+
+                // FETCH FRESH DATA FROM BACKEND
+                try {
+                    const res = await api.get('/barbershops/me');
+                    const freshShop = res.data;
+
+                    // Update slug if changed
+                    if (freshShop.slug) {
+                        const origin = window.location.origin;
+                        setPublicUrl(`${origin}/${freshShop.slug}`);
+                    }
+
+                    // Update User State with fresh shop name if needed (optional, but good for UI consistency)
+                    // Note: We are not updating the 'user' object in localStorage here to avoid complexity, 
+                    // but we could. For now, let's trust the 'stats' query and publicUrl.
+                } catch (e) {
+                    console.error('Failed to refresh barbershop data on dashboard', e);
+                }
             }
-        }
+        };
+        fetchFreshData();
     }, []);
 
     // React Query for Stats
@@ -39,8 +61,9 @@ export default function DashboardPage() {
                 clients: res.data.clientsTotal || 0
             };
         },
-        enabled: !!user && (user.role === 'ADMIN' || user.role === 'BARBER'),
-        staleTime: 30000, // 30 seconds fresh
+        // Enable only if we have a user, regardless of role (client dashboard might differ but let's keep logic)
+        enabled: !!user,
+        staleTime: 30000,
     });
 
     if (!user || isLoading) return <DashboardSkeleton />;
