@@ -145,30 +145,50 @@ exports.getMyBarbershop = async (req, res) => {
 exports.getBarbershopBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
-        const barbershop = await prisma.barbershop.findUnique({
+
+        // Function to sanitize slug (remove accents)
+        const sanitizeSlug = (s) => s.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '');
+
+        let barbershop = await prisma.barbershop.findUnique({
             where: { slug },
             include: {
-                services: {
-                    where: { active: true }
-                },
+                services: { where: { active: true } },
                 packages: true,
                 staff: {
-                    where: {
-                        role: 'BARBER',
-                        active: true
-                    },
+                    where: { role: 'BARBER', active: true },
                     select: {
-                        id: true,
-                        name: true,
-                        avatarUrl: true,
-                        role: true,
-                        professionalProfile: {
-                            select: { position: true, bio: true }
-                        }
+                        id: true, name: true, avatarUrl: true, role: true,
+                        professionalProfile: { select: { position: true, bio: true } }
                     }
                 }
             }
         });
+
+        // Fallback: search by sanitized slug if exact match fails
+        if (!barbershop) {
+            const cleanSlug = sanitizeSlug(slug);
+            if (cleanSlug !== slug) {
+                barbershop = await prisma.barbershop.findUnique({
+                    where: { slug: cleanSlug },
+                    include: {
+                        services: { where: { active: true } },
+                        packages: true,
+                        staff: {
+                            where: { role: 'BARBER', active: true },
+                            select: {
+                                id: true, name: true, avatarUrl: true, role: true,
+                                professionalProfile: { select: { position: true, bio: true } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
 
         if (!barbershop) {
             return res.status(404).json({ message: 'Barbershop not found' });

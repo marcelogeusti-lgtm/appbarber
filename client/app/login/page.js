@@ -31,8 +31,15 @@ export default function AuthPage() {
             const res = await api.post('/auth/login', loginData);
             console.log('Login success:', res.data);
 
+            // Merge explicit barbershop data into user object for frontend consistency
+            const userData = {
+                ...res.data.user,
+                barbershopId: res.data.barbershopId,
+                barbershopSlug: res.data.barbershopSlug
+            };
+
             localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data.user));
+            localStorage.setItem('user', JSON.stringify(userData));
 
             console.log('Redirecting...');
             if (res.data.user.role === 'CLIENT') {

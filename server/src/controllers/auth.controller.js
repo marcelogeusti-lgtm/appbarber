@@ -43,7 +43,15 @@ exports.register = async (req, res) => {
                     }
                 });
 
-                const slug = barbershopName.toLowerCase().replace(/\s+/g, '-');
+                const slug = barbershopName
+                    .toLowerCase()
+                    .normalize('NFD') // Decompose combined characters
+                    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+                    .replace(/\s+/g, '-') // Replace spaces with -
+                    .replace(/[^\w\-]+/g, '') // Remove non-word chars
+                    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+                    .replace(/^-+/, '') // Trim - from start
+                    .replace(/-+$/, ''); // Trim - from end
 
                 const barbershop = await tx.barbershop.create({
                     data: {
@@ -110,7 +118,20 @@ exports.login = async (req, res) => {
         // Remove password from response
         delete user.password;
 
-        res.json({ token, user });
+        const barbershopId = user.workedBarbershopId ||
+            user.barbershopId ||
+            (user.ownedBarbershops && user.ownedBarbershops[0]?.id) ||
+            (user.workedBarbershop && user.workedBarbershop.id);
+
+        const barbershopSlug = (user.ownedBarbershops && user.ownedBarbershops[0]?.slug) ||
+            (user.workedBarbershop && user.workedBarbershop.slug);
+
+        res.json({
+            token,
+            user,
+            barbershopId,
+            barbershopSlug
+        });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: error.message || 'Server error' });
