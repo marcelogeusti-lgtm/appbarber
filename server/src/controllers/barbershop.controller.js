@@ -153,8 +153,11 @@ exports.getBarbershopBySlug = async (req, res) => {
             .replace(/\s+/g, '-')
             .replace(/[^\w\-]+/g, '');
 
-        let barbershop = await prisma.barbershop.findUnique({
-            where: { slug },
+        // Always sanitize incoming slug to find match in standardized DB
+        const cleanSlug = sanitizeSlug(slug);
+
+        const barbershop = await prisma.barbershop.findUnique({
+            where: { slug: cleanSlug },
             include: {
                 services: { where: { active: true } },
                 packages: true,
@@ -167,27 +170,6 @@ exports.getBarbershopBySlug = async (req, res) => {
                 }
             }
         });
-
-        // Fallback: search by sanitized slug if exact match fails
-        if (!barbershop) {
-            const cleanSlug = sanitizeSlug(slug);
-            if (cleanSlug !== slug) {
-                barbershop = await prisma.barbershop.findUnique({
-                    where: { slug: cleanSlug },
-                    include: {
-                        services: { where: { active: true } },
-                        packages: true,
-                        staff: {
-                            where: { role: 'BARBER', active: true },
-                            select: {
-                                id: true, name: true, avatarUrl: true, role: true,
-                                professionalProfile: { select: { position: true, bio: true } }
-                            }
-                        }
-                    }
-                });
-            }
-        }
 
 
         if (!barbershop) {
