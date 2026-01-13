@@ -36,6 +36,8 @@ export default function BarbershopPage() {
     const params = useParams();
     const router = useRouter();
     const { slug } = params;
+    // Ensure slug is decoded properly (e.g. dealing with failed automations that result in encoded URLs)
+    const effectiveSlug = slug ? decodeURIComponent(slug) : null;
 
     const [barbershop, setBarbershop] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -69,12 +71,12 @@ export default function BarbershopPage() {
     const [pendingFees, setPendingFees] = useState([]);
 
     useEffect(() => {
-        if (!slug) return;
+        if (!effectiveSlug) return;
 
         // 1. Critical Data: Barbershop Info (Header + Services + Staff)
         async function loadBarbershop() {
             try {
-                const res = await api.get(`/barbershops/${slug}`);
+                const res = await api.get(`/barbershops/${effectiveSlug}`);
                 setBarbershop(res.data);
                 setLoading(false); // <--- SHOW UI NOW!
 
@@ -126,7 +128,7 @@ export default function BarbershopPage() {
         if (saved) {
             setFormData(prev => ({ ...prev, ...JSON.parse(saved) }));
         }
-    }, [slug]);
+    }, [effectiveSlug]);
 
     useEffect(() => {
         if (!formData.date || !selectedProfessional || !barbershop || !selectedService) return;
