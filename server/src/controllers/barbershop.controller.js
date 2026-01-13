@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const saasPlans = require('../config/saasPlans');
-const { generateUniqueSlug } = require('../utils/slugGenerator');
+const { generateUniqueSlug, slugify } = require('../utils/slugGenerator');
 
 // Public: Search Barbershops
 exports.searchBarbershops = async (req, res) => {
@@ -147,15 +147,8 @@ exports.getBarbershopBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
 
-        // Function to sanitize slug (remove accents)
-        const sanitizeSlug = (s) => s.toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/[^\w\-]+/g, '');
-
         // Always sanitize incoming slug to find match in standardized DB
-        const cleanSlug = sanitizeSlug(slug);
+        const cleanSlug = slugify(slug);
 
         const barbershop = await prisma.barbershop.findUnique({
             where: { slug: cleanSlug },
