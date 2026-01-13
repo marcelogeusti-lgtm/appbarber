@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const saasPlans = require('../config/saasPlans');
+const { generateUniqueSlug } = require('../utils/slugGenerator');
 
 // Public: Search Barbershops
 exports.searchBarbershops = async (req, res) => {
@@ -211,7 +212,8 @@ exports.updateBarbershop = async (req, res) => {
         };
 
         if (slug && typeof slug === 'string' && slug.trim().length > 0) {
-            dataToUpdate.slug = slug;
+            // Ensure uniqueness for the new slug, ignoring current ID
+            dataToUpdate.slug = await generateUniqueSlug(prisma, slug, id);
         }
 
         const updated = await prisma.barbershop.update({

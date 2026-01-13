@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { generateUniqueSlug } = require('../utils/slugGenerator');
 
 const prisma = new PrismaClient();
 
@@ -43,15 +44,12 @@ exports.register = async (req, res) => {
                     }
                 });
 
-                const slug = barbershopName
-                    .toLowerCase()
-                    .normalize('NFD') // Decompose combined characters
-                    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-                    .replace(/\s+/g, '-') // Replace spaces with -
-                    .replace(/[^\w\-]+/g, '') // Remove non-word chars
-                    .replace(/\-\-+/g, '-') // Replace multiple - with single -
-                    .replace(/^-+/, '') // Trim - from start
-                    .replace(/-+$/, ''); // Trim - from end
+                // Generate unique slug using transaction client to ensure consistency within tx (though mostly read)
+                // We need to require the helper inside or outside. Let's assume it's imported at top.
+                // Since this is inside controller, better to import at top.
+                // For this edit, I will rely on the import added at the top.
+
+                const slug = await generateUniqueSlug(tx, barbershopName);
 
                 const barbershop = await tx.barbershop.create({
                     data: {
