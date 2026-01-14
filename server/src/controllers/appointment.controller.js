@@ -25,7 +25,8 @@ exports.createAppointment = async (req, res) => {
             barbeiro_id, servicos, produtos = [],
             data, horario,
             criar_conta, senha,
-            lembrete_minutos, is_squeeze_in
+            lembrete_minutos, is_squeeze_in,
+            forma_pagamento
         } = req.body;
 
         // Legacy/Internal mapping
@@ -40,6 +41,10 @@ exports.createAppointment = async (req, res) => {
         const password = senha;
         const reminderMinutes = lembrete_minutos;
         const isSqueezeIn = is_squeeze_in;
+        // Fix: Map Portuguese payload to internal English variables
+        const date = data;
+        const time = horario;
+        const paymentMethod = forma_pagamento;
 
         let clientId = req.user?.id || cliente_id; // Auth token or payload id
         let createdToken = null;
@@ -234,7 +239,7 @@ exports.createAppointment = async (req, res) => {
                     // If method is CASH (Local), we immediately CONFIRM it because we trust the user showing up (or use No-Show fees).
                     // If ONLINE, it might be PENDING until payment webhook.
                     // Request says: "Ao finalizar ... O status deve ser: Confirmado"
-                    paymentStatus: method === 'CASH' ? 'PENDING_ON_SITE' : (method === 'SUBSCRIPTION' ? 'PAID' : 'PENDING'),
+                    paymentStatus: method === 'CASH' ? 'PENDING' : (method === 'SUBSCRIPTION' ? 'PAID' : 'PENDING'),
                     status: method === 'CASH' ? 'CONFIRMED' : (method === 'SUBSCRIPTION' ? 'CONFIRMED' : 'SCHEDULED'), // Subscription is instant confirmed
                     isSqueezeIn: isSqueezeIn || false,
                     reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
@@ -340,7 +345,7 @@ exports.createAppointment = async (req, res) => {
             // Let's check OrderItem schema: type is String.
             // Let's use type='NO_SHOW_FEE' and handle frontend display.
 
-            const order = await prisma.order.create({
+            const order = await tx.order.create({
                 data: {
                     appointmentId: appointment.id,
                     barbershopId: service.barbershopId,
@@ -379,6 +384,9 @@ exports.createAppointment = async (req, res) => {
             });
 
             return { appointment, order };
+        }, {
+            maxWait: 5000, // default: 2000
+            timeout: 20000 // default: 5000
         });
 
 
