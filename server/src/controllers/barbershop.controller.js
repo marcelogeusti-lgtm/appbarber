@@ -154,7 +154,7 @@ exports.getBarbershopBySlug = async (req, res) => {
             where: { slug: cleanSlug },
             include: {
                 services: { where: { active: true } },
-                packages: true,
+                // packages: true, // TODO: Uncomment after resolving Prisma Client sync issue
                 staff: {
                     where: { role: 'BARBER', active: true },
                     select: {
@@ -172,7 +172,8 @@ exports.getBarbershopBySlug = async (req, res) => {
 
         res.json(barbershop);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('getBarbershopBySlug Error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
