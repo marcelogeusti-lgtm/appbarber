@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const waitlistController = require('../controllers/waitlist.controller');
-const authMiddleware = require('../middlewares/auth'); // If needed, or specific routes
+const { protect, authorize } = require('../middlewares/auth.middleware');
 
-router.post('/', waitlistController.addToWaitlist); // Public? Or Auth? Assuming Public/Mixed for now as guest can join
-router.get('/', waitlistController.getWaitlist);
-router.delete('/:id', waitlistController.removeFromWaitlist);
+router.post('/', waitlistController.addToWaitlist); // Public (Guests/Clients)
+router.get('/', protect, authorize('ADMIN', 'BARBER', 'SUPER_ADMIN'), waitlistController.getWaitlist);
+router.delete('/:id', protect, authorize('ADMIN', 'BARBER', 'SUPER_ADMIN'), waitlistController.removeFromWaitlist);
 
 module.exports = router;
