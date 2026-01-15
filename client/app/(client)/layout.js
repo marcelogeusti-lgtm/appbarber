@@ -3,23 +3,19 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Search, Calendar, User, LogOut, ChevronDown, Heart, CreditCard, Repeat, Package, Clock, MessageSquare, UserCircle } from 'lucide-react';
+import { ClientAuthProvider, useClientAuth } from '../../contexts/ClientAuthContext';
+import LoginModal from '../../components/client-view/LoginModal';
 
-export default function ClientLayout({ children }) {
+function ClientLayoutContent({ children }) {
     const pathname = usePathname();
     const router = useRouter();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const [user, setUser] = useState(null);
     const dropdownRef = useRef(null);
 
-    useEffect(() => {
-        const userStr = localStorage.getItem('clientUser');
-        if (userStr) {
-            setUser(JSON.parse(userStr));
-        } else {
-            // Optional: Redirect to login or public home if strict auth is needed
-            // router.push('/login');
-        }
+    // Use Auth Context
+    const { user, logout, openLoginModal } = useClientAuth();
 
+    useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsProfileOpen(false);
@@ -30,12 +26,8 @@ export default function ClientLayout({ children }) {
     }, []);
 
     const handleLogout = () => {
-        // Strict Isolation: Only clear Client session
-        localStorage.removeItem('clientToken');
-        localStorage.removeItem('clientUser');
-
-        // Redirect to Public Home or Login
-        router.push('/login');
+        logout();
+        setIsProfileOpen(false);
     };
 
     const tabs = [
@@ -45,17 +37,18 @@ export default function ClientLayout({ children }) {
     ];
 
     const profileMenuItems = [
-        { icon: UserCircle, label: 'Perfil', href: '/profile' }, // Maps to "Meus Dados"
+        { icon: UserCircle, label: 'Perfil', href: '/profile' },
         { icon: Heart, label: 'Favoritos', href: '/favorites' },
         { icon: CreditCard, label: 'Meus Cartões', href: '/cards' },
         { icon: Repeat, label: 'Assinaturas', href: '/subscriptions' },
-        { icon: Package, label: 'Pacotes', href: '/packages' }, // Existing
-        { icon: Clock, label: 'Histórico', href: '/history' }, // Existing
+        { icon: Package, label: 'Pacotes', href: '/packages' },
+        { icon: Clock, label: 'Histórico', href: '/history' },
         { icon: MessageSquare, label: 'Ouvidoria', href: '/support' },
     ];
 
     return (
         <div className="flex flex-col min-h-screen bg-[#050505]">
+            <LoginModal />
 
             {/* GLOBAL HEADER (Mobile + Desktop) */}
             <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
@@ -83,57 +76,64 @@ export default function ClientLayout({ children }) {
                     })}
                 </nav>
 
-                {/* Profile Dropdown */}
+                {/* Auth Area */}
                 <div className="relative" ref={dropdownRef}>
-                    <button
-                        onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-3 hover:bg-white/5 p-1 pr-3 rounded-full transition border border-transparent hover:border-white/10 group"
-                    >
-                        <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 border border-white/5 overflow-hidden ring-2 ring-transparent group-hover:ring-white/10 transition">
-                            {user?.avatarUrl ? (
-                                <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
-                            ) : (
-                                <User className="w-5 h-5" />
+                    {user ? (
+                        <>
+                            <button
+                                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                className="flex items-center gap-3 hover:bg-white/5 p-1 pr-3 rounded-full transition border border-transparent hover:border-white/10 group"
+                            >
+                                <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 border border-white/5 overflow-hidden ring-2 ring-transparent group-hover:ring-white/10 transition">
+                                    {user?.avatarUrl ? (
+                                        <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="font-bold text-xs text-emerald-500">
+                                            {user.name?.[0].toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+                                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-emerald-500' : ''}`} />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {isProfileOpen && (
+                                <div className="absolute right-0 top-full mt-3 w-64 bg-[#111111] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="px-5 py-4 border-b border-white/5 mb-2 bg-white/2">
+                                        <p className="text-sm font-bold text-white leading-tight">{user.name}</p>
+                                        <p className="text-xs text-slate-500 mt-0.5 truncate">{user.email}</p>
+                                    </div>
+                                    <div className="space-y-0.5 px-2">
+                                        {profileMenuItems.map((item, index) => (
+                                            <Link
+                                                key={index}
+                                                href={item.href}
+                                                onClick={() => setIsProfileOpen(false)}
+                                                className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition group"
+                                            >
+                                                <item.icon className="w-4 h-4 text-slate-500 group-hover:text-emerald-500 transition-colors" />
+                                                <span className="font-medium">{item.label}</span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t border-white/5 px-2">
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition font-medium"
+                                        >
+                                            <LogOut className="w-4 h-4" /> Sair
+                                        </button>
+                                    </div>
+                                </div>
                             )}
-                        </div>
-                        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-emerald-500' : ''}`} />
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {isProfileOpen && (
-                        <div className="absolute right-0 top-full mt-3 w-64 bg-[#111111] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200">
-
-                            {/* User Info Header */}
-                            <div className="px-5 py-4 border-b border-white/5 mb-2 bg-white/2">
-                                <p className="text-sm font-bold text-white leading-tight">{user?.name || 'Visitante'}</p>
-                                <p className="text-xs text-slate-500 mt-0.5 truncate">{user?.email || 'Faça login'}</p>
-                            </div>
-
-                            {/* Menu Items */}
-                            <div className="space-y-0.5 px-2">
-                                {profileMenuItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.href}
-                                        onClick={() => setIsProfileOpen(false)}
-                                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition group"
-                                    >
-                                        <item.icon className="w-4 h-4 text-slate-500 group-hover:text-emerald-500 transition-colors" />
-                                        <span className="font-medium">{item.label}</span>
-                                    </Link>
-                                ))}
-                            </div>
-
-                            {/* Logout */}
-                            <div className="mt-2 pt-2 border-t border-white/5 px-2">
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition font-medium"
-                                >
-                                    <LogOut className="w-4 h-4" /> Sair
-                                </button>
-                            </div>
-                        </div>
+                        </>
+                    ) : (
+                        <button
+                            onClick={openLoginModal}
+                            className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-slate-200 transition"
+                        >
+                            Entrar
+                        </button>
                     )}
                 </div>
             </header>
@@ -165,5 +165,15 @@ export default function ClientLayout({ children }) {
                 </div>
             </nav>
         </div>
+    );
+}
+
+export default function ClientLayout({ children }) {
+    return (
+        <ClientAuthProvider>
+            <ClientLayoutContent>
+                {children}
+            </ClientLayoutContent>
+        </ClientAuthProvider>
     );
 }
