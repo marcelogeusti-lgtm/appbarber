@@ -7,7 +7,7 @@ import {
     Banknote, CreditCard, ArrowLeft, Users, Bell
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import api from '../../lib/api';
+import api from '../../lib/clientApi';
 
 // Dynamic Sub-components (Lazy Loaded)
 const ServicesTab = dynamic(() => import('../../components/client-view/ServicesTab'), {

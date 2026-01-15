@@ -12,9 +12,12 @@ export default function ClientLayout({ children }) {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
-        const userStr = localStorage.getItem('user');
+        const userStr = localStorage.getItem('clientUser');
         if (userStr) {
             setUser(JSON.parse(userStr));
+        } else {
+            // Optional: Redirect to login or public home if strict auth is needed
+            // router.push('/login');
         }
 
         function handleClickOutside(event) {
@@ -27,32 +30,11 @@ export default function ClientLayout({ children }) {
     }, []);
 
     const handleLogout = () => {
-        // 1. Remove current Client session
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        // Strict Isolation: Only clear Client session
+        localStorage.removeItem('clientToken');
+        localStorage.removeItem('clientUser');
 
-        // 2. Check for suspended Barber session
-        const suspendedSession = localStorage.getItem('suspendedBarberSession');
-
-        if (suspendedSession) {
-            try {
-                const { token, user } = JSON.parse(suspendedSession);
-
-                // 3. Restore Barber session
-                localStorage.setItem('token', token);
-                localStorage.setItem('user', user); // user is already a string
-                localStorage.removeItem('suspendedBarberSession');
-
-                // 4. Redirect to Dashboard
-                router.push('/dashboard');
-                return;
-            } catch (e) {
-                console.error('Error restoring session:', e);
-                localStorage.removeItem('suspendedBarberSession');
-            }
-        }
-
-        // Default: Go to Login
+        // Redirect to Public Home or Login
         router.push('/login');
     };
 

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MessageSquare, ChevronLeft, Send, Loader2 } from 'lucide-react';
-import api from '../../../lib/api';
+import api from '../../../lib/clientApi';
 
 export default function SupportPage() {
     const router = useRouter();

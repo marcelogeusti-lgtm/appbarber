@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart, ChevronLeft, MapPin, Star, ChevronRight } from 'lucide-react';
-import api from '../../../lib/api';
+import api from '../../../lib/clientApi';
 
 export default function FavoritesPage() {
     const router = useRouter();

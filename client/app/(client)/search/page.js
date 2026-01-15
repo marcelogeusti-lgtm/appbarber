@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Search as SearchIcon, MapPin, Star, ChevronRight, Filter, LocateFixed } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import api from '../../../lib/api';
+import api from '../../../lib/clientApi';
 
 export default function SearchPage() {
     const [term, setTerm] = useState('');
@@ -74,8 +74,8 @@ export default function SearchPage() {
                 }
             }}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide whitespace-nowrap transition-all border ${filter === type
-                    ? 'bg-white text-slate-950 border-white'
-                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-600'
+                ? 'bg-white text-slate-950 border-white'
+                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-600'
                 }`}
         >
             {Icon && <Icon className="w-3.5 h-3.5" />}

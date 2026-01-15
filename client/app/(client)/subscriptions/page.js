@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Repeat, Check, AlertCircle } from 'lucide-react';
-import api from '../../../lib/api';
+import api from '../../../lib/clientApi';
 
 export default function SubscriptionsPage() {
     const router = useRouter();

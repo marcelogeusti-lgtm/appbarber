@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, MapPin, Scissors, User, XCircle, RefreshCw, Loader2, Check, Filter } from 'lucide-react';
-import api from '../../../lib/api';
+import api from '../../../lib/clientApi';
 
 export default function HistoryPage() {
     const [appointments, setAppointments] = useState([]);
@@ -149,8 +149,8 @@ function AppointmentCard({ app, onCancel, isUpcoming }) {
                 </div>
                 {/* Status Badge */}
                 <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${app.status === 'CONFIRMED' || app.status === 'PENDING' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                        app.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                            'bg-slate-700/30 text-slate-400 border-slate-700/50'
+                    app.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                        'bg-slate-700/30 text-slate-400 border-slate-700/50'
                     }`}>
                     {app.status === 'PENDING' ? 'Agendado' : app.status === 'CONFIRMED' ? 'Confirmado' : app.status === 'CANCELLED' ? 'Cancelado' : 'Concluído'}
                 </span>

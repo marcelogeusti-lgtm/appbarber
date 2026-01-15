@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, User, Mail, Phone, ChevronLeft, Loader2 } from 'lucide-react';
-import api from '../../../lib/api';
+import api from '../../../lib/clientApi';
 
 export default function MyDataPage() {
     const router = useRouter();

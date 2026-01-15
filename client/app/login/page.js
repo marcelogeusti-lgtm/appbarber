@@ -38,29 +38,13 @@ export default function AuthPage() {
                 barbershopSlug: res.data.barbershopSlug
             };
 
-            // Session Stacking: If logging in as CLIENT and there's an existing session (likely Barber/Admin),
-            // save it to suspendedBarberSession to restore later.
-            const existingToken = localStorage.getItem('token');
-            const existingUser = localStorage.getItem('user');
-
-            if (res.data.user.role === 'CLIENT' && existingToken && existingUser) {
-                const parsedExisting = JSON.parse(existingUser);
-                // Only suspend if the existing user is NOT a client (i.e. is an Admin/Barber)
-                if (parsedExisting.role !== 'CLIENT') {
-                    localStorage.setItem('suspendedBarberSession', JSON.stringify({
-                        token: existingToken,
-                        user: existingUser // already string
-                    }));
-                }
-            }
-
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(userData));
-
-            console.log('Redirecting...');
             if (res.data.user.role === 'CLIENT') {
+                localStorage.setItem('clientToken', res.data.token);
+                localStorage.setItem('clientUser', JSON.stringify(userData));
                 router.push('/home');
             } else {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(userData));
                 router.push('/dashboard');
             }
         } catch (err) {
@@ -78,18 +62,13 @@ export default function AuthPage() {
         setError('');
         try {
             const res = await api.post('/auth/register', registerData);
-            localStorage.setItem('token', res.data.token);
-
-            // Fix: Ensure barbershop data is available immediately for the dashboard
-            const userData = res.data.user;
-            if (res.data.barbershop) {
-                userData.ownedBarbershops = [res.data.barbershop];
-            }
-            localStorage.setItem('user', JSON.stringify(userData));
-
             if (res.data.user.role === 'CLIENT') {
+                localStorage.setItem('clientToken', res.data.token);
+                localStorage.setItem('clientUser', JSON.stringify(userData));
                 router.push('/home');
             } else {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(userData));
                 router.push('/dashboard');
             }
         } catch (err) {

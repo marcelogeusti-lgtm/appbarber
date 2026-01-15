@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ChevronRight, MapPin, Star, Play, Apple, ArrowUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import api from '../../../lib/api';
+import api from '../../../lib/clientApi';
 
 export default function ClientHome() {
     const [user, setUser] = useState(null);
