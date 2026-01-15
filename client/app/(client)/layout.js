@@ -27,8 +27,32 @@ export default function ClientLayout({ children }) {
     }, []);
 
     const handleLogout = () => {
+        // 1. Remove current Client session
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+
+        // 2. Check for suspended Barber session
+        const suspendedSession = localStorage.getItem('suspendedBarberSession');
+
+        if (suspendedSession) {
+            try {
+                const { token, user } = JSON.parse(suspendedSession);
+
+                // 3. Restore Barber session
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', user); // user is already a string
+                localStorage.removeItem('suspendedBarberSession');
+
+                // 4. Redirect to Dashboard
+                router.push('/dashboard');
+                return;
+            } catch (e) {
+                console.error('Error restoring session:', e);
+                localStorage.removeItem('suspendedBarberSession');
+            }
+        }
+
+        // Default: Go to Login
         router.push('/login');
     };
 

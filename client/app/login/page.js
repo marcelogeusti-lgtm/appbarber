@@ -38,6 +38,22 @@ export default function AuthPage() {
                 barbershopSlug: res.data.barbershopSlug
             };
 
+            // Session Stacking: If logging in as CLIENT and there's an existing session (likely Barber/Admin),
+            // save it to suspendedBarberSession to restore later.
+            const existingToken = localStorage.getItem('token');
+            const existingUser = localStorage.getItem('user');
+
+            if (res.data.user.role === 'CLIENT' && existingToken && existingUser) {
+                const parsedExisting = JSON.parse(existingUser);
+                // Only suspend if the existing user is NOT a client (i.e. is an Admin/Barber)
+                if (parsedExisting.role !== 'CLIENT') {
+                    localStorage.setItem('suspendedBarberSession', JSON.stringify({
+                        token: existingToken,
+                        user: existingUser // already string
+                    }));
+                }
+            }
+
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(userData));
 

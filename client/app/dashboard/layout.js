@@ -47,6 +47,13 @@ export default function DashboardLayout({ children }) {
         checkAuth();
     }, [router]);
 
+    // PROTECT ADMIN ROUTES
+    useEffect(() => {
+        if (user?.role === 'CLIENT') {
+            router.push('/home');
+        }
+    }, [user, router]);
+
     const logout = () => {
         localStorage.clear();
         router.push('/login');
