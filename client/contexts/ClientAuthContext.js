@@ -139,7 +139,10 @@ export function ClientAuthProvider({ children }) {
     const logout = () => {
         localStorage.removeItem('clientToken');
         localStorage.removeItem('clientUser');
+        localStorage.removeItem('user'); // Also clear generic user to prevent cross-pollution
         setUser(null);
+        // Force redirect to safe public zone
+        window.location.href = '/search';
     };
 
     const openLoginModal = () => { setIsLoginModalOpen(true); setIsRegisterModalOpen(false); setIsForgotPasswordModalOpen(false); };

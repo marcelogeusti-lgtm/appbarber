@@ -103,10 +103,14 @@ export default function ClientHome() {
                             onClick={() => router.push(`/${lastAppointment.barbershop?.slug || ''}`)}
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1 relative">
-                                    <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center font-bold text-xs overflow-hidden">
-                                        {lastAppointment.barbershop?.name?.[0] || 'B'}
-                                    </div>
+                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1 relative border border-slate-800 bg-slate-900 overflow-hidden">
+                                    {lastAppointment.barbershop?.logoUrl ? (
+                                        <img src={lastAppointment.barbershop.logoUrl} alt={lastAppointment.barbershop?.name} className="w-full h-full object-cover rounded-full" />
+                                    ) : (
+                                        <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center font-bold text-xs">
+                                            {lastAppointment.barbershop?.name?.[0] || 'B'}
+                                        </div>
+                                    )}
                                     <div className="absolute bottom-0 right-0 bg-emerald-500 rounded-full p-0.5 border border-[#111111]">
                                         <svg className="w-2 h-2 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                     </div>
@@ -127,7 +131,7 @@ export default function ClientHome() {
                 <div className="mb-10 animate-in slide-in-from-bottom-6 duration-700 delay-100">
                     <div className="flex items-center gap-4 mb-4">
                         <h2 className="text-white font-medium text-lg">Favoritos</h2>
-                        <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button>
+                        {/* <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button> */}
                     </div>
 
                     <div className="space-y-3">
@@ -139,7 +143,11 @@ export default function ClientHome() {
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
-                                        <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
+                                        {shop.logoUrl ? (
+                                            <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
+                                        )}
                                         <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
                                     </div>
                                     <div>
@@ -161,7 +169,7 @@ export default function ClientHome() {
                 <div className="animate-in slide-in-from-bottom-8 duration-700 delay-200">
                     <div className="flex items-center gap-4 mb-4">
                         <h2 className="text-white font-medium text-lg">Últimos acessos</h2>
-                        <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button>
+                        {/* <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button> */}
                     </div>
 
                     <div className="space-y-3">
@@ -173,7 +181,11 @@ export default function ClientHome() {
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
-                                        <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
+                                        {shop.logoUrl ? (
+                                            <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
+                                        )}
                                         <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
                                     </div>
                                     <div>
