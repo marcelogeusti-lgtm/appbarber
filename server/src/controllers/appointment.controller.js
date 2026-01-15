@@ -92,75 +92,108 @@ exports.createAppointment = async (req, res) => {
             // Normalize phone
             const phone = guestPhone.replace(/\D/g, '');
 
-            // Check if user exists by phone OR email (if email provided)
-            let user = await prisma.user.findFirst({
+            // Check if Client exists by phone
+            let existingClient = await prisma.client.findFirst({
                 where: {
                     OR: [
-                        { phone: phone }, // Match sanitized phone
-                        { phone: guestPhone }, // Match raw phone just in case
-                        ...(guestEmail ? [{ email: guestEmail }] : [])
+                        { phone: phone },
+                        { phone: guestPhone }
                     ]
-                }
+                },
+                include: { authUser: true }
             });
-
-            const validBirthday = guestBirthday && guestBirthday.trim() !== '' ? new Date(guestBirthday) : null;
 
             if (createAccount) {
                 if (!guestEmail || !password) {
                     return res.status(400).json({ message: 'Email e Senha são obrigatórios para criar conta.' });
                 }
-                if (user) {
-                    return res.status(400).json({ message: 'Um usuário com este telefone ou email já existe. Faça login.' });
+
+                // Check if AuthUser email exists
+                const existingAuth = await prisma.authUser.findUnique({ where: { email: guestEmail } });
+                if (existingAuth) {
+                    return res.status(400).json({ message: 'Este email já está em uso. Faça login.' });
+                }
+
+                if (existingClient && existingClient.authUser) {
+                    return res.status(400).json({ message: 'Este telefone já está vinculado a uma conta. Faça login.' });
                 }
 
                 const hashedPassword = await bcrypt.hash(password, 10);
-                user = await prisma.user.create({
-                    data: {
-                        name: guestName,
-                        phone: guestPhone, // Save as provided or sanitized? Keeping provided for display formatting
-                        email: guestEmail,
-                        birthday: validBirthday,
-                        role: 'CLIENT',
-                        password: hashedPassword
+
+                // Transaction to create AuthUser + Client (or link existing Guest Client)
+                const result = await prisma.$transaction(async (tx) => {
+                    const authUser = await tx.authUser.create({
+                        data: {
+                            email: guestEmail,
+                            password: hashedPassword,
+                            provider: 'EMAIL'
+                        }
+                    });
+
+                    let client;
+                    if (existingClient) {
+                        client = await tx.client.update({
+                            where: { id: existingClient.id },
+                            data: { authUserId: authUser.id, name: guestName }
+                        });
+                    } else {
+                        client = await tx.client.create({
+                            data: {
+                                name: guestName,
+                                phone: guestPhone,
+                                authUserId: authUser.id,
+                                theme: 'dark'
+                            }
+                        });
                     }
+                    return { authUser, client };
                 });
-                createdToken = generateToken(user);
+
+                clientId = result.client.id;
+                currentUser = { ...result.client, email: result.authUser.email, role: 'CLIENT' };
+                // Generate Token using helper from auth controller? Or local helper?
+                // Importing generateToken from auth controller might be circular or messy.
+                // We'll define a simpler one or duplicate it for now, or handle login on frontend after booking.
+                // Actually, the response expects 'token'.
+                createdToken = jwt.sign(
+                    { id: result.client.id, role: 'CLIENT', authUserId: result.authUser.id },
+                    process.env.JWT_SECRET, { expiresIn: '30d' }
+                );
+
             } else {
-                // Determine if we need to create a GUEST user (no auth) or use existing
-                if (!user) {
-                    user = await prisma.user.create({
+                // GUEST (No Account)
+                if (!existingClient) {
+                    existingClient = await prisma.client.create({
                         data: {
                             name: guestName,
                             phone: guestPhone,
-                            email: guestEmail || null,
-                            birthday: validBirthday,
-                            role: 'CLIENT',
-                            password: null // No password for guest
+                            // authUserId left null
                         }
                     });
                 } else {
-                    // Update missing optional info if provided
-                    const updates = {};
-                    if (guestEmail && !user.email) updates.email = guestEmail;
-                    if (validBirthday && !user.birthday) updates.birthday = validBirthday;
-                    if (guestName && user.name !== guestName) updates.name = guestName; // Keep name updated
-
-                    if (Object.keys(updates).length > 0) {
-                        try {
-                            await prisma.user.update({
-                                where: { id: user.id },
-                                data: updates
-                            });
-                        } catch (e) {
-                            console.warn('Failed to update existing user info:', e.message);
-                        }
+                    // Update name/info if provided
+                    if (guestName && existingClient.name !== guestName) {
+                        await prisma.client.update({ where: { id: existingClient.id }, data: { name: guestName } });
                     }
                 }
+                clientId = existingClient.id;
+                currentUser = { ...existingClient, role: 'CLIENT' };
             }
-            clientId = user.id;
-            currentUser = user;
         } else {
-            currentUser = await prisma.user.findUnique({ where: { id: clientId } });
+            // Fetch Authenticated Client
+            const clientProfile = await prisma.client.findUnique({
+                where: { id: clientId },
+                include: { authUser: true }
+            });
+            if (clientProfile) {
+                currentUser = { ...clientProfile, email: clientProfile.authUser?.email, role: 'CLIENT' };
+            } else {
+                // Fallback: Check if it's a Pro booking themselves (User table)
+                const userProfile = await prisma.user.findUnique({ where: { id: clientId } });
+                if (userProfile) {
+                    currentUser = userProfile;
+                }
+            }
         }
 
         // 3. Robust Availability Check (Avoid Overbooking)

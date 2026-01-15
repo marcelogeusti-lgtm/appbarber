@@ -17,6 +17,12 @@ enum Role {
   CLIENT
 }
 
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  FACEBOOK
+}
+
 enum AppointmentStatus {
   PENDING
   CONFIRMED
@@ -61,19 +67,58 @@ enum OrderStatus {
 
 // Models
 
+model AuthUser {
+  id        String       @id @default(uuid())
+  email     String       @unique
+  password  String?
+  provider  AuthProvider @default(EMAIL)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  client    Client?
+  user      User?    // Professional User
+}
+
+model Client {
+  id          String   @id @default(uuid())
+  name        String
+  phone       String?  @unique
+  
+  authUserId  String?   @unique
+  authUser    AuthUser? @relation(fields: [authUserId], references: [id])
+  
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+  orders       Order[]
+  packages     ClientPackage[]
+  noShowRecords NoShowRecord[]
+  
+  // Keep preferences/notifications?
+  notifications Notification[]
+  theme         String @default("dark")
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
-  email     String?  @unique
-  password  String?
+  email     String?  @unique // Keep for legacy/lookup, but AuthUser handles login
+  // password removed (moved to AuthUser) but kept optional for legacy during migration if needed, or just rely on AuthUser
+  password  String? 
   phone     String?  @unique
   birthday  DateTime?
-  role      Role     @default(CLIENT)
+  role      Role     @default(BARBER) // Primarily BARBER/ADMIN now
   avatarUrl String?
   active    Boolean  @default(true)
   tempPasswordExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Link to AuthUser (Optional during migration)
+  authUserId String?   @unique
+  authUser   AuthUser? @relation(fields: [authUserId], references: [id])
 
   // Relations
   ownedBarbershops Barbershop[] @relation("BarbershopOwner")
@@ -81,37 +126,33 @@ model User {
   // If user is staff (Barber/Admin)
   workedBarbershopId String?
   workedBarbershop   Barbershop? @relation("BarbershopStaff", fields: [workedBarbershopId], references: [id])
-
+  
   // If user is a professional (has specific profile)
   professionalProfile Professional?
 
-  // As a client
-  clientAppointments Appointment[] @relation("ClientAppointments")
-  
-  // As a professional (service provider)
+  // Pro Specific
   proAppointments    Appointment[] @relation("ProAppointments")
-  packages           ClientPackage[]
   commissions        Commission[]
   waitlistEntries    Waitlist[] @relation("ProWaitlist")
-  
-  // Orders
-  clientOrders       Order[] @relation("ClientOrders")
   professionalOrders Order[] @relation("ProfessionalOrders")
-  noShowRecords      NoShowRecord[]
   commissionOverrides ProfessionalServiceCommission[]
-
-
-  // Preferences
-  theme String @default("dark")
   
-  // Notifications
+  // Notifications (Pro)
   notifications Notification[]
+  theme         String @default("dark")
 }
 
 model Notification {
   id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  
+  // Generic User link (Pro)
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id])
+  
+  // Client Link
+  clientId  String?
+  client    Client?   @relation(fields: [clientId], references: [id])
+
   title     String
   message   String
   type      String   // appointment, payment, order, system
@@ -174,7 +215,7 @@ model NoShowRecord {
   id            String   @id @default(uuid())
   
   clientId      String
-  client        User     @relation(fields: [clientId], references: [id])
+  client        Client   @relation(fields: [clientId], references: [id])
   
   appointmentId String   @unique
   appointment   Appointment @relation(fields: [appointmentId], references: [id])
@@ -268,8 +309,9 @@ model Appointment {
   reminderMinutes Int? // Minutes before appointment to send reminder
   reminderSent    Boolean @default(false)
   
+  // Linked to Client now
   clientId  String
-  client    User     @relation("ClientAppointments", fields: [clientId], references: [id])
+  client    Client   @relation(fields: [clientId], references: [id])
 
   professionalId String
   professional   User     @relation("ProAppointments", fields: [professionalId], references: [id])
@@ -338,6 +380,7 @@ model Transaction {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
 model Waitlist {
   id           String   @id @default(uuid())
   clientName   String
@@ -387,8 +430,9 @@ model BarbershopPackage {
 
 model ClientPackage {
   id              String   @id @default(uuid())
+  
   clientId        String
-  client          User     @relation(fields: [clientId], references: [id])
+  client          Client     @relation(fields: [clientId], references: [id])
   
   packageId       String
   package         BarbershopPackage @relation(fields: [packageId], references: [id])
@@ -451,7 +495,7 @@ model Order {
   barbershop      Barbershop @relation(fields: [barbershopId], references: [id])
   
   clientId        String
-  client          User     @relation("ClientOrders", fields: [clientId], references: [id])
+  client          Client   @relation(fields: [clientId], references: [id])
   
   professionalId  String
   professional    User     @relation("ProfessionalOrders", fields: [professionalId], references: [id])
@@ -508,7 +552,3 @@ model Webhook {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
-
-
-
-
