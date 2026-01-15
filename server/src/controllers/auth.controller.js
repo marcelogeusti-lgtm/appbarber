@@ -155,14 +155,21 @@ exports.login = async (req, res) => {
         }
 
         // 2. Client Context Login (Default)
-        if (authUser.user) {
-            // "Se existir em barbers -> BLOQUEAR acesso. Mensagem clara."
-            return res.status(403).json({ message: 'Esta conta é profissional. Use outro e-mail para acessar como cliente ou use o App Pro.' });
-        }
+        // STRICT CONTEXT: If context is CLIENT, we ONLY return Client data.
+        // If the user is a Pro, we DO NOT BLOCK. We just check if they have a Client profile.
+        // If not, we create one automatically (because they might want to cut their hair too!).
 
         if (!authUser.client) {
-            // Should not happen if data integrity is good, but maybe incomplete reg
-            return res.status(400).json({ message: 'Perfil de cliente não encontrado.' });
+            // Auto-create Client profile for existing AuthUser (even if Pro)
+            // This enables Multi-Role support
+            const newClient = await prisma.client.create({
+                data: {
+                    name: authUser.user ? authUser.user.name : 'Novo Cliente', // Inherit name if Pro
+                    authUserId: authUser.id,
+                    theme: 'dark'
+                }
+            });
+            authUser.client = newClient;
         }
 
         const client = authUser.client;
@@ -210,21 +217,16 @@ exports.socialLogin = async (req, res) => {
             // For now: Allow login but update avatar if missing?
 
             // Check Context blocks
-            if (authUser.user) {
-                // If Pro tries to login via Social Client App -> Block
-                return res.status(403).json({
-                    message: 'Esta conta é profissional. Use o App Pro ou email/senha.'
-                });
-            }
+            // REMOVED BLOCK: If Pro tries to login via Social Client App -> ALLOW and Sync Client Profile
 
             // Update info if new
             if (!authUser.client) {
-                // Should exist if AuthUser exists? 
-                // Maybe it was a Pro before? But we blocked Pro above.
-                // Create Client profile if missing
+                // Determine name: use payload name, or fallback to Pro name, or default
+                const clientName = name || (authUser.user ? authUser.user.name : 'Cliente');
+
                 const client = await prisma.client.create({
                     data: {
-                        name: name || 'Cliente',
+                        name: clientName,
                         authUserId: authUser.id,
                         avatarUrl: avatarUrl
                     }
