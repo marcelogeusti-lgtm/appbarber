@@ -214,3 +214,58 @@ exports.getClientDetails = async (req, res) => {
         res.status(500).json({ message: 'Error fetching client details' });
     }
 };
+
+// Update Client Profile (Self)
+exports.updateClientProfile = async (req, res) => {
+    try {
+        const clientId = req.user.id; // From Client Token
+        const { name, phone, birthDate, gender, avatarUrl } = req.body;
+
+        // Validations
+        if (!clientId) return res.status(401).json({ message: 'Unauthorized' });
+
+        // Parse birthDate if string
+        let formattedBirthDate = null;
+        if (birthDate) {
+            formattedBirthDate = new Date(birthDate);
+            if (isNaN(formattedBirthDate.getTime())) {
+                formattedBirthDate = null; // or throw error
+            }
+        }
+
+        const updatedClient = await prisma.client.update({
+            where: { id: clientId },
+            data: {
+                name,
+                phone,
+                gender: gender || null,
+                birthDate: formattedBirthDate,
+                avatarUrl // Optional update
+            }
+        });
+
+        // Note: Email update is handled via AuthUser and usually requires re-verification.
+        // We do NOT update email here to avoid security issues.
+
+        res.json({
+            message: 'Perfil atualizado com sucesso',
+            user: {
+                id: updatedClient.id,
+                name: updatedClient.name,
+                // email: req.user.email, // Keep existing email from token/auth
+                phone: updatedClient.phone,
+                avatarUrl: updatedClient.avatarUrl,
+                birthDate: updatedClient.birthDate,
+                gender: updatedClient.gender,
+                role: 'CLIENT'
+            }
+        });
+
+    } catch (error) {
+        console.error('Update Client Error:', error);
+        if (error.code === 'P2002') {
+            return res.status(400).json({ message: 'Este telefone já está em uso.' });
+        }
+        res.status(500).json({ message: 'Erro ao atualizar perfil.' });
+    }
+};

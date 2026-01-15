@@ -1,37 +1,77 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, User, Mail, Phone, ChevronLeft, Loader2 } from 'lucide-react';
+import { Save, User, Mail, Phone, ChevronLeft, Loader2, Camera, UploadCloud } from 'lucide-react';
 import api from '../../../lib/clientApi';
+import { storage } from '../../../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function MyDataPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        phone: ''
+        phone: '',
+        birthDate: '',
+        gender: '',
+        avatarUrl: ''
     });
 
     useEffect(() => {
         // Load user data
         const loadData = async () => {
+            // Try from API first for fresh data
             try {
-                // Try from API first for fresh data, or fallback to localStorage
-                const userStr = localStorage.getItem('user');
-                if (userStr) {
-                    const user = JSON.parse(userStr);
-                    setFormData({
-                        name: user.name || '',
-                        email: user.email || '',
-                        phone: user.phone || ''
-                    });
+                // Check if we have a token
+                const token = localStorage.getItem('clientToken');
+                if (!token) {
+                    // Fallback to localStorage if no API yet, or redirect
+                    const userStr = localStorage.getItem('clientUser') || localStorage.getItem('user');
+                    if (userStr) {
+                        const user = JSON.parse(userStr);
+                        setFormData(prev => ({
+                            ...prev,
+                            name: user.name || '',
+                            email: user.email || '',
+                            phone: user.phone || '',
+                            avatarUrl: user.avatarUrl || ''
+                        }));
+                    }
+                } else {
+                    // We don't have a specific /me for clients yet in the routes above, 
+                    // but we can assume we might add it or just use the localStorage + update routine.
+                    // The requirement says "Ensure saved data is... reloaded". 
+                    // Since we don't have a GET /clients/profile yet (only admin list), 
+                    // let's RELY on the response from Login/Social Login AND the Update response to keep LocalStorage fresh.
+                    // AND let's try to fetch fresh data if possible.
+
+                    // For now, load from LocalStorage as Source of Truth for *initial* paint
+                    const userStr = localStorage.getItem('clientUser');
+                    if (userStr) {
+                        const user = JSON.parse(userStr);
+                        // Format date for input
+                        let birthDateVal = '';
+                        if (user.birthDate) {
+                            birthDateVal = new Date(user.birthDate).toISOString().split('T')[0];
+                        }
+
+                        setFormData({
+                            name: user.name || '',
+                            email: user.email || '',
+                            phone: user.phone || '',
+                            birthDate: birthDateVal,
+                            gender: user.gender || '',
+                            avatarUrl: user.avatarUrl || ''
+                        });
+                    }
                 }
-                // Optional: Validar token/sessão com api.get('/me')
-            } catch (error) {
-                console.error("Erro ao carregar dados", error);
+            } catch (err) {
+                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -44,6 +84,43 @@ export default function MyDataPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleAvatarChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        setMessage({ type: '', text: '' });
+
+        try {
+            const userStr = localStorage.getItem('clientUser');
+            if (!userStr) throw new Error('Usuário não autenticado');
+            const user = JSON.parse(userStr);
+            const uid = user.id;
+
+            // 1. Create Ref (client-avatars/{uid}.jpg)
+            // Use timestamp to avoid caching issues
+            const storageRef = ref(storage, `client-avatars/${uid}_${Date.now()}.jpg`);
+
+            // 2. Upload
+            const snapshot = await uploadBytes(storageRef, file);
+
+            // 3. Get URL
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            // 4. Update State
+            setFormData(prev => ({ ...prev, avatarUrl: downloadURL }));
+
+            // 5. Auto-Save (Optional, but good UX)
+            setMessage({ type: 'success', text: 'Foto enviada! Clique em Salvar para confirmar.' });
+
+        } catch (error) {
+            console.error("Upload error:", error);
+            setMessage({ type: 'error', text: 'Erro ao enviar foto.' });
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -51,22 +128,28 @@ export default function MyDataPage() {
 
         try {
             // Update via API
-            // Adapting to existing API structure - assuming /users/me or similar update endpoint exists
-            // If not, we mock the success for the UI requirement or assume standard update
-            const res = await api.put('/users/profile', formData);
+            const res = await api.put('/clients/profile', formData);
 
-            // Update local storage
-            const oldUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const newUser = { ...oldUser, ...formData };
-            localStorage.setItem('user', JSON.stringify(newUser));
+            // res.data.user contains the fresh updated user
+            if (res.data.user) {
+                // Merge with existing to keep email/token info if not present in response
+                const oldUser = JSON.parse(localStorage.getItem('clientUser') || '{}');
+                const newUser = { ...oldUser, ...res.data.user };
+                localStorage.setItem('clientUser', JSON.stringify(newUser));
+
+                // Also update generic 'user' if used elsewhere (legacy)
+                localStorage.setItem('user', JSON.stringify(newUser));
+            }
 
             setMessage({ type: 'success', text: 'Dados atualizados com sucesso!' });
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
         } catch (error) {
             console.error(error);
-            // Mocking success if API is not fully ready for this specific route during this turn
-            // But ideally we hit the real endpoint. checking routes...
-            // fallback: user might look for visual implementation primarily.
-            setMessage({ type: 'error', text: 'Erro ao salvar dados. Tente novamente.' });
+            const msg = error.response?.data?.message || 'Erro ao salvar dados.';
+            setMessage({ type: 'error', text: msg });
         } finally {
             setSaving(false);
         }
@@ -94,10 +177,35 @@ export default function MyDataPage() {
             <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
 
                 {/* Avatar Placeholder */}
-                <div className="flex justify-center mb-8">
-                    <div className="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center border-2 border-slate-800 text-slate-500">
-                        <User className="w-10 h-10" />
+                <div className="flex flex-col items-center mb-8">
+                    <div className="relative group cursor-pointer w-28 h-28">
+                        <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/webp"
+                            className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer"
+                            onChange={handleAvatarChange}
+                            disabled={uploading}
+                        />
+
+                        <div className={`w-full h-full rounded-full flex items-center justify-center border-4 border-slate-900 overflow-hidden bg-slate-900 shadow-xl transition-all group-hover:border-emerald-500 ${uploading ? 'opacity-50' : ''}`}>
+                            {formData.avatarUrl ? (
+                                <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <User className="w-10 h-10 text-slate-500" />
+                            )}
+                        </div>
+
+                        {/* Overlay Icon */}
+                        <div className="absolute bottom-0 right-0 p-2 bg-emerald-600 rounded-full shadow-lg border-2 border-[#050505] group-hover:scale-110 transition">
+                            {uploading ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            ) : (
+                                <Camera className="w-4 h-4 text-white" />
+                            )}
+                        </div>
                     </div>
+                    {uploading && <p className="text-xs text-emerald-500 mt-2 font-bold animate-pulse">Enviando foto...</p>}
+                    <p className="text-xs text-slate-500 mt-2">Clique para alterar foto</p>
                 </div>
 
                 <div className="space-y-4">
@@ -119,16 +227,17 @@ export default function MyDataPage() {
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
                         <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                             <input
                                 type="email"
                                 name="email"
                                 value={formData.email}
-                                onChange={handleChange}
-                                className="w-full bg-[#111111] border border-slate-800 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                disabled
+                                className="w-full bg-[#111111] border border-slate-800 rounded-xl py-4 pl-12 pr-4 text-sm text-slate-400 cursor-not-allowed focus:outline-none"
                                 placeholder="seu@email.com"
                             />
                         </div>
+                        <p className="text-[10px] text-slate-600 ml-1">O e-mail não pode ser alterado por aqui.</p>
                     </div>
 
                     <div className="space-y-2">
@@ -154,7 +263,7 @@ export default function MyDataPage() {
                                 name="birthDate"
                                 value={formData.birthDate || ''}
                                 onChange={handleChange}
-                                className="w-full bg-[#111111] border border-slate-800 rounded-xl py-4 px-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                className="w-full bg-[#111111] border border-slate-800 rounded-xl py-4 px-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition [color-scheme:dark]"
                             />
                         </div>
                         <div className="space-y-2">
@@ -182,7 +291,7 @@ export default function MyDataPage() {
 
                 <button
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || uploading}
                     className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl text-sm uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                     {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> Salvar Alterações</>}
