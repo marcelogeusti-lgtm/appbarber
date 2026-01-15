@@ -28,7 +28,7 @@ export default function AuthPage() {
         setError('');
         try {
             console.log('Attempting login...');
-            const res = await api.post('/auth/login', loginData);
+            const res = await api.post('/auth/login', { ...loginData, context: 'PRO' });
             console.log('Login success:', res.data);
 
             // Merge explicit barbershop data into user object for frontend consistency

@@ -41,7 +41,7 @@ export function ClientAuthProvider({ children }) {
 
     const login = async (email, password) => {
         try {
-            const res = await api.post('/auth/login', { email, password });
+            const res = await api.post('/auth/login', { email, password, context: 'CLIENT' });
 
             // Backend now handles context checks, but double check here
             if (res.data.user.role !== 'CLIENT' && !res.data.user.authUserId) { // authUserId check for Loose Client
