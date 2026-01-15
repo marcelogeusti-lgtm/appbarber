@@ -148,6 +148,7 @@ export default function LoginModal() {
                 <p className="mt-6 text-center text-sm text-slate-500">
                     Não tem uma conta?{' '}
                     <button
+                        type="button"
                         onClick={openRegisterModal}
                         className="text-emerald-500 hover:text-emerald-400 font-bold"
                     >

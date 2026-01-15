@@ -5,7 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Home, Search, Calendar, User, LogOut, ChevronDown, Heart, CreditCard, Repeat, Package, Clock, MessageSquare, UserCircle } from 'lucide-react';
 import { ClientAuthProvider, useClientAuth } from '../../contexts/ClientAuthContext';
 import LoginModal from '../../components/client-view/LoginModal';
-import RegisterModal from '../../components/client-view/RegisterModal'; // New import
+import RegisterModal from '../../components/client-view/RegisterModal';
+import ForgotPasswordModal from '../../components/client-view/ForgotPasswordModal';
 
 function ClientLayoutContent({ children }) {
     const pathname = usePathname();
@@ -50,6 +51,8 @@ function ClientLayoutContent({ children }) {
     return (
         <div className="flex flex-col min-h-screen bg-[#050505]">
             <LoginModal />
+            <RegisterModal />
+            <ForgotPasswordModal />
 
             {/* GLOBAL HEADER (Mobile + Desktop) */}
             <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">

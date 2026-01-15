@@ -94,6 +94,9 @@ export function ClientAuthProvider({ children }) {
     };
 
     const facebookLogin = async () => {
+        if (!auth.config?.apiKey || auth.config.apiKey.includes('YOUR_API_KEY')) {
+            return { success: false, message: 'Erro de configuração: Chaves do Firebase não definidas.' };
+        }
         try {
             const result = await signInWithPopup(auth, facebookProvider);
             const { email, displayName, photoURL, uid } = result.user;
@@ -112,7 +115,7 @@ export function ClientAuthProvider({ children }) {
 
     const socialBackendSync = async (payload) => {
         try {
-            const res = await api.post('/auth/social-login', payload);
+            const res = await api.post('/auth/social-login', { ...payload, context: 'CLIENT' });
             const { token, user } = res.data;
             persistSession(token, user);
             return { success: true };
