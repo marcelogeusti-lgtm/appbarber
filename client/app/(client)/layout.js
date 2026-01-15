@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Home, Search, Calendar, User, LogOut, ChevronDown, Heart, CreditCard, Repeat, Package, Clock, MessageSquare, UserCircle } from 'lucide-react';
 import { ClientAuthProvider, useClientAuth } from '../../contexts/ClientAuthContext';
 import LoginModal from '../../components/client-view/LoginModal';
+import RegisterModal from '../../components/client-view/RegisterModal'; // New import
 
 function ClientLayoutContent({ children }) {
     const pathname = usePathname();

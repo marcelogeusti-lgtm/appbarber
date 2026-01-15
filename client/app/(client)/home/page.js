@@ -4,24 +4,25 @@ import Link from 'next/link';
 import { Search, ChevronRight, MapPin, Star, Play, Apple, ArrowUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '../../../lib/clientApi';
+import { useClientAuth } from '../../../contexts/ClientAuthContext';
 
 export default function ClientHome() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { user, loading: authLoading } = useClientAuth();
+    const [loadingData, setLoadingData] = useState(true);
     const [lastAppointment, setLastAppointment] = useState(null);
     const [recentBarbershops, setRecentBarbershops] = useState([]);
     const [favorites, setFavorites] = useState([]);
     const router = useRouter();
 
     useEffect(() => {
-        const userStr = localStorage.getItem('user');
-        if (!userStr) {
-            router.push('/login');
-            return;
+        if (!authLoading) {
+            if (user) {
+                fetchData();
+            } else {
+                setLoadingData(false); // No data for guest
+            }
         }
-        setUser(JSON.parse(userStr));
-        fetchData();
-    }, []);
+    }, [user, authLoading]);
 
     const fetchData = async () => {
         try {
@@ -37,6 +38,7 @@ export default function ClientHome() {
             const shops = [];
             const seen = new Set();
             for (const app of apps) {
+                // Check structure safety
                 if (app.barbershop && !seen.has(app.barbershop.id)) {
                     seen.add(app.barbershop.id);
                     shops.push(app.barbershop);
@@ -48,15 +50,16 @@ export default function ClientHome() {
         } catch (err) {
             console.error(err);
         } finally {
-            setLoading(false);
+            setLoadingData(false);
         }
     };
-
-    if (loading) return null;
 
     const formatDate = () => {
         return new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
+
+    // Wait only for auth check, not data fetch (show skeleton or partial if needed, but for now just wait auth)
+    if (authLoading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Carregando...</div>;
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-emerald-500/30">
@@ -64,9 +67,16 @@ export default function ClientHome() {
             <main className="max-w-6xl mx-auto px-6 md:px-12 py-10">
                 {/* Greeting */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-normal text-slate-300">
-                        Olá, <span className="text-emerald-500 font-bold">{user?.name?.split(' ')[0] || 'Visitante'}</span>
-                    </h1>
+                    {user ? (
+                        <h1 className="text-2xl font-normal text-slate-300">
+                            Olá, <span className="text-emerald-500 font-bold">{user?.name?.split(' ')[0]}</span>
+                        </h1>
+                    ) : (
+                        <h1 className="text-2xl font-normal text-slate-300">
+                            Olá, <span className="text-emerald-500 font-bold">Visitante</span>
+                        </h1>
+                    )}
+
                     <p className="text-sm text-slate-500 capitalize mt-1 text-[13px]">{formatDate()}</p>
                 </div>
 

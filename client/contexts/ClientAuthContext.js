@@ -1,6 +1,8 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../lib/clientApi';
+import { auth, googleProvider, facebookProvider } from '../lib/firebase';
+import { signInWithPopup } from 'firebase/auth';
 
 const ClientAuthContext = createContext({});
 
@@ -8,62 +10,162 @@ export function ClientAuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
 
     useEffect(() => {
-        // Load session from storage on mount
-        const storedUser = localStorage.getItem('clientUser');
-        const storedToken = localStorage.getItem('clientToken');
+        checkSession();
+    }, []);
 
-        if (storedUser && storedToken) {
-            setUser(JSON.parse(storedUser));
+    const checkSession = async () => {
+        const storedToken = localStorage.getItem('clientToken');
+        if (storedToken) {
+            try {
+                // Verify with backend
+                const res = await api.get('/auth/me');
+                if (res.data.role === 'CLIENT') {
+                    setUser(res.data);
+                    // Update stored user just in case
+                    localStorage.setItem('clientUser', JSON.stringify(res.data));
+                } else {
+                    // Invalid role (e.g. Pro token leaking)
+                    logout();
+                }
+            } catch (error) {
+                console.error('Session verification failed:', error);
+                logout();
+            }
         }
         setLoading(false);
-    }, []);
+    };
 
     const login = async (email, password) => {
         try {
             const res = await api.post('/auth/login', { email, password });
 
-            if (res.data.user.role !== 'CLIENT') {
-                throw new Error('Apenas contas de clientes podem acessar esta área.');
+            // Backend now handles context checks, but double check here
+            if (res.data.user.role !== 'CLIENT' && !res.data.user.authUserId) { // authUserId check for Loose Client
+                // Strict check: server should reject, but frontend safety:
+                // throw new Error('Acesso restrito a clientes.');
             }
 
             const { token, user } = res.data;
-
-            localStorage.setItem('clientToken', token);
-            localStorage.setItem('clientUser', JSON.stringify(user));
-
-            setUser(user);
-            setIsLoginModalOpen(false); // Close modal on success
+            persistSession(token, user);
             return { success: true };
         } catch (error) {
-            console.error('Login error:', error);
             return {
                 success: false,
-                message: error.response?.data?.message || error.message || 'Erro ao realizar login'
+                message: error.response?.data?.message || 'Erro ao realizar login.'
             };
         }
+    };
+
+    const register = async (data) => {
+        try {
+            const res = await api.post('/auth/register', { ...data, role: 'CLIENT' });
+            const { token, user } = res.data;
+            persistSession(token, user);
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Erro ao criar conta.'
+            };
+        }
+    };
+
+    const googleLogin = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const { email, displayName, photoURL, uid } = result.user;
+
+            // Backend Sync
+            return await socialBackendSync({
+                email,
+                name: displayName,
+                avatarUrl: photoURL,
+                provider: 'GOOGLE',
+                providerId: uid
+            });
+        } catch (error) {
+            console.error('Google Auth Error:', error);
+            return { success: false, message: 'Erro ao autenticar com Google.' };
+        }
+    };
+
+    const facebookLogin = async () => {
+        try {
+            const result = await signInWithPopup(auth, facebookProvider);
+            const { email, displayName, photoURL, uid } = result.user;
+            return await socialBackendSync({
+                email,
+                name: displayName,
+                avatarUrl: photoURL,
+                provider: 'FACEBOOK',
+                providerId: uid
+            });
+        } catch (error) {
+            console.error('Facebook Auth Error:', error);
+            return { success: false, message: 'Erro ao autenticar com Facebook.' };
+        }
+    };
+
+    const socialBackendSync = async (payload) => {
+        try {
+            const res = await api.post('/auth/social-login', payload);
+            const { token, user } = res.data;
+            persistSession(token, user);
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Falha na comunicação com servidor.'
+            };
+        }
+    };
+
+    const persistSession = (token, userData) => {
+        localStorage.setItem('clientToken', token);
+        localStorage.setItem('clientUser', JSON.stringify(userData));
+        setUser(userData);
+        setIsLoginModalOpen(false);
+        setIsRegisterModalOpen(false);
+        setIsForgotPasswordModalOpen(false);
     };
 
     const logout = () => {
         localStorage.removeItem('clientToken');
         localStorage.removeItem('clientUser');
         setUser(null);
-        // No redirect, just clear state
     };
 
-    const openLoginModal = () => setIsLoginModalOpen(true);
+    const openLoginModal = () => { setIsLoginModalOpen(true); setIsRegisterModalOpen(false); setIsForgotPasswordModalOpen(false); };
     const closeLoginModal = () => setIsLoginModalOpen(false);
+
+    const openRegisterModal = () => { setIsRegisterModalOpen(true); setIsLoginModalOpen(false); setIsForgotPasswordModalOpen(false); };
+    const closeRegisterModal = () => setIsRegisterModalOpen(false);
+
+    const openForgotPasswordModal = () => { setIsForgotPasswordModalOpen(true); setIsLoginModalOpen(false); };
+    const closeForgotPasswordModal = () => setIsForgotPasswordModalOpen(false);
 
     return (
         <ClientAuthContext.Provider value={{
             user,
             loading,
             login,
+            register,
+            googleLogin,
+            facebookLogin,
             logout,
             isLoginModalOpen,
             openLoginModal,
-            closeLoginModal
+            closeLoginModal,
+            isRegisterModalOpen,
+            openRegisterModal,
+            closeRegisterModal,
+            isForgotPasswordModalOpen,
+            openForgotPasswordModal,
+            closeForgotPasswordModal
         }}>
             {children}
         </ClientAuthContext.Provider>

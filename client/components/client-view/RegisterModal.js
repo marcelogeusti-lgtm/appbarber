@@ -1,23 +1,25 @@
 'use client';
 import { useState } from 'react';
-import { X, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { X, Mail, Lock, User, Phone, Loader2, ArrowRight } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 
-export default function LoginModal() {
-    const { isLoginModalOpen, closeLoginModal, login, googleLogin, facebookLogin, openRegisterModal } = useClientAuth();
+export default function RegisterModal() {
+    const { isRegisterModalOpen, closeRegisterModal, register, openLoginModal } = useClientAuth();
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    if (!isLoginModalOpen) return null;
+    if (!isRegisterModalOpen) return null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const result = await login(email, password);
+        const result = await register({ name, email, password, phone });
 
         if (!result.success) {
             setError(result.message);
@@ -25,61 +27,24 @@ export default function LoginModal() {
         }
     };
 
-    const handleSocialLogin = async (provider) => {
-        setError('');
-        // NOTE: We don't set local loading state because the popup is external, 
-        // but we could if we wanted to show a spinner while waiting for popup close.
-        const result = provider === 'google' ? await googleLogin() : await facebookLogin();
-
-        if (!result.success) {
-            setError(result.message);
-        }
-    };
-
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-                onClick={closeLoginModal}
+                onClick={closeRegisterModal}
             />
 
-            {/* Modal */}
             <div className="relative w-full max-w-md bg-[#111111] border border-white/10 rounded-3xl shadow-2xl p-8 animate-in zoom-in-95 duration-200">
                 <button
-                    onClick={closeLoginModal}
+                    onClick={closeRegisterModal}
                     className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-full transition"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
                 <div className="mb-8 text-center">
-                    <h2 className="text-2xl font-bold text-white mb-2">Acessar conta</h2>
-                    <p className="text-slate-500 text-sm">Faça login para gerenciar seus agendamentos</p>
-                </div>
-
-                {/* Social Login */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                    <button
-                        onClick={() => handleSocialLogin('google')}
-                        className="flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-[#222] border border-white/5 hover:border-white/20 text-white p-3 rounded-xl transition font-medium text-sm"
-                    >
-                        <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                        Google
-                    </button>
-                    <button
-                        onClick={() => handleSocialLogin('facebook')}
-                        className="flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-[#222] border border-white/5 hover:border-white/20 text-white p-3 rounded-xl transition font-medium text-sm"
-                    >
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" className="w-4 h-4" />
-                        Facebook
-                    </button>
-                </div>
-
-                <div className="relative flex items-center gap-4 mb-6">
-                    <div className="h-px bg-white/5 flex-1" />
-                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">ou</span>
-                    <div className="h-px bg-white/5 flex-1" />
+                    <h2 className="text-2xl font-bold text-white mb-2">Criar conta</h2>
+                    <p className="text-slate-500 text-sm">Cadastre-se para agendar seus cortes</p>
                 </div>
 
                 {error && (
@@ -89,6 +54,21 @@ export default function LoginModal() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-xs text-slate-400 font-bold ml-1">Nome Completo</label>
+                        <div className="relative group">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                placeholder="Seu nome"
+                                required
+                            />
+                        </div>
+                    </div>
+
                     <div className="space-y-1">
                         <label className="text-xs text-slate-400 font-bold ml-1">Email</label>
                         <div className="relative group">
@@ -105,6 +85,20 @@ export default function LoginModal() {
                     </div>
 
                     <div className="space-y-1">
+                        <label className="text-xs text-slate-400 font-bold ml-1">Telefone (Opcional)</label>
+                        <div className="relative group">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                placeholder="(00) 00000-0000"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
                         <label className="text-xs text-slate-400 font-bold ml-1">Senha</label>
                         <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-500 transition" />
@@ -115,30 +109,21 @@ export default function LoginModal() {
                                 className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                                 placeholder="••••••••"
                                 required
+                                minLength={6}
                             />
                         </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                        <button
-                            type="button"
-                            onClick={useClientAuth().openForgotPasswordModal}
-                            className="text-xs text-emerald-500 hover:text-emerald-400 font-medium"
-                        >
-                            Esqueceu a senha?
-                        </button>
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                     >
                         {loading ? (
                             <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                             <>
-                                Acessar
+                                Criar conta
                                 <ArrowRight className="w-5 h-5" />
                             </>
                         )}
@@ -146,12 +131,12 @@ export default function LoginModal() {
                 </form>
 
                 <p className="mt-6 text-center text-sm text-slate-500">
-                    Não tem uma conta?{' '}
+                    Já tem uma conta?{' '}
                     <button
-                        onClick={openRegisterModal}
+                        onClick={openLoginModal}
                         className="text-emerald-500 hover:text-emerald-400 font-bold"
                     >
-                        Cadastre-se
+                        Fazer login
                     </button>
                 </p>
             </div>
