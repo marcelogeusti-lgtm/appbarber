@@ -1,51 +1,43 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const axios = require('axios');
-const saasPlans = require('../config/saasPlans');
+const { format } = require('date-fns');
 
 exports.addToWaitlist = async (req, res) => {
     try {
-        const { barbershopId, serviceId, date, name, phone, professionalId } = req.body;
-        // console.log('Waitlist Data:', { barbershopId, serviceId, date, name, phone, professionalId });
+        const {
+            barbershopId,
+            serviceId,
+            professionalId,
+            clientName,
+            clientPhone,
+            date, // Expected "YYYY-MM-DD"
+            notes
+        } = req.body;
 
-        const waitlistEntry = await prisma.waitlist.create({
+        if (!date) return res.status(400).json({ message: 'Data é obrigatória.' });
+
+        // Normalize date to mid-day or specific time to avoid timezone shifts on just "dates"
+        // But schema says DateTime. Let's store as T12:00:00Z or similar to represent "That Day"
+        // Better: Store exact requested date object
+        const entryDate = new Date(date);
+
+        const entry = await prisma.waitlist.create({
             data: {
                 barbershopId,
                 serviceId,
-                date: new Date(date),
-                clientName: name,
-                clientPhone: phone,
-                professionalId: professionalId || null
-            },
-            include: { service: true }
+                professionalId: professionalId === 'all' ? null : professionalId,
+                clientName,
+                clientPhone,
+                date: entryDate,
+                notes,
+                status: 'WAITING'
+            }
         });
 
-        // Trigger n8n for waitlist tracking
-        const barbershop = await prisma.barbershop.findUnique({ where: { id: barbershopId } });
-        const webhookUrl = barbershop?.webhookUrl;
-
-        const userPlan = barbershop?.saasPlan || 'BASIC';
-        const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
-        const hasWebhookFeature = planConfig.features.includes('all') || planConfig.features.includes('webhook');
-
-        if (webhookUrl && hasWebhookFeature) {
-            axios.post(webhookUrl, {
-                event: 'waitlist.added',
-                data: {
-                    id: waitlistEntry.id,
-                    barbershopId,
-                    date,
-                    clientName: name,
-                    clientPhone: phone,
-                    serviceName: waitlistEntry.service?.name
-                }
-            }).catch(e => console.error('Waitlist Webhook Error:', e.message));
-        }
-
-        res.status(201).json({ message: 'Adicionado à lista de espera com sucesso!', waitlistEntry });
+        res.status(201).json(entry);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Erro ao entrar na lista de espera' });
+        res.status(500).json({ message: 'Erro ao entrar na lista de espera.' });
     }
 };
 
@@ -53,29 +45,55 @@ exports.getWaitlist = async (req, res) => {
     try {
         const { barbershopId, date, professionalId } = req.query;
 
-        const where = { barbershopId };
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const where = {
+            barbershopId,
+            status: { in: ['WAITING', 'NOTIFIED'] }
+        };
+
         if (date) {
-            const startStr = date.split('T')[0];
-            const startDate = new Date(startStr);
-            const endDate = new Date(startDate);
-            endDate.setDate(endDate.getDate() + 1);
+            // Filter by day
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
 
             where.date = {
-                gte: startDate,
-                lt: endDate
+                gte: startOfDay,
+                lte: endOfDay
             };
         }
+
         if (professionalId && professionalId !== 'all') {
             where.professionalId = professionalId;
         }
 
         const list = await prisma.waitlist.findMany({
             where,
-            include: { service: true },
+            include: {
+                service: true,
+                professional: true
+            },
             orderBy: { createdAt: 'asc' }
         });
+
         res.json(list);
     } catch (error) {
-        res.status(500).json({ message: 'Error' });
+        console.error(error);
+        res.status(500).json({ message: 'Erro ao buscar lista de espera.' });
+    }
+};
+
+exports.removeFromWaitlist = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.waitlist.update({
+            where: { id },
+            data: { status: 'CANCELLED' } // Soft delete basically
+        });
+        res.json({ message: 'Removido com sucesso.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao remover.' });
     }
 };

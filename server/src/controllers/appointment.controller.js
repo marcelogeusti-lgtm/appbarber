@@ -51,9 +51,26 @@ exports.createAppointment = async (req, res) => {
         let currentUser = null;
 
         // 1. Fetch Service & Pro details first to ensure they exist
-        if (!serviceId) return res.status(400).json({ message: 'Serviço é obrigatório' });
-        const service = await prisma.service.findUnique({ where: { id: serviceId } });
-        if (!service) return res.status(404).json({ message: 'Serviço não encontrado' });
+        // Handle Multiple Services
+        let servicesToBook = [];
+        let primaryService = null;
+
+        if (servicos && servicos.length > 0) {
+            const allIds = servicos.map(s => s.servico_id);
+            servicesToBook = await prisma.service.findMany({ where: { id: { in: allIds } } });
+            if (servicesToBook.length === 0) return res.status(404).json({ message: 'Nenhum serviço válido encontrado.' });
+            primaryService = servicesToBook[0]; // Logic: First one is primary for Appointment record
+        } else if (serviceId) {
+            const s = await prisma.service.findUnique({ where: { id: serviceId } });
+            if (!s) return res.status(404).json({ message: 'Serviço não encontrado' });
+            servicesToBook = [s];
+            primaryService = s;
+        } else {
+            return res.status(400).json({ message: 'Serviço é obrigatório' });
+        }
+
+        // Define 'service' variable for backward compatibility with rest of code that uses 'service'
+        const service = primaryService;
 
         const pro = await prisma.user.findUnique({
             where: { id: professionalId },
@@ -147,66 +164,108 @@ exports.createAppointment = async (req, res) => {
         }
 
         // 3. Robust Availability Check (Avoid Overbooking)
+        // TIMEZONE ENFORCEMENT: All inputs are treated as "America/Sao_Paulo"
+        const TIMEZONE = 'America/Sao_Paulo';
+        const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
+        const { addMinutes, isBefore, isAfter, parseISO } = require('date-fns');
+
         if (!date || !date.includes('-')) return res.status(400).json({ message: 'Data inválida.' });
         if (!time || !time.includes(':')) return res.status(400).json({ message: 'Horário inválido.' });
 
-        // Parse requested date/time
-        const [year, month, day] = date.split('-').map(Number);
-        const [hour, min] = time.split(':').map(Number);
+        // Construct ISO string for the requested time in SP
+        const dateTimeString = `${date}T${time}:00`; // e.g., "2023-10-25T09:00:00"
 
-        if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(min)) {
-            return res.status(400).json({ message: 'Formato de data ou hora inválido.' });
+        // Convert this SP time to UTC for storage/comparison
+        // zonedTimeToUtc takes a string (treated as local calculation in that TZ) and returns UTC Date
+        const appointmentDateTime = zonedTimeToUtc(dateTimeString, TIMEZONE);
+
+        if (isNaN(appointmentDateTime.getTime())) {
+            return res.status(400).json({ message: 'Data ou hora inválida.' });
         }
 
-        const reqStart = new Date(year, month - 1, day, hour, min, 0);
-        const reqEnd = new Date(reqStart.getTime() + service.duration * 60000);
+        // Calculate Total Duration
+        const requestedDuration = servicesToBook.reduce((acc, curr) => acc + curr.duration, 0);
 
-        // Check if day is on/off
-        const dayOfWeek = reqStart.getDay();
+        const reqStart = appointmentDateTime;
+        const reqEnd = new Date(reqStart.getTime() + requestedDuration * 60000);
+
+        // Get the specific day of week relative to SP Timezone
+        const zonedDate = utcToZonedTime(reqStart, TIMEZONE);
+        const dayOfWeek = zonedDate.getDay(); // 0-6
+
         const schedule = pro.professionalProfile?.schedules.find(s => s.dayOfWeek === dayOfWeek);
 
         if (!schedule || schedule.isOff) {
             return res.status(400).json({ message: 'O profissional não atende neste dia.' });
         }
 
-        // Check against work hours
-        const [wSH, wSM] = schedule.startTime.split(':').map(Number);
-        const [wEH, wEM] = schedule.endTime.split(':').map(Number);
-        const workStart = new Date(year, month - 1, day, wSH, wSM, 0);
-        const workEnd = new Date(year, month - 1, day, wEH, wEM, 0);
+        // Helper: Create UTC Date from a time string "HH:MM" on the REQUESTED DATE (in SP context)
+        const createZonedTime = (timeStr) => {
+            return zonedTimeToUtc(`${date}T${timeStr}:00`, TIMEZONE);
+        };
 
+        const workStart = createZonedTime(schedule.startTime);
+        const workEnd = createZonedTime(schedule.endTime);
+
+        // Strict work hours check
+        // Note: We use < and > to allow booking exactly at start time, but not ending exactly at end time if it pushes over?
+        // Actually usually [Start, End) or [Start, End]. Let's match reqEnd <= workEnd.
         if (reqStart < workStart || reqEnd > workEnd) {
             return res.status(400).json({ message: 'Horário fora do expediente do profissional.' });
         }
 
-        // Check against professional's break
+        // Break Check
         if (schedule.breakStart && schedule.breakEnd) {
-            const [bSH, bSM] = schedule.breakStart.split(':').map(Number);
-            const [bEH, bEM] = schedule.breakEnd.split(':').map(Number);
-            const breakStart = new Date(year, month - 1, day, bSH, bSM, 0);
-            const breakEnd = new Date(year, month - 1, day, bEH, bEM, 0);
+            const breakStart = createZonedTime(schedule.breakStart);
+            const breakEnd = createZonedTime(schedule.breakEnd);
 
+            // Overlap: Start < BreakEnd AND End > BreakStart
             if (reqStart < breakEnd && reqEnd > breakStart) {
                 return res.status(400).json({ message: 'O horário selecionado conflita com o intervalo de pausa do profissional.' });
             }
         }
 
-        // Check against existing appointments
+        // Existing Appointments Check
+        // Range: Entire day in UTC corresponding to the SP day
+        const dayStartUTC = zonedTimeToUtc(`${date}T00:00:00`, TIMEZONE);
+        const dayEndUTC = zonedTimeToUtc(`${date}T23:59:59`, TIMEZONE);
+
         const dayAppointments = await prisma.appointment.findMany({
             where: {
                 professionalId,
                 date: {
-                    gte: new Date(year, month - 1, day, 0, 0, 0),
-                    lte: new Date(year, month - 1, day, 23, 59, 59)
+                    gte: dayStartUTC,
+                    lte: dayEndUTC
                 },
                 status: { not: 'CANCELLED' }
             },
-            include: { service: true }
+            include: {
+                service: true,
+                order: {
+                    include: {
+                        items: {
+                            include: { service: true }
+                        }
+                    }
+                }
+            }
         });
 
         const hasConflict = dayAppointments.some(app => {
-            const appStart = new Date(app.date);
-            const appEnd = new Date(appStart.getTime() + app.service.duration * 60000);
+            const appStart = new Date(app.date); // Postgres returns UTC
+
+            // Calculate effective duration
+            let appDuration = app.service?.duration || 30;
+            if (app.order && app.order.items && app.order.items.length > 0) {
+                const serviceItems = app.order.items.filter(i => i.type === 'SERVICE' && i.service);
+                if (serviceItems.length > 0) {
+                    appDuration = serviceItems.reduce((sum, item) => sum + (item.service.duration * item.quantity), 0);
+                }
+            }
+
+            const appEnd = new Date(appStart.getTime() + appDuration * 60000);
+
+            // Conflict: StartA < EndB && EndA > StartB
             return (reqStart < appEnd && reqEnd > appStart);
         });
 
@@ -217,8 +276,6 @@ exports.createAppointment = async (req, res) => {
                 return res.status(400).json({ message: 'Este horário já foi preenchido. Por favor, escolha outro.' });
             }
         }
-
-        const appointmentDateTime = reqStart; // Use the validated date object
 
         // 4. Create Appointment & Order via Transaction
         const result = await prisma.$transaction(async (tx) => {
@@ -306,7 +363,7 @@ exports.createAppointment = async (req, res) => {
             }
 
             // Calculate Totals
-            const serviceTotal = Number(service.price);
+            const serviceTotal = servicesToBook.reduce((sum, s) => sum + Number(s.price), 0);
             const productsTotal = productItems.reduce((sum, p) => sum + Number(p.price), 0);
             let total = serviceTotal + productsTotal;
 
@@ -337,14 +394,6 @@ exports.createAppointment = async (req, res) => {
             }
 
             // Create Order
-            // Wait, OrderItem table:
-            // type String
-            // serviceId?
-            // productId?
-            // If I create an item without ID, frontend needs to handle it.
-            // Let's check OrderItem schema: type is String.
-            // Let's use type='NO_SHOW_FEE' and handle frontend display.
-
             const order = await tx.order.create({
                 data: {
                     appointmentId: appointment.id,
@@ -357,13 +406,14 @@ exports.createAppointment = async (req, res) => {
                     paymentMethod: method,
                     items: {
                         create: [
-                            {
+                            // Create OrderItem for EACH selected service
+                            ...servicesToBook.map(s => ({
                                 type: 'SERVICE',
-                                serviceId: service.id,
+                                serviceId: s.id,
                                 quantity: 1,
-                                unitPrice: Number(service.price),
-                                total: Number(service.price)
-                            },
+                                unitPrice: Number(s.price),
+                                total: Number(s.price)
+                            })),
                             ...productItems.map(p => ({
                                 type: 'PRODUCT',
                                 productId: p.id,
@@ -426,7 +476,8 @@ exports.createAppointment = async (req, res) => {
                     time: horario, // Using mapped variable
                     clientName: currentUser?.name || guestName,
                     clientPhone: currentUser?.phone || guestPhone,
-                    serviceName: service.name,
+                    clientPhone: currentUser?.phone || guestPhone,
+                    serviceName: servicesToBook.map(s => s.name).join(', '),
                     products: productItems.map(p => p.name).join(', '),
                     totalValue: order.total,
                     paymentMethod: req.body.forma_pagamento

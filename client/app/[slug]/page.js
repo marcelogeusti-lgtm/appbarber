@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     MapPin, Search, Star, Heart, Share2,
     ChevronLeft, ShoppingBag, Clock, CalendarCheck,
-    Banknote, CreditCard, ArrowLeft
+    Banknote, CreditCard, ArrowLeft, Users, Bell
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import api from '../../lib/api';
@@ -68,7 +68,13 @@ export default function BarbershopPage() {
 
     const [availableSlots, setAvailableSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
+
     const [pendingFees, setPendingFees] = useState([]);
+
+    // Waitlist State
+    const [waitlistOpen, setWaitlistOpen] = useState(false);
+    const [waitlistNote, setWaitlistNote] = useState('');
+    const [waitlistLoading, setWaitlistLoading] = useState(false);
 
     useEffect(() => {
         if (!effectiveSlug) return;
@@ -246,6 +252,33 @@ export default function BarbershopPage() {
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.message || 'Erro ao agendar');
+        }
+    };
+
+    const handleJoinWaitlist = async () => {
+        if (!formData.name || !formData.phone) {
+            return alert('Por favor, preencha Nome e Telefone na etapa anterior ou no formulário.');
+        }
+
+        setWaitlistLoading(true);
+        try {
+            await api.post('/waitlist', {
+                barbershopId: barbershop.id,
+                serviceId: selectedService.id,
+                professionalId: selectedProfessional.id,
+                clientName: formData.name,
+                clientPhone: formData.phone,
+                date: formData.date,
+                notes: waitlistNote
+            });
+            alert('Você foi adicionado à lista de espera! Avisaremos se surgir uma vaga.');
+            setWaitlistOpen(false);
+            setWaitlistNote('');
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao entrar na lista de espera.');
+        } finally {
+            setWaitlistLoading(false);
         }
     };
 
@@ -498,11 +531,30 @@ export default function BarbershopPage() {
                                                 <div className="animate-in fade-in space-y-4">
                                                     <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Horários para {selectedProfessional.name}</h3>
                                                     {loadingSlots ? <p className="text-center text-xs text-slate-500 italic">Buscando disponibilidade...</p> : (
-                                                        <div className="grid grid-cols-4 gap-2">
-                                                            {availableSlots.map(slot => (
-                                                                <button key={slot} onClick={() => { setFormData({ ...formData, time: slot }); nextStep(); }} className={`py-3 rounded-xl text-xs font-black transition ${formData.time === slot ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}>{slot}</button>
-                                                            ))}
-                                                        </div>
+                                                        availableSlots.length > 0 ? (
+                                                            <div className="grid grid-cols-4 gap-2">
+                                                                {availableSlots.map(slot => (
+                                                                    <button key={slot} onClick={() => { setFormData({ ...formData, time: slot }); nextStep(); }} className={`py-3 rounded-xl text-xs font-black transition ${formData.time === slot ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}>{slot}</button>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center space-y-4 py-4 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed animate-in fade-in">
+                                                                <div className="w-12 h-12 bg-slate-800 rounded-full mx-auto flex items-center justify-center">
+                                                                    <Bell className="w-6 h-6 text-slate-400" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm font-bold text-white uppercase">Dia Lotado</p>
+                                                                    <p className="text-[10px] text-slate-500 max-w-[200px] mx-auto">Não há horários disponíveis para este profissional nesta data.</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => setWaitlistOpen(true)}
+                                                                    className="px-6 py-3 bg-emerald-500/10 text-emerald-500 text-xs font-black uppercase rounded-xl border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition flex items-center gap-2 mx-auto"
+                                                                >
+                                                                    <Clock className="w-4 h-4" />
+                                                                    Entrar na Lista de Espera
+                                                                </button>
+                                                            </div>
+                                                        )
                                                     )}
                                                 </div>
                                             )}
@@ -586,6 +638,55 @@ export default function BarbershopPage() {
                                     )}
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* WAITLIST MODAL */}
+            {waitlistOpen && (
+                <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                    <div className="bg-[#111827] w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95">
+                        <div className="p-6 bg-[#0b0f19] border-b border-slate-800 flex justify-between items-center">
+                            <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-emerald-500" /> Lista de Espera
+                            </h3>
+                            <button onClick={() => setWaitlistOpen(false)} className="text-slate-500 hover:text-white font-bold text-xs">FECHAR</button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Se surgir uma vaga para <strong>{new Date(formData.date + 'T00:00:00').toLocaleDateString()}</strong> com <strong>{selectedProfessional?.name}</strong>, avisaremos você.
+                            </p>
+
+                            {!formData.name && (
+                                <input
+                                    placeholder="Seu Nome"
+                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                />
+                            )}
+                            {!formData.phone && (
+                                <input
+                                    placeholder="Seu WhatsApp"
+                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                    value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                />
+                            )}
+
+                            <textarea
+                                placeholder="Alguma observação? (Ex: Posso chegar 18h30)"
+                                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition h-24 resize-none"
+                                value={waitlistNote}
+                                onChange={e => setWaitlistNote(e.target.value)}
+                            />
+
+                            <button
+                                onClick={handleJoinWaitlist}
+                                disabled={waitlistLoading}
+                                className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase hover:bg-slate-200 transition disabled:opacity-50"
+                            >
+                                {waitlistLoading ? 'Salvando...' : 'Confirmar Interesse'}
+                            </button>
                         </div>
                     </div>
                 </div>

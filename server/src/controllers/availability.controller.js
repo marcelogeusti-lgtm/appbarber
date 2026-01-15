@@ -1,6 +1,9 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { addMinutes, format, parseISO, startOfDay, endOfDay } = require('date-fns');
+const { addMinutes, format, isBefore, isAfter, isEqual, parse } = require('date-fns');
+const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
+
+const TIMEZONE = 'America/Sao_Paulo';
 
 exports.getAvailableSlots = async (req, res) => {
     try {
@@ -22,15 +25,19 @@ exports.getAvailableSlots = async (req, res) => {
             return res.status(400).json({ message: 'Invalid services or zero duration.' });
         }
 
-        // Target Date
-        // Fix timezone issues by treating the date string explicitly
-        // We assume 'date' is YYYY-MM-DD. We want to work with this local date.
-        // For simplicity in comparison, we'll build Date objects carefully.
-        const [year, month, day] = date.split('-').map(Number);
-        const targetDate = new Date(year, month - 1, day);
-        const dayOfWeek = targetDate.getDay();
+        // 1. Target Date Configuration (Sao Paulo)
+        // Parse the input string YYYY-MM-DD as being in Sao Paulo
+        // This ensures "2023-01-01" means the full day in SP, not partial day if UTC.
+        // We construct a string "YYYY-MM-DDT00:00:00" and parse it as that zone.
+        const startOfDaySP = zonedTimeToUtc(`${date}T00:00:00`, TIMEZONE);
+        const endOfDaySP = zonedTimeToUtc(`${date}T23:59:59`, TIMEZONE);
 
-        // 1. Get Professionals
+        // Deriving the day of week from the SP perspective
+        // using utcToZonedTime to get the date object representing local time
+        const dateSP = utcToZonedTime(startOfDaySP, TIMEZONE);
+        const dayOfWeek = dateSP.getDay(); // 0-6 correct for SP
+
+        // 2. Get Professionals
         const pros = await prisma.user.findMany({
             where: {
                 OR: [
@@ -50,21 +57,26 @@ exports.getAvailableSlots = async (req, res) => {
             }
         });
 
-        // 2. Get Appointments
-        // We fetch all appointments for the day to check collisions
-        const startOfDayDate = new Date(year, month - 1, day, 0, 0, 0);
-        const endOfDayDate = new Date(year, month - 1, day, 23, 59, 59);
-
+        // 3. Get Appointments (Stored in UTC, query by range)
         const appointments = await prisma.appointment.findMany({
             where: {
                 barbershopId,
                 date: {
-                    gte: startOfDayDate,
-                    lte: endOfDayDate
+                    gte: startOfDaySP,
+                    lte: endOfDaySP
                 },
                 status: { not: 'CANCELLED' }
             },
-            include: { service: true }
+            include: {
+                service: true,
+                order: {
+                    include: {
+                        items: {
+                            include: { service: true }
+                        }
+                    }
+                }
+            }
         });
 
         const availability = [];
@@ -72,7 +84,6 @@ exports.getAvailableSlots = async (req, res) => {
         for (const pro of pros) {
             const proSchedule = pro.professionalProfile?.schedules[0];
 
-            // If pro receives appointments but has no schedule, or is off, skip
             if (!proSchedule) {
                 availability.push({ proId: pro.id, proName: pro.name, slots: [] });
                 continue;
@@ -80,31 +91,27 @@ exports.getAvailableSlots = async (req, res) => {
 
             const slots = [];
 
-            // Parse Schedule Times (HH:mm) to Date objects for this day
-            const [startH, startM] = proSchedule.startTime.split(':').map(Number);
-            const [endH, endM] = proSchedule.endTime.split(':').map(Number);
+            // Helper to create a specific time on that day in SP
+            const createTimeSP = (timeStr) => {
+                // timeStr is "09:00"
+                return zonedTimeToUtc(`${date}T${timeStr}:00`, TIMEZONE);
+            };
 
-            let workStart = new Date(year, month - 1, day, startH, startM, 0);
-            let workEnd = new Date(year, month - 1, day, endH, endM, 0);
+            const workStart = createTimeSP(proSchedule.startTime);
+            const workEnd = createTimeSP(proSchedule.endTime);
 
-            // Parse Break Times if they exist
             let breakStart = null;
             let breakEnd = null;
             if (proSchedule.breakStart && proSchedule.breakEnd) {
-                const [bsH, bsM] = proSchedule.breakStart.split(':').map(Number);
-                const [beH, beM] = proSchedule.breakEnd.split(':').map(Number);
-                breakStart = new Date(year, month - 1, day, bsH, bsM, 0);
-                breakEnd = new Date(year, month - 1, day, beH, beM, 0);
+                breakStart = createTimeSP(proSchedule.breakStart);
+                breakEnd = createTimeSP(proSchedule.breakEnd);
             }
 
-            // Iterate slots (e.g. every 30 mins)
-            // You can make the step configurable or equal to 'totalDuration' or fixed 30.
-            // Ideally, fixed 30 mins (09:00, 09:30) is standard.
-            let currentSlot = new Date(workStart);
+            // Iterate slots (every 30 mins)
+            let currentSlot = workStart; // This is a Date object (UTC equivalent of Start Time SP)
             const stepMinutes = 30;
 
             while (currentSlot < workEnd) {
-                // Determine potential appointment block
                 const potentialEnd = addMinutes(currentSlot, totalDuration);
 
                 // 1. Must finish before work ends
@@ -116,7 +123,7 @@ exports.getAvailableSlots = async (req, res) => {
                 // 2. Must not overlap break
                 let overlapsBreak = false;
                 if (breakStart && breakEnd) {
-                    // Overlap logic: (StartA < EndB) and (EndA > StartB)
+                    // Standard Overlap: (StartA < EndB) && (EndA > StartB)
                     if (currentSlot < breakEnd && potentialEnd > breakStart) {
                         overlapsBreak = true;
                     }
@@ -131,25 +138,32 @@ exports.getAvailableSlots = async (req, res) => {
                 const isOccupied = appointments.some(app => {
                     if (app.professionalId !== pro.id) return false;
 
-                    const appStart = new Date(app.date);
-                    // Calculates appEnd based on its stored service duration
-                    // Note: If you stored duration in appointment, use it. 
-                    // If not, use app.service.duration.
-                    // Assuming app.service is available.
-                    const appDuration = app.service?.duration || 30;
+                    const appStart = new Date(app.date); // Already UTC
+
+                    // Logic to sum durations if multiple services in order
+                    let appDuration = app.service?.duration || 30;
+                    if (app.order && app.order.items && app.order.items.length > 0) {
+                        const serviceItems = app.order.items.filter(i => i.type === 'SERVICE' && i.service);
+                        if (serviceItems.length > 0) {
+                            appDuration = serviceItems.reduce((sum, item) => sum + (item.service.duration * item.quantity), 0);
+                        }
+                    }
+
                     const appEnd = addMinutes(appStart, appDuration);
 
-                    // Check Overlap
+                    // Allow strict touch? (EndA == StartB is OK)
+                    // If currentSlot == appEnd, it's fine.
+                    // Overlap: StartA < EndB && EndA > StartB
                     return (currentSlot < appEnd && potentialEnd > appStart);
                 });
 
                 if (!isOccupied) {
-                    // Format output HH:mm
-                    const timeString = format(currentSlot, 'HH:mm');
+                    // Convert back to SP Time string for frontend display "09:00"
+                    const zonedSlot = utcToZonedTime(currentSlot, TIMEZONE);
+                    const timeString = format(zonedSlot, 'HH:mm');
                     slots.push(timeString);
                 }
 
-                // Move to next slot
                 currentSlot = addMinutes(currentSlot, stepMinutes);
             }
 
