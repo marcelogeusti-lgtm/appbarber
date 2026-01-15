@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
-// Get Professional Profile (with Schedule)
+// Get Professional Profile (with Schedule and Services)
 exports.getProfessional = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -10,19 +10,22 @@ exports.getProfessional = async (req, res) => {
             where: { id: userId },
             include: {
                 professionalProfile: {
-                    include: { schedules: true }
+                    include: {
+                        schedules: true,
+                        services: true
+                    }
                 }
             }
         });
 
-        if (!pro || pro.role !== 'BARBER') {
-            // Note: Admin might also provide services? For now assuming simple Role check
-            // Or if professionalProfile exists
+        if (!pro) {
+            return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
         res.json(pro);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('Get Professional error:', error);
+        res.status(500).json({ message: 'Erro ao buscar profissional' });
     }
 };
 
@@ -76,9 +79,14 @@ exports.updateSchedule = async (req, res) => {
 
 exports.createProfessional = async (req, res) => {
     try {
-        console.log('Creating Professional Body:', req.body);
         const saasPlans = require('../config/saasPlans');
-        const { name, email, password, phone, position, barbershopId } = req.body;
+        const {
+            name, nickname, email, password, phone, landline, cpf, cnpj, rg,
+            gender, birthday, notes, avatarUrl, position, bio,
+            showInApp, showPublicly, appointmentInterval,
+            zipCode, street, number, complement, neighborhood, city, state, country,
+            services, schedules, role, active, barbershopId
+        } = req.body;
 
         if (!barbershopId) {
             return res.status(400).json({ message: 'ID da Barbearia é obrigatório' });
@@ -99,6 +107,7 @@ exports.createProfessional = async (req, res) => {
             where: {
                 workedBarbershopId: barbershopId,
                 role: 'BARBER',
+                deletedAt: null
             }
         });
 
@@ -106,7 +115,7 @@ exports.createProfessional = async (req, res) => {
 
         if (!isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
             return res.status(403).json({
-                message: `Limite de barbeiros atingido para o plano ${planConfig.name} ({activeBarbersCount}/{planConfig.maxBarbers}). Faça upgrade.`
+                message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade.`
             });
         }
         // --- SAAS LIMIT CHECK END ---
@@ -117,72 +126,74 @@ exports.createProfessional = async (req, res) => {
             include: { professionalProfile: true }
         });
 
-        if (existing) {
-            // IF ALREADY A BARBER/ADMIN/OWNER
-            if (existing.role !== 'CLIENT') {
-                return res.status(400).json({ message: 'E-mail já está em uso por outro membro da equipe ou administrador.' });
-            }
-
-            // IF CLIENT -> UPGRADE TO BARBER (Re-hire logic)
-            const hashedPassword = await bcrypt.hash(password, 10);
-
-            const updatedUser = await prisma.$transaction(async (tx) => {
-                const user = await tx.user.update({
-                    where: { id: existing.id },
-                    data: {
-                        role: 'BARBER',
-                        workedBarbershopId: barbershopId,
-                        password: hashedPassword, // Reset password for new access
-                        name, // Update details if changed
-                        phone
-                    }
-                });
-
-                if (existing.professionalProfile) {
-                    await tx.professional.update({
-                        where: { id: existing.professionalProfile.id },
-                        data: { position: position || 'Barbeiro' }
-                    });
-                } else {
-                    await tx.professional.create({
-                        data: {
-                            userId: user.id,
-                            position: position || 'Barbeiro'
-                        }
-                    });
-                }
-                return user;
-            });
-
-            return res.status(201).json(updatedUser);
+        if (existing && !existing.deletedAt) {
+            return res.status(400).json({ message: 'E-mail já está em uso.' });
         }
 
-        // NEW USER CREATION
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password || '123456', 10);
 
-        const user = await prisma.$transaction(async (tx) => {
-            const newUser = await tx.user.create({
-                data: {
-                    name,
-                    email,
-                    password: hashedPassword,
-                    phone,
-                    role: 'BARBER',
-                    workedBarbershopId: barbershopId
+        const newUser = await prisma.$transaction(async (tx) => {
+            // Create or Reactivate User
+            const user = await tx.user.upsert({
+                where: { email },
+                update: {
+                    name, nickname, phone, landline, cpf, cnpj, rg, gender,
+                    birthday: birthday ? new Date(birthday) : null,
+                    notes, avatarUrl, active: active !== undefined ? active : true,
+                    role: role || 'BARBER',
+                    workedBarbershopId: barbershopId,
+                    password: password ? hashedPassword : undefined,
+                    deletedAt: null
+                },
+                create: {
+                    name, nickname, email, phone, landline, cpf, cnpj, rg, gender,
+                    birthday: birthday ? new Date(birthday) : null,
+                    notes, avatarUrl, active: active !== undefined ? active : true,
+                    role: role || 'BARBER',
+                    workedBarbershopId: barbershopId,
+                    password: hashedPassword
                 }
             });
 
-            await tx.professional.create({
-                data: {
-                    userId: newUser.id,
-                    position: position || 'Barbeiro'
+            // Create or Update Professional Profile
+            const profile = await tx.professional.upsert({
+                where: { userId: user.id },
+                update: {
+                    position, bio, showInApp, showPublicly,
+                    appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : 30,
+                    zipCode, street, number, complement, neighborhood, city, state, country,
+                    deletedAt: null,
+                    services: services ? { set: services.map(id => ({ id })) } : undefined
+                },
+                create: {
+                    userId: user.id,
+                    position, bio, showInApp, showPublicly,
+                    appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : 30,
+                    zipCode, street, number, complement, neighborhood, city, state, country,
+                    services: services ? { connect: services.map(id => ({ id })) } : undefined
                 }
             });
 
-            return newUser;
+            // Update schedules if provided
+            if (schedules && schedules.length > 0) {
+                await tx.schedule.deleteMany({ where: { professionalId: profile.id } });
+                await tx.schedule.createMany({
+                    data: schedules.map(s => ({
+                        dayOfWeek: parseInt(s.dayOfWeek),
+                        startTime: s.startTime,
+                        endTime: s.endTime,
+                        breakStart: s.breakStart,
+                        breakEnd: s.breakEnd,
+                        isOff: !!s.isOff,
+                        professionalId: profile.id
+                    }))
+                });
+            }
+
+            return user;
         });
 
-        res.status(201).json(user);
+        res.status(201).json(newUser);
     } catch (error) {
         console.error('Create Prof error:', error);
         res.status(500).json({ message: 'Erro ao criar profissional: ' + error.message });
@@ -195,8 +206,19 @@ exports.listProfessionals = async (req, res) => {
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
         const pros = await prisma.user.findMany({
-            where: { workedBarbershopId: barbershopId, role: 'BARBER' },
-            include: { professionalProfile: { include: { schedules: true } } }
+            where: {
+                workedBarbershopId: barbershopId,
+                role: { in: ['BARBER', 'ADMIN'] },
+                deletedAt: null
+            },
+            include: {
+                professionalProfile: {
+                    include: {
+                        schedules: true,
+                        services: true
+                    }
+                }
+            }
         });
 
         res.json(pros);
@@ -209,24 +231,57 @@ exports.listProfessionals = async (req, res) => {
 exports.updateProfessional = async (req, res) => {
     try {
         const { id } = req.params;
-        const { active, name, phone, bio, position } = req.body;
+        const {
+            name, nickname, email, phone, landline, cpf, cnpj, rg,
+            gender, birthday, notes, avatarUrl, position, bio,
+            showInApp, showPublicly, appointmentInterval,
+            zipCode, street, number, complement, neighborhood, city, state, country,
+            services, schedules, role, active
+        } = req.body;
 
         const updated = await prisma.$transaction(async (tx) => {
+            // Update User
             const user = await tx.user.update({
                 where: { id },
                 data: {
-                    active,
-                    name,
-                    phone
+                    name, nickname, email, phone, landline, cpf, cnpj, rg, gender,
+                    birthday: birthday ? new Date(birthday) : undefined,
+                    notes, avatarUrl, active, role
                 }
             });
 
-            if (bio !== undefined || position !== undefined) {
-                const existingProfile = await tx.professional.findUnique({ where: { userId: id } });
-                if (existingProfile) {
-                    await tx.professional.update({
-                        where: { userId: id },
-                        data: { bio, position }
+            // Update Professional Profile
+            const profile = await tx.professional.upsert({
+                where: { userId: id },
+                update: {
+                    position, bio, showInApp, showPublicly,
+                    appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : undefined,
+                    zipCode, street, number, complement, neighborhood, city, state, country,
+                    services: services ? { set: services.map(id => ({ id })) } : undefined
+                },
+                create: {
+                    userId: id,
+                    position, bio, showInApp, showPublicly,
+                    appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : 30,
+                    zipCode, street, number, complement, neighborhood, city, state, country,
+                    services: services ? { connect: services.map(id => ({ id })) } : undefined
+                }
+            });
+
+            // Update schedules if provided
+            if (schedules) {
+                await tx.schedule.deleteMany({ where: { professionalId: profile.id } });
+                if (schedules.length > 0) {
+                    await tx.schedule.createMany({
+                        data: schedules.map(s => ({
+                            dayOfWeek: parseInt(s.dayOfWeek),
+                            startTime: s.startTime,
+                            endTime: s.endTime,
+                            breakStart: s.breakStart,
+                            breakEnd: s.breakEnd,
+                            isOff: !!s.isOff,
+                            professionalId: profile.id
+                        }))
                     });
                 }
             }
@@ -237,7 +292,7 @@ exports.updateProfessional = async (req, res) => {
         res.json(updated);
     } catch (error) {
         console.error('Update Pro error:', error);
-        res.status(500).json({ message: 'Server error updating professional' });
+        res.status(500).json({ message: 'Erro ao atualizar profissional' });
     }
 };
 

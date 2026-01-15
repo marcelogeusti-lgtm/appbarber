@@ -106,17 +106,25 @@ model Client {
 model User {
   id        String   @id @default(uuid())
   name      String
+  nickname  String?
   email     String?  @unique // Keep for legacy/lookup, but AuthUser handles login
   // password removed (moved to AuthUser) but kept optional for legacy during migration if needed, or just rely on AuthUser
   password  String? 
   phone     String?  @unique
+  landline  String?
+  cpf       String?  @unique
+  cnpj      String?  @unique
+  rg        String?
+  gender    String?
   birthday  DateTime?
   role      Role     @default(BARBER) // Primarily BARBER/ADMIN now
   avatarUrl String?
   active    Boolean  @default(true)
+  notes     String?  @db.Text
   tempPasswordExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   // Link to AuthUser (Optional during migration)
   authUserId String?   @unique
@@ -242,7 +250,29 @@ model Professional {
   bio       String?
   position  String? // Cargo (Ex: Barbeiro Sênior, Auxiliar)
   
+  // Visibility
+  showInApp     Boolean @default(true)
+  showPublicly  Boolean @default(true)
+  
+  // Appointment settings
+  appointmentInterval Int @default(30)
+  
+  // Address
+  zipCode      String?
+  street       String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+  country      String? @default("Brasil")
+
   schedules Schedule[]
+  services  Service[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
 }
 
 enum CommissionCalculationType {
@@ -287,6 +317,7 @@ model Service {
   packages     BarbershopPackage[]
   
   commissionOverrides ProfessionalServiceCommission[]
+  professionals       Professional[]
 }
 
 model Schedule {

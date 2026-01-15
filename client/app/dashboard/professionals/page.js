@@ -1,16 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
-import { Plus, User, Phone, Mail, Clock, Shield, X, Check, Calendar, Trash2, Edit } from 'lucide-react';
+import {
+    Plus, User, Phone, Mail, Clock, Shield, X, Check,
+    Calendar, Trash2, Edit, MapPin, Eye, EyeOff, Building
+} from 'lucide-react';
+import ProfessionalModal from '../../../components/ProfessionalModal';
 
 export default function ProfessionalsPage() {
     const [pros, setPros] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [actionLoading, setActionLoading] = useState(false);
-    const [isAdding, setIsAdding] = useState(false);
-    const [editingScheduleId, setEditingScheduleId] = useState(null);
-    const [tempSchedules, setTempSchedules] = useState([]);
-    const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '', position: '' });
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedPro, setSelectedPro] = useState(null);
 
     useEffect(() => {
         fetchPros();
@@ -30,71 +31,19 @@ export default function ProfessionalsPage() {
         }
     };
 
-    const handleAddPro = async (e) => {
-        e.preventDefault();
-        setActionLoading(true);
-        try {
-            const userStr = localStorage.getItem('user');
-            const user = JSON.parse(userStr);
-            const barbershopId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
-            if (!barbershopId) {
-                alert('Erro: ID da barbearia não encontrado. Faça login novamente.');
-                setActionLoading(false);
-                return;
-            }
-
-            await api.post('/professionals', {
-                ...formData,
-                barbershopId
-            });
-
-            setFormData({ name: '', email: '', password: '', phone: '', position: '' });
-            setIsAdding(false);
-            await fetchPros();
-            alert('✅ Profissional cadastrado com sucesso!');
-        } catch (err) {
-            console.error(err);
-            if (err.response?.status === 403 && err.response?.data?.message) {
-                // SaaS Limit Reached
-                alert(`⚠️ Atenção: ${err.response.data.message}`);
-            } else {
-                alert('❌ Erro ao cadastrar: ' + (err.response?.data?.message || err.message));
-            }
-        } finally {
-            setActionLoading(false);
-        }
+    const handleEditPro = (pro) => {
+        setSelectedPro(pro);
+        setModalOpen(true);
     };
 
-    const openScheduleEditor = (pro) => {
-        const existing = pro.professionalProfile?.schedules || [];
-        const days = [0, 1, 2, 3, 4, 5, 6];
-        const initial = days.map(d => {
-            const match = existing.find(s => s.dayOfWeek === d);
-            return match || { dayOfWeek: d, startTime: '09:00', endTime: '18:00', breakStart: '12:00', breakEnd: '13:00', isOff: d === 0 };
-        });
-        setTempSchedules(initial);
-        setEditingScheduleId(pro.id);
-    };
-
-    const saveSchedule = async () => {
-        setActionLoading(true);
-        try {
-            await api.put('/professionals/schedule', { userId: editingScheduleId, schedules: tempSchedules });
-            setEditingScheduleId(null);
-            await fetchPros();
-            alert('✅ Jornada de trabalho atualizada!');
-        } catch (err) {
-            alert('❌ Erro ao salvar horários');
-        } finally {
-            setActionLoading(false);
-        }
+    const handleAddPro = () => {
+        setSelectedPro(null);
+        setModalOpen(true);
     };
 
     const handleDeletePro = async (proId, proName) => {
-        if (!confirm(`Tem certeza que deseja remover o profissional ${proName}? Esta ação não pode ser desfeita e ele perderá o acesso de barbeiro.`)) return;
+        if (!confirm(`Tem certeza que deseja remover o profissional ${proName}? Ele será desativado do sistema.`)) return;
 
-        setActionLoading(true);
         try {
             await api.delete(`/professionals/${proId}`);
             await fetchPros();
@@ -102,201 +51,184 @@ export default function ProfessionalsPage() {
         } catch (err) {
             console.error(err);
             alert('❌ Erro ao remover: ' + (err.response?.data?.message || err.message));
-        } finally {
-            setActionLoading(false);
         }
     };
 
-    const toggleDayOff = (dayOfWeek) => {
-        setTempSchedules(prev => prev.map(s => s.dayOfWeek === dayOfWeek ? { ...s, isOff: !s.isOff } : s));
-    };
-
-    const updateTime = (dayOfWeek, field, value) => {
-        setTempSchedules(prev => prev.map(s => s.dayOfWeek === dayOfWeek ? { ...s, [field]: value } : s));
-    };
-
-    const dayName = (d) => ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][d];
-
-    if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse font-bold uppercase text-xs">Carregando equipe...</div>;
+    if (loading) return (
+        <div className="p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            <span className="font-black uppercase text-[10px] tracking-widest">Carregando sua equipe...</span>
+        </div>
+    );
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-3xl border border-slate-800 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
-                        <User className="w-8 h-8" />
+            {/* Header */}
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] -mr-32 -mt-32" />
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="p-4 bg-emerald-500/10 text-emerald-500 rounded-[1.5rem] border border-emerald-500/20 shadow-inner">
+                        <User className="w-10 h-10" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Gestão de Equipe</h1>
-                        <p className="text-slate-500 text-sm font-medium italic">Cadastre e gerencie os profissionais e suas jornadas.</p>
+                        <h1 className="text-4xl font-black uppercase tracking-tighter text-white">Equipe</h1>
+                        <p className="text-slate-500 text-sm font-bold uppercase tracking-widest italic mt-1">Gerencie talentos, horários e permissões.</p>
                     </div>
                 </div>
-                {!isAdding && (
-                    <button
-                        onClick={() => setIsAdding(true)}
-                        className="flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 transition"
-                    >
-                        <Plus className="w-4 h-4" /> Adicionar Profissional
-                    </button>
-                )}
+                <button
+                    onClick={handleAddPro}
+                    className="relative z-10 flex items-center gap-3 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-emerald-500/30 hover:bg-emerald-600 hover:scale-105 transition-all active:scale-95"
+                >
+                    <Plus className="w-5 h-5" /> Adicionar Profissional
+                </button>
             </header>
 
-            {isAdding && (
-                <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl animate-in fade-in slide-in-from-top-4">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold uppercase tracking-wider text-white">Novo Profissional</h2>
-                        <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-red-500 transition"><X /></button>
-                    </div>
-                    <form onSubmit={handleAddPro} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nome Completo</label>
-                            <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Cargo / Função</label>
-                            <input placeholder="Ex: Barbeiro Sênior" value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">E-mail de Acesso</label>
-                            <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Telefone / WhatsApp</label>
-                            <input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Senha Temporária</label>
-                            <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition" required />
-                        </div>
+            {/* List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {pros.map(pro => (
+                    <div key={pro.id} className={`group bg-[#111827] rounded-[2.5rem] border transition-all duration-500 relative overflow-hidden flex flex-col ${pro.active ? 'border-slate-800 hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/5' : 'border-red-500/20 opacity-70'
+                        }`}>
 
-                        <div className="md:col-span-2 pt-4 flex gap-4">
+                        {/* Status Batch */}
+                        {!pro.active && (
+                            <div className="absolute top-6 left-6 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">
+                                Inativo
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="absolute top-6 right-6 z-10 flex gap-2">
                             <button
-                                type="submit"
-                                disabled={actionLoading}
-                                className={`flex-1 bg-white text-slate-900 p-4 rounded-xl font-black uppercase tracking-widest transition hover:bg-slate-200 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => handleEditPro(pro)}
+                                className="p-3 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-slate-400 hover:text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all"
+                                title="Editar"
                             >
-                                {actionLoading ? 'SALVANDO...' : 'SALVAR CADASTRO'}
+                                <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => handleDeletePro(pro.id, pro.name)}
+                                className="p-3 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-slate-400 hover:text-red-500 hover:border-red-500/50 hover:bg-red-500/10 transition-all"
+                                title="Remover"
+                            >
+                                <Trash2 className="w-4 h-4" />
                             </button>
                         </div>
-                    </form>
-                </div>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pros.map(pro => (
-                    <div key={pro.id} className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 hover:border-emerald-500/50 transition-all group relative">
-                        {/* Delete Button */}
-                        <button
-                            onClick={() => handleDeletePro(pro.id, pro.name)}
-                            className="absolute top-6 right-6 p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 hover:text-red-500 hover:border-red-500/50 hover:bg-red-500/10 transition-all z-10"
-                            title="Remover Profissional"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center font-black text-2xl text-emerald-500 border border-slate-800 group-hover:scale-110 transition-transform">
-                                {pro.name.charAt(0)}
-                            </div>
-                            <div>
-                                <h3 className="font-black text-xl text-white uppercase tracking-tight">{pro.name}</h3>
-                                <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                    <Shield className="w-3 h-3" /> {pro.professionalProfile?.position || 'Barbeiro'}
-                                </p>
-                            </div>
+                        {/* Card Image/Avatar Header */}
+                        <div className="h-32 bg-slate-950 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#111827]" />
+                            {pro.professionalProfile?.showPublicly ? (
+                                <div className="absolute bottom-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+                                    <Eye className="w-3 h-3" /> Público
+                                </div>
+                            ) : (
+                                <div className="absolute bottom-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-slate-500 bg-slate-500/10 px-2 py-1 rounded-full border border-slate-500/20">
+                                    <EyeOff className="w-3 h-3" /> Privado
+                                </div>
+                            )}
                         </div>
 
-                        <div className="space-y-3 mb-8">
-                            <div className="flex items-center gap-3 text-slate-400 text-sm">
-                                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center border border-slate-800"><Phone className="w-4 h-4" /></div>
-                                <span className="font-medium">{pro.phone || 'Sem telefone'}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-slate-400 text-sm">
-                                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center border border-slate-800"><Mail className="w-4 h-4" /></div>
-                                <span className="font-medium">{pro.email}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-emerald-500 text-xs font-bold bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20">
-                                <Clock className="w-4 h-4" />
-                                <span>
-                                    {pro.professionalProfile?.schedules?.length > 0
-                                        ? pro.professionalProfile.schedules.filter(s => !s.isOff).length + ' DIAS DE ATENDIMENTO'
-                                        : 'HORÁRIO NÃO DEFINIDO'}
-                                </span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => openScheduleEditor(pro)}
-                            className="w-full border border-slate-700 bg-slate-900 p-4 rounded-xl font-black text-xs text-slate-300 uppercase tracking-widest hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all flex items-center justify-center gap-2"
-                        >
-                            <Calendar className="w-4 h-4" /> DEFINIR JORNADA
-                        </button>
-                    </div>
-                ))}
-            </div>
-
-            {/* Schedule Modal */}
-            {editingScheduleId && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#111827] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-700">
-                        <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-emerald-500 text-white">
-                            <h2 className="text-xl font-bold uppercase">Definir Jornada de Trabalho</h2>
-                            <button onClick={() => setEditingScheduleId(null)} className="hover:text-slate-200"><X /></button>
-                        </div>
-                        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
-                            {tempSchedules.map((s, idx) => (
-                                <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border ${s.isOff ? 'bg-slate-900/50 border-slate-800 opacity-50' : 'bg-slate-900 border-emerald-500/30'}`}>
-                                    <div className="w-32">
-                                        <p className="font-bold text-white">{dayName(s.dayOfWeek)}</p>
-                                        <button
-                                            onClick={() => toggleDayOff(s.dayOfWeek)}
-                                            className={`text-[10px] font-black uppercase tracking-widest ${s.isOff ? 'text-red-500' : 'text-emerald-500'}`}
-                                        >
-                                            {s.isOff ? 'OFF (Folga)' : 'ON (Trabalha)'}
-                                        </button>
-                                    </div>
-                                    {!s.isOff && (
-                                        <div className="flex flex-col gap-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest pl-1">Entrada</p>
-                                                    <input type="time" value={s.startTime} onChange={e => updateTime(s.dayOfWeek, 'startTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
-                                                </div>
-                                                <span className="text-slate-500 text-[10px] uppercase font-bold mt-4">até</span>
-                                                <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest pl-1">Saída</p>
-                                                    <input type="time" value={s.endTime} onChange={e => updateTime(s.dayOfWeek, 'endTime', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-3 border-t border-slate-800/50 pt-3">
-                                                <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest pl-1">Início Almoço</p>
-                                                    <input type="time" value={s.breakStart || '12:00'} onChange={e => updateTime(s.dayOfWeek, 'breakStart', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
-                                                </div>
-                                                <span className="text-slate-500 text-[10px] uppercase font-bold mt-4">até</span>
-                                                <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest pl-1">Fim Almoço</p>
-                                                    <input type="time" value={s.breakEnd || '13:00'} onChange={e => updateTime(s.dayOfWeek, 'breakEnd', e.target.value)} className="p-2 border border-slate-700 rounded-lg bg-slate-950 text-white font-bold text-xs" />
-                                                </div>
-                                            </div>
+                        <div className="px-8 pb-8 -mt-12 flex-1 flex flex-col relative z-20">
+                            <div className="flex items-end gap-4 mb-6">
+                                <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border-4 border-[#111827] shadow-2xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                                    {pro.avatarUrl ? (
+                                        <img src={pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center font-black text-4xl text-emerald-500">
+                                            {pro.name.charAt(0)}
                                         </div>
                                     )}
                                 </div>
-                            ))}
+                                <div className="pb-2">
+                                    <h3 className="font-black text-2xl text-white uppercase tracking-tighter leading-none">{pro.name}</h3>
+                                    <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+                                        <Shield className="w-3 h-3" /> {pro.professionalProfile?.position || 'Profissional'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 mb-8 flex-1">
+                                <div className="flex items-center gap-3 text-slate-400">
+                                    <div className="w-10 h-10 rounded-2xl bg-slate-950 flex items-center justify-center border border-slate-800 shadow-inner group-hover:text-emerald-500 transition-colors">
+                                        <Phone className="w-4 h-4" />
+                                    </div>
+                                    <span className="font-bold text-sm tracking-tight">{pro.phone || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-slate-400">
+                                    <div className="w-10 h-10 rounded-2xl bg-slate-950 flex items-center justify-center border border-slate-800 shadow-inner group-hover:text-emerald-500 transition-colors">
+                                        <Mail className="w-4 h-4" />
+                                    </div>
+                                    <span className="font-bold text-sm tracking-tight truncate">{pro.email}</span>
+                                </div>
+                                {pro.professionalProfile?.city && (
+                                    <div className="flex items-center gap-3 text-slate-400">
+                                        <div className="w-10 h-10 rounded-2xl bg-slate-950 flex items-center justify-center border border-slate-800 shadow-inner group-hover:text-emerald-500 transition-colors">
+                                            <MapPin className="w-4 h-4" />
+                                        </div>
+                                        <span className="font-bold text-sm tracking-tight truncate">{pro.professionalProfile.city} - {pro.professionalProfile.state}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-slate-950/50 p-4 rounded-3xl border border-slate-800/50 group-hover:border-emerald-500/20 transition-all cursor-default">
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Agenda</p>
+                                    <div className="flex items-center gap-2 text-white">
+                                        <Clock className="w-3 h-3 text-emerald-500" />
+                                        <span className="text-[10px] font-black">{pro.professionalProfile?.schedules?.filter(s => !s.isOff).length || 0} Dias</span>
+                                    </div>
+                                </div>
+                                <div className="bg-slate-950/50 p-4 rounded-3xl border border-slate-800/50 group-hover:border-emerald-500/20 transition-all cursor-default">
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Serviços</p>
+                                    <div className="flex items-center gap-2 text-white">
+                                        <Building className="w-3 h-3 text-emerald-500" />
+                                        <span className="text-[10px] font-black">{pro.professionalProfile?.services?.length || 0} Itens</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="p-6 bg-slate-900 border-t border-slate-800 flex justify-end gap-3">
-                            <button
-                                onClick={saveSchedule}
-                                disabled={actionLoading}
-                                className={`bg-white text-slate-900 px-8 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-slate-200 transition ${actionLoading ? 'opacity-50' : ''}`}
-                            >
-                                {actionLoading ? 'SALVANDO...' : 'SALVAR JORNADA'}
-                            </button>
-                        </div>
+
+                        <button
+                            onClick={() => handleEditPro(pro)}
+                            className="m-8 mt-0 bg-slate-950 border border-slate-800 p-4 rounded-2xl font-black text-[10px] text-slate-400 uppercase tracking-[0.2em] group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 group-hover:shadow-xl group-hover:shadow-emerald-500/20 transition-all flex items-center justify-center gap-3"
+                        >
+                            <Edit className="w-4 h-4" /> Gerenciar Profile
+                        </button>
                     </div>
-                </div>
-            )}
+                ))}
+
+                {/* Empty State */}
+                {pros.length === 0 && (
+                    <div className="col-span-full py-20 bg-[#111827] rounded-[3rem] border-2 border-dashed border-slate-800 flex flex-col items-center justify-center text-center">
+                        <div className="w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center mb-6 border border-slate-800">
+                            <User className="w-12 h-12 text-slate-600" />
+                        </div>
+                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Nenhum Profissional Cadastrado</h3>
+                        <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mt-2">Comece adicionando seu primeiro membro de equipe.</p>
+                        <button
+                            onClick={handleAddPro}
+                            className="mt-8 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-emerald-500/30 hover:bg-emerald-600 transition"
+                        >
+                            Cadastrar Agora
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            <ProfessionalModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                professional={selectedPro}
+                onSuccess={fetchPros}
+            />
         </div>
     );
 }
+
+const Loader2 = ({ className }) => (
+    <div className={`animate-spin ${className}`}>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2V6M12 18V22M6 12H2M22 12H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    </div>
+);
