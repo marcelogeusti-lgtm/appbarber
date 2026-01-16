@@ -126,8 +126,8 @@ exports.createProfessional = async (req, res) => {
             include: { professionalProfile: true }
         });
 
-        if (existing && !existing.deletedAt) {
-            return res.status(400).json({ message: 'E-mail já está em uso.' });
+        if (existing && !existing.deletedAt && (existing.role === 'BARBER' || existing.role === 'ADMIN')) {
+            return res.status(400).json({ message: 'E-mail já está em uso por outro profissional.' });
         }
 
         const hashedPassword = await bcrypt.hash(password || '123456', 10);
@@ -209,7 +209,10 @@ exports.listProfessionals = async (req, res) => {
             where: {
                 workedBarbershopId: barbershopId,
                 role: { in: ['BARBER', 'ADMIN'] },
-                deletedAt: null
+                deletedAt: null,
+                professionalProfile: {
+                    deletedAt: null
+                }
             },
             include: {
                 professionalProfile: {
@@ -306,7 +309,7 @@ exports.deleteProfessional = async (req, res) => {
             include: { professionalProfile: true }
         });
 
-        if (!pro || pro.role !== 'BARBER') {
+        if (!pro || (pro.role !== 'BARBER' && pro.role !== 'ADMIN')) {
             return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
@@ -316,21 +319,21 @@ exports.deleteProfessional = async (req, res) => {
         // 3. Set active = false (optional, but good for keeping history without access)
 
         await prisma.$transaction(async (tx) => {
-            // Remove Schedules
+            // Soft Delete Professional Profile
             if (pro.professionalProfile) {
-                await tx.schedule.deleteMany({ where: { professionalId: pro.professionalProfile.id } });
-                await tx.professional.delete({ where: { id: pro.professionalProfile.id } });
+                await tx.professional.update({
+                    where: { id: pro.professionalProfile.id },
+                    data: { deletedAt: new Date() }
+                });
+                // Note: We keep schedules but they won't be accessible because the profile is marked deleted
             }
 
-            // Downgrade User
+            // Downgrade User and remove linkage
             await tx.user.update({
                 where: { id },
                 data: {
                     role: 'CLIENT',
                     workedBarbershopId: null,
-                    // active: false // We can keep them active as client, or inactive. Let's keep active as client so history is preserved? 
-                    // Usually "Delete Employee" means "Remove from my team". 
-                    // Downgrading to CLIENT is the best practice to keep financial history.
                 }
             });
         });

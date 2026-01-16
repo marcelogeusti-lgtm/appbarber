@@ -162,19 +162,68 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
         }
     };
 
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 720;
+                    const MAX_HEIGHT = 720;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error('Canvas conversion failed'));
+                        }
+                    }, 'image/jpeg', 0.8);
+                };
+            };
+        });
+    };
+
     const handleAvatarChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         setUploading(true);
         try {
+            // Compress if size > 300KB
+            let fileToUpload = file;
+            if (file.size > 300000) {
+                fileToUpload = await compressImage(file);
+            }
+
             const storageRef = ref(storage, `professionals/${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
+            const snapshot = await uploadBytes(storageRef, fileToUpload);
             const url = await getDownloadURL(snapshot.ref);
             setValue('avatarUrl', url);
         } catch (err) {
             console.error('Upload error:', err);
-            alert('Erro ao enviar imagem');
+            alert('Erro ao enviar imagem: ' + err.message);
         } finally {
             setUploading(false);
         }
@@ -254,8 +303,8 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                             type="button"
                             onClick={() => setTab(t.id)}
                             className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === t.id
-                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                    : 'text-slate-500 hover:bg-slate-900 hover:text-slate-300'
+                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                : 'text-slate-500 hover:bg-slate-900 hover:text-slate-300'
                                 }`}
                         >
                             {t.icon} {t.label}
@@ -365,8 +414,8 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {availableServices.map(service => (
                                         <label key={service.id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${watch('services')?.includes(service.id)
-                                                ? 'bg-emerald-500/10 border-emerald-500'
-                                                : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                                            ? 'bg-emerald-500/10 border-emerald-500'
+                                            : 'bg-slate-900 border-slate-800 hover:border-slate-700'
                                             }`}>
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${watch('services')?.includes(service.id) ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-700'
