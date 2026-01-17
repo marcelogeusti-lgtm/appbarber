@@ -97,7 +97,8 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
             onClose();
         } catch (error) {
             console.error('Error creating client:', error);
-            alert('Erro ao cadastrar cliente. Verifique se o telefone já existe.');
+            const msg = error.response?.data?.message || error.message || 'Erro deconhecido';
+            alert(`Erro ao cadastrar cliente: ${msg}`);
         } finally {
             setLoading(false);
         }
