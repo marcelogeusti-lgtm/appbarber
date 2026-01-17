@@ -41,6 +41,7 @@ const professionalSchema = z.object({
     country: z.string().default('Brasil'),
     role: z.enum(['BARBER', 'ADMIN', 'BARBER_CONSULTA']).default('BARBER'),
     active: z.boolean().default(true),
+    commissionPercent: z.string().optional(),
     services: z.array(z.string()).optional(),
 });
 
@@ -98,6 +99,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                     country: professional.professionalProfile?.country || 'Brasil',
                     role: professional.role || 'BARBER',
                     active: professional.active ?? true,
+                    commissionPercent: professional.professionalProfile?.commissionPercent?.toString() || '',
                     services: professional.professionalProfile?.services?.map(s => s.id) || [],
                 });
 
@@ -171,8 +173,8 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 720;
-                    const MAX_HEIGHT = 720;
+                    const MAX_WIDTH = 1920;
+                    const MAX_HEIGHT = 1920;
                     let width = img.width;
                     let height = img.height;
 
@@ -199,7 +201,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         } else {
                             reject(new Error('Canvas conversion failed'));
                         }
-                    }, 'image/jpeg', 0.8);
+                    }, 'image/jpeg', 0.9);
                 };
             };
         });
@@ -339,6 +341,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                     </select>
                                 </div>
                                 <Input label="Data de Nascimento" name="birthday" type="date" register={register} error={errors.birthday} />
+                                <Input label="Comissão (%)" name="commissionPercent" type="number" step="0.1" placeholder="Ex: 50" register={register} error={errors.commissionPercent} />
                                 <div className="md:col-span-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Observações</label>
                                     <textarea {...register('notes')} rows={3} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition" />

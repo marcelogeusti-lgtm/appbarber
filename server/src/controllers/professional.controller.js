@@ -85,7 +85,7 @@ exports.createProfessional = async (req, res) => {
             gender, birthday, notes, avatarUrl, position, bio,
             showInApp, showPublicly, appointmentInterval,
             zipCode, street, number, complement, neighborhood, city, state, country,
-            services, schedules, role, active, barbershopId
+            services, schedules, role, active, barbershopId, commissionPercent
         } = req.body;
 
         if (!barbershopId) {
@@ -170,7 +170,8 @@ exports.createProfessional = async (req, res) => {
                     position, bio, showInApp, showPublicly,
                     appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : 30,
                     zipCode, street, number, complement, neighborhood, city, state, country,
-                    services: services ? { connect: services.map(id => ({ id })) } : undefined
+                    services: services ? { connect: services.map(id => ({ id })) } : undefined,
+                    commissionPercent: commissionPercent ? parseFloat(commissionPercent) : 0
                 }
             });
 
@@ -239,7 +240,7 @@ exports.updateProfessional = async (req, res) => {
             gender, birthday, notes, avatarUrl, position, bio,
             showInApp, showPublicly, appointmentInterval,
             zipCode, street, number, complement, neighborhood, city, state, country,
-            services, schedules, role, active
+            services, schedules, role, active, commissionPercent
         } = req.body;
 
         const updated = await prisma.$transaction(async (tx) => {
@@ -260,7 +261,8 @@ exports.updateProfessional = async (req, res) => {
                     position, bio, showInApp, showPublicly,
                     appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : undefined,
                     zipCode, street, number, complement, neighborhood, city, state, country,
-                    services: services ? { set: services.map(id => ({ id })) } : undefined
+                    services: services ? { set: services.map(id => ({ id })) } : undefined,
+                    commissionPercent: commissionPercent ? parseFloat(commissionPercent) : undefined
                 },
                 create: {
                     userId: id,

@@ -98,7 +98,7 @@ exports.listClients = async (req, res) => {
 
 exports.createClient = async (req, res) => {
     try {
-        const { name, phone, email, notes, barbershopId } = req.body;
+        const { name, phone, email, notes, barbershopId, avatarUrl } = req.body;
 
         if (!name || !phone || !barbershopId) {
             return res.status(400).json({ message: 'Nome, Telefone e Barbearia são obrigatórios' });
@@ -120,7 +120,8 @@ exports.createClient = async (req, res) => {
                     name,
                     phone,
                     email: email || null,
-                    role: 'CLIENT'
+                    role: 'CLIENT',
+                    avatarUrl: avatarUrl || null
                 }
             });
         } else {

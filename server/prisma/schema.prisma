@@ -267,6 +267,8 @@ model Professional {
   state        String?
   country      String? @default("Brasil")
 
+  commissionPercent Float? @default(0)
+
   schedules Schedule[]
   services  Service[]
   
