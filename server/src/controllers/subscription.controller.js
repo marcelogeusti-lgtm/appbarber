@@ -147,3 +147,60 @@ exports.getSubscribers = async (req, res) => {
         res.status(500).json({ message: 'Error fetching subscribers' });
     }
 };
+
+exports.assignPlanToClient = async (req, res) => {
+    try {
+        const { clientId, planId } = req.body;
+
+        // Validation
+        if (!clientId || !planId) {
+            return res.status(400).json({ message: 'Cliente e Plano são obrigatórios' });
+        }
+
+        const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
+        if (!plan) return res.status(404).json({ message: 'Plano não encontrado' });
+
+        const client = await prisma.user.findUnique({ where: { id: clientId } });
+        if (!client) return res.status(404).json({ message: 'Cliente não encontrado' });
+
+        // Calculate end date
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(startDate.getDate() + plan.validityDays);
+
+        // Deactivate previous active subscriptions for this barbershop?
+        // Logic: A user can have only one active subscription per barbershop usually.
+        // Let's deactivate others.
+        await prisma.userSubscription.updateMany({
+            where: {
+                userId: clientId,
+                status: 'ACTIVE',
+                plan: { barbershopId: plan.barbershopId }
+            },
+            data: { status: 'CANCELED' }
+        });
+
+        // Create Subscription
+        const sub = await prisma.userSubscription.create({
+            data: {
+                userId: clientId,
+                planId,
+                startDate,
+                endDate,
+                remainingCuts: plan.quantityOfCuts,
+                status: 'ACTIVE'
+            }
+        });
+
+        // Log Transaction (Manual assignment usually implies payment handled elsewhere or cash)
+        // We won't auto-create transaction unless requested, or create as "PENDING" payment?
+        // User request: "SUBSCRIPTION CREATION IS FAILING... Requires a valid clientId"
+        // Let's assume this is the fix for that flow.
+
+        res.status(201).json(sub);
+
+    } catch (error) {
+        console.error('Assign Plan Error:', error);
+        res.status(500).json({ message: 'Erro ao atribuir plano ao cliente' });
+    }
+};

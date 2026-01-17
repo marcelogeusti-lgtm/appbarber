@@ -9,32 +9,34 @@ exports.listClients = async (req, res) => {
         const { barbershopId } = req.query;
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        // Find IDs from appointments
-        const appointmentClients = await prisma.appointment.findMany({
-            where: { barbershopId },
-            select: { clientId: true },
-            distinct: ['clientId']
-        });
+        // Strategy: Get all clients linked to this barbershop via Log, Appointment, or Order.
+        // We rely heavily on CommunicationLog which is created on registration.
 
-        // Find IDs from orders
-        const orderClients = await prisma.order.findMany({
-            where: { barbershopId },
-            select: { clientId: true },
-            distinct: ['clientId']
-        });
+        const clientIds = new Set();
 
-        // Find IDs from communication logs (Manual Adds)
+        // 1. Get from Communication Logs (Primary source for "My Clients")
         const logClients = await prisma.communicationLog.findMany({
             where: { barbershopId },
             select: { clientId: true },
             distinct: ['clientId']
         });
+        logClients.forEach(c => clientIds.add(c.clientId));
 
-        const clientIds = new Set([
-            ...appointmentClients.map(a => a.clientId),
-            ...orderClients.map(o => o.clientId),
-            ...logClients.map(l => l.clientId)
-        ]);
+        // 2. Get from Appointments (Historical)
+        const appointmentClients = await prisma.appointment.findMany({
+            where: { barbershopId },
+            select: { clientId: true },
+            distinct: ['clientId']
+        });
+        appointmentClients.forEach(c => clientIds.add(c.clientId));
+
+        // 3. Get from Orders (Historical)
+        const orderClients = await prisma.order.findMany({
+            where: { barbershopId },
+            select: { clientId: true },
+            distinct: ['clientId']
+        });
+        orderClients.forEach(c => clientIds.add(c.clientId));
 
         // Fetch User Details
         // Also fetch aggregation data (Last visit, Total spent) for the list? 

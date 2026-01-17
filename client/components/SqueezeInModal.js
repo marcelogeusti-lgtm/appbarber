@@ -4,6 +4,7 @@ import api from '../lib/api';
 import { X, Search, Calendar, Clock, User, Scissors, AlertCircle, CheckCircle, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { normalizeString } from '../lib/utils/string';
 
 export default function SqueezeInModal({ isOpen, onClose, services, barbershopId, onConfirm }) {
     const [step, setStep] = useState(0); // 0: Client, 1: Service, 2: Date, 3: Results
@@ -87,10 +88,14 @@ export default function SqueezeInModal({ isOpen, onClose, services, barbershopId
         onClose();
     };
 
-    const filteredClients = clients.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.phone?.includes(searchTerm)
-    );
+    const filteredClients = clients.filter(c => {
+        const query = normalizeString(searchTerm);
+        const name = normalizeString(c.name);
+        const phone = normalizeString(c.phone);
+        const email = normalizeString(c.email);
+
+        return name.includes(query) || phone.includes(query) || email.includes(query);
+    });
 
     if (!isOpen) return null;
 
