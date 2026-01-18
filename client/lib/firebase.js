@@ -17,3 +17,8 @@ export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 export const facebookProvider = new FacebookAuthProvider();
+
+// Safe check for development
+if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+    console.warn("⚠️ Firebase configs are missing. Social login will not work.");
+}

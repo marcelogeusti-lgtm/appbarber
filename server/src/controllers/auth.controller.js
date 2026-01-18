@@ -199,6 +199,8 @@ exports.socialLogin = async (req, res) => {
         // Payload from Frontend (Firebase/Google Identity)
         const { email, name, provider, providerId, avatarUrl } = req.body;
 
+        console.log(`[AUTH] Social Login attempt: ${email} via ${provider}`);
+
         if (!email || !provider) {
             return res.status(400).json({ message: 'Email e Provider são obrigatórios' });
         }
@@ -210,15 +212,7 @@ exports.socialLogin = async (req, res) => {
         });
 
         if (authUser) {
-            // User exists
-            // Security Check: If existing provider is different?
-            // If existing is EMAIL, we might allow social login if trust is high.
-            // Ideally we check if `provider` matches or if we support linking.
-            // For now: Allow login but update avatar if missing?
-
-            // Check Context blocks
-            // REMOVED BLOCK: If Pro tries to login via Social Client App -> ALLOW and Sync Client Profile
-
+            console.log(`[AUTH] User found: ${authUser.id}`);
             // Update info if new
             if (!authUser.client) {
                 // Determine name: use payload name, or fallback to Pro name, or default
@@ -234,6 +228,7 @@ exports.socialLogin = async (req, res) => {
                 authUser.client = client;
             }
         } else {
+            console.log(`[AUTH] Creating new user for social login`);
             // 2. Register New User (Social)
             // Transaction
             const result = await prisma.$transaction(async (tx) => {
@@ -274,7 +269,7 @@ exports.socialLogin = async (req, res) => {
 
     } catch (error) {
         console.error('Social Login Error:', error);
-        res.status(500).json({ message: 'Erro no login social' });
+        res.status(500).json({ message: 'Erro no login social. Tente novamente.' });
     }
 };
 
