@@ -8,19 +8,23 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
     const [clientData, setClientData] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    const barbershopId = user?.barbershop?.id || user?.barbershopId;
+
     useEffect(() => {
-        if (isOpen && clientId && user?.barbershop?.id) {
+        if (isOpen && clientId && barbershopId) {
             fetchClientDetails();
         }
-    }, [isOpen, clientId, user]);
+    }, [isOpen, clientId, barbershopId]);
 
     const fetchClientDetails = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/clients/${clientId}?barbershopId=${user.barbershop.id}`);
+            const res = await api.get(`/clients/${clientId}?barbershopId=${barbershopId}`);
             setClientData(res.data);
         } catch (error) {
             console.error('Error fetching client details:', error);
+            // Optional: Set an error state to show a retry button?
+            // For now, logging is enough as the UI shows "Erro ao carregar dados"
         } finally {
             setLoading(false);
         }
@@ -147,7 +151,7 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                                         </div>
                                                     </div>
                                                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${apt.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' :
-                                                            apt.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
+                                                        apt.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
                                                         }`}>
                                                         {apt.status}
                                                     </span>
