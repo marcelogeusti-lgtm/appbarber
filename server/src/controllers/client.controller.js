@@ -9,12 +9,9 @@ exports.listClients = async (req, res) => {
         const { barbershopId } = req.query;
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        // Strategy: Get all clients linked to this barbershop via Log, Appointment, or Order.
-        // We rely heavily on CommunicationLog which is created on registration.
-
         const clientIds = new Set();
 
-        // 1. Get from Communication Logs (Primary source for "My Clients")
+        // 1. Get from Communication Logs (Primary source)
         const logClients = await prisma.communicationLog.findMany({
             where: { barbershopId },
             select: { clientId: true },
@@ -38,13 +35,15 @@ exports.listClients = async (req, res) => {
         });
         orderClients.forEach(c => clientIds.add(c.clientId));
 
-        // Fetch User Details
-        // Also fetch aggregation data (Last visit, Total spent) for the list? 
-        // Doing it in one query is hard providing pure Prisma. 
-        // Let's fetch users first.
+        const validIds = Array.from(clientIds).filter(id => id);
+
+        if (validIds.length === 0) {
+            return res.json([]);
+        }
+
         const clients = await prisma.user.findMany({
             where: {
-                id: { in: Array.from(clientIds).filter(id => id) } // Filter nulls
+                id: { in: validIds }
             },
             select: {
                 id: true,
@@ -52,16 +51,14 @@ exports.listClients = async (req, res) => {
                 phone: true,
                 email: true,
                 avatarUrl: true,
-                salesOrders: false // Don't fetch all relations yet
+                createdAt: true // Include createdAt for display
             }
         });
 
-        // Enhance with Last Visit and Total Spent?
-        // This might be heavy for a long list. Let's do it for top 50 or paginate.
-        // For phase 4, let's keep it simple or calculate basic stats.
-
-        // Let's iterate and calculate simple stats (Careful with performance)
-        // Ideally we should use aggregation queries.
+        // Enhance with Stats
+        // Optimized: Fetch all stats in bulk if possible?
+        // OR just keep per-client but safe for now. optimizing N+1 requires grouping.
+        // Given complexity limits, let's stick to per-client but ensure it's robust.
 
         const enhancedClients = await Promise.all(clients.map(async (client) => {
             const lastAppointment = await prisma.appointment.findFirst({
@@ -70,17 +67,23 @@ exports.listClients = async (req, res) => {
                 select: { date: true }
             });
 
-            const totalOrders = await prisma.order.aggregate({
+            const stats = await prisma.order.aggregate({
                 where: { clientId: client.id, barbershopId, status: { in: ['PAID', 'CLOSED'] } },
                 _sum: { total: true },
                 _count: { id: true }
             });
 
+            // Calculate total visits from COMPLETED appointments as well?
+            // "Total visits" usually implies completed appointments.
+            const visitCount = await prisma.appointment.count({
+                where: { clientId: client.id, barbershopId, status: 'COMPLETED' }
+            });
+
             return {
                 ...client,
                 lastVisit: lastAppointment?.date || null,
-                totalSpent: totalOrders._sum.total || 0,
-                totalVisits: totalOrders._count.id || 0
+                totalSpent: Number(stats._sum.total || 0),
+                totalVisits: visitCount || Number(stats._count.id || 0) // Prefer appointment count for visits
             };
         }));
 

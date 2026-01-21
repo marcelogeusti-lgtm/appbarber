@@ -28,7 +28,8 @@ O Firebase cria um projeto no Google Cloud automaticamente, mas você deve autor
     - `https://corteconexao.com.br`
     - `http://localhost:3000` (Para testes locais)
 6.  **Authorized Redirect URIs**:
-    - `https://www.corteconexao.com.br/__/auth/handler` (**Muito Importante!** Copie exatamente do Firebase Console em "Authentication" -> "Sign-in method" -> "Google").
+    - `https://www.corteconexao.com.br/__/auth/handler`
+    - `https://barberon-ac7f5.firebaseapp.com/__/auth/handler` (URI padrão do seu projeto Firebase - **RECOMENDADO**)
 
 ## 3. Facebook Developers (Meta)
 1.  Acesse [Meta Developers](https://developers.facebook.com/).
@@ -36,7 +37,8 @@ O Firebase cria um projeto no Google Cloud automaticamente, mas você deve autor
 3.  Copie o **App ID** e **App Secret** e cole nas configurações do provedor Facebook no Firebase (Passo 1).
 4.  No menu lateral do Facebook Developers: **Facebook Login** -> **Settings**.
 5.  **Valid OAuth Redirect URIs**:
-    - `https://www.corteconexao.com.br/__/auth/handler` (Deve ser igual ao do Firebase).
+    - `https://barberon-ac7f5.firebaseapp.com/__/auth/handler` (Copie da sua tela do Firebase).
+    - `https://www.corteconexao.com.br/__/auth/handler`
 6.  Salve as alterações.
 
 ## 4. Variáveis de Ambiente (Vercel/Local)

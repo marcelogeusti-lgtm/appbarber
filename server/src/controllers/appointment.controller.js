@@ -151,10 +151,7 @@ exports.createAppointment = async (req, res) => {
 
                 clientId = result.client.id;
                 currentUser = { ...result.client, email: result.authUser.email, role: 'CLIENT' };
-                // Generate Token using helper from auth controller? Or local helper?
-                // Importing generateToken from auth controller might be circular or messy.
-                // We'll define a simpler one or duplicate it for now, or handle login on frontend after booking.
-                // Actually, the response expects 'token'.
+                // Generate Token
                 createdToken = jwt.sign(
                     { id: result.client.id, role: 'CLIENT', authUserId: result.authUser.id },
                     process.env.JWT_SECRET, { expiresIn: '30d' }
@@ -178,6 +175,23 @@ exports.createAppointment = async (req, res) => {
                 }
                 clientId = existingClient.id;
                 currentUser = { ...existingClient, role: 'CLIENT' };
+            }
+
+            // SECURITY: Ensure this new/guest client is linked to the barbershop via CommunicationLog
+            // This ensures they appear in the "Meus Clientes" list immediately.
+            if (clientId && service && service.barbershopId) {
+                // Fire and forget - don't block
+                prisma.communicationLog.create({
+                    data: {
+                        barbershopId: service.barbershopId,
+                        clientId: clientId,
+                        channel: 'SYSTEM',
+                        direction: 'INBOUND',
+                        type: 'APPOINTMENT_CREATED',
+                        content: 'Cliente criado/vinculado via Agendamento',
+                        status: 'READ'
+                    }
+                }).catch(err => console.error('[AutoLink] Failed to create CommunicationLog:', err.message));
             }
         } else {
             // Fetch Authenticated Client
