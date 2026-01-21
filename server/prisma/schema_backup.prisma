@@ -150,10 +150,6 @@ model User {
   // Notifications (Pro)
   notifications Notification[]
   theme         String @default("dark")
-
-  // Payment Orchestrator Relations
-  payments              Payment[]
-  externalSubscriptions SubscriptionExternal[]
 }
 
 model Notification {
@@ -553,9 +549,6 @@ model Order {
   
   items           OrderItem[]
   
-  // Payment Orchestrator Relation
-  payments        Payment[]
-
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -606,61 +599,4 @@ model CommunicationLog {
   status       String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-}
-
-// --- Payment Orchestrator Models ---
-
-model Payment {
-  id              String   @id @default(uuid())
-  gateway         String   // mercadopago | stripe | velify
-  method          String   // pix | card
-  externalId      String?  @map("external_id")
-  status          String   // pending | paid | failed | canceled
-  amount          Decimal  @db.Decimal(10, 2)
-  currency        String   @default("BRL")
-  
-  userId          String?  @map("user_id")
-  user            User?    @relation(fields: [userId], references: [id])
-  
-  // Optional: Link to existing models for compatibility
-  orderId         String?
-  order           Order?   @relation(fields: [orderId], references: [id]) 
-
-  subscriptionId  String?  @map("subscription_id") 
-  // subscription   SubscriptionExternal? @relation(fields: [subscriptionId], references: [id])
-
-  createdAt       DateTime @default(now()) @map("created_at")
-  paidAt          DateTime? @map("paid_at")
-
-  @@map("payments")
-}
-
-model SubscriptionExternal {
-  id              String   @id @default(uuid())
-  gateway         String   // stripe | mercadopago | velify
-  externalId      String   @map("external_subscription_id")
-  status          String   // active | past_due | canceled
-  plan            String   // monthly | yearly
-  
-  userId          String   @map("user_id")
-  user            User?    @relation(fields: [userId], references: [id])
-  
-  startedAt       DateTime @map("started_at")
-  expiresAt       DateTime @map("expires_at")
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@map("subscriptions_external")
-}
-
-model WebhookLog {
-  id              String   @id @default(uuid())
-  gateway         String   // stripe | mercadopago | velify
-  event           String
-  payload         Json
-  processed       Boolean  @default(false)
-  createdAt       DateTime @default(now()) @map("created_at")
-
-  @@map("webhook_logs")
 }

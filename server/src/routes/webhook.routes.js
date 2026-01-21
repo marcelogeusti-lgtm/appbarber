@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const webhookController = require('../controllers/webhook.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
 
-router.use(authMiddleware.protect);
-
-router.post('/', webhookController.createWebhook);
-router.get('/', webhookController.getWebhooks);
-router.put('/:id', webhookController.updateWebhook);
-router.delete('/:id', webhookController.deleteWebhook);
+// Dynamic route for different gateways
+// POST /webhooks/stripe
+// POST /webhooks/mercadopago
+// POST /webhooks/velify
+router.post('/:gateway', webhookController.handleWebhook);
 
 module.exports = router;
