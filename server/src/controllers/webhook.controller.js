@@ -1,5 +1,6 @@
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
-const prisma = require('../utils/prisma'); // Adjust path to prisma client if needed, usually in utils or root
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 exports.handleWebhook = async (req, res) => {
     const { gateway } = req.params;

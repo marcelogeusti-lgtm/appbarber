@@ -18,7 +18,8 @@ class PaymentOrchestrator {
         if (!barbershopId) throw new Error("Barbershop ID required for payment.");
 
         try {
-            const prisma = require('../../utils/prisma');
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
             const config = await prisma.gatewayConfig.findUnique({
                 where: {
                     barbershopId_gateway: {

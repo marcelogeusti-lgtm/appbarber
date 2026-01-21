@@ -1,4 +1,5 @@
-const prisma = require('../utils/prisma');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // Helper to mask secrets
 function maskCredentials(gateway, credentials) {
