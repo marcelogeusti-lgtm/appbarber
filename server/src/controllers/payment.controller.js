@@ -14,7 +14,12 @@ exports.createPayment = async (req, res) => {
         // 2. Fetch User Details for Customer Data
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, email: true, phone: true } // Add taxId if available
+            select: {
+                name: true,
+                email: true,
+                phone: true,
+                barbershopId: true // Needed for config lookup
+            }
         });
 
         if (!user) return res.status(404).json({ error: 'User not found' });
@@ -25,6 +30,7 @@ exports.createPayment = async (req, res) => {
             method,
             description: description || `Payment for user ${user.name}`,
             gateway, // Optional, defaults to Velify
+            barbershopId: user.barbershopId, // PASSING CONTEXT
             customer: {
                 name: user.name,
                 email: user.email,

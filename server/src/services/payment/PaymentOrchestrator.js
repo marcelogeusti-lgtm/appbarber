@@ -1,6 +1,6 @@
 const VelifyAdapter = require('./gateways/VelifyAdapter');
-// const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter'); // To be implemented
-// const StripeAdapter = require('./gateways/StripeAdapter'); // To be implemented
+// const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter'); 
+// const StripeAdapter = require('./gateways/StripeAdapter'); 
 
 class PaymentOrchestrator {
     constructor() {
@@ -12,33 +12,69 @@ class PaymentOrchestrator {
     }
 
     /**
-     * Selects the appropriate gateway based on logic or explicit request
-     * @param {String} gatewayName - Optional explicit gateway
-     * @returns {GatewayAdapter}
+     * Helper to get Gateway Credentials from DB
      */
-    getGateway(gatewayName = 'velify') {
-        const gateway = this.gateways[gatewayName];
-        if (!gateway) {
-            throw new Error(`Gateway '${gatewayName}' not configured or not found.`);
+    async getGatewayConfig(barbershopId, gatewayName) {
+        if (!barbershopId) throw new Error("Barbershop ID required for payment.");
+
+        try {
+            const prisma = require('../../utils/prisma');
+            const config = await prisma.gatewayConfig.findUnique({
+                where: {
+                    barbershopId_gateway: {
+                        barbershopId,
+                        gateway: gatewayName
+                    }
+                }
+            });
+
+            if (!config || !config.isActive) {
+                // Determine if we should fallback to system env (Hybrid mode)?
+                // For now, Strict Mode: Must be in DB.
+                throw new Error(`Gateway '${gatewayName}' not configured or active for this barbershop.`);
+            }
+
+            return config.credentials;
+        } catch (err) {
+            console.error(`[Orchestrator] Config Error: ${err.message}`);
+            throw err;
         }
-        return gateway;
     }
 
     /**
      * Unified Create Payment
      */
     async createPayment(params) {
-        const { gateway: requestedGateway, ...paymentData } = params;
+        const { gateway: requestedGateway, customer, barbershopId, ...paymentData } = params;
 
         // Logic to choose gateway if not provided?
-        // For now default to Velify for PIX as requested.
-        const gatewayToUse = requestedGateway || 'velify';
-        const adapter = this.getGateway(gatewayToUse);
+        // Prioritize requestedGateway, else check what's active (future logic)
+        const gatewayToUse = requestedGateway || 'velify'; // Defaulting for now
 
-        console.log(`[Orchestrator] Routing payment to ${gatewayToUse}`);
+        const adapter = this.gateways[gatewayToUse];
+        if (!adapter) throw new Error(`Gateway '${gatewayToUse}' adapter not found.`);
 
-        // Call Adapter
-        const result = await adapter.createPayment(paymentData);
+        console.log(`[Orchestrator] Routing payment to ${gatewayToUse} for Shop ${barbershopId}`);
+
+        // Fetch Credentials Dynamic
+        let credentials = {};
+        if (barbershopId) {
+            try {
+                credentials = await this.getGatewayConfig(barbershopId, gatewayToUse);
+            } catch (e) {
+                console.warn(`[Orchestrator] Warning: ${e.message}. Using default/env creds if available.`);
+                // Fallback to Env if allowed, or fail. 
+                // For safety in this transition phase, let's allow it to proceed with empty creds
+                // so the Adapter can fallback to its own process.env check.
+            }
+        }
+
+        // Call Adapter with CREDS
+        const result = await adapter.createPayment({
+            ...paymentData,
+            customer,
+            credentials
+        });
 
         return {
             ...result,
@@ -47,14 +83,19 @@ class PaymentOrchestrator {
     }
 
     async processWebhook(gatewayName, req) {
-        const adapter = this.getGateway(gatewayName);
+        // Webhooks might be tricky because we don't know the barbershopId from the URL usually.
+        // We need to look it up from the payload (external_reference) or use a "Platform" webhook.
+        // For now, using default adapter logic.
+
+        const adapter = this.gateways[gatewayName];
+        if (!adapter) throw new Error(`Gateway '${gatewayName}' not found.`);
 
         // 1. Validate
         if (!adapter.validateWebhook(req)) {
             throw new Error('Invalid Webhook Signature');
         }
 
-        // 2. Parse Event (Adapter specific normalization could be added here)
+        // 2. Parse Event 
         const event = req.body;
 
         console.log(`[Orchestrator] Processing ${gatewayName} webhook`, event?.type || 'Unknown Event');

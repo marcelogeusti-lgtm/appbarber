@@ -55,6 +55,7 @@ app.use('/api/clients', require('./routes/client.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 
 app.use('/api/webhooks', require('./routes/webhook.routes'));
+app.use('/api/gateways', require('./routes/gateway.routes'));
 app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/packages', require('./routes/package.routes'));

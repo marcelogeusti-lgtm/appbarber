@@ -216,7 +216,25 @@ model Barbershop {
   orders       Order[]
   noShowRecords NoShowRecord[]
   webhooks     Webhook[]
+  gatewayConfigs GatewayConfig[]
+}
 
+model GatewayConfig {
+  id            String   @id @default(uuid())
+  barbershopId  String
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  gateway       String   // STRIPE, MERCADOPAGO, VELIFY
+  isActive      Boolean  @default(false)
+  
+  // Stores API Keys, Access Tokens, Secrets as JSON
+  // Ex: { publicKey: "...", secretKey: "..." }
+  credentials   Json
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([barbershopId, gateway]) // One config per gateway per shop
 }
 
 enum NoShowStatus {

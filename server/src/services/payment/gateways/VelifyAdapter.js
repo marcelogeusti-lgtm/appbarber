@@ -9,12 +9,16 @@ class VelifyAdapter extends GatewayAdapter {
         this.apiKey = process.env.VELIFY_API_KEY;
     }
 
-    async createPayment({ amount, description, customer }) {
+    async createPayment({ amount, description, customer, credentials }) {
+        // Use credentials passed from Orchestrator (from DB)
+        const apiKey = credentials?.apiKey || this.apiKey;
+        const apiUrl = credentials?.apiUrl || this.apiUrl;
+
         // Mock Implementation until API Docs are confirmed or Keys provided
-        console.log('[Velify] Creating Payment:', amount);
+        console.log('[Velify] Creating Payment:', amount, 'using Key:', apiKey ? '***' : 'Missing');
 
         // Real call would be:
-        // const response = await axios.post(`${this.apiUrl}/pix/cob`, { ... });
+        // const response = await axios.post(`${apiUrl}/pix/cob`, { ... }, { headers: { Authorization: apiKey } });
 
         // Returning Mock Data for now
         return {
