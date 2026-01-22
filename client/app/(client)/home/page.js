@@ -111,9 +111,6 @@ export default function ClientHome() {
                                             {lastAppointment.barbershop?.name?.[0] || 'B'}
                                         </div>
                                     )}
-                                    <div className="absolute bottom-0 right-0 bg-emerald-500 rounded-full p-0.5 border border-[#111111]">
-                                        <svg className="w-2 h-2 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                    </div>
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-white text-sm">{lastAppointment.barbershop?.name}</h3>
@@ -148,7 +145,6 @@ export default function ClientHome() {
                                         ) : (
                                             <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
                                         )}
-                                        <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-white text-sm">{shop.name}</h3>
@@ -186,7 +182,6 @@ export default function ClientHome() {
                                         ) : (
                                             <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
                                         )}
-                                        <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[8px] font-bold px-1 rounded-bl-lg">5.0</div>
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-white text-sm">{shop.name}</h3>
