@@ -166,15 +166,23 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
     const compressImage = (file) => {
         return new Promise((resolve, reject) => {
+            // Early fail for invalid types
+            if (!file.type.match('image.*')) {
+                return reject(new Error('Arquivo não é uma imagem'));
+            }
+
             const reader = new FileReader();
-            reader.readAsDataURL(file);
+
+            reader.onerror = (error) => reject(error);
+
             reader.onload = (event) => {
                 const img = new Image();
-                img.src = event.target.result;
+                img.onerror = (error) => reject(error);
+
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1920;
-                    const MAX_HEIGHT = 1920;
+                    // Force reasonable dimensions
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
                     let width = img.width;
                     let height = img.height;
 
@@ -190,6 +198,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         }
                     }
 
+                    const canvas = document.createElement('canvas');
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
@@ -197,13 +206,20 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
                     canvas.toBlob((blob) => {
                         if (blob) {
-                            resolve(blob);
+                            // Preserve filename but change ext if needed or keep raw
+                            const newFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            });
+                            resolve(newFile);
                         } else {
                             reject(new Error('Canvas conversion failed'));
                         }
-                    }, 'image/jpeg', 0.9);
+                    }, 'image/jpeg', 0.85); // slightly lower quality for better compression
                 };
+                img.src = event.target.result;
             };
+            reader.readAsDataURL(file);
         });
     };
 
@@ -213,21 +229,29 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
         setUploading(true);
         try {
-            // Compress if size > 300KB
+            console.log("Starting upload...", file.name, file.size);
+
             let fileToUpload = file;
-            if (file.size > 300000) {
+            // Compress if > 500KB
+            if (file.size > 500000) {
+                console.log("Compressing image...");
                 fileToUpload = await compressImage(file);
+                console.log("Compressed size:", fileToUpload.size);
             }
 
-            const storageRef = ref(storage, `professionals/${Date.now()}_${file.name}`);
+            const storageRef = ref(storage, `professionals/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`);
             const snapshot = await uploadBytes(storageRef, fileToUpload);
             const url = await getDownloadURL(snapshot.ref);
+
+            console.log("Upload successful:", url);
             setValue('avatarUrl', url);
         } catch (err) {
             console.error('Upload error:', err);
-            alert('Erro ao enviar imagem: ' + err.message);
+            alert('Erro ao enviar imagem: ' + (err.message || 'Erro desconhecido'));
         } finally {
             setUploading(false);
+            // Clear input
+            e.target.value = '';
         }
     };
 

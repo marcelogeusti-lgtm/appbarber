@@ -118,11 +118,11 @@ export default function ProfessionalsPage() {
                         <div className="h-32 bg-slate-950 relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#111827]" />
                             {pro.professionalProfile?.showPublicly ? (
-                                <div className="absolute bottom-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+                                <div className="absolute top-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20 backdrop-blur-md">
                                     <Eye className="w-3 h-3" /> Público
                                 </div>
                             ) : (
-                                <div className="absolute bottom-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-slate-500 bg-slate-500/10 px-2 py-1 rounded-full border border-slate-500/20">
+                                <div className="absolute top-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-slate-500 bg-slate-500/10 px-2 py-1 rounded-full border border-slate-500/20 backdrop-blur-md">
                                     <EyeOff className="w-3 h-3" /> Privado
                                 </div>
                             )}
@@ -130,7 +130,7 @@ export default function ProfessionalsPage() {
 
                         <div className="px-8 pb-8 -mt-12 flex-1 flex flex-col relative z-20">
                             <div className="flex items-end gap-4 mb-6">
-                                <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border-4 border-[#111827] shadow-2xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                                <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border-4 border-[#111827] shadow-2xl overflow-hidden group-hover:scale-105 transition-transform duration-500 relative shrink-0">
                                     {pro.avatarUrl ? (
                                         <img src={pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
                                     ) : (
