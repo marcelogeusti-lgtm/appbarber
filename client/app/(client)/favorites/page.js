@@ -65,7 +65,7 @@ export default function FavoritesPage() {
                         className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-emerald-500/30 transition group cursor-pointer"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center relative overflow-hidden border border-white/10">
+                            <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center relative overflow-hidden border border-white/5">
                                 {shop.logoUrl ? (
                                     <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
                                 ) : (

@@ -103,9 +103,9 @@ export default function ClientHome() {
                             onClick={() => router.push(`/${lastAppointment.barbershop?.slug || ''}`)}
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1 relative border border-slate-800 bg-slate-900 overflow-hidden">
+                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-0.5 relative border border-slate-800/50 bg-slate-900 overflow-hidden">
                                     {lastAppointment.barbershop?.logoUrl ? (
-                                        <img src={lastAppointment.barbershop.logoUrl} alt={lastAppointment.barbershop?.name} className="w-full h-full object-cover rounded-full" />
+                                        <img src={lastAppointment.barbershop.logoUrl} alt={lastAppointment.barbershop?.name || 'Barbearia'} className="w-full h-full object-cover rounded-full" />
                                     ) : (
                                         <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center font-bold text-xs">
                                             {lastAppointment.barbershop?.name?.[0] || 'B'}
@@ -142,7 +142,7 @@ export default function ClientHome() {
                                 onClick={() => router.push(`/${shop.slug}`)}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
+                                    <div className="w-12 h-12 rounded-full border border-slate-800/50 flex items-center justify-center relative bg-slate-900 overflow-hidden">
                                         {shop.logoUrl ? (
                                             <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -180,7 +180,7 @@ export default function ClientHome() {
                                 onClick={() => router.push(`/${shop.slug}`)}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full border border-yellow-500/20 flex items-center justify-center relative bg-slate-900 overflow-hidden">
+                                    <div className="w-12 h-12 rounded-full border border-slate-800/50 flex items-center justify-center relative bg-slate-900 overflow-hidden">
                                         {shop.logoUrl ? (
                                             <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
                                         ) : (
