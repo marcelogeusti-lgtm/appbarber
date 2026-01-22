@@ -113,47 +113,131 @@ exports.createProfessional = async (req, res) => {
 
         const isSuperAdmin = req.user && req.user.role === 'SUPER_ADMIN';
 
+        // Relaxed check: Only enforce limit if creating a NEW active barber
+        // We defer specific checks, but general count applies.
         if (!isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
+            // We verify if we are just updating an existing user who is ALREADY counted or adding a new one
+            // Ideally we check after we know if it's a new PRO.
+            // For safety, we keep the block but maybe we should allow it if the user being added is the OWNER (already exists).
+            // Let's proceed and check later or assume limit enforcement is strict.
+            // return res.status(403).json({
+            //    message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade.`
+            // });
+        }
+        // --- SAAS LIMIT CHECK END ---
+
+        // 1. Check for conflicts or existing user
+        const conflictFilters = [];
+        if (email) conflictFilters.push({ email });
+        if (phone) conflictFilters.push({ phone });
+        if (cpf) conflictFilters.push({ cpf });
+
+        let existingUser = null;
+
+        if (conflictFilters.length > 0) {
+            existingUser = await prisma.user.findFirst({
+                where: {
+                    OR: conflictFilters,
+                    deletedAt: null
+                },
+                include: { professionalProfile: true }
+            });
+        }
+
+        let targetUserId = null;
+
+        if (existingUser) {
+            // Analyze conflict
+            const emailMatch = email && existingUser.email === email;
+            const phoneMatch = phone && existingUser.phone === phone;
+            const cpfMatch = cpf && existingUser.cpf === cpf;
+
+            // Scenario 1: Exact Match (Email matches) -> It is the same person.
+            // Scenario 2: Phone matches, but Email differs -> Danger (Conflict).
+            // Exception: If existingUser has NO email, we might claim it? (Dangerous).
+
+            // Rule: If Email is provided and matches, we assume it's the intended user.
+            if (emailMatch) {
+                targetUserId = existingUser.id;
+
+                // If they are already a pro in THIS shop, warn?
+                // But maybe they are Pro in Shop A and want to be Pro in Shop B (if supported).
+                // Our schema has 'workedBarbershopId' single field. So multicompany staff is not fully supported yet in User model.
+                // Assuming single shop context.
+
+                if (existingUser.professionalProfile && existingUser.workedBarbershopId === barbershopId) {
+                    return res.status(400).json({ message: 'Este usuário já está cadastrado como profissional nesta barbearia.' });
+                }
+
+                // If they are Owner (different ID?) or just a User, we proceed to upgrade/update them.
+            } else {
+                // Email didn't match (or wasn't provided), but Phone or CPF did.
+                // This implies another user owns this Phone/CPF.
+                if (phoneMatch) return res.status(400).json({ message: 'Telefone já cadastrado em outra conta.' });
+                if (cpfMatch) return res.status(400).json({ message: 'CPF já cadastrado em outra conta.' });
+
+                // Fallback
+                return res.status(400).json({ message: 'Dados conflitantes (E-mail, Telefone ou CPF) com outro usuário existente.' });
+            }
+        }
+
+        // Re-check Limit if we are creating a NEW pro (targetUserId is null OR targetUserId exists but wasn't a PRO before)
+        const isNewPro = !targetUserId || (existingUser && !existingUser.professionalProfile);
+
+        if (isNewPro && !isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
             return res.status(403).json({
                 message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade.`
             });
         }
-        // --- SAAS LIMIT CHECK END ---
-
-        // Check if user already exists
-        const existing = await prisma.user.findUnique({
-            where: { email },
-            include: { professionalProfile: true }
-        });
-
-        if (existing && !existing.deletedAt && (existing.role === 'BARBER' || existing.role === 'ADMIN')) {
-            return res.status(400).json({ message: 'E-mail já está em uso por outro profissional.' });
-        }
 
         const hashedPassword = await bcrypt.hash(password || '123456', 10);
 
-        const newUser = await prisma.$transaction(async (tx) => {
-            // Create or Reactivate User
-            const user = await tx.user.upsert({
-                where: { email },
-                update: {
-                    name, nickname, phone, landline, cpf, cnpj, rg, gender,
-                    birthday: birthday ? new Date(birthday) : null,
-                    notes, avatarUrl, active: active !== undefined ? active : true,
-                    role: role || 'BARBER',
-                    workedBarbershopId: barbershopId,
-                    password: password ? hashedPassword : undefined,
-                    deletedAt: null
-                },
-                create: {
-                    name, nickname, email, phone, landline, cpf, cnpj, rg, gender,
-                    birthday: birthday ? new Date(birthday) : null,
-                    notes, avatarUrl, active: active !== undefined ? active : true,
-                    role: role || 'BARBER',
-                    workedBarbershopId: barbershopId,
-                    password: hashedPassword
+        const result = await prisma.$transaction(async (tx) => {
+            let user;
+
+            // Prepare common data
+            const userData = {
+                name, nickname, phone, landline, cpf, cnpj, rg, gender,
+                birthday: birthday ? new Date(birthday) : null,
+                notes, avatarUrl,
+                active: active !== undefined ? active : true,
+                workedBarbershopId: barbershopId, // Link to shop
+                // Only update role if it's currently CLIENT or if we want to enforce BARBER.
+                // If user is ADMIN, keep ADMIN (as they are owner).
+                // But getting "Pro" access usually implies having professionalProfile.
+                // We default to BARBER if they are just a Client.
+            };
+
+            if (role) userData.role = role; // If role explicitly sent, use it (careful with downgrading Admins)
+
+            if (targetUserId) {
+                // UPDATE existing user
+                // Be careful not to overwrite password unless provided
+                if (password) userData.password = hashedPassword;
+
+                // Don't downgrade ADMINs to BARBER unless explicit?
+                // logic: If existing is ADMIN and request says BARBER, do we change it?
+                // Usually owners creating themselves will send Role=ADMIN or Role=BARBER.
+                // Safest: If existing is ADMIN, ignore 'BARBER' role request to prevent lockout.
+                if (existingUser.role === 'ADMIN' || existingUser.role === 'SUPER_ADMIN') {
+                    delete userData.role;
                 }
-            });
+
+                user = await tx.user.update({
+                    where: { id: targetUserId },
+                    data: userData
+                });
+            } else {
+                // CREATE new user
+                user = await tx.user.create({
+                    data: {
+                        ...userData,
+                        email,
+                        password: hashedPassword,
+                        role: role || 'BARBER'
+                    }
+                });
+            }
 
             // Create or Update Professional Profile
             const profile = await tx.professional.upsert({
@@ -163,7 +247,8 @@ exports.createProfessional = async (req, res) => {
                     appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : 30,
                     zipCode, street, number, complement, neighborhood, city, state, country,
                     deletedAt: null,
-                    services: services ? { set: services.map(id => ({ id })) } : undefined
+                    services: services ? { set: services.map(id => ({ id })) } : undefined,
+                    commissionPercent: commissionPercent ? parseFloat(commissionPercent) : undefined
                 },
                 create: {
                     userId: user.id,
@@ -175,7 +260,7 @@ exports.createProfessional = async (req, res) => {
                 }
             });
 
-            // Update schedules if provided
+            // Update schedules
             if (schedules && schedules.length > 0) {
                 await tx.schedule.deleteMany({ where: { professionalId: profile.id } });
                 await tx.schedule.createMany({
@@ -194,9 +279,13 @@ exports.createProfessional = async (req, res) => {
             return user;
         });
 
-        res.status(201).json(newUser);
+        res.status(201).json(result);
     } catch (error) {
         console.error('Create Prof error:', error);
+        // Better error parsing for unique constraints if they still happen
+        if (error.code === 'P2002') {
+            return res.status(400).json({ message: `Dados já cadastrados no sistema: ${error.meta?.target}` });
+        }
         res.status(500).json({ message: 'Erro ao criar profissional: ' + error.message });
     }
 };
