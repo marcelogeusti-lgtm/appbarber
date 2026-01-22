@@ -1,5 +1,6 @@
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
-const prisma = require('../utils/prisma');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 exports.createPayment = async (req, res) => {
     try {
