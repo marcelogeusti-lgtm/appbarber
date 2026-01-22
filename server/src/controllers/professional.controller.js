@@ -137,8 +137,7 @@ exports.createProfessional = async (req, res) => {
         if (conflictFilters.length > 0) {
             existingUser = await prisma.user.findFirst({
                 where: {
-                    OR: conflictFilters,
-                    deletedAt: null
+                    OR: conflictFilters
                 },
                 include: { professionalProfile: true }
             });
@@ -152,37 +151,24 @@ exports.createProfessional = async (req, res) => {
             const phoneMatch = phone && existingUser.phone === phone;
             const cpfMatch = cpf && existingUser.cpf === cpf;
 
-            // Scenario 1: Exact Match (Email matches) -> It is the same person.
-            // Scenario 2: Phone matches, but Email differs -> Danger (Conflict).
-            // Exception: If existingUser has NO email, we might claim it? (Dangerous).
-
-            // Rule: If Email is provided and matches, we assume it's the intended user.
             if (emailMatch) {
                 targetUserId = existingUser.id;
 
-                // If they are already a pro in THIS shop, warn?
-                // But maybe they are Pro in Shop A and want to be Pro in Shop B (if supported).
-                // Our schema has 'workedBarbershopId' single field. So multicompany staff is not fully supported yet in User model.
-                // Assuming single shop context.
-
-                if (existingUser.professionalProfile && existingUser.workedBarbershopId === barbershopId) {
+                if (existingUser.professionalProfile &&
+                    !existingUser.professionalProfile.deletedAt &&
+                    existingUser.workedBarbershopId === barbershopId) {
                     return res.status(400).json({ message: 'Este usuário já está cadastrado como profissional nesta barbearia.' });
                 }
-
-                // If they are Owner (different ID?) or just a User, we proceed to upgrade/update them.
             } else {
-                // Email didn't match (or wasn't provided), but Phone or CPF did.
-                // This implies another user owns this Phone/CPF.
                 if (phoneMatch) return res.status(400).json({ message: 'Telefone já cadastrado em outra conta.' });
                 if (cpfMatch) return res.status(400).json({ message: 'CPF já cadastrado em outra conta.' });
 
-                // Fallback
-                return res.status(400).json({ message: 'Dados conflitantes (E-mail, Telefone ou CPF) com outro usuário existente.' });
+                return res.status(400).json({ message: 'Dados conflitantes (E-mail, Telefone ou CPF) com outra conta existente.' });
             }
         }
 
         // Re-check Limit if we are creating a NEW pro (targetUserId is null OR targetUserId exists but wasn't a PRO before)
-        const isNewPro = !targetUserId || (existingUser && !existingUser.professionalProfile);
+        const isNewPro = !targetUserId || (existingUser && (!existingUser.professionalProfile || existingUser.professionalProfile.deletedAt));
 
         if (isNewPro && !isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
             return res.status(403).json({
@@ -201,11 +187,8 @@ exports.createProfessional = async (req, res) => {
                 birthday: birthday ? new Date(birthday) : null,
                 notes, avatarUrl,
                 active: active !== undefined ? active : true,
-                workedBarbershopId: barbershopId, // Link to shop
-                // Only update role if it's currently CLIENT or if we want to enforce BARBER.
-                // If user is ADMIN, keep ADMIN (as they are owner).
-                // But getting "Pro" access usually implies having professionalProfile.
-                // We default to BARBER if they are just a Client.
+                workedBarbershopId: barbershopId,
+                deletedAt: null // Explicitly clear deletedAt for re-activation
             };
 
             if (role) userData.role = role; // If role explicitly sent, use it (careful with downgrading Admins)
@@ -284,7 +267,8 @@ exports.createProfessional = async (req, res) => {
         console.error('Create Prof error:', error);
         // Better error parsing for unique constraints if they still happen
         if (error.code === 'P2002') {
-            return res.status(400).json({ message: `Dados já cadastrados no sistema: ${error.meta?.target}` });
+            const target = error.meta?.target || 'campo único';
+            return res.status(400).json({ message: `Erro de duplicidade: O valor informado para '${target}' já existe no banco de dados (pode ser um usuário removido).` });
         }
         res.status(500).json({ message: 'Erro ao criar profissional: ' + error.message });
     }
