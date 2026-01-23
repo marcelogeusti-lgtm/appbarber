@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const masterController = require('../controllers/master.controller');
 const contentController = require('../controllers/content.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
+const { protect: authMiddleware } = require('../middlewares/auth.middleware');
 
 // Middleware to ensure SUPER_ADMIN
 const requireMaster = (req, res, next) => {

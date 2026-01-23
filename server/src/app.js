@@ -60,6 +60,9 @@ app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
 
+// Master / Educational Platform
+app.use('/api', require('./routes/master.routes'));
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
