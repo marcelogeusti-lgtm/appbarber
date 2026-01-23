@@ -24,7 +24,7 @@ async function main() {
 
     const http = require('http');
     const server = http.createServer(app);
-    const socket = require('./services/socket');
+    const socket = require('./socket');
     const { initScheduler } = require('./services/jobs/reminderJob');
 
     // Init Socket
