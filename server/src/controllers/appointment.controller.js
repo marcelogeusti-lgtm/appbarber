@@ -215,9 +215,6 @@ exports.createAppointment = async (req, res) => {
         }
 
         // 3. Robust Availability Check (Avoid Overbooking)
-        // TIMEZONE ENFORCEMENT: All inputs are treated as "America/Sao_Paulo"
-        const TIMEZONE = 'America/Sao_Paulo';
-        const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
         const { addMinutes, isBefore, isAfter, parseISO } = require('date-fns');
 
         if (!date || !date.includes('-')) return res.status(400).json({ message: 'Data inválida.' });
@@ -329,6 +326,7 @@ exports.createAppointment = async (req, res) => {
         }
 
         // 4. Create Appointment & Order via Transaction
+        console.log(`[Transaction] Starting for Client: ${clientId}, Pro: ${professionalId}, Date: ${date} ${time}`);
         const result = await prisma.$transaction(async (tx) => {
             // Map payment method
             let method = 'CASH';

@@ -156,7 +156,7 @@ exports.getBarbershopBySlug = async (req, res) => {
                 services: { where: { active: true } },
                 // packages: true, // TODO: Uncomment after resolving Prisma Client sync issue
                 staff: {
-                    where: { role: 'BARBER', active: true },
+                    where: { role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN'] }, active: true },
                     select: {
                         id: true, name: true, avatarUrl: true, role: true,
                         professionalProfile: { select: { position: true, bio: true } }
