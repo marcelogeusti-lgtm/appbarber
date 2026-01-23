@@ -140,6 +140,12 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                         <MenuItem href="/dashboard/subscribers" icon={Users} label="Assinantes" />
                     </MenuGroup>
 
+                    {/* Conteúdo (Cursos) for SUPER_ADMIN or authorized users */}
+                    {/* Assuming logic handled by page access, showing link for all for now or check user role if available in props */}
+                    <MenuGroup title="Educação" id="educacao" icon={ScrollText}>
+                        <MenuItem href="/dashboard/courses" icon={ScrollText} label="Cursos" />
+                    </MenuGroup>
+
                     {/* Financeiro */}
                     <MenuGroup title="Financeiro" id="financeiro" icon={DollarSign}>
                         <MenuItem href="/dashboard/finance/dashboard" icon={PieChart} label="Dashboard" />
