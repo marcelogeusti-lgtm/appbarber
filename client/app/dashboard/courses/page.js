@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PlayCircle, GraduationCap, Clock, Award, ChevronRight } from 'lucide-react';
-import api from '../../lib/clientApi';
-import Skeleton from '../../components/ui/Skeleton';
+import api from '../../../lib/clientApi';
+import Skeleton from '../../../components/ui/Skeleton';
 
 export default function CoursesPage() {
     // React Query to fetch courses
