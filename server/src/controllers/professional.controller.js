@@ -398,7 +398,8 @@ exports.deleteProfessional = async (req, res) => {
             include: { professionalProfile: true }
         });
 
-        if (!pro || (pro.role !== 'BARBER' && pro.role !== 'ADMIN')) {
+        const allowedRoles = ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA'];
+        if (!pro || !allowedRoles.includes(pro.role)) {
             return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
