@@ -42,7 +42,20 @@ export default function ProfessionalsPage() {
     };
 
     const handleDeletePro = async (proId, proName) => {
-        if (!confirm(`ATENÇÃO: Você está prestes a EXCLUIR PERMANENTEMENTE o profissional ${proName}.\n\nTodos os dados de acesso, agendamentos e histórico serão APAGADOS do banco de dados e NÃO poderão ser recuperados.\n\nO e-mail e telefone ficarão livres para novo cadastro.\n\nDeseja continuar?`)) return;
+        if (!confirm(`⚠️ AVISO DE EXCLUSÃO DEFINITIVA: 
+
+Você está prestes a apagar TODOS os dados do profissional ${proName} permanentemente.
+
+Esta ação irá REMOVER:
+- Perfil e Dados de Acesso
+- Agenda e Horários
+- TODO o histórico de Agendamentos vinculados
+- Registros de Comissões e Vendas
+- Lista de Espera
+
+Esta ação é IRREVERSÍVEL e não pode ser desfeita. O e-mail, CPF e Telefone serão liberados para um novo cadastro totalmente do zero.
+
+Deseja realmente apagar tudo agora?`)) return;
 
         try {
             await api.delete(`/professionals/${proId}`);

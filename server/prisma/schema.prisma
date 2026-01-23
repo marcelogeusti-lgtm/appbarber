@@ -124,7 +124,6 @@ model User {
   tempPasswordExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  deletedAt DateTime?
 
   // Link to AuthUser (Optional during migration)
   authUserId String?   @unique
@@ -300,7 +299,6 @@ model Professional {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
-  deletedAt DateTime?
 }
 
 enum CommissionCalculationType {

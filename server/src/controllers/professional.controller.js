@@ -106,8 +106,7 @@ exports.createProfessional = async (req, res) => {
         const activeBarbersCount = await prisma.user.count({
             where: {
                 workedBarbershopId: barbershopId,
-                role: 'BARBER',
-                deletedAt: null
+                role: 'BARBER'
             }
         });
 
@@ -165,12 +164,10 @@ exports.createProfessional = async (req, res) => {
 
                 // Check if they are already an active Pro in THIS barbershop
                 const isAlreadyProHere = existingUser.professionalProfile &&
-                    !existingUser.professionalProfile.deletedAt &&
-                    existingUser.workedBarbershopId === barbershopId &&
-                    existingUser.deletedAt === null;
+                    existingUser.workedBarbershopId === barbershopId;
 
                 if (isAlreadyProHere) {
-                    return res.status(400).json({ message: 'Este usuário já está cadastrado como profissional ativo nesta barbearia.' });
+                    return res.status(400).json({ message: 'Este usuário já está cadastrado como profissional nesta barbearia.' });
                 }
 
                 // If they were removed (soft-deleted) or are just a client, we will proceed to re-activate/link them below.
@@ -185,7 +182,7 @@ exports.createProfessional = async (req, res) => {
         }
 
         // Re-check Limit if we are creating a NEW pro (targetUserId is null OR targetUserId exists but wasn't a PRO before)
-        const isNewPro = !targetUserId || (existingUser && (!existingUser.professionalProfile || existingUser.professionalProfile.deletedAt));
+        const isNewPro = !targetUserId || (existingUser && !existingUser.professionalProfile);
 
         if (isNewPro && !isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
             return res.status(403).json({
@@ -210,8 +207,7 @@ exports.createProfessional = async (req, res) => {
                 birthday: birthday ? new Date(birthday) : null,
                 notes, avatarUrl,
                 active: active !== undefined ? active : true,
-                workedBarbershopId: barbershopId,
-                deletedAt: null // Explicitly clear deletedAt for re-activation
+                workedBarbershopId: barbershopId
             };
 
             if (role) userData.role = role; // If role explicitly sent, use it (careful with downgrading Admins)
@@ -252,7 +248,6 @@ exports.createProfessional = async (req, res) => {
                     position, bio, showInApp, showPublicly,
                     appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : 30,
                     zipCode, street, number, complement, neighborhood, city, state, country,
-                    deletedAt: null,
                     services: services ? { set: services.map(id => ({ id })) } : undefined,
                     commissionPercent: commissionPercent ? parseFloat(commissionPercent) : undefined
                 },
@@ -305,11 +300,7 @@ exports.listProfessionals = async (req, res) => {
         const pros = await prisma.user.findMany({
             where: {
                 workedBarbershopId: barbershopId,
-                role: { in: ['BARBER', 'ADMIN'] },
-                deletedAt: null,
-                professionalProfile: {
-                    deletedAt: null
-                }
+                role: { in: ['BARBER', 'ADMIN'] }
             },
             include: {
                 professionalProfile: {
@@ -411,66 +402,81 @@ exports.deleteProfessional = async (req, res) => {
             return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
-        // Perform Hard Delete (Permanently remove)
-        // Warning: This action is irreversible.
-
+        // Perform Hard Delete (Permanently remove ALL data)
         await prisma.$transaction(async (tx) => {
-            // 1. Remove Dependencies
+            // 1. Delete Schedules
             if (pro.professionalProfile) {
-                const proId = pro.professionalProfile.id;
-                // Delete Schedules
-                await tx.schedule.deleteMany({ where: { professionalId: proId } });
-                // Delete Commissions overrides
-                await tx.professionalServiceCommission.deleteMany({ where: { professionalId: pro.id } });
-
-                // Delete Professional Profile
-                await tx.professional.delete({ where: { id: proId } });
+                await tx.schedule.deleteMany({ where: { professionalId: pro.professionalProfile.id } });
             }
 
-            // 2. Determine if we delete the User account or just downgrade
-            // If the user is the OWNER of a barbershop, we generally DO NOT delete the account, just the pro profile.
-            // If the user is just a STAFF (BARBER), we DELETE the account entirely to free up email/phone.
+            // 2. Delete Commissions Overrides
+            await tx.professionalServiceCommission.deleteMany({ where: { professionalId: id } });
 
+            // 3. Delete waitlist entries
+            await tx.waitlist.deleteMany({ where: { professionalId: id } });
+
+            // 4. Handle Appointments and Commissions
+            // We MUST delete these to free up the professional.
+            // Check for NoShowRecords linked to appointments of this professional
+            const proAppointments = await tx.appointment.findMany({
+                where: { professionalId: id },
+                select: { id: true }
+            });
+            const appIds = proAppointments.map(a => a.id);
+
+            if (appIds.length > 0) {
+                // Delete NoShowRecords
+                await tx.noShowRecord.deleteMany({ where: { appointmentId: { in: appIds } } });
+                // Delete PackageUsage
+                await tx.packageUsage.deleteMany({ where: { appointmentId: { in: appIds } } });
+                // Delete Notifications linked to these appointments
+                await tx.notification.deleteMany({ where: { appointmentId: { in: appIds } } });
+            }
+
+            // Delete Commissions
+            await tx.commission.deleteMany({ where: { barberId: id } });
+
+            // Delete Appointments
+            await tx.appointment.deleteMany({ where: { professionalId: id } });
+
+            // 5. Delete Orders (and their items if not cascaded)
+            // Assuming we want a complete wipe.
+            const proOrders = await tx.order.findMany({
+                where: { professionalId: id },
+                select: { id: true }
+            });
+            const orderIds = proOrders.map(o => o.id);
+            if (orderIds.length > 0) {
+                await tx.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+                await tx.order.deleteMany({ where: { id: { in: orderIds } } });
+            }
+
+            // 6. Delete Professional Profile
+            if (pro.professionalProfile) {
+                await tx.professional.delete({ where: { userId: id } });
+            }
+
+            // 7. Delete User and AuthUser
+            // If the user is an owner of a barbershop, we keep the User account but remove Pro status.
+            // Otherwise, we delete everything.
             const isOwner = await tx.barbershop.findFirst({ where: { ownerId: id } });
 
             if (isOwner) {
-                // Owner: Just remove professional status
-                await tx.user.update({
-                    where: { id },
-                    data: {
-                        // role: 'CLIENT', // Optionally downgrade to CLIENT or keep ADMIN? 
-                        // Usually owners are ADMIN. If we delete pro profile, they are just Admin manager.
-                        // User asked "limpo no banco". If we keep User, email/phone is still taken.
-                        // But if we delete Owner User, the Barbershop becomes orphan (fatal error).
-                        // So for Owner, we MUST keep User.
-                        // This handles the "Auto-Create" scenario where Owner is also Pro.
-                        // If they delete themselves as pro, they just stop appearing in schedule.
-                    }
-                });
-                // Note: We already deleted professionalProfile above.
+                // Keep the owner but they are no longer a professional
+                // Role stays ADMIN (usually)
             } else {
-                // Staff: DELETE EVERYTHING (User + AuthUser)
-                // This frees up the Email/Phone/CPF.
-
+                // Staff: Full wipe
                 if (pro.authUserId) {
                     await tx.authUser.delete({ where: { id: pro.authUserId } });
-                    // User deletes via Cascade? If not, delete explicitly.
-                    // Assuming no cascade configured on AuthUser->User in schema shown (relation exists but onDelete unsure).
-                    // Safe to try delete user if it still exists.
-                    try {
-                        await tx.user.delete({ where: { id } });
-                    } catch (e) {
-                        // Ignore if cascade already handled it
-                    }
                 } else {
                     await tx.user.delete({ where: { id } });
                 }
             }
         });
 
-        res.json({ message: 'Profissional e dados vinculados removidos permanentemente.' });
+        res.json({ message: 'Profissional e todos os dados vinculados removidos permanentemente.' });
     } catch (error) {
         console.error('Delete Pro error:', error);
-        res.status(500).json({ message: 'Erro ao remover profissional' });
+        res.status(500).json({ message: 'Erro ao remover profissional permanentemente: ' + error.message });
     }
 };
