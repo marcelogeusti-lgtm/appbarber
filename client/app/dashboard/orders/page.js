@@ -49,29 +49,16 @@ export default function OrdersPage() {
         try {
             const userStr = localStorage.getItem('user');
             const user = JSON.parse(userStr);
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
-            // 1. Create walk-in appointment (using current time)
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0];
-            const timeStr = now.toTimeString().slice(0, 5);
-
-            const appointmentRes = await api.post('/appointments', {
-                professionalId: quickData.professionalId,
-                serviceId: quickData.serviceId,
-                date: dateStr,
-                time: timeStr,
-                guestName: quickData.guestName,
-                guestPhone: quickData.phone
-            });
-
-            const appointment = appointmentRes.data.appointment || appointmentRes.data;
-
-            // 2. Create Order
+            // Call POST /orders directly as a Manual/Balcão order
             await api.post('/orders', {
-                appointmentId: appointment.id,
-                barbershopId: user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id,
-                clientId: appointment.clientId,
-                professionalId: quickData.professionalId
+                professionalId: quickData.professionalId,
+                serviceIds: [quickData.serviceId], // Wrap single service in array for consistent API
+                guestName: quickData.guestName,
+                guestPhone: quickData.phone,
+                isManual: true,
+                barbershopId: bId
             });
 
             // Refresh
@@ -79,7 +66,7 @@ export default function OrdersPage() {
             setQuickData({ guestName: '', phone: '', professionalId: '', serviceId: '' });
             fetchData();
         } catch (err) {
-            alert('Erro ao criar comanda: ' + (err.response?.data?.message || err.message));
+            alert('Erro ao criar comanda manual: ' + (err.response?.data?.message || err.message));
         } finally {
             setCreatingLoading(false);
         }

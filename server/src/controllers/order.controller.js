@@ -1,34 +1,117 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Create new Order (linked to Appointment)
+// Create new Order (linked to Appointment or Manual/Balcão)
 exports.createOrder = async (req, res) => {
     try {
-        const { appointmentId, barbershopId, clientId, professionalId } = req.body;
+        const {
+            appointmentId,
+            barbershopId,
+            clientId: propClientId,
+            professionalId,
+            isManual,
+            guestName,
+            guestPhone,
+            serviceIds = [] // Support multiple services for manual flow
+        } = req.body;
 
-        // Check if order already exists for this appointment
-        const existing = await prisma.order.findUnique({
-            where: { appointmentId }
-        });
+        let clientId = propClientId;
 
-        if (existing) {
-            return res.status(200).json(existing);
+        // 1. Check if order already exists for this appointment (if provided)
+        if (appointmentId) {
+            const existing = await prisma.order.findUnique({
+                where: { appointmentId }
+            });
+            if (existing) {
+                return res.status(200).json(existing);
+            }
         }
 
-        const newOrder = await prisma.order.create({
-            data: {
-                appointmentId,
-                barbershopId,
-                clientId,
-                professionalId,
-                status: 'OPEN'
+        const result = await prisma.$transaction(async (tx) => {
+            // 2. Handle Guest Client for Manual flow
+            if (isManual && !clientId && guestName) {
+                // Find or create client by phone
+                const phone = guestPhone ? guestPhone.replace(/\D/g, '') : null;
+                let client = null;
+                if (phone) {
+                    client = await tx.client.findUnique({ where: { phone } });
+                }
+
+                if (!client) {
+                    client = await tx.client.create({
+                        data: {
+                            name: guestName,
+                            phone: phone
+                        }
+                    });
+                }
+                clientId = client.id;
+            }
+
+            // 3. Create the Order
+            const newOrder = await tx.order.create({
+                data: {
+                    appointmentId: appointmentId || null,
+                    barbershopId,
+                    clientId,
+                    professionalId,
+                    status: 'OPEN'
+                }
+            });
+
+            // 4. Add initial services if it's a manual order
+            if (isManual && serviceIds.length > 0) {
+                const services = await tx.service.findMany({
+                    where: { id: { in: serviceIds } }
+                });
+
+                let subtotal = 0;
+                const orderItems = [];
+
+                for (const srv of services) {
+                    const price = Number(srv.price);
+                    subtotal += price;
+                    orderItems.push({
+                        orderId: newOrder.id,
+                        type: 'SERVICE',
+                        serviceId: srv.id,
+                        quantity: 1,
+                        unitPrice: price,
+                        total: price
+                    });
+                }
+
+                if (orderItems.length > 0) {
+                    await tx.orderItem.createMany({ data: orderItems });
+
+                    // Update order totals
+                    await tx.order.update({
+                        where: { id: newOrder.id },
+                        data: {
+                            subtotal: subtotal,
+                            total: subtotal
+                        }
+                    });
+                }
+            }
+
+            return newOrder;
+        });
+
+        // 5. Fetch full order with items for response
+        const fullOrder = await prisma.order.findUnique({
+            where: { id: result.id },
+            include: {
+                items: { include: { service: true, product: true } },
+                client: true,
+                professional: true
             }
         });
 
-        res.status(201).json(newOrder);
+        res.status(201).json(fullOrder);
     } catch (error) {
         console.error('Create Order Error:', error);
-        res.status(500).json({ message: 'Erro ao criar comanda.' });
+        res.status(500).json({ message: 'Erro ao criar comanda manual: ' + error.message });
     }
 };
 

@@ -547,8 +547,8 @@ model Commission {
 model Order {
   id              String   @id @default(uuid())
   
-  appointmentId   String   @unique
-  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  appointmentId   String?  @unique
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
   
   barbershopId    String
   barbershop      Barbershop @relation(fields: [barbershopId], references: [id])

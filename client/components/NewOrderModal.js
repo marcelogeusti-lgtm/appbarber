@@ -23,6 +23,9 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
         time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     });
 
+    // State for multiple services
+    const [selectedServiceIds, setSelectedServiceIds] = useState([]);
+
     useEffect(() => {
         if (isOpen && user?.barbershop?.id) {
             fetchData();
@@ -32,8 +35,8 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
     const fetchData = async () => {
         try {
             const [prosRes, servRes] = await Promise.all([
-                api.get(`/dashboard/professionals?barbershopId=${user.barbershop.id}`),
-                api.get(`/dashboard/services?barbershopId=${user.barbershop.id}`)
+                api.get(`/professionals?barbershopId=${user.barbershop.id}`),
+                api.get(`/services?barbershopId=${user.barbershop.id}&active=true`)
             ]);
             setProfessionals(prosRes.data);
             setServices(servRes.data);
@@ -42,24 +45,31 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
         }
     };
 
+    const toggleService = (id) => {
+        setSelectedServiceIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (selectedServiceIds.length === 0) return alert('Selecione ao menos um serviço');
+
         setLoading(true);
         try {
-            // Using appointment creation (which creates Order)
-            const res = await api.post('/appointments', {
-                ...formData,
-                barbershopId: user.barbershop.id,
-                paymentMethod: 'CASH', // Default for quick order
-                createAccount: false
+            const res = await api.post('/orders', {
+                guestName: formData.guestName,
+                guestPhone: formData.guestPhone,
+                professionalId: formData.professionalId,
+                serviceIds: selectedServiceIds,
+                isManual: true,
+                barbershopId: user.barbershop.id
             });
 
             // Success
             onClose();
-            // Redirect to Order or just notify?
-            // Redirecting to Order Details seems appropriate for processing payment
-            if (res.data.order?.id) {
-                router.push(`/dashboard/orders/${res.data.order.id}`);
+            if (res.data?.id) {
+                router.push(`/dashboard/orders/${res.data.id}`);
             }
         } catch (error) {
             console.error('Error creating order:', error);
@@ -78,27 +88,32 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
             <div className="relative bg-[#111827] border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
                 {/* Header */}
                 <div className="bg-[#0f1523] px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Scissors className="w-5 h-5 text-emerald-500" />
-                        Nova Comanda
-                    </h2>
+                    <div>
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                            <Scissors className="w-5 h-5 text-emerald-500" />
+                            Nova Comanda de Balcão
+                        </h2>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                            Não gera agendamento na agenda
+                        </p>
+                    </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Body */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-hide">
 
                     {/* Client Info */}
                     <div className="space-y-3">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cliente (Guest)</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cliente (Visitante)</label>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="relative">
                                 <User className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
                                 <input
                                     type="text"
-                                    placeholder="Nome do Cliente"
+                                    placeholder="Nome"
                                     required
                                     className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                                     value={formData.guestName}
@@ -108,7 +123,6 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                             <input
                                 type="tel"
                                 placeholder="Telefone"
-                                required
                                 className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                                 value={formData.guestPhone}
                                 onChange={e => setFormData({ ...formData, guestPhone: e.target.value })}
@@ -116,10 +130,9 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                         </div>
                     </div>
 
-                    {/* Professional & Service */}
+                    {/* Professional Selection */}
                     <div className="space-y-3">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Detalhes do Serviço</label>
-
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quem atendeu?</label>
                         <select
                             required
                             className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
@@ -131,47 +144,26 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                                 <option key={pro.id} value={pro.id}>{pro.name}</option>
                             ))}
                         </select>
-
-                        <select
-                            required
-                            className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-                            value={formData.serviceId}
-                            onChange={e => setFormData({ ...formData, serviceId: e.target.value })}
-                        >
-                            <option value="">Selecione o Serviço</option>
-                            {services.map(srv => (
-                                <option key={srv.id} value={srv.id}>{srv.name} - R$ {srv.price}</option>
-                            ))}
-                        </select>
                     </div>
 
-                    {/* Date/Time (Defaults to Now but editable) */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Data</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-                                <input
-                                    type="date"
-                                    required
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 text-sm text-white outline-none"
-                                    value={formData.date}
-                                    onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Horário</label>
-                            <div className="relative">
-                                <Clock className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-                                <input
-                                    type="time"
-                                    required
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 text-sm text-white outline-none"
-                                    value={formData.time}
-                                    onChange={e => setFormData({ ...formData, time: e.target.value })}
-                                />
-                            </div>
+                    {/* Services Selection (Multi) */}
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Serviços Realizados</label>
+                        <div className="grid grid-cols-1 gap-2 border border-slate-800 p-3 rounded-xl bg-slate-950/50">
+                            {services.map(srv => (
+                                <div
+                                    key={srv.id}
+                                    onClick={() => toggleService(srv.id)}
+                                    className={`p-3 rounded-lg border flex justify-between items-center cursor-pointer transition-all ${selectedServiceIds.includes(srv.id)
+                                        ? 'border-emerald-500 bg-emerald-500/10'
+                                        : 'border-slate-800 bg-slate-900 hover:border-slate-600'
+                                        }`}
+                                >
+                                    <span className="text-sm font-bold text-white uppercase tracking-tight">{srv.name}</span>
+                                    <span className="text-xs font-black text-emerald-500">R$ {srv.price}</span>
+                                </div>
+                            ))}
+                            {services.length === 0 && <p className="text-[10px] text-slate-600 text-center py-4">Nenhum serviço disponível.</p>}
                         </div>
                     </div>
 
@@ -190,7 +182,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                             className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all disabled:opacity-50"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                            Criar Comanda
+                            Abrir Comanda
                         </button>
                     </div>
                 </form>
