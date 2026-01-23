@@ -24,14 +24,14 @@ async function main() {
 
     const http = require('http');
     const server = http.createServer(app);
-    const socket = require('./socket');
-    const { initReminderScheduler } = require('./scheduler');
+    const socket = require('./services/socket');
+    const { initScheduler } = require('./services/jobs/reminderJob');
 
     // Init Socket
     socket.init(server);
 
     // Init Automated Reminders
-    initReminderScheduler();
+    initScheduler();
 
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);

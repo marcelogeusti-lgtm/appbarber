@@ -489,7 +489,7 @@ exports.createAppointment = async (req, res) => {
 
         const { appointment, order } = result;
 
-        // --- NEW: WhatsApp Notification (Decoupled & Safe) ---
+        // --- Event Driven Notification ---
         setImmediate(async () => {
             try {
                 const fullApp = await prisma.appointment.findUnique({
@@ -498,13 +498,14 @@ exports.createAppointment = async (req, res) => {
                 });
 
                 if (fullApp) {
-                    await whatsappNotifier.sendConfirmation(fullApp);
+                    const eventBus = require('../services/events/eventBus');
+                    eventBus.emit('APPOINTMENT_CREATED', fullApp);
                 }
             } catch (err) {
-                console.error('[AUTO] Notification Failed:', err.message);
+                console.error('[EventBus] Failed to emit creation event:', err.message);
             }
         });
-        // -----------------------------------------------------
+        // ---------------------------------
 
         // Trigger n8n Webhook (Async, don't block response)
         const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });

@@ -190,6 +190,7 @@ model Barbershop {
   logoUrl   String?
   bannerUrls String[] @default([])
   webhookUrl String?
+  whatsappPhone String? // Sender number for notifications
 
   // Geolocalização
   latitude  Float?

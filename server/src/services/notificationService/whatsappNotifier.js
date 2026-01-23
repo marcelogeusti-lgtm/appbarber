@@ -1,114 +1,90 @@
 const axios = require('axios');
 
-/**
- * WhatsApp Notifier Service
- * Defines a structural interface for sending notifications.
- * Does NOT depend on Database for message history.
- * Does NOT throw errors that block the main thread (catches internally).
- */
-
-exports.sendConfirmation = async (appointment, eventType = 'AGENDAMENTO_CONFIRMADO') => {
-    try {
-        console.log(`[WhatsappNotifier] Processing ${eventType} for Appointment ${appointment.id}`);
-
-        // 1. Extract Data
-        const { client, service, professional, barbershop, date, paymentMethod } = appointment;
-        if (!client || !client.phone) {
-            console.log('[WhatsappNotifier] Skipped: No client phone.');
-            return;
-        }
-
-        // 2. Prepare Payload (Standardized)
-        const payload = {
-            event: eventType,
-            agendamento: {
-                id: appointment.id,
-                data: date.toISOString().split('T')[0], // YYYY-MM-DD
-                hora: date.toISOString().split('T')[1].substring(0, 5), // HH:MM
-                valor: Number(service.price),
-                servico: {
-                    id: service.id,
-                    nome: service.name
-                }
-            },
-            cliente: {
-                id: client.id,
-                nome: client.name,
-                telefone: client.phone
-            },
-            barbeiro: {
-                id: professional.id,
-                nome: professional.name
-            },
-            barbearia: {
-                nome: barbershop.name,
-                telefone: barbershop.phone
-            },
-            timestamp: new Date().toISOString()
-        };
-
-        // 3. Send to Provider (e.g., Evolution API, Z-API)
-        // Check if Barbershop has a specific webhook or if we use a global env
-        const instanceUrl = process.env.WHATSAPP_API_URL;
-        const instanceToken = process.env.WHATSAPP_API_TOKEN;
-
-        if (!instanceUrl || !instanceToken) {
-            console.warn('[WhatsappNotifier] No WhatsApp API credentials configured.');
-            return;
-        }
-
-        // Clean phone number (remove non-digits, ensure 55)
-        let phone = client.phone.replace(/\D/g, '');
-        if (!phone.startsWith('55')) phone = '55' + phone;
-
-        const messageText = formatMessage(payload);
-
-        // Call External API
-        await axios.post(`${instanceUrl}/message/sendText/${process.env.WHATSAPP_INSTANCE_NAME}`, {
-            number: phone,
-            options: {
-                delay: 1200,
-                presence: "composing",
-                linkPreview: false
-            },
-            textMessage: {
-                text: messageText
-            }
-        }, {
-            headers: {
-                apikey: instanceToken
-            }
-        });
-
-        console.log(`[WhatsappNotifier] Message sent to ${phone}`);
-
-    } catch (error) {
-        // Log Error but DO NOT CRASH
-        console.error('[WhatsappNotifier] Failed to send notification:', error.message);
-        if (error.response) {
-            console.error('Provider Response:', error.response.data);
-        }
-    }
+exports.sendConfirmation = async (appointment) => {
+    await processMessage(appointment, 'CONFIRMATION');
 };
 
-function formatMessage(payload) {
-    const { agendamento, cliente, barbeiro, barbearia } = payload;
-    const dateFormatted = new Date(agendamento.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+exports.sendReminder = async (appointment) => {
+    await processMessage(appointment, 'REMINDER');
+};
 
-    // Adjust Time (UTC Fix) - naive approach, assuming payload had correct UTC or we rely on string
-    // Better: Format the Date object passed in start
+async function processMessage(appointment, type) {
+    try {
+        // 1. Validation: Does Barbershop have a sender number?
+        if (!appointment.barbershop || !appointment.barbershop.whatsappPhone) {
+            console.log('[WhatsappNotifier] Skipped: Barbershop has no WhatsApp configured.');
+            return;
+        }
 
-    return `✂️ *Agendamento Confirmado!*
+        // 2. Validation: Does Client have a phone?
+        if (!appointment.client || !appointment.client.phone) {
+            console.log('[WhatsappNotifier] Skipped: Client has no phone number.');
+            return;
+        }
 
-Olá, ${cliente.nome} 👋
-Seu horário foi reservado na *${barbearia.nome}*.
+        // 3. Prepare Data
+        const clientPhone = cleanPhone(appointment.client.phone);
+        const barbershopName = appointment.barbershop.name;
+        const msg = type === 'CONFIRMATION'
+            ? formatConfirmationMessage(appointment)
+            : formatReminderMessage(appointment);
 
-📅 Data: ${dateFormatted}
-⏰ Horário: ${agendamento.hora} (Confira no App)
-💈 Serviço: ${agendamento.servico.nome}
-👤 Barbeiro: ${barbeiro.nome}
-💰 Valor: R$ ${agendamento.valor.toFixed(2)}
+        // 4. Send (Fail Safe)
+        console.log(`[WhatsappNotifier] Sending ${type} to ${clientPhone} via ${appointment.barbershop.whatsappPhone}...`);
 
-Caso precise reagendar, entre em contato.
-Nos vemos em breve! 🔥`;
+        // Mocking the API call setup here. Assuming "Evolution API" style or "WPPConnect"
+        // This is a placeholder for the actual request logic, which depends on the user's provider.
+        // For now, let's assume we log it effectively, or make a real call if env vars exist.
+
+        if (process.env.WHATSAPP_API_URL) {
+            await axios.post(`${process.env.WHATSAPP_API_URL}/message/sendText/${process.env.WHATSAPP_INSTANCE_NAME}`, {
+                number: clientPhone,
+                text: msg
+            }, {
+                headers: {
+                    apikey: process.env.WHATSAPP_API_TOKEN
+                }
+            });
+        } else {
+            console.log('[WhatsappNotifier] Mock Send:', msg);
+        }
+
+    } catch (error) {
+        // Safe Catch: Should not propagate to main thread
+        console.error(`[WhatsappNotifier] Failed to send ${type}:`, error.message);
+    }
+}
+
+function cleanPhone(phone) {
+    let p = phone.replace(/\D/g, '');
+    if (!p.startsWith('55')) p = '55' + p;
+    return p;
+}
+
+function formatConfirmationMessage(app) {
+    const date = new Date(app.date).toLocaleDateString('pt-BR');
+    const time = new Date(app.date).toISOString().split('T')[1].substring(0, 5); // Simple extraction or use moment-timezone if available
+
+    return `✅ *Agendamento Confirmado!*
+    
+Olá, ${app.client.name}!
+Seu horário na *${app.barbershop.name}* está reservado.
+
+📅 Data: ${date}
+⏰ Hora: ${time}
+💇‍♂️ Profissional: ${app.professional.name}
+💈 Serviço: ${app.service.name}
+
+Te aguardamos!`;
+}
+
+function formatReminderMessage(app) {
+    const time = new Date(app.date).toISOString().split('T')[1].substring(0, 5);
+
+    return `⏰ *Lembrete de Horário*
+
+Opa, ${app.client.name}!
+Passando pra lembrar do seu horário hoje às *${time}* na ${app.barbershop.name}.
+
+Até logo!`;
 }

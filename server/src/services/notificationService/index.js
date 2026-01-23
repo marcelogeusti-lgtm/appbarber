@@ -1,0 +1,46 @@
+const eventBus = require('../events/eventBus');
+const whatsappNotifier = require('./whatsappNotifier');
+const internalNotifier = require('./internalNotifier');
+
+console.log('[NotificationService] Initializing listeners...');
+
+// Event: APPOINTMENT_CREATED
+eventBus.on('APPOINTMENT_CREATED', async (payload) => {
+    console.log(`[NotificationService] Event Received: APPOINTMENT_CREATED for ID ${payload.id}`);
+
+    // 1. Internal Notification (Critical - should always fire)
+    try {
+        await internalNotifier.createAppointmentNotification(payload);
+    } catch (err) {
+        console.error('[NotificationService] Internal Notification Failed:', err);
+    }
+
+    // 2. WhatsApp Notification (Best Effort - fail safe)
+    try {
+        await whatsappNotifier.sendConfirmation(payload);
+    } catch (err) {
+        console.error('[NotificationService] WhatsApp Notification Failed:', err);
+        // Do not rethrow, keep system alive
+    }
+});
+
+// Event: APPOINTMENT_REMINDER
+eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
+    console.log(`[NotificationService] Event Received: APPOINTMENT_REMINDER for ID ${payload.id}`);
+
+    try {
+        await internalNotifier.createReminderNotification(payload);
+    } catch (err) {
+        console.error('[NotificationService] Internal Reminder Failed:', err);
+    }
+
+    try {
+        await whatsappNotifier.sendReminder(payload);
+    } catch (err) {
+        console.error('[NotificationService] WhatsApp Reminder Failed:', err);
+    }
+});
+
+module.exports = {
+    init: () => console.log('[NotificationService] Module active.')
+};

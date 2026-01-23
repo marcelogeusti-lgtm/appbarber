@@ -60,6 +60,10 @@ app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
 
+// Initialize Notification Service (Listeners)
+const notificationService = require('./services/notificationService');
+notificationService.init();
+
 // Master / Educational Platform
 app.use('/api', require('./routes/master.routes'));
 
