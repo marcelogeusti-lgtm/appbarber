@@ -158,6 +158,23 @@ export default function SettingsPage() {
                             placeholder="(00) 00000-0000"
                         />
                     </div>
+
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="space-y-4">
+                            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+                                WhatsApp do Sistema (Envio Automático)
+                            </label>
+                            <input
+                                value={barbershop.whatsappPhone || ''}
+                                onChange={e => setBarbershop({ ...barbershop, whatsappPhone: e.target.value })}
+                                className="w-full p-5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 ring-emerald-500 outline-none transition font-bold text-white placeholder:text-slate-700"
+                                placeholder="Ex: 5511999999999 (Apenas números)"
+                            />
+                            <p className="ml-2 text-[10px] font-bold text-slate-600 uppercase">
+                                Número conectado à API para envio de mensagens.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* IMAGES SETTINGS */}

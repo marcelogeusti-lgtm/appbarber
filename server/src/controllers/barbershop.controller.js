@@ -181,7 +181,7 @@ exports.getBarbershopBySlug = async (req, res) => {
 exports.updateBarbershop = async (req, res) => {
     try {
         const { id } = req.params; // or derived from user token
-        const { name, address, phone, slug, webhookUrl, noShowEnabled, noShowPercent, noShowText, logoUrl, bannerUrls } = req.body;
+        const { name, address, phone, slug, webhookUrl, noShowEnabled, noShowPercent, noShowText, logoUrl, bannerUrls, whatsappPhone } = req.body;
 
         // Check ownership
         // Ideally use req.user.barbershopId or check ownerId
@@ -202,7 +202,8 @@ exports.updateBarbershop = async (req, res) => {
             noShowPercent: noShowPercent ? parseFloat(noShowPercent) : undefined,
             noShowText,
             logoUrl,
-            bannerUrls
+            bannerUrls,
+            whatsappPhone
         };
 
         if (slug && typeof slug === 'string' && slug.trim().length > 0) {
