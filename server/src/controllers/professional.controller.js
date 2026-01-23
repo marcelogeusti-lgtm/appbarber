@@ -300,7 +300,7 @@ exports.listProfessionals = async (req, res) => {
         const pros = await prisma.user.findMany({
             where: {
                 workedBarbershopId: barbershopId,
-                role: { in: ['BARBER', 'ADMIN'] }
+                role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA'] }
             },
             include: {
                 professionalProfile: {
