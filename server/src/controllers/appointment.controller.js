@@ -7,7 +7,8 @@ const jwt = require('jsonwebtoken');
 const saasPlans = require('../config/saasPlans');
 const notificationController = require('../controllers/notification.controller');
 const whatsappNotifier = require('../services/notificationService/whatsappNotifier');
-
+const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
+const TIMEZONE = 'America/Sao_Paulo';
 
 const generateToken = (user) => {
     return jwt.sign(
