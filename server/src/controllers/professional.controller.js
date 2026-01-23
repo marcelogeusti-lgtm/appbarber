@@ -150,43 +150,37 @@ exports.createProfessional = async (req, res) => {
             });
         }
 
+
         let targetUserId = null;
 
         if (existingUser) {
-            // Analyze conflict
-            // Check matches using normalized values against database values (assuming DB has some normalization or we trust the loose comparison for linking logic)
-            // Ideally we compare against what we found.
-
             const dbEmail = existingUser.email ? existingUser.email.toLowerCase() : '';
             const emailMatch = normalizedEmail && dbEmail === normalizedEmail;
-
-            // Phone and CPF usually stored raw or inconsistent, simple check:
             const phoneMatch = normalizedPhone && existingUser.phone === normalizedPhone;
             const cpfMatch = normalizedCpf && existingUser.cpf === normalizedCpf;
 
-            // If we match by EMAIL, we assume it's the same person and we will UPDATE/LINK.
-            // If we match by PHONE/CPF but Email is different (and provided), that's a conflict unless the existing user has NO email.
-
+            // If it's a perfect match (or enough to identify as the same person)
             if (emailMatch || (phoneMatch && !existingUser.email) || (cpfMatch && !existingUser.email)) {
                 targetUserId = existingUser.id;
 
-                if (existingUser.professionalProfile &&
+                // Check if they are already an active Pro in THIS barbershop
+                const isAlreadyProHere = existingUser.professionalProfile &&
                     !existingUser.professionalProfile.deletedAt &&
-                    existingUser.workedBarbershopId === barbershopId) {
-                    return res.status(400).json({ message: 'Este usuário já está cadastrado como profissional nesta barbearia.' });
+                    existingUser.workedBarbershopId === barbershopId &&
+                    existingUser.deletedAt === null;
+
+                if (isAlreadyProHere) {
+                    return res.status(400).json({ message: 'Este usuário já está cadastrado como profissional ativo nesta barbearia.' });
                 }
+
+                // If they were removed (soft-deleted) or are just a client, we will proceed to re-activate/link them below.
             } else {
-                // If we are here, we found a user by Phone/CPF but Email didn't match (or wasn't provided but DB has one), 
-                // OR we found by Email but logic above caught it (emailMatch is true). 
-                // Wait, if emailMatch is true we entered the IF block.
-                // So here either: 
-                // 1. Phone matched, Email different.
-                // 2. CPF matched, Email different.
+                // Conflict: Data belongs to another identity
+                if (phoneMatch) return res.status(400).json({ message: 'Este telefone está vinculado a outro e-mail. Use o e-mail original para re-ativar este profissional.' });
+                if (cpfMatch) return res.status(400).json({ message: 'Este CPF está vinculado a outro e-mail.' });
+                if (emailMatch) return res.status(400).json({ message: 'Este e-mail está em uso por outra conta.' });
 
-                if (phoneMatch) return res.status(400).json({ message: 'Telefone já cadastrado em outra conta com e-mail diferente.' });
-                if (cpfMatch) return res.status(400).json({ message: 'CPF já cadastrado em outra conta com e-mail diferente.' });
-
-                return res.status(400).json({ message: 'Dados conflitantes (E-mail, Telefone ou CPF) com outra conta existente.' });
+                return res.status(400).json({ message: 'Dados conflitantes (E-mail, Telefone ou CPF) com outra conta ativa.' });
             }
         }
 
