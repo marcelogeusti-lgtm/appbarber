@@ -66,6 +66,18 @@ exports.register = async (req, res) => {
                     }
                 });
 
+                // AUTO-CREATE PROFESSIONAL PROFILE
+                // This ensures the owner is also a professional from the start.
+                await tx.professional.create({
+                    data: {
+                        userId: user.id,
+                        showInApp: true,
+                        showPublicly: true,
+                        position: 'Administrador / Barbeiro', // Default position
+                        bio: 'Profissional principal.' // Optional default
+                    }
+                });
+
                 return { user, barbershop, authUser };
             });
 
