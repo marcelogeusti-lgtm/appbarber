@@ -127,10 +127,15 @@ exports.createProfessional = async (req, res) => {
         // --- SAAS LIMIT CHECK END ---
 
         // 1. Check for conflicts or existing user
+        const normalize = (str) => str ? str.trim() : null;
+        const normalizedEmail = email ? email.trim().toLowerCase() : null;
+        const normalizedPhone = normalize(phone);
+        const normalizedCpf = normalize(cpf);
+
         const conflictFilters = [];
-        if (email) conflictFilters.push({ email });
-        if (phone) conflictFilters.push({ phone });
-        if (cpf) conflictFilters.push({ cpf });
+        if (normalizedEmail) conflictFilters.push({ email: { equals: normalizedEmail, mode: 'insensitive' } });
+        if (normalizedPhone) conflictFilters.push({ phone: normalizedPhone });
+        if (normalizedCpf) conflictFilters.push({ cpf: normalizedCpf });
 
         let existingUser = null;
 
@@ -147,11 +152,20 @@ exports.createProfessional = async (req, res) => {
 
         if (existingUser) {
             // Analyze conflict
-            const emailMatch = email && existingUser.email === email;
-            const phoneMatch = phone && existingUser.phone === phone;
-            const cpfMatch = cpf && existingUser.cpf === cpf;
+            // Check matches using normalized values against database values (assuming DB has some normalization or we trust the loose comparison for linking logic)
+            // Ideally we compare against what we found.
 
-            if (emailMatch) {
+            const dbEmail = existingUser.email ? existingUser.email.toLowerCase() : '';
+            const emailMatch = normalizedEmail && dbEmail === normalizedEmail;
+
+            // Phone and CPF usually stored raw or inconsistent, simple check:
+            const phoneMatch = normalizedPhone && existingUser.phone === normalizedPhone;
+            const cpfMatch = normalizedCpf && existingUser.cpf === normalizedCpf;
+
+            // If we match by EMAIL, we assume it's the same person and we will UPDATE/LINK.
+            // If we match by PHONE/CPF but Email is different (and provided), that's a conflict unless the existing user has NO email.
+
+            if (emailMatch || (phoneMatch && !existingUser.email) || (cpfMatch && !existingUser.email)) {
                 targetUserId = existingUser.id;
 
                 if (existingUser.professionalProfile &&
@@ -160,8 +174,15 @@ exports.createProfessional = async (req, res) => {
                     return res.status(400).json({ message: 'Este usuário já está cadastrado como profissional nesta barbearia.' });
                 }
             } else {
-                if (phoneMatch) return res.status(400).json({ message: 'Telefone já cadastrado em outra conta.' });
-                if (cpfMatch) return res.status(400).json({ message: 'CPF já cadastrado em outra conta.' });
+                // If we are here, we found a user by Phone/CPF but Email didn't match (or wasn't provided but DB has one), 
+                // OR we found by Email but logic above caught it (emailMatch is true). 
+                // Wait, if emailMatch is true we entered the IF block.
+                // So here either: 
+                // 1. Phone matched, Email different.
+                // 2. CPF matched, Email different.
+
+                if (phoneMatch) return res.status(400).json({ message: 'Telefone já cadastrado em outra conta com e-mail diferente.' });
+                if (cpfMatch) return res.status(400).json({ message: 'CPF já cadastrado em outra conta com e-mail diferente.' });
 
                 return res.status(400).json({ message: 'Dados conflitantes (E-mail, Telefone ou CPF) com outra conta existente.' });
             }
@@ -215,7 +236,7 @@ exports.createProfessional = async (req, res) => {
                 user = await tx.user.create({
                     data: {
                         ...userData,
-                        email,
+                        email: normalizedEmail,
                         password: hashedPassword,
                         role: role || 'BARBER'
                     }
