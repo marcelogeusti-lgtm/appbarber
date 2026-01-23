@@ -26,25 +26,28 @@ exports.createAppointment = async (req, res) => {
             data, horario,
             criar_conta, senha,
             lembrete_minutos, is_squeeze_in,
-            forma_pagamento
+            forma_pagamento,
+            professionalId: cam_proId, serviceId: cam_serviceId, guestName: cam_guestName,
+            guestPhone: cam_guestPhone, guestEmail: cam_guestEmail, date: cam_date,
+            time: cam_time, paymentMethod: cam_payMethod
         } = req.body;
 
-        // Legacy/Internal mapping
-        const professionalId = barbeiro_id;
-        // Assuming single service selection for now as per schema logic, taking the first one
-        const serviceId = servicos && servicos.length > 0 ? servicos[0].servico_id : null;
-        const guestName = cliente_nome;
-        const guestPhone = cliente_telefone;
-        const guestEmail = email;
+        // Unified Mapping (Supporting both Portuguese/Snake Case and English/camelCase)
+        const professionalId = barbeiro_id || cam_proId;
+        const guestName = cliente_nome || cam_guestName;
+        const guestPhone = cliente_telefone || cam_guestPhone;
+        const guestEmail = email || cam_guestEmail;
         const guestBirthday = data_nascimento;
         const createAccount = criar_conta;
         const password = senha;
         const reminderMinutes = lembrete_minutos;
         const isSqueezeIn = is_squeeze_in;
-        // Fix: Map Portuguese payload to internal English variables
-        const date = data;
-        const time = horario;
-        const paymentMethod = forma_pagamento;
+        const date = data || cam_date;
+        const time = horario || cam_time;
+        const paymentMethod = forma_pagamento || cam_payMethod;
+
+        // Service Mapping
+        let serviceId = cam_serviceId || (servicos && servicos.length > 0 ? servicos[0].servico_id : null);
 
         let clientId = req.user?.id || cliente_id; // Auth token or payload id
         let createdToken = null;
