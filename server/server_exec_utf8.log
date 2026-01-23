@@ -1,0 +1,109 @@
+﻿[NotificationService] Initializing listeners...
+[NotificationService] Module active.
+Ô£à Connected to Database (PostgreSQL)
+[Scheduler] Reminder Job initialized (Every 10 mins).
+­ƒÜÇ Server running on port 3001
+[0mPOST /api/appointments [33m404[0m 3383.579 ms - 38[0m
+[Scheduler] Checking for upcoming appointments...
+[Scheduler] No appointments found for reminder.
+node : Create notification 
+error: PrismaClientKnownReq
+uestError: 
+No linha:1 caractere:1
++ node src/server.js > 
+server_exec.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpeci    fied: 
+(Create not    
+ifica...nRequestE    rror: 
+:String) []    , 
+RemoteException
+    + FullyQualifiedE    
+rrorId : NativeCo    
+mmandError
+ 
+Invalid `prisma.notificatio
+n.create()` invocation in
+C:\Users\wanie\Downloads\MA
+RCELO\EU\App Barbeiro\serve
+r\src\controllers\notificat
+ion.controller.js:152:35
+
+  149 // Helper function 
+to create notification 
+(internal use)
+  150 
+exports.createNotification 
+= async ({ userId, title, 
+message, type, 
+appointmentId, orderId }) 
+=> {
+  151     try {
+ÔåÆ 152         await 
+prisma.notification.create(
+Foreign key constraint 
+violated: 
+`Notification_userId_fkey 
+(index)`
+    at 
+$n.handleRequestError (C:\U
+sers\wanie\Downloads\MARCEL
+O\EU\App Barbeiro\server\no
+de_modules\@prisma\client\r
+untime\library.js:121:7315)
+    at $n.handleAndLogReque
+stError (C:\Users\wanie\Dow
+nloads\MARCELO\EU\App Barbe
+iro\server\node_modules\@pr
+isma\client\runtime\library
+.js:121:6623)
+    at $n.request (C:\Users
+\wanie\Downloads\MARCELO\EU
+\App Barbeiro\server\node_m
+odules\@prisma\client\runti
+me\library.js:121:6307)
+    at async l (C:\Users\wa
+nie\Downloads\MARCELO\EU\Ap
+p Barbeiro\server\node_modu
+les\@prisma\client\runtime\
+library.js:130:9633)
+    at async 
+exports.createNotification 
+(C:\Users\wanie\Downloads\M
+ARCELO\EU\App Barbeiro\serv
+er\src\controllers\notifica
+tion.controller.js:152:9)
+    at async prisma.$transa
+ction.maxWait (C:\Users\wan
+ie\Downloads\MARCELO\EU\App
+ Barbeiro\server\src\contro
+llers\appointment.controlle
+r.js:406:21)
+    at async Proxy._transac
+tionWithCallback (C:\Users\
+wanie\Downloads\MARCELO\EU\
+App Barbeiro\server\node_mo
+dules\@prisma\client\runtim
+e\library.js:130:8000)
+    at async 
+exports.createAppointment (
+C:\Users\wanie\Downloads\MA
+RCELO\EU\App Barbeiro\serve
+r\src\controllers\appointme
+nt.controller.js:332:24) {
+  code: 'P2003',
+  clientVersion: '5.22.0',
+  meta: {
+    modelName: 
+'Notification',
+    field_name: 
+'Notification_userId_fkey 
+(index)'
+  }
+}
+[0mPOST /api/appointments [32m201[0m 23153.993 ms - 1250[0m
+[NotificationService] Event Received: APPOINTMENT_CREATED for ID 793a31af-7d05-4cc2-bb7c-57904a38e548
+[WhatsappNotifier] Skipped: Barbershop has no WhatsApp configured.
+

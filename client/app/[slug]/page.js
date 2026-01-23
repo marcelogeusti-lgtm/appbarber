@@ -460,7 +460,7 @@ export default function BarbershopPage() {
                                         <div className="space-y-4 animate-in slide-in-from-right">
                                             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Escolha o Profissional</h3>
                                             <div className="grid grid-cols-2 gap-3">
-                                                {barbershop.staff?.filter(s => s.role === 'BARBER').map(pro => (
+                                                {barbershop.staff?.filter(s => ['BARBER', 'ADMIN', 'SUPER_ADMIN'].includes(s.role)).map(pro => (
                                                     <div key={pro.id} onClick={() => handleProfessionalSelect(pro)} className={`bg-slate-900/50 p-4 rounded-3xl border transition-all text-center group cursor-pointer ${selectedProfessional?.id === pro.id ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-800 hover:border-slate-600'}`}>
                                                         <div className="w-14 h-14 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center font-black text-lg text-white group-hover:scale-105 transition">
                                                             {pro.name.charAt(0)}

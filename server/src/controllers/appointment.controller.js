@@ -344,11 +344,8 @@ exports.createAppointment = async (req, res) => {
                     serviceId,
                     barbershopId: service.barbershopId,
                     paymentMethod: method,
-                    // If method is CASH (Local), we immediately CONFIRM it because we trust the user showing up (or use No-Show fees).
-                    // If ONLINE, it might be PENDING until payment webhook.
-                    // Request says: "Ao finalizar ... O status deve ser: Confirmado"
                     paymentStatus: method === 'CASH' ? 'PENDING' : (method === 'SUBSCRIPTION' ? 'PAID' : 'PENDING'),
-                    status: method === 'CASH' ? 'CONFIRMED' : (method === 'SUBSCRIPTION' ? 'CONFIRMED' : 'SCHEDULED'), // Subscription is instant confirmed
+                    status: method === 'CASH' ? 'CONFIRMED' : (method === 'SUBSCRIPTION' ? 'CONFIRMED' : 'SCHEDULED'),
                     isSqueezeIn: isSqueezeIn || false,
                     reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
                 }
@@ -357,91 +354,36 @@ exports.createAppointment = async (req, res) => {
             // --- PACKAGE / SUBSCRIPTION USAGE ---
             if (method === 'SUBSCRIPTION') {
                 if (!clientId) throw new Error('Cliente não identificado para uso de pacote.');
-
-                // We need to require packageController here (avoid circular dependency if top-level)
                 const packageController = require('../controllers/package.controller');
-
-                // Determine effective service ID (mapped variable)
-                // We already have 'serviceId' in scope.
-
                 const usedPackage = await packageController.checkAndUsePackage(clientId, serviceId, service.barbershopId);
+                if (!usedPackage) throw new Error('Você não possui créditos ativos neste pacote para este serviço.');
 
-                if (!usedPackage) {
-                    // If we are inside a transaction, throwing error rolls it back.
-                    throw new Error('Você não possui créditos ativos neste pacote para este serviço.');
-                }
-
-                // Link usage to appointment
                 await tx.packageUsage.create({
                     data: {
                         clientPackageId: usedPackage.id,
                         appointmentId: appointment.id
                     }
                 });
-
-                console.log(`[Package] Used 1 credit from Package ${usedPackage.package.name} for Client ${clientId}`);
-            }
-            // ------------------------------------
-
-            // --- Notification Trigger ---
-            // Notify Professional
-            // Wrap in safe catch to not block transaction? No, notifications are critical enough but shouldn't rollback DB.
-            // Moving outside transaction usually better, but for now inside is fine or just ignore error.
-            try {
-                await notificationController.createNotification({
-                    userId: professionalId,
-                    title: 'Novo Agendamento',
-                    message: `Novo agendamento com ${currentUser?.name || guestName} para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
-                    type: 'appointment',
-                    appointmentId: appointment.id
-                });
-            } catch (e) {
-                console.error('Falha ao criar notificação interna:', e.message);
-            }
-            // ----------------------------
-
-            // --- Notification for Client (In-App) ---
-            if (clientId) {
-                try {
-                    await notificationController.createNotification({
-                        userId: clientId,
-                        title: 'Agendamento Confirmado',
-                        message: `Seu horário para ${service.name} está confirmado para ${format(appointmentDateTime, 'dd/MM HH:mm')}.`,
-                        type: 'appointment',
-                        appointmentId: appointment.id
-                    });
-                } catch (e) { console.error('Falha ao notificar cliente:', e.message); }
             }
 
             // Calculate Totals
             const serviceTotal = servicesToBook.reduce((sum, s) => sum + Number(s.price), 0);
             const productsTotal = productItems.reduce((sum, p) => sum + Number(p.price), 0);
-            let total = serviceTotal + productsTotal;
+            let totalVal = serviceTotal + productsTotal;
 
             // Check for Pending No-Show Fees
             const pendingFees = await tx.noShowRecord.findMany({
-                where: {
-                    clientId,
-                    barbershopId: service.barbershopId,
-                    status: 'PENDING'
-                }
+                where: { clientId, barbershopId: service.barbershopId, status: 'PENDING' }
             });
-
-            let feeTotal = 0;
-            const feeItems = [];
 
             if (pendingFees.length > 0) {
                 for (const fee of pendingFees) {
-                    feeTotal += fee.feeValue;
-                    // Mark fee as CHARGED (or associated to this order)
-                    // Currently NoShowRecord logic is simple. Let's mark it CHARGED.
-                    // Ideally we should link it to the Order to track payment, but keeping it simple as requested.
+                    totalVal += Number(fee.feeValue);
                     await tx.noShowRecord.update({
                         where: { id: fee.id },
                         data: { status: 'CHARGED' }
                     });
                 }
-                total += feeTotal;
             }
 
             // Create Order
@@ -452,12 +394,11 @@ exports.createAppointment = async (req, res) => {
                     clientId,
                     professionalId,
                     status: 'OPEN',
-                    subtotal: total,
-                    total: total,
+                    subtotal: totalVal,
+                    total: totalVal,
                     paymentMethod: method,
                     items: {
                         create: [
-                            // Create OrderItem for EACH selected service
                             ...servicesToBook.map(s => ({
                                 type: 'SERVICE',
                                 serviceId: s.id,
@@ -475,8 +416,8 @@ exports.createAppointment = async (req, res) => {
                             ...pendingFees.map(fee => ({
                                 type: 'NO_SHOW_FEE',
                                 quantity: 1,
-                                unitPrice: fee.feeValue,
-                                total: fee.feeValue
+                                unitPrice: Number(fee.feeValue),
+                                total: Number(fee.feeValue)
                             }))
                         ]
                     },
@@ -486,12 +427,40 @@ exports.createAppointment = async (req, res) => {
 
             return { appointment, order };
         }, {
-            maxWait: 5000, // default: 2000
-            timeout: 20000 // default: 5000
+            maxWait: 5000,
+            timeout: 20000
         });
 
-
         const { appointment, order } = result;
+
+        // --- Notification Trigger (Professional) ---
+        try {
+            await notificationController.createNotification({
+                userId: professionalId,
+                title: 'Novo Agendamento',
+                message: `Novo agendamento com ${currentUser?.name || guestName} para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
+                type: 'appointment',
+                appointmentId: appointment.id
+            });
+        } catch (e) {
+            console.error('Falha ao criar notificação interna (Pro):', e.message);
+        }
+
+        // --- Notification for Client (In-App) ---
+        if (clientId) {
+            try {
+                const targetUser = await prisma.user.findUnique({ where: { id: clientId } });
+                if (targetUser) {
+                    await notificationController.createNotification({
+                        userId: clientId,
+                        title: 'Agendamento Confirmado',
+                        message: `Seu horário para ${service.name} está confirmado para ${format(appointmentDateTime, 'dd/MM HH:mm')}.`,
+                        type: 'appointment',
+                        appointmentId: appointment.id
+                    });
+                }
+            } catch (e) { console.error('Falha ao notificar cliente:', e.message); }
+        }
 
         // --- Event Driven Notification ---
         setImmediate(async () => {
