@@ -128,9 +128,11 @@ exports.createProfessional = async (req, res) => {
 
         // 1. Check for conflicts or existing user
         const normalize = (str) => str ? str.trim() : null;
+        const onlyNumbers = (str) => str ? str.replace(/\D/g, '') : null;
+
         const normalizedEmail = email ? email.trim().toLowerCase() : null;
-        const normalizedPhone = normalize(phone);
-        const normalizedCpf = normalize(cpf);
+        const normalizedPhone = onlyNumbers(phone);
+        const normalizedCpf = onlyNumbers(cpf);
 
         const conflictFilters = [];
         if (normalizedEmail) conflictFilters.push({ email: { equals: normalizedEmail, mode: 'insensitive' } });
@@ -204,7 +206,13 @@ exports.createProfessional = async (req, res) => {
 
             // Prepare common data
             const userData = {
-                name, nickname, phone, landline, cpf, cnpj, rg, gender,
+                name, nickname,
+                phone: normalizedPhone,
+                landline: onlyNumbers(landline),
+                cpf: normalizedCpf,
+                cnpj: onlyNumbers(cnpj),
+                rg: onlyNumbers(rg),
+                gender,
                 birthday: birthday ? new Date(birthday) : null,
                 notes, avatarUrl,
                 active: active !== undefined ? active : true,
