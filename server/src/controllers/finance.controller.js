@@ -230,3 +230,91 @@ exports.getFinancialStats = async (req, res) => {
         res.status(500).json({ message: 'Server error loading stats.' });
     }
 };
+// --- Cash Shift (Caixa) Management ---
+
+exports.getCurrentShift = async (req, res) => {
+    try {
+        const { barbershopId } = req.query;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const currentShift = await prisma.cashShift.findFirst({
+            where: {
+                barbershopId,
+                status: 'OPEN'
+            },
+            include: {
+                openedBy: { select: { name: true } }
+            }
+        });
+
+        res.json(currentShift);
+    } catch (error) {
+        console.error('Get Current Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao buscar status do caixa.' });
+    }
+};
+
+exports.openShift = async (req, res) => {
+    try {
+        const { barbershopId, openingBalance = 0 } = req.body;
+        const userId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        // Check if there is already an open shift
+        const existing = await prisma.cashShift.findFirst({
+            where: { barbershopId, status: 'OPEN' }
+        });
+
+        if (existing) {
+            return res.status(400).json({ message: 'Já existe um caixa aberto para esta barbearia.' });
+        }
+
+        const newShift = await prisma.cashShift.create({
+            data: {
+                barbershopId,
+                openedById: userId,
+                openingBalance: parseFloat(openingBalance),
+                currentBalance: parseFloat(openingBalance),
+                status: 'OPEN'
+            }
+        });
+
+        res.status(201).json(newShift);
+    } catch (error) {
+        console.error('Open Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao abrir caixa.' });
+    }
+};
+
+exports.closeShift = async (req, res) => {
+    try {
+        const { barbershopId, closingBalance } = req.body;
+        const userId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const currentShift = await prisma.cashShift.findFirst({
+            where: { barbershopId, status: 'OPEN' }
+        });
+
+        if (!currentShift) {
+            return res.status(400).json({ message: 'Não há caixa aberto para fechar.' });
+        }
+
+        const updatedShift = await prisma.cashShift.update({
+            where: { id: currentShift.id },
+            data: {
+                status: 'CLOSED',
+                closedById: userId,
+                closedAt: new Date(),
+                closingBalance: closingBalance !== undefined ? parseFloat(closingBalance) : currentShift.currentBalance
+            }
+        });
+
+        res.json(updatedShift);
+    } catch (error) {
+        console.error('Close Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao fechar caixa.' });
+    }
+};

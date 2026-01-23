@@ -278,42 +278,84 @@ exports.closeOrder = async (req, res) => {
             return res.status(400).json({ message: 'Selecione a forma de pagamento.' });
         }
 
-        const order = await prisma.order.findUnique({ where: { id } });
-        if (!order) return res.status(404).json({ message: 'Comanda não encontrada.' });
-
-        const finalDiscount = discount !== undefined ? discount : order.discount;
-        const finalTotal = order.subtotal - finalDiscount;
-
-        const updatedOrder = await prisma.order.update({
+        const order = await prisma.order.findUnique({
             where: { id },
-            data: {
-                status: 'PAID',
-                paymentStatus: 'PAID',
-                paymentMethod, // Now validated against new enum via Prisma (or string if loose)
-                discount: finalDiscount,
-                total: finalTotal,
-                paidAt: new Date(),
-                // status: 'CLOSED' // User wants PAID/CLOSED logic. Usually PAID implies CLOSED for simple flows.
-                status: 'CLOSED'
-            }
+            include: { items: true }
+        });
+        if (!order) return res.status(404).json({ message: 'Comanda não encontrada.' });
+        if (order.status === 'PAID' || order.status === 'CLOSED') {
+            return res.status(400).json({ message: 'Esta comanda já foi finalizada.' });
+        }
+
+        // 1. Verify open shift
+        const openShift = await prisma.cashShift.findFirst({
+            where: { barbershopId: order.barbershopId, status: 'OPEN' }
         });
 
-        // Optionally: Update Appointment payment status as well
-        if (order.appointmentId) {
-            await prisma.appointment.update({
-                where: { id: order.appointmentId },
-                data: {
-                    paymentStatus: 'PAID',
-                    paymentMethod,
-                    status: 'COMPLETED' // Assume completed if paid
-                }
+        if (!openShift) {
+            return res.status(400).json({
+                message: 'Não há caixa aberto. Abra o caixa antes de finalizar a comanda.'
             });
         }
 
-        res.json(updatedOrder);
+        const finalDiscount = discount !== undefined ? parseFloat(discount) : order.discount;
+        const finalTotal = order.subtotal - finalDiscount;
+
+        const result = await prisma.$transaction(async (tx) => {
+            // 2. Update Order
+            const updatedOrder = await tx.order.update({
+                where: { id },
+                data: {
+                    status: 'CLOSED',
+                    paymentStatus: 'PAID',
+                    paymentMethod,
+                    discount: finalDiscount,
+                    total: finalTotal,
+                    paidAt: new Date(),
+                }
+            });
+
+            // 3. Create Transaction (Caixa Entry)
+            await tx.transaction.create({
+                data: {
+                    description: `Venda - Comanda ${order.id.substring(0, 8)}`,
+                    amount: finalTotal,
+                    type: 'INCOME',
+                    category: 'Comanda',
+                    date: new Date(),
+                    barbershopId: order.barbershopId,
+                    orderId: id,
+                    cashShiftId: openShift.id
+                }
+            });
+
+            // 4. Update Shift Balance
+            await tx.cashShift.update({
+                where: { id: openShift.id },
+                data: {
+                    currentBalance: { increment: finalTotal }
+                }
+            });
+
+            // 5. Update Appointment status if exists
+            if (order.appointmentId) {
+                await tx.appointment.update({
+                    where: { id: order.appointmentId },
+                    data: {
+                        paymentStatus: 'PAID',
+                        paymentMethod,
+                        status: 'COMPLETED'
+                    }
+                });
+            }
+
+            return updatedOrder;
+        });
+
+        res.json(result);
     } catch (error) {
         console.error('Close Order Error:', error);
-        res.status(500).json({ message: 'Erro ao fechar comanda.' });
+        res.status(500).json({ message: 'Erro ao fechar comanda: ' + error.message });
     }
 };
 

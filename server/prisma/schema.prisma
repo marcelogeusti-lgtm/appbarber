@@ -156,6 +156,10 @@ model User {
 
   // System Updates Read
   readSystemUpdates     UserSystemUpdateRead[]
+
+  // Cash Shift Management
+  openedShifts          CashShift[] @relation("OpenedShifts")
+  closedShifts          CashShift[] @relation("ClosedShifts")
 }
 
 model Notification {
@@ -220,6 +224,7 @@ model Barbershop {
   noShowRecords NoShowRecord[]
   webhooks     Webhook[]
   gatewayConfigs GatewayConfig[]
+  cashShifts   CashShift[]
 }
 
 model GatewayConfig {
@@ -436,8 +441,46 @@ model Transaction {
   appointmentId String?
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
 
+  // New Relations
+  orderId       String?
+  order         Order?       @relation("OrderTransactions", fields: [orderId], references: [id])
+  
+  cashShiftId   String?
+  cashShift     CashShift?   @relation(fields: [cashShiftId], references: [id])
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+enum CashShiftStatus {
+  OPEN
+  CLOSED
+}
+
+model CashShift {
+  id              String   @id @default(uuid())
+  barbershopId    String
+  barbershop      Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  openedById      String
+  openedBy        User     @relation("OpenedShifts", fields: [openedById], references: [id])
+  
+  closedById      String?
+  closedBy        User?    @relation("ClosedShifts", fields: [closedById], references: [id])
+  
+  status          CashShiftStatus @default(OPEN)
+  
+  openingBalance  Float    @default(0)
+  closingBalance  Float?
+  currentBalance  Float    @default(0)
+  
+  openedAt        DateTime @default(now())
+  closedAt        DateTime?
+  
+  transactions    Transaction[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Waitlist {
@@ -575,6 +618,9 @@ model Order {
   
   // Payment Orchestrator Relation
   payments        Payment[]
+
+  // Cash Flow Integration
+  cashTransactions Transaction[] @relation("OrderTransactions")
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

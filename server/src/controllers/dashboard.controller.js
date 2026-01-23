@@ -3,140 +3,87 @@ const prisma = new PrismaClient();
 
 exports.getDashboardStats = async (req, res) => {
     try {
-        const userId = req.user.id;
-        console.log(`[Dashboard] Fetching stats for user: ${userId}`);
+        const { barbershopId } = req.query;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        const todayCommon = new Date();
+        const today = new Date();
+        const startOfToday = new Date(today.setHours(0, 0, 0, 0));
+        const endOfToday = new Date(today.setHours(23, 59, 59, 999));
 
-        // Define Today's Range
-        const startOfDay = new Date(todayCommon);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(todayCommon);
-        endOfDay.setHours(23, 59, 59, 999);
+        const yesterday = new Date(startOfToday);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const startOfYesterday = new Date(yesterday);
+        const endOfYesterday = new Date(new Date(yesterday).setHours(23, 59, 59, 999));
 
-        // Define Yesterday's Range
-        const startOfYesterday = new Date(startOfDay);
-        startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-        const endOfYesterday = new Date(endOfDay);
-        endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-
-        // Optimized Queries
+        // 1. Revenue and Attendance (Based on Orders CLOSED/PAID)
         const [
-            totalAppointments,
-            todayRevenueResult,
-            yesterdayRevenueResult,
-            totalClientsCount,
-            todayAppointmentsCount,
-            newClientsResult,
-            totalRevenueResult
+            todayOrders,
+            yesterdayOrders,
+            totalRevenueResult,
+            uniqueClientsResult
         ] = await Promise.all([
-            // 1. Total Appointments (Lifetime)
-            prisma.appointment.count({
-                where: { professionalId: userId }
-            }),
-
-            // 2. Today's Revenue
-            prisma.$queryRaw`
-                SELECT SUM(s.price) as total 
-                FROM "Appointment" a 
-                JOIN "Service" s ON a."serviceId" = s.id 
-                WHERE a."professionalId" = ${userId}
-                AND a.date >= ${startOfDay} AND a.date <= ${endOfDay}
-                AND a.status != 'CANCELLED'
-            `,
-
-            // 3. Yesterday's Revenue
-            prisma.$queryRaw`
-                SELECT SUM(s.price) as total 
-                FROM "Appointment" a 
-                JOIN "Service" s ON a."serviceId" = s.id 
-                WHERE a."professionalId" = ${userId}
-                AND a.date >= ${startOfYesterday} AND a.date <= ${endOfYesterday}
-                AND a.status != 'CANCELLED'
-            `,
-
-            // 4. Total Clients
-            prisma.$queryRaw`
-                SELECT COUNT(DISTINCT "clientId") as count 
-                FROM "Appointment" 
-                WHERE "professionalId" = ${userId}
-            `,
-
-            // 5. Today's Appointments
-            prisma.appointment.count({
+            // Today's Orders
+            prisma.order.findMany({
                 where: {
-                    professionalId: userId,
-                    date: {
-                        gte: startOfDay,
-                        lte: endOfDay
-                    },
-                    status: { not: 'CANCELLED' }
+                    barbershopId,
+                    status: { in: ['CLOSED', 'PAID'] },
+                    updatedAt: { gte: startOfToday, lte: endOfToday }
                 }
             }),
-
-            // 6. New Clients Today
+            // Yesterday's Orders
+            prisma.order.findMany({
+                where: {
+                    barbershopId,
+                    status: { in: ['CLOSED', 'PAID'] },
+                    updatedAt: { gte: startOfYesterday, lte: endOfYesterday }
+                }
+            }),
+            // Total Lifetime Revenue
+            prisma.order.aggregate({
+                where: {
+                    barbershopId,
+                    status: { in: ['CLOSED', 'PAID'] }
+                },
+                _sum: { total: true }
+            }),
+            // Real Clients (Unique IDs with history)
+            // Rule: Has at least one appointment OR one finalized order
             prisma.$queryRaw`
-                SELECT COUNT(DISTINCT a."clientId") as count
-                FROM "Appointment" a
-                WHERE a."professionalId" = ${userId}
-                AND a.date >= ${startOfDay} AND a.date <= ${endOfDay}
-                AND a."clientId" NOT IN (
-                    SELECT "clientId" 
-                    FROM "Appointment" 
-                    WHERE "professionalId" = ${userId} 
-                    AND date < ${startOfDay}
+                SELECT COUNT(DISTINCT "id") as count FROM "Client"
+                WHERE "id" IN (
+                    SELECT "clientId" FROM "Appointment" WHERE "barbershopId" = ${barbershopId}
+                    UNION
+                    SELECT "clientId" FROM "Order" WHERE "barbershopId" = ${barbershopId} AND "status" IN ('CLOSED', 'PAID')
                 )
-             `,
-
-            // 7. Total Revenue (Lifetime)
-            prisma.$queryRaw`
-                SELECT SUM(s.price) as total 
-                FROM "Appointment" a 
-                JOIN "Service" s ON a."serviceId" = s.id 
-                WHERE a."professionalId" = ${userId}
-                AND a.status != 'CANCELLED'
             `
         ]);
 
-        console.log('[Dashboard] Raw Revenue Results:', { today: todayRevenueResult, yesterday: yesterdayRevenueResult, total: totalRevenueResult });
+        const revenueToday = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const revenueYesterday = yesterdayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const revenueTotal = totalRevenueResult._sum.total || 0;
+        const clientsTotal = Number(uniqueClientsResult[0]?.count || 0);
 
-        // Process Revenue with safe parsing
-        const revenueToday = todayRevenueResult?.[0]?.total ? Number(todayRevenueResult[0].total) : 0;
-        const revenueYesterday = yesterdayRevenueResult?.[0]?.total ? Number(yesterdayRevenueResult[0].total) : 0;
-        const revenueTotal = totalRevenueResult?.[0]?.total ? Number(totalRevenueResult[0].total) : 0;
-
-        // Calculate Trend
+        // Trend calculation
         let revenueTrend = "0% vs ontem";
         if (revenueYesterday > 0) {
             const percent = ((revenueToday - revenueYesterday) / revenueYesterday) * 100;
-            const sign = percent >= 0 ? '+' : '';
-            revenueTrend = `${sign}${percent.toFixed(0)}% vs ontem`;
+            revenueTrend = `${percent >= 0 ? '+' : ''}${percent.toFixed(0)}% vs ontem`;
         } else if (revenueToday > 0) {
             revenueTrend = "+100% vs ontem";
         }
 
-        // Process Counts with safe parsing
-        // BigInt handling: prisma $queryRaw returns BigInt for COUNT on some drivers/versions, ensure we convert to Number
-        const parseCount = (res) => {
-            const val = res?.[0]?.count;
-            return val ? Number(val) : 0;
-        };
-
-        const clientsCount = parseCount(totalClientsCount);
-        const newClientsToday = parseCount(newClientsResult);
-
         res.json({
-            appointmentsTotal: totalAppointments,
-            appointmentsToday: todayAppointmentsCount,
             revenueToday,
             revenueTotal,
             revenueTrend,
-            clientsTotal: clientsCount,
-            newClientsToday
+            appointmentsToday: todayOrders.length, // Count of finalized orders
+            clientsTotal,
+            // Add open commands count for convenience
+            openCommands: await prisma.order.count({ where: { barbershopId, status: 'OPEN' } })
         });
 
     } catch (error) {
         console.error('Error fetching dashboard stats:', error);
-        res.status(500).json({ message: 'Server error fetching dashboard stats' });
+        res.status(500).json({ message: 'Erro ao carregar estatísticas do painel.' });
     }
 };
