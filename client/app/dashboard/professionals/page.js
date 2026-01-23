@@ -42,7 +42,7 @@ export default function ProfessionalsPage() {
     };
 
     const handleDeletePro = async (proId, proName) => {
-        if (!confirm(`Tem certeza que deseja remover o profissional ${proName}? Ele será desativado do sistema.`)) return;
+        if (!confirm(`ATENÇÃO: Você está prestes a EXCLUIR PERMANENTEMENTE o profissional ${proName}.\n\nTodos os dados de acesso, agendamentos e histórico serão APAGADOS do banco de dados e NÃO poderão ser recuperados.\n\nO e-mail e telefone ficarão livres para novo cadastro.\n\nDeseja continuar?`)) return;
 
         try {
             await api.delete(`/professionals/${proId}`);

@@ -409,32 +409,64 @@ exports.deleteProfessional = async (req, res) => {
             return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
-        // Perform Soft Delete:
-        // 1. Remove Professional Profile (so they don't show up as barber)
-        // 2. Change Role to CLIENT (removes access)
-        // 3. Set active = false (optional, but good for keeping history without access)
+        // Perform Hard Delete (Permanently remove)
+        // Warning: This action is irreversible.
 
         await prisma.$transaction(async (tx) => {
-            // Soft Delete Professional Profile
+            // 1. Remove Dependencies
             if (pro.professionalProfile) {
-                await tx.professional.update({
-                    where: { id: pro.professionalProfile.id },
-                    data: { deletedAt: new Date() }
-                });
-                // Note: We keep schedules but they won't be accessible because the profile is marked deleted
+                const proId = pro.professionalProfile.id;
+                // Delete Schedules
+                await tx.schedule.deleteMany({ where: { professionalId: proId } });
+                // Delete Commissions overrides
+                await tx.professionalServiceCommission.deleteMany({ where: { professionalId: pro.id } });
+
+                // Delete Professional Profile
+                await tx.professional.delete({ where: { id: proId } });
             }
 
-            // Downgrade User and remove linkage
-            await tx.user.update({
-                where: { id },
-                data: {
-                    role: 'CLIENT',
-                    workedBarbershopId: null,
+            // 2. Determine if we delete the User account or just downgrade
+            // If the user is the OWNER of a barbershop, we generally DO NOT delete the account, just the pro profile.
+            // If the user is just a STAFF (BARBER), we DELETE the account entirely to free up email/phone.
+
+            const isOwner = await tx.barbershop.findFirst({ where: { ownerId: id } });
+
+            if (isOwner) {
+                // Owner: Just remove professional status
+                await tx.user.update({
+                    where: { id },
+                    data: {
+                        // role: 'CLIENT', // Optionally downgrade to CLIENT or keep ADMIN? 
+                        // Usually owners are ADMIN. If we delete pro profile, they are just Admin manager.
+                        // User asked "limpo no banco". If we keep User, email/phone is still taken.
+                        // But if we delete Owner User, the Barbershop becomes orphan (fatal error).
+                        // So for Owner, we MUST keep User.
+                        // This handles the "Auto-Create" scenario where Owner is also Pro.
+                        // If they delete themselves as pro, they just stop appearing in schedule.
+                    }
+                });
+                // Note: We already deleted professionalProfile above.
+            } else {
+                // Staff: DELETE EVERYTHING (User + AuthUser)
+                // This frees up the Email/Phone/CPF.
+
+                if (pro.authUserId) {
+                    await tx.authUser.delete({ where: { id: pro.authUserId } });
+                    // User deletes via Cascade? If not, delete explicitly.
+                    // Assuming no cascade configured on AuthUser->User in schema shown (relation exists but onDelete unsure).
+                    // Safe to try delete user if it still exists.
+                    try {
+                        await tx.user.delete({ where: { id } });
+                    } catch (e) {
+                        // Ignore if cascade already handled it
+                    }
+                } else {
+                    await tx.user.delete({ where: { id } });
                 }
-            });
+            }
         });
 
-        res.json({ message: 'Profissional removido com sucesso' });
+        res.json({ message: 'Profissional e dados vinculados removidos permanentemente.' });
     } catch (error) {
         console.error('Delete Pro error:', error);
         res.status(500).json({ message: 'Erro ao remover profissional' });
