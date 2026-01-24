@@ -52,7 +52,9 @@ export default function BarbershopPage() {
     const [selectedService, setSelectedService] = useState(null);
     const [selectedProfessional, setSelectedProfessional] = useState(null);
     const [selectedProducts, setSelectedProducts] = useState([]);
-    const [paymentMethod, setPaymentMethod] = useState(''); // 'LOCAL', 'ONLINE', 'SUBSCRIPTION'
+    const [paymentType, setPaymentType] = useState('local'); // 'local' | 'online'
+    const [paymentMethod, setPaymentMethod] = useState('PIX'); // 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD'
+    const [checkoutData, setCheckoutData] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -190,65 +192,43 @@ export default function BarbershopPage() {
             if (!formData.name || !formData.phone || !formData.date || !formData.time) {
                 return alert('Preencha os dados obrigatórios (Nome, Telefone, Data e Hora)');
             }
-            if (!paymentMethod) return alert('Selecione uma forma de pagamento');
-
-            // Payload Standardized (Snake Case)
-            const userStr = localStorage.getItem('user');
-            const currentUser = userStr ? JSON.parse(userStr) : null;
 
             const payload = {
-                // Standard Fields
-                cliente_id: currentUser?.id || null,
                 cliente_nome: formData.name,
                 cliente_telefone: formData.phone,
-
                 barbearia_id: barbershop.id,
-                barbearia_nome: barbershop.name,
-
                 barbeiro_id: selectedProfessional.id,
-                barbeiro_nome: selectedProfessional.name,
-
-                servicos: [
-                    {
-                        servico_id: selectedService.id,
-                        nome: selectedService.name,
-                        valor: Number(selectedService.price),
-                        duracao_minutos: selectedService.duration
-                    }
-                ],
-
-                // Products (maintaining functionality)
+                servicos: [{
+                    servico_id: selectedService.id,
+                    nome: selectedService.name,
+                    valor: Number(selectedService.price),
+                    duracao_minutos: selectedService.duration
+                }],
                 produtos: selectedProducts.map(p => ({
                     produto_id: p.id,
                     nome: p.name,
                     valor: Number(p.price)
                 })),
-
                 data: formData.date,
                 horario: formData.time,
-
-                valor_total: totalValue, // Calculated in frontend as requested
-
-                forma_pagamento: "local", // Fixed for now as per request "forma_pagamento: 'local'"
-                status: "confirmado",
-
-                // Essential Extras for Account/Logic
+                valor_total: totalValue,
+                forma_pagamento: paymentType === 'online' ? paymentMethod : 'local',
+                status: paymentType === 'online' ? "pendente" : "confirmado",
                 email: formData.email,
                 data_nascimento: formData.birthday,
                 criar_conta: formData.createAccount,
                 senha: formData.password,
-                lembrete_minutos: formData.reminderMinutes ? parseInt(formData.reminderMinutes) : null,
-                is_squeeze_in: false // Default
+                lembrete_minutos: formData.reminderMinutes ? parseInt(formData.reminderMinutes) : null
             };
 
             const res = await api.post('/appointments', payload);
 
-            if (formData.createAccount && res.data.token) {
-                localStorage.setItem('token', res.data.token);
-                localStorage.setItem('user', JSON.stringify(res.data.user));
+            if (paymentType === 'online') {
+                // If online, we might show the payment (QR Code / etc)
+                setCheckoutData(res.data.payment);
             }
 
-            setStep(5); // Success State
+            setStep(6); // Success / Checkout State
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.message || 'Erro ao agendar');
@@ -296,7 +276,6 @@ export default function BarbershopPage() {
         { id: 'profissionais', label: 'PROFISSIONAIS' },
         { id: 'produtos', label: 'PRODUTOS' },
         { id: 'fidelidade', label: 'FIDELIDADE' },
-        { id: 'pacotes', label: 'PACOTES' },
         { id: 'assinaturas', label: 'ASSINATURAS' },
         { id: 'avaliacoes', label: 'AVALIAÇÕES' },
     ];
@@ -416,11 +395,11 @@ export default function BarbershopPage() {
                                 <div>
                                     <h2 className="text-lg font-black uppercase text-white tracking-tight leading-none">Agendamento</h2>
                                     <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
-                                        {step === 5 ? 'Confirmado' : `Passo ${step} de 4`}
+                                        {step === 6 ? 'Confirmado' : `Passo ${step} de 5`}
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={() => { setSelectedService(null); setStep(1); }} className="text-slate-500 hover:text-white transition font-bold text-xs uppercase tracking-widest bg-slate-900 px-4 py-2 rounded-xl">
+                            <button onClick={() => { setSelectedService(null); setStep(1); setCheckoutData(null); }} className="text-slate-500 hover:text-white transition font-bold text-xs uppercase tracking-widest bg-slate-900 px-4 py-2 rounded-xl">
                                 Fechar
                             </button>
                         </div>
@@ -428,23 +407,49 @@ export default function BarbershopPage() {
                         {/* Modal Content */}
                         <div className="flex-1 overflow-y-auto p-6">
 
-                            {/* Step 5: Success */}
-                            {step === 5 && (
-                                <div className="text-center py-10 space-y-6 animate-in zoom-in">
-                                    <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                                        <CalendarCheck className="w-10 h-10 text-white" />
-                                    </div>
-                                    <h2 className="text-3xl font-black text-white uppercase">Tudo Certo!</h2>
+                            {/* Step 6: Success / Checkout */}
+                            {step === 6 && (
+                                <div className="text-center py-6 space-y-6 animate-in zoom-in">
+                                    {checkoutData?.qrCode ? (
+                                        <>
+                                            <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
+                                                <Zap className="w-10 h-10 text-emerald-500" />
+                                            </div>
+                                            <h2 className="text-2xl font-black text-white uppercase">Pague via PIX</h2>
+                                            <div className="bg-white p-4 rounded-3xl inline-block mx-auto mb-4">
+                                                {checkoutData.qrCodeBase64 ? (
+                                                    <img src={`data:image/png;base64,${checkoutData.qrCodeBase64}`} alt="PIX" className="w-48 h-48" />
+                                                ) : (
+                                                    <div className="w-48 h-48 bg-slate-100 flex items-center justify-center text-black text-[8px] font-mono break-all p-4">
+                                                        {checkoutData.qrCode}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => { navigator.clipboard.writeText(checkoutData.qrCode); alert('Copiado!'); }}
+                                                className="w-full py-4 bg-slate-900 border border-white/5 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition truncate px-4"
+                                            >
+                                                Copiar Código PIX
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                                <CalendarCheck className="w-10 h-10 text-white" />
+                                            </div>
+                                            <h2 className="text-3xl font-black text-white uppercase">Tudo Certo!</h2>
+                                        </>
+                                    )}
+
                                     <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-3 text-left">
                                         <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Serviço</span><span className="font-bold">{selectedService.name}</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Barbeiro</span><span className="font-bold">{selectedProfessional.name}</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Horário</span><span className="font-bold">{new Date(formData.date + 'T00:00:00').toLocaleDateString()} às {formData.time}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Total</span><span className="font-bold text-emerald-500">{formatCurrency(totalValue)}</span></div>
                                     </div>
-                                    <button onClick={() => router.push('/home')} className="w-full bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase hover:bg-slate-700 transition">Ver Meus Agendamentos</button>
+                                    <button onClick={() => router.push('/home')} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black text-xs uppercase hover:bg-emerald-600 transition tracking-widest">Ver Meus Agendamentos</button>
                                 </div>
                             )}
 
-                            {step < 5 && (
+                            {step < 6 && (
                                 <div className="space-y-6">
                                     {/* Selected Service Info */}
                                     <div className="bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/20 flex justify-between items-center">
@@ -632,6 +637,43 @@ export default function BarbershopPage() {
                                                     {paymentMethod === 'LOCAL' && <div className="w-3 h-3 bg-white rounded-full"></div>}
                                                 </div>
                                             </div>
+
+                                            <button onClick={nextStep} className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20">Avançar para Pagamento</button>
+                                        </div>
+                                    )}
+
+                                    {/* STEP 5: Payment Selection */}
+                                    {step === 5 && (
+                                        <div className="space-y-6 animate-in slide-in-from-right">
+                                            <div className="space-y-3">
+                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Onde deseja pagar?</h3>
+
+                                                <div onClick={() => setPaymentType('local')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'local' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <Banknote className="w-5 h-5" />
+                                                        <div><p className="font-bold text-xs uppercase">Pagar no Local</p><p className="text-[10px] opacity-70">Direto na barbearia</p></div>
+                                                    </div>
+                                                    {paymentType === 'local' && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                                                </div>
+
+                                                <div onClick={() => setPaymentType('online')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <Zap className="w-5 h-5 text-emerald-500" />
+                                                        <div><p className="font-bold text-xs uppercase">Pagamento Online</p><p className="text-[10px] opacity-70">Rápido e Seguro</p></div>
+                                                    </div>
+                                                    {paymentType === 'online' && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                                                </div>
+                                            </div>
+
+                                            {paymentType === 'online' && (
+                                                <div className="space-y-3 animate-in fade-in">
+                                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Método Online</h3>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button onClick={() => setPaymentMethod('PIX')} className={`p-3 rounded-xl border text-[10px] font-black uppercase transition ${paymentMethod === 'PIX' ? 'bg-white text-black' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>PIX</button>
+                                                        <button onClick={() => setPaymentMethod('CREDIT_CARD')} className={`p-3 rounded-xl border text-[10px] font-black uppercase transition ${paymentMethod === 'CREDIT_CARD' ? 'bg-white text-black' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>CARTÃO</button>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             <button onClick={handleBook} className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20">Finalizar Agendamento</button>
                                         </div>

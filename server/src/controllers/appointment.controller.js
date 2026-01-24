@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const saasPlans = require('../config/saasPlans');
 const notificationController = require('../controllers/notification.controller');
 const whatsappNotifier = require('../services/notificationService/whatsappNotifier');
+const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
 const TIMEZONE = 'America/Sao_Paulo';
 
@@ -478,37 +479,58 @@ exports.createAppointment = async (req, res) => {
         });
         // ---------------------------------
 
-        // Trigger n8n Webhook (Async, don't block response)
-        const barbershop = await prisma.barbershop.findUnique({ where: { id: service.barbershopId } });
-        const webhookUrl = barbershop?.webhookUrl;
+        // --- PAYMENT ORCHESTRATION ---
+        let paymentInfo = null;
+        if (paymentMethod === 'ONLINE' || req.body.forma_pagamento === 'PIX' || req.body.forma_pagamento === 'CREDIT_CARD') {
+            try {
+                paymentInfo = await PaymentOrchestrator.createPayment({
+                    amount: order.total,
+                    method: req.body.forma_pagamento === 'local' ? 'PIX' : (req.body.forma_pagamento || 'PIX'),
+                    description: `Agendamento: ${service.name} - ${barbershop.name}`,
+                    barbershopId: service.barbershopId,
+                    customer: {
+                        name: currentUser?.name || guestName,
+                        email: currentUser?.email || guestEmail,
+                        phone: currentUser?.phone || guestPhone
+                    }
+                });
 
-        const userPlan = barbershop?.saasPlan || 'BASIC';
-        const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
-        const hasWebhookFeature = planConfig.features.includes('all') || planConfig.features.includes('webhook');
+                // Update Appointment with Payment ID if needed
+                if (paymentInfo.paymentId) {
+                    await prisma.appointment.update({
+                        where: { id: appointment.id },
+                        data: {
+                            paymentStatus: 'PENDING',
+                            paymentMethod: 'ONLINE'
+                        }
+                    });
 
-        if (webhookUrl && hasWebhookFeature) {
-            axios.post(webhookUrl, {
-                event: 'appointment.created',
-                data: {
-                    id: appointment.id,
-                    date: data, // Using mapped variable
-                    time: horario, // Using mapped variable
-                    clientName: currentUser?.name || guestName,
-                    clientPhone: currentUser?.phone || guestPhone,
-                    clientPhone: currentUser?.phone || guestPhone,
-                    serviceName: servicesToBook.map(s => s.name).join(', '),
-                    products: productItems.map(p => p.name).join(', '),
-                    totalValue: order.total,
-                    paymentMethod: req.body.forma_pagamento
+                    // Link payment to order/appointment in DB
+                    await prisma.payment.create({
+                        data: {
+                            gateway: paymentInfo.gateway,
+                            method: paymentInfo.method,
+                            externalId: paymentInfo.paymentId,
+                            status: 'pending',
+                            amount: order.total,
+                            userId: clientId,
+                            appointmentId: appointment.id
+                        }
+                    });
                 }
-            }).catch(e => console.error('Webhook Error:', e.message));
+            } catch (payErr) {
+                console.error('[Orchestrator] Failed to initiate online payment:', payErr.message);
+                // We keep the appointment as pending/scheduled, but flag the payment error?
+                // Or we could fail the whole request. For now, let's keep it but log.
+            }
         }
 
         const responseUser = currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role } : null;
         res.status(201).json({
             appointment_id: appointment.id,
-            status: "confirmado",
-            mensagem: "Agendamento realizado com sucesso",
+            status: paymentInfo ? "pendente_pagamento" : "confirmado",
+            mensagem: paymentInfo ? "Agendamento realizado, aguardando pagamento" : "Agendamento realizado com sucesso",
+            payment: paymentInfo,
             // Keeping original fields just in case frontend needs them for now, but following success spec
             appointment,
             order,
