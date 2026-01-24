@@ -1,13 +1,13 @@
 const VelifyAdapter = require('./gateways/VelifyAdapter');
-// const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter'); 
-// const StripeAdapter = require('./gateways/StripeAdapter'); 
+const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter');
+const StripeAdapter = require('./gateways/StripeAdapter');
 
 class PaymentOrchestrator {
     constructor() {
         this.gateways = {
             velify: new VelifyAdapter(),
-            // mercadopago: new MercadoPagoAdapter(),
-            // stripe: new StripeAdapter()
+            mercadopago: new MercadoPagoAdapter(),
+            stripe: new StripeAdapter()
         };
     }
 
@@ -84,10 +84,6 @@ class PaymentOrchestrator {
     }
 
     async processWebhook(gatewayName, req) {
-        // Webhooks might be tricky because we don't know the barbershopId from the URL usually.
-        // We need to look it up from the payload (external_reference) or use a "Platform" webhook.
-        // For now, using default adapter logic.
-
         const adapter = this.gateways[gatewayName];
         if (!adapter) throw new Error(`Gateway '${gatewayName}' not found.`);
 
@@ -96,14 +92,30 @@ class PaymentOrchestrator {
             throw new Error('Invalid Webhook Signature');
         }
 
-        // 2. Parse Event 
-        const event = req.body;
+        // 2. Parse Event (Delegate to Adapter later, but for now common logic)
+        const body = req.body;
+        let externalId = null;
+        let status = 'pending';
 
-        console.log(`[Orchestrator] Processing ${gatewayName} webhook`, event?.type || 'Unknown Event');
+        if (gatewayName === 'mercadopago') {
+            // MP Webhooks can be 'payment' topic
+            externalId = body.data?.id || body.id;
+            // Need to fetch status if not in body, but usually it's there or we fetch it
+            status = body.status === 'approved' ? 'paid' : 'pending';
+        } else if (gatewayName === 'stripe') {
+            externalId = body.data?.object?.id;
+            status = body.type === 'payment_intent.succeeded' ? 'paid' : 'pending';
+        } else {
+            // Velify / Default
+            externalId = body.id || body.external_id;
+            status = body.status === 'approved' || body.status === 'paid' ? 'paid' : 'pending';
+        }
 
         return {
             isValid: true,
-            event
+            externalId: externalId?.toString(),
+            status,
+            rawEvent: body
         };
     }
 }

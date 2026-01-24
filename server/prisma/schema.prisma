@@ -95,7 +95,7 @@ model Client {
 
   appointments Appointment[]
   orders       Order[]
-  packages     ClientPackage[]
+  subscriptions ClientSubscription[]
   noShowRecords NoShowRecord[]
   
   // Keep preferences/notifications?
@@ -218,7 +218,7 @@ model Barbershop {
   appointments Appointment[]
   transactions Transaction[]
   waitlist     Waitlist[]
-  packages     BarbershopPackage[]
+  subscriptionPlans SubscriptionPlan[]
   commissions  Commission[]
   orders       Order[]
   noShowRecords NoShowRecord[]
@@ -345,7 +345,7 @@ model Service {
   appointments Appointment[]
   waitlist     Waitlist[]
   orderItems   OrderItem[]
-  packages     BarbershopPackage[]
+  subscriptionPlans SubscriptionPlan[]
   
   commissionOverrides ProfessionalServiceCommission[]
   professionals       Professional[]
@@ -396,7 +396,8 @@ model Appointment {
   commissions  Commission[]
   order        Order?
   noShowRecord NoShowRecord?
-  packageUsage  PackageUsage[]
+  clientSubscriptionId String?
+  clientSubscription ClientSubscription? @relation(fields: [clientSubscriptionId], references: [id])
 
   @@index([professionalId])
   @@index([date])
@@ -504,65 +505,66 @@ model Waitlist {
   updatedAt    DateTime @default(now()) @updatedAt
 }
 
-// --- Package / Loyalty Module ---
+// --- Subscription Module ---
 
-model BarbershopPackage {
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  OVERDUE
+  CANCELLED
+  INACTIVE
+}
+
+model SubscriptionPlan {
   id            String   @id @default(uuid())
   name          String
   description   String?
+  benefits      String[] // List of benefits e.g. ["4 cortes", "10% off"]
   price         Decimal  @db.Decimal(10, 2)
+  validityDays  Int      @default(30)
   
-  // Rules
-  validityDays  Int      // How many days it lasts
-  services      Service[] // Services included in this package
+  // Credits (Optional for Phase 2)
+  quantityOfCuts Int?    @default(0)
   
-  // Credits
-  totalQuantity Int      // Total credits (e.g., 5 cuts)
+  allowedMethods PaymentMethod[] // Which methods the barber accepts for this plan
   
   active        Boolean  @default(true)
   
   barbershopId  String
   barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
   
-  clientPackages ClientPackage[]
+  clientSubscriptions ClientSubscription[]
+  services            Service[] // Services included/applicable
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
 
-model ClientPackage {
+model ClientSubscription {
   id              String   @id @default(uuid())
   
   clientId        String
   client          Client     @relation(fields: [clientId], references: [id])
   
-  packageId       String
-  package         BarbershopPackage @relation(fields: [packageId], references: [id])
+  planId          String
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  
+  status          SubscriptionStatus @default(PENDING)
   
   startDate       DateTime @default(now())
   endDate         DateTime
+  nextBillingDate DateTime?
   
-  totalQuantity   Int
-  remainingQuantity Int
+  remainingCuts   Int?    @default(0) // If plan has credit logic
   
-  status          String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
+  paymentMethod   PaymentMethod?
+  externalId      String?  // Subscription ID in gateway
   
+  appointments    Appointment[]
+  payments        Payment[]
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
-  usageHistory    PackageUsage[]
-}
-
-model PackageUsage {
-  id              String   @id @default(uuid())
-  
-  clientPackageId String
-  clientPackage   ClientPackage @relation(fields: [clientPackageId], references: [id])
-  
-  appointmentId   String
-  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
-  
-  usedAt          DateTime @default(now())
 }
 
 model Commission {
@@ -692,8 +694,8 @@ model Payment {
   orderId         String?
   order           Order?   @relation(fields: [orderId], references: [id]) 
 
-  subscriptionId  String?  @map("subscription_id") 
-  // subscription   SubscriptionExternal? @relation(fields: [subscriptionId], references: [id])
+  clientSubscriptionId String?  @map("client_subscription_id")
+  clientSubscription   ClientSubscription? @relation(fields: [clientSubscriptionId], references: [id])
 
   createdAt       DateTime @default(now()) @map("created_at")
   paidAt          DateTime? @map("paid_at")
