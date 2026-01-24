@@ -36,13 +36,13 @@ export default function SubscriptionsPage() {
         try {
             setLoading(true);
             // 1. Fetch active sub
-            const subRes = await api.get('/subscription/my-active');
+            const subRes = await api.get('/subscriptions/my-active');
             setSubscription(subRes.data);
 
             // 2. If no active sub or specifically looking for a shop, fetch plans
             const bId = barbershopIdParam || subRes.data?.plan?.barbershopId;
             if (bId) {
-                const plansRes = await api.get(`/subscription?barbershopId=${bId}`);
+                const plansRes = await api.get(`/subscriptions?barbershopId=${bId}`);
                 setPlans(plansRes.data);
             }
         } catch (error) {
@@ -57,7 +57,7 @@ export default function SubscriptionsPage() {
         setError('');
         try {
             // Defaulting to PIX for this flow, can be expanded to a method selection step
-            const res = await api.post('/subscription/purchase', {
+            const res = await api.post('/subscriptions/purchase', {
                 planId: plan.id,
                 paymentMethod: 'PIX', // In the future, show a modal to choose
                 gateway: 'mercadopago' // or stripe based on barber config

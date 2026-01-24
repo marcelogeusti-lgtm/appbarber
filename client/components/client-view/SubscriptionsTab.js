@@ -14,7 +14,7 @@ export default function SubscriptionsTab({ plans = [] }) {
 
         setLoading(plan.id);
         try {
-            await api.post('/subscription/purchase', {
+            await api.post('/subscriptions/purchase', {
                 planId: plan.id,
                 paymentMethod: 'ONLINE' // Placeholder
             });

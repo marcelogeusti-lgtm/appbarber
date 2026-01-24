@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-    Copy, ExternalLink, Scissors, CheckCircle, ShoppingBag, ArrowRight, Calendar as CalendarIcon, TrendingUp, DollarSign, Globe
+    Copy, ExternalLink, Scissors, CheckCircle, ShoppingBag, ArrowRight, Calendar as CalendarIcon, TrendingUp, DollarSign, Globe, RotateCw
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../lib/api';
@@ -100,10 +100,10 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap items-center gap-4">
                     <button
                         onClick={() => refetch()}
-                        className="px-6 py-3 bg-white/5 border border-white/10 hover:border-emerald-500/50 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 group"
+                        title="Atualizar Dados"
+                        className="p-3 bg-white/5 border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/5 rounded-xl text-slate-400 hover:text-emerald-500 transition-all flex items-center justify-center group"
                     >
-                        <ShoppingBag className="w-3 h-3 group-hover:rotate-12 transition-transform" />
-                        Atualizar Dados
+                        <RotateCw className={`w-4 h-4 group-active:rotate-180 transition-transform duration-500 ${isLoading ? 'animate-spin text-emerald-500' : ''}`} />
                     </button>
 
                     <Link

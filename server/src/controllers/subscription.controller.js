@@ -26,10 +26,20 @@ exports.createPlan = async (req, res) => {
             }
         });
 
+        console.log('[Subscription] Plan created successfully:', plan.id);
         res.status(201).json(plan);
     } catch (error) {
-        console.error('Create Plan Error:', error);
-        res.status(500).json({ message: 'Erro ao criar plano de assinatura.' });
+        console.error('Create Plan Error Details:', {
+            message: error.message,
+            code: error.code,
+            meta: error.meta,
+            stack: error.stack
+        });
+        res.status(500).json({
+            message: 'Erro ao criar plano de assinatura.',
+            error: error.message,
+            code: error.code
+        });
     }
 };
 
