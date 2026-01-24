@@ -4,9 +4,9 @@ const gatewayController = require('../controllers/gateway.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 
 // GET /api/gateways - List all configs (masked)
-router.get('/', protect, authorize('admin', 'owner', 'barber'), gatewayController.getConfigs);
+router.get('/', protect, authorize('ADMIN', 'OWNER', 'BARBER'), gatewayController.getConfigs);
 
 // POST /api/gateways - Create/Update config
-router.post('/', protect, authorize('admin', 'owner', 'barber'), gatewayController.saveConfig);
+router.post('/', protect, authorize('ADMIN', 'OWNER', 'BARBER'), gatewayController.saveConfig);
 
 module.exports = router;
