@@ -181,9 +181,9 @@ export default function BarbershopPage() {
     const formatCurrency = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     const totalValue = useMemo(() => {
-        const servicePrice = selectedService?.price ? Number(selectedService.price) : 0;
-        const productsPrice = selectedProducts.reduce((sum, p) => sum + Number(p.price), 0);
-        const feesTotal = pendingFees.reduce((sum, f) => sum + Number(f.feeValue), 0);
+        const servicePrice = Number(selectedService?.price || 0);
+        const productsPrice = selectedProducts?.reduce((sum, p) => sum + Number(p.price || 0), 0) || 0;
+        const feesTotal = pendingFees?.reduce((sum, f) => sum + Number(f.feeValue || 0), 0) || 0;
         return servicePrice + productsPrice + feesTotal;
     }, [selectedService, selectedProducts, pendingFees]);
 
@@ -196,22 +196,22 @@ export default function BarbershopPage() {
             const payload = {
                 cliente_nome: formData.name,
                 cliente_telefone: formData.phone,
-                barbearia_id: barbershop.id,
-                barbeiro_id: selectedProfessional.id,
+                barbearia_id: barbershop?.id,
+                barbeiro_id: selectedProfessional?.id,
                 servicos: [{
-                    servico_id: selectedService.id,
-                    nome: selectedService.name,
-                    valor: Number(selectedService.price),
-                    duracao_minutos: selectedService.duration
+                    servico_id: selectedService?.id,
+                    nome: selectedService?.name,
+                    valor: Number(selectedService?.price || 0),
+                    duracao_minutos: selectedService?.duration
                 }],
-                produtos: selectedProducts.map(p => ({
+                produtos: selectedProducts?.map(p => ({
                     produto_id: p.id,
                     nome: p.name,
-                    valor: Number(p.price)
-                })),
+                    valor: Number(p.price || 0)
+                })) || [],
                 data: formData.date,
                 horario: formData.time,
-                valor_total: totalValue,
+                valor_total: Number(totalValue || 0),
                 forma_pagamento: paymentType === 'online' ? paymentMethod : 'local',
                 status: paymentType === 'online' ? "pendente" : "confirmado",
                 email: formData.email,
@@ -426,7 +426,7 @@ export default function BarbershopPage() {
                                                 )}
                                             </div>
                                             <button
-                                                onClick={() => { navigator.clipboard.writeText(checkoutData.qrCode); alert('Copiado!'); }}
+                                                onClick={() => { if (checkoutData?.qrCode) { navigator.clipboard.writeText(checkoutData.qrCode); alert('Copiado!'); } }}
                                                 className="w-full py-4 bg-slate-900 border border-white/5 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition truncate px-4"
                                             >
                                                 Copiar Código PIX
@@ -442,8 +442,8 @@ export default function BarbershopPage() {
                                     )}
 
                                     <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-3 text-left">
-                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Serviço</span><span className="font-bold">{selectedService.name}</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Total</span><span className="font-bold text-emerald-500">{formatCurrency(totalValue)}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Serviço</span><span className="font-bold">{selectedService?.name || 'Agendamento'}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Total</span><span className="font-bold text-emerald-500">{formatCurrency(totalValue || 0)}</span></div>
                                     </div>
                                     <button onClick={() => router.push('/home')} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black text-xs uppercase hover:bg-emerald-600 transition tracking-widest">Ver Meus Agendamentos</button>
                                 </div>
@@ -465,7 +465,7 @@ export default function BarbershopPage() {
                                         <div className="space-y-4 animate-in slide-in-from-right">
                                             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Escolha o Profissional</h3>
                                             <div className="grid grid-cols-2 gap-3">
-                                                {barbershop.staff?.filter(s => ['BARBER', 'ADMIN', 'SUPER_ADMIN'].includes(s.role)).map(pro => (
+                                                {barbershop.staff?.filter(s => ['BARBER', 'ADMIN', 'SUPER_ADMIN'].includes(s.role.toUpperCase())).map(pro => (
                                                     <div key={pro.id} onClick={() => handleProfessionalSelect(pro)} className={`bg-slate-900/50 p-4 rounded-3xl border transition-all text-center group cursor-pointer ${selectedProfessional?.id === pro.id ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-800 hover:border-slate-600'}`}>
                                                         <div className="w-14 h-14 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center font-black text-lg text-white group-hover:scale-105 transition">
                                                             {pro.name.charAt(0)}
@@ -602,39 +602,17 @@ export default function BarbershopPage() {
                                             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-800/50 text-xs space-y-2">
                                                 <div className="flex justify-between text-slate-400">
                                                     <span>Serviço + Produtos</span>
-                                                    <span>{formatCurrency((selectedService?.price ? Number(selectedService.price) : 0) + selectedProducts.reduce((sum, p) => sum + Number(p.price), 0))}</span>
+                                                    <span>{formatCurrency((Number(selectedService?.price || 0)) + selectedProducts.reduce((sum, p) => sum + Number(p.price || 0), 0))}</span>
                                                 </div>
-                                                {pendingFees.length > 0 && (
+                                                {pendingFees?.length > 0 && (
                                                     <div className="flex justify-between text-red-400 font-bold">
                                                         <span>Taxa No-show ({pendingFees.length}x)</span>
-                                                        <span>{formatCurrency(pendingFees.reduce((s, f) => s + Number(f.feeValue), 0))}</span>
+                                                        <span>{formatCurrency(pendingFees.reduce((s, f) => s + Number(f.feeValue || 0), 0))}</span>
                                                     </div>
                                                 )}
                                                 <div className="flex justify-between text-white font-black text-sm pt-2 border-t border-slate-800">
                                                     <span>TOTAL</span>
-                                                    <span>{formatCurrency(totalValue)}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pagamento</h3>
-
-                                                {mySubscription && mySubscription.remainingCuts > 0 && selectedProducts.length === 0 && (
-                                                    <div onClick={() => setPaymentMethod('SUBSCRIPTION')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentMethod === 'SUBSCRIPTION' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
-                                                        <div className="flex items-center gap-3">
-                                                            <Star className="w-5 h-5" />
-                                                            <div><p className="font-bold text-xs uppercase">Usar Assinatura</p><p className="text-[10px] opacity-70">Plano Ativo ({mySubscription.remainingCuts} créditos)</p></div>
-                                                        </div>
-                                                        {paymentMethod === 'SUBSCRIPTION' && <div className="w-3 h-3 bg-white rounded-full"></div>}
-                                                    </div>
-                                                )}
-
-                                                <div onClick={() => setPaymentMethod('LOCAL')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentMethod === 'LOCAL' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <Banknote className="w-5 h-5" />
-                                                        <div><p className="font-bold text-xs uppercase">Pagar no Local</p><p className="text-[10px] opacity-70">Dinheiro ou Cartão</p></div>
-                                                    </div>
-                                                    {paymentMethod === 'LOCAL' && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                                                    <span>{formatCurrency(totalValue || 0)}</span>
                                                 </div>
                                             </div>
 
@@ -656,13 +634,15 @@ export default function BarbershopPage() {
                                                     {paymentType === 'local' && <div className="w-3 h-3 bg-white rounded-full"></div>}
                                                 </div>
 
-                                                <div onClick={() => setPaymentType('online')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <Zap className="w-5 h-5 text-emerald-500" />
-                                                        <div><p className="font-bold text-xs uppercase">Pagamento Online</p><p className="text-[10px] opacity-70">Rápido e Seguro</p></div>
+                                                {barbershop?.online_payment_enabled && (
+                                                    <div onClick={() => setPaymentType('online')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <Zap className="w-5 h-5 text-emerald-500" />
+                                                            <div><p className="font-bold text-xs uppercase">Pagamento Online</p><p className="text-[10px] opacity-70">Rápido e Seguro</p></div>
+                                                        </div>
+                                                        {paymentType === 'online' && <div className="w-3 h-3 bg-white rounded-full"></div>}
                                                     </div>
-                                                    {paymentType === 'online' && <div className="w-3 h-3 bg-white rounded-full"></div>}
-                                                </div>
+                                                )}
                                             </div>
 
                                             {paymentType === 'online' && (

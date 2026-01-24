@@ -155,6 +155,7 @@ exports.getBarbershopBySlug = async (req, res) => {
             include: {
                 services: { where: { active: true } },
                 subscriptionPlans: { where: { active: true } },
+                gatewayConfigs: { where: { isActive: true } },
                 staff: {
                     where: { role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN'] }, active: true },
                     select: {
@@ -170,7 +171,13 @@ exports.getBarbershopBySlug = async (req, res) => {
             return res.status(404).json({ message: 'Barbershop not found' });
         }
 
-        res.json(barbershop);
+        // Add computed flag for frontend visibility
+        const online_payment_enabled = (barbershop.gatewayConfigs || []).length > 0;
+
+        res.json({
+            ...barbershop,
+            online_payment_enabled
+        });
     } catch (error) {
         console.error('getBarbershopBySlug Error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
