@@ -97,11 +97,6 @@ model Client {
   orders       Order[]
   subscriptions ClientSubscription[]
   noShowRecords NoShowRecord[]
-  
-  appointments Appointment[]
-  orders       Order[]
-  subscriptions ClientSubscription[]
-  noShowRecords NoShowRecord[]
   cardTokens    CardToken[]
   
   // Keep preferences/notifications?
