@@ -126,6 +126,7 @@ exports.getMyActiveSubscription = async (req, res) => {
 
 exports.purchasePlan = async (req, res) => {
     try {
+        const { planId, paymentMethod, gateway } = req.body;
         const authUserId = req.user.id;
 
         const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });

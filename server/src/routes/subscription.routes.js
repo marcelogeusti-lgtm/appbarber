@@ -3,10 +3,10 @@ const router = express.Router();
 const subscriptionController = require('../controllers/subscription.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 
-router.post('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), subscriptionController.createPlan);
+router.post('/', protect, authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), subscriptionController.createPlan);
 router.get('/', subscriptionController.getPlans);
 router.get('/my-active', protect, subscriptionController.getMyActiveSubscription);
-router.delete('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN'), subscriptionController.deletePlan);
+router.delete('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), subscriptionController.deletePlan);
 router.post('/purchase', protect, subscriptionController.purchasePlan);
 router.post('/assign', protect, authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), subscriptionController.assignPlanToClient);
 router.get('/list', protect, subscriptionController.getSubscribers);
