@@ -300,7 +300,8 @@ exports.listProfessionals = async (req, res) => {
         const pros = await prisma.user.findMany({
             where: {
                 workedBarbershopId: barbershopId,
-                role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA'] }
+                role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA'] },
+                active: true
             },
             include: {
                 professionalProfile: {
@@ -340,6 +341,10 @@ exports.updateProfessional = async (req, res) => {
                     notes, avatarUrl, active, role
                 }
             });
+
+            if (active !== undefined) {
+                console.log(`[Professional] Status changed for ${id}: ${active ? 'ACTIVATED' : 'DEACTIVATED'} by ${req.user.id}`);
+            }
 
             // Update Professional Profile
             const profile = await tx.professional.upsert({
@@ -475,6 +480,7 @@ exports.deleteProfessional = async (req, res) => {
             }
         });
 
+        console.log(`[Professional] Hard DELETE performed on ${id} by ${req.user.id}. All linked data removed.`);
         res.json({ message: 'Profissional e todos os dados vinculados removidos permanentemente.' });
     } catch (error) {
         console.error('Delete Pro error:', error);

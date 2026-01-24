@@ -422,6 +422,7 @@ model Appointment {
   @@index([professionalId])
   @@index([date])
   @@index([status])
+  @@index([barbershopId, date, status])
   @@index([professionalId, date, status])
 }
 
