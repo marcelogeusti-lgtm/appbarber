@@ -396,7 +396,7 @@ export default function BarbershopPage() {
                 {activeTab === 'produtos' && <ProductsTab products={products} />}
                 {activeTab === 'fidelidade' && <LoyaltyTab points={points} />}
                 {activeTab === 'pacotes' && <PackagesTab plans={barbershop.packages || []} />}
-                {activeTab === 'assinaturas' && <SubscriptionsTab plans={barbershop.packages || []} />}
+                {activeTab === 'assinaturas' && <SubscriptionsTab plans={barbershop.subscriptionPlans || []} />}
                 {activeTab === 'avaliacoes' && <ReviewsTab />}
             </main>
 

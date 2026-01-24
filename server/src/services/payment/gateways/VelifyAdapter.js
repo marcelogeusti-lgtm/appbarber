@@ -11,11 +11,12 @@ class VelifyAdapter extends GatewayAdapter {
 
     async createPayment({ amount, description, customer, credentials }) {
         // Use credentials passed from Orchestrator (from DB)
-        const apiKey = credentials?.apiKey || this.apiKey;
+        const publicKey = credentials?.publicKey;
+        const secretKey = credentials?.secretKey;
         const apiUrl = credentials?.apiUrl || this.apiUrl;
 
-        // Mock Implementation until API Docs are confirmed or Keys provided
-        console.log('[Velify] Creating Payment:', amount, 'using Key:', apiKey ? '***' : 'Missing');
+        // Mock Implementation until API Docs are confirmed
+        console.log('[Velify] Creating Payment:', amount, 'using Keys:', publicKey ? '***' : 'Missing', secretKey ? '***' : 'Missing');
 
         // Real call would be:
         // const response = await axios.post(`${apiUrl}/pix/cob`, { ... }, { headers: { Authorization: apiKey } });

@@ -64,13 +64,13 @@ export default function PaymentSettings() {
                 config={getConfig('velify')}
                 onSave={handleSave}
                 saving={saving === 'velify'}
-                icon={<div className="w-10 h-10 rounded-lg bg-[#32BCAD] flex items-center justify-center text-white font-bold">
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M12 2L2 12l10 10 10-10L12 2zm0 17.5L4.5 12 12 4.5 19.5 12 12 19.5z" /><path d="M12 7l-2 2 2 2 2-2-2-2z" /></svg>
+                icon={<div className="w-12 h-12 rounded-xl bg-white overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
+                    <img src="/logos/velfy.png" alt="Velify" className="w-full h-full object-cover" />
                 </div>}
-                helpText="Use as credenciais fornecidas pela equipe Velify para ativar o recebimento automático via PIX."
+                helpText="Use as credenciais fornecidas pela equipe Velify (Chave Pública e Chave Secreta) para ativar o recebimento automático via PIX."
                 fields={[
-                    { name: 'apiUrl', label: 'API URL', placeholder: 'https://api.velify.com' },
-                    { name: 'apiKey', label: 'API Key / Token', type: 'password' }
+                    { name: 'publicKey', label: 'Chave Pública (Public Key)', placeholder: 'pk_...' },
+                    { name: 'secretKey', label: 'Chave Secreta (Secret Key)', type: 'password', placeholder: 'sk_...' }
                 ]}
             />
 
@@ -82,8 +82,8 @@ export default function PaymentSettings() {
                 config={getConfig('stripe')}
                 onSave={handleSave}
                 saving={saving === 'stripe'}
-                icon={<div className="w-10 h-10 rounded-lg bg-[#635BFF] flex items-center justify-center text-white">
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M13.962 8.185c0-1.07-.945-1.564-2.52-1.564-2.31 0-4.83.92-4.83.92l-.65-3.66s2.9-.994 5.92-.994c3.92 0 6.13 1.933 6.13 5.344 0 4.14-5.63 4.885-5.63 6.786 0 .546.52.845 1.48.845 2.1 0 4.96-.94 4.96-.94l.67 3.51s-2.88 1.143-6 1.143c-4.48 0-6.19-2.31-6.19-5.11 0-4.322 6-5.143 6-7.273z" /></svg>
+                icon={<div className="w-12 h-12 rounded-xl bg-white overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
+                    <img src="/logos/stripe.png" alt="Stripe" className="w-full h-full object-cover" />
                 </div>}
                 helpText="Acesse o painel da Stripe (Developers > API Keys) e copie a 'Secret Key' e a 'Publishable Key'. Certifique-se de estar usando chaves de Produção."
                 fields={[
@@ -100,8 +100,8 @@ export default function PaymentSettings() {
                 config={getConfig('mercadopago')}
                 onSave={handleSave}
                 saving={saving === 'mercadopago'}
-                icon={<div className="w-10 h-10 rounded-lg bg-[#009EE3] flex items-center justify-center text-white">
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" /></svg>
+                icon={<div className="w-12 h-12 rounded-xl bg-white overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
+                    <img src="/logos/mercadopago.png" alt="Mercado Pago" className="w-full h-full object-cover" />
                 </div>}
                 helpText="Acesse o Portal de Desenvolvedores do Mercado Pago, crie uma aplicação e copie o 'Production Access Token' (começa com APP_USR-)."
                 fields={[

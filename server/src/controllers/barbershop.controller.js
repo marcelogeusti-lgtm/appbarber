@@ -154,7 +154,7 @@ exports.getBarbershopBySlug = async (req, res) => {
             where: { slug: cleanSlug },
             include: {
                 services: { where: { active: true } },
-                // packages: true, // TODO: Uncomment after resolving Prisma Client sync issue
+                subscriptionPlans: { where: { active: true } },
                 staff: {
                     where: { role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN'] }, active: true },
                     select: {
