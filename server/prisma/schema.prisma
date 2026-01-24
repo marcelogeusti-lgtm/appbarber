@@ -98,9 +98,34 @@ model Client {
   subscriptions ClientSubscription[]
   noShowRecords NoShowRecord[]
   
+  appointments Appointment[]
+  orders       Order[]
+  subscriptions ClientSubscription[]
+  noShowRecords NoShowRecord[]
+  cardTokens    CardToken[]
+  
   // Keep preferences/notifications?
   notifications Notification[]
   theme         String @default("dark")
+}
+
+model CardToken {
+  id            String   @id @default(uuid())
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id])
+  
+  gateway       String   // mercadopago, stripe, velify
+  token         String   // The tokenized card from gateway
+  last4         String?
+  brand         String?
+  expiryMonth   Int?
+  expiryYear    Int?
+  
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([clientId])
 }
 
 model User {

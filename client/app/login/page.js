@@ -39,8 +39,11 @@ export default function AuthPage() {
             };
 
             if (res.data.user.role === 'CLIENT') {
-                // Should Not Happen due to backend checks, but safety:
-                setError('Esta área é exclusiva para profissionais.');
+                localStorage.setItem('clientToken', res.data.token);
+                localStorage.setItem('clientUser', JSON.stringify(userData));
+
+                const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+                router.push(returnTo || '/home');
             } else {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(userData));
@@ -87,9 +90,17 @@ export default function AuthPage() {
                 barbershopSlug: res.data.barbershopSlug
             };
 
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(userData));
-            router.push('/dashboard');
+            if (res.data.user.role === 'CLIENT') {
+                localStorage.setItem('clientToken', res.data.token);
+                localStorage.setItem('clientUser', JSON.stringify(userData));
+
+                const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+                router.push(returnTo || '/home');
+            } else {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(userData));
+                router.push('/dashboard');
+            }
 
         } catch (err) {
             console.error('Social Login error:', err);

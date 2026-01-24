@@ -126,14 +126,29 @@ exports.getMyActiveSubscription = async (req, res) => {
 
 exports.purchasePlan = async (req, res) => {
     try {
-        const { planId, paymentMethod, gateway } = req.body;
         const authUserId = req.user.id;
 
         const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
         if (!plan) return res.status(404).json({ message: 'Plano não encontrado.' });
 
-        const client = await prisma.client.findUnique({ where: { authUserId } });
-        if (!client) return res.status(404).json({ message: 'Cadastro de cliente não encontrado.' });
+        let client = await prisma.client.findUnique({ where: { authUserId } });
+
+        // Auto-create client profile if missing
+        if (!client) {
+            console.log(`[Subscription] Client profile missing for user ${authUserId}. Creating one...`);
+            const authUser = await prisma.authUser.findUnique({
+                where: { id: authUserId },
+                include: { user: true }
+            });
+
+            client = await prisma.client.create({
+                data: {
+                    authUserId,
+                    name: authUser?.user?.name || authUser?.email?.split('@')[0] || 'Cliente',
+                    phone: authUser?.user?.phone || null
+                }
+            });
+        }
 
         // 1. Create a "PENDING" subscription record immediately
         const endDate = new Date();

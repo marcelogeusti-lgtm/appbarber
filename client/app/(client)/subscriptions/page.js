@@ -11,6 +11,7 @@ import {
     Zap,
     Loader2,
     ArrowRight,
+    Plus,
     Search as SearchIcon
 } from 'lucide-react';
 import api from '../../../lib/clientApi';
@@ -27,19 +28,40 @@ export default function SubscriptionsPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [checkoutData, setCheckoutData] = useState(null); // For PIX QR Code or Stripe
     const [error, setError] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('PIX'); // PIX | CREDIT_CARD
+    const [savedCards, setSavedCards] = useState([]);
+    const [selectedCardId, setSelectedCardId] = useState('');
+    const [loadingCards, setLoadingCards] = useState(false);
 
     useEffect(() => {
         fetchData();
+        // Check if returning from login to complete a subscription
+        const pendingPlanStr = localStorage.getItem('pending_subscription');
+        if (pendingPlanStr) {
+            const plan = JSON.parse(pendingPlanStr);
+            localStorage.removeItem('pending_subscription');
+            handleSubscribe(plan);
+        }
     }, [barbershopIdParam]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
+            const token = localStorage.getItem('clientToken');
+            if (!token) {
+                // Not logged in: we can skip my-active check
+                setLoading(false);
+                return;
+            }
+
             // 1. Fetch active sub
             const subRes = await api.get('/subscriptions/my-active');
             setSubscription(subRes.data);
 
-            // 2. If no active sub or specifically looking for a shop, fetch plans
+            // 2. Fetch cards if logged in
+            fetchCards();
+
+            // 3. If no active sub or specifically looking for a shop, fetch plans
             const bId = barbershopIdParam || subRes.data?.plan?.barbershopId;
             if (bId) {
                 const plansRes = await api.get(`/subscriptions?barbershopId=${bId}`);
@@ -52,19 +74,47 @@ export default function SubscriptionsPage() {
         }
     };
 
+    const fetchCards = async () => {
+        try {
+            setLoadingCards(true);
+            const res = await api.get('/cards');
+            setSavedCards(res.data);
+            if (res.data.length > 0) {
+                setSelectedCardId(res.data[0].id);
+                setPaymentMethod('CREDIT_CARD');
+            }
+        } catch (e) {
+            console.error('Error fetching cards:', e);
+        } finally {
+            setLoadingCards(false);
+        }
+    };
+
     const handleSubscribe = async (plan) => {
+        const token = localStorage.getItem('clientToken');
+        if (!token) {
+            // Unauthenticated: save context and redirect
+            localStorage.setItem('pending_subscription', JSON.stringify(plan));
+            router.push(`/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+            return;
+        }
+
+        if (!selectedPlan) {
+            setSelectedPlan(plan);
+            return; // Show selection UI first
+        }
+
         setActionLoading(true);
         setError('');
         try {
-            // Defaulting to PIX for this flow, can be expanded to a method selection step
             const res = await api.post('/subscriptions/purchase', {
                 planId: plan.id,
-                paymentMethod: 'PIX', // In the future, show a modal to choose
-                gateway: 'mercadopago' // or stripe based on barber config
+                paymentMethod,
+                cardId: paymentMethod === 'CREDIT_CARD' ? selectedCardId : null,
+                gateway: 'velify' // Orchestrator will auto-detect if not provided, but keeping for safety
             });
 
             setCheckoutData(res.data.payment);
-            setSelectedPlan(plan);
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao iniciar assinatura.');
         } finally {
@@ -77,6 +127,114 @@ export default function SubscriptionsPage() {
             <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
         </div>
     );
+
+    // --- PAYMENT SELECTION VIEW ---
+    if (selectedPlan && !checkoutData) {
+        return (
+            <div className="min-h-screen bg-[#050505] text-white p-6 pb-24">
+                <div className="flex items-center gap-4 mb-8">
+                    <button onClick={() => setSelectedPlan(null)} className="p-2 bg-slate-900 rounded-full">
+                        <ChevronLeft className="w-5 h-5 text-white" />
+                    </button>
+                    <h1 className="text-xl font-bold uppercase tracking-tighter">Escolha o Pagamento</h1>
+                </div>
+
+                <div className="max-w-md mx-auto space-y-6">
+                    {/* Plan Summary */}
+                    <div className="bg-[#111111] border border-white/5 rounded-[2.5rem] p-6 flex justify-between items-center">
+                        <div>
+                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Plano Selecionado</p>
+                            <h3 className="font-black text-white uppercase">{selectedPlan.name}</h3>
+                        </div>
+                        <p className="font-black text-emerald-500">R$ {Number(selectedPlan.price).toFixed(2)}</p>
+                    </div>
+
+                    <div className="space-y-3">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Método de Pagamento</p>
+
+                        <div
+                            onClick={() => setPaymentMethod('PIX')}
+                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'PIX' ? 'bg-emerald-500/10 border-emerald-500' : 'bg-[#111111] border-white/5 opacity-60'}`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white' : 'bg-slate-900'}`}>
+                                        <Zap size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="font-black text-xs uppercase">PIX (Instantâneo)</p>
+                                        <p className="text-[10px] text-slate-500">Aprovação em segundos</p>
+                                    </div>
+                                </div>
+                                {paymentMethod === 'PIX' && <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>}
+                            </div>
+                        </div>
+
+                        <div
+                            onClick={() => setPaymentMethod('CREDIT_CARD')}
+                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500/10 border-emerald-500' : 'bg-[#111111] border-white/5 opacity-60'}`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white' : 'bg-slate-900'}`}>
+                                        <CreditCard size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="font-black text-xs uppercase">Cartão de Crédito</p>
+                                        <p className="text-[10px] text-slate-500">Pague com cartões salvos ou novo</p>
+                                    </div>
+                                </div>
+                                {paymentMethod === 'CREDIT_CARD' && <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>}
+                            </div>
+                        </div>
+                    </div>
+
+                    {paymentMethod === 'CREDIT_CARD' && (
+                        <div className="animate-in slide-in-from-top-4 space-y-4">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Meus Cartões</p>
+
+                            {savedCards.length > 0 ? (
+                                <div className="space-y-3">
+                                    {savedCards.map(card => (
+                                        <div
+                                            key={card.id}
+                                            onClick={() => setSelectedCardId(card.id)}
+                                            className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${selectedCardId === card.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 opacity-50'}`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <CreditCard className="w-4 h-4 text-slate-400" />
+                                                <p className="text-xs font-bold uppercase">•••• {card.last4} ({card.brand})</p>
+                                            </div>
+                                            {selectedCardId === card.id && <Check className="w-4 h-4 text-emerald-500" />}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-[10px] text-slate-600 text-center italic py-2">Nenhum cartão salvo encontrado.</p>
+                            )}
+
+                            <button
+                                className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-[10px] font-bold text-slate-500 uppercase hover:border-emerald-500/50 hover:text-emerald-500 transition-all flex items-center justify-center gap-2"
+                                onClick={() => alert('Integração de checkout do cartão está sendo finalizada no gateway.')}
+                            >
+                                <Plus className="w-3 h-3" /> Adicionar Novo Cartão
+                            </button>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={() => handleSubscribe(selectedPlan)}
+                        disabled={actionLoading || (paymentMethod === 'CREDIT_CARD' && savedCards.length === 0)}
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-30 mt-8 shadow-2xl shadow-emerald-900/20"
+                    >
+                        {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Confirmar e Pagar <ArrowRight className="w-4 h-4" /></>}
+                    </button>
+
+                    {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center mt-4">{error}</p>}
+                </div>
+            </div>
+        );
+    }
 
     // --- CHECKOUT VIEW (PIX / Payment Info) ---
     if (checkoutData) {

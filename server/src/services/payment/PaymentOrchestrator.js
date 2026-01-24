@@ -50,7 +50,7 @@ class PaymentOrchestrator {
 
         // Logic to choose gateway if not provided?
         // Prioritize requestedGateway, else check what's active (future logic)
-        const gatewayToUse = requestedGateway || 'velify'; // Defaulting for now
+        const gatewayToUse = requestedGateway || await this.getActiveGateway(barbershopId);
 
         const adapter = this.gateways[gatewayToUse];
         if (!adapter) throw new Error(`Gateway '${gatewayToUse}' adapter not found.`);

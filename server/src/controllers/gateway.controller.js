@@ -29,6 +29,28 @@ exports.saveConfig = async (req, res) => {
 
         // Validate structure based on gateway? (For now, trust frontend/schema)
 
+        // Fetch existing config to check for masked values
+        const existingConfig = await prisma.gatewayConfig.findUnique({
+            where: {
+                barbershopId_gateway: {
+                    barbershopId,
+                    gateway
+                }
+            }
+        });
+
+        let finalCredentials = { ...credentials };
+
+        if (existingConfig && existingConfig.credentials) {
+            const oldCreds = existingConfig.credentials;
+            // Merge: If current field is masked (e.g. contains '...'), use the old value
+            Object.keys(credentials).forEach(key => {
+                if (typeof credentials[key] === 'string' && credentials[key].includes('...')) {
+                    finalCredentials[key] = oldCreds[key];
+                }
+            });
+        }
+
         const config = await prisma.gatewayConfig.upsert({
             where: {
                 barbershopId_gateway: {
@@ -37,14 +59,14 @@ exports.saveConfig = async (req, res) => {
                 }
             },
             update: {
-                credentials, // Encrypt this in production!
+                credentials: finalCredentials,
                 isActive,
                 updatedAt: new Date()
             },
             create: {
                 barbershopId,
                 gateway,
-                credentials,
+                credentials: finalCredentials,
                 isActive
             }
         });
