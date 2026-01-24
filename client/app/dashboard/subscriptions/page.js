@@ -80,22 +80,22 @@ export default function SubscriptionPlansPage() {
             </header>
 
             {isAdding && (
-                <form onSubmit={handleCreatePlan} className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl animate-in zoom-in-95 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <form onSubmit={handleCreatePlan} className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl animate-in zoom-in-95 duration-300 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome do Plano</label>
                             <input
                                 required placeholder="Ex: Essencial Mensal"
                                 value={newPlan.name} onChange={e => setNewPlan({ ...newPlan, name: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all"
+                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
                             />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço (R$)</label>
                             <input
-                                type="number" required placeholder="99.90"
+                                type="number" step="0.01" required placeholder="99.90"
                                 value={newPlan.price} onChange={e => setNewPlan({ ...newPlan, price: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all"
+                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
                             />
                         </div>
                         <div className="space-y-2">
@@ -103,7 +103,7 @@ export default function SubscriptionPlansPage() {
                             <input
                                 type="number" required placeholder="4"
                                 value={newPlan.quantityOfCuts} onChange={e => setNewPlan({ ...newPlan, quantityOfCuts: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all"
+                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
                             />
                         </div>
                         <div className="space-y-2">
@@ -111,13 +111,33 @@ export default function SubscriptionPlansPage() {
                             <input
                                 type="number" required placeholder="30"
                                 value={newPlan.validityDays} onChange={e => setNewPlan({ ...newPlan, validityDays: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all"
+                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
                             />
                         </div>
                     </div>
-                    {error && <p className="mt-4 text-xs font-bold text-red-500 uppercase">{error}</p>}
-                    <button type="submit" className="mt-6 w-full bg-white text-slate-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition">
-                        SALVAR PLANO
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descrição</label>
+                            <textarea
+                                placeholder="Uma breve descrição sobre o plano..."
+                                value={newPlan.description || ''} onChange={e => setNewPlan({ ...newPlan, description: e.target.value })}
+                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all h-24 text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Benefícios (Separados por vírgula)</label>
+                            <textarea
+                                placeholder="Corte ilimitado, 10% OFF em produtos, Cerveja grátis..."
+                                value={newPlan.benefitsText || ''} onChange={e => setNewPlan({ ...newPlan, benefitsText: e.target.value, benefits: e.target.value.split(',').map(b => b.trim()).filter(b => b) })}
+                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all h-24 text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    {error && <p className="text-xs font-bold text-red-500 uppercase">{error}</p>}
+                    <button type="submit" className="w-full bg-emerald-500 text-black py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/10">
+                        PUBLICAR PLANO NO CLUBE
                     </button>
                 </form>
             )}
@@ -140,15 +160,28 @@ export default function SubscriptionPlansPage() {
                                 </div>
                             </div>
 
+                            {plan.description && <p className="text-slate-500 text-xs font-medium leading-relaxed uppercase tracking-tighter line-clamp-2">{plan.description}</p>}
+
+                            <div className="space-y-3 pt-2">
+                                {plan.benefits?.map((benefit, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                                            <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-none stroke-emerald-500 stroke-[4]"><path d="M20 6L9 17l-5-5" /></svg>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tight">{benefit}</span>
+                                    </div>
+                                ))}
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-800/50">
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">Franquia</p>
+                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">Créditos</p>
                                     <p className="flex items-center gap-2 font-black text-xs text-slate-300 uppercase tracking-tighter">
-                                        <Target className="w-3.5 h-3.5 text-emerald-500" /> {plan.quantityOfCuts} Cortes
+                                        <Target className="w-3.5 h-3.5 text-emerald-500" /> {plan.quantityOfCuts || 'Ilimitado'}
                                     </p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">Validade</p>
+                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">Ciclo</p>
                                     <p className="flex items-center gap-2 font-black text-xs text-slate-300 uppercase tracking-tighter">
                                         <Calendar className="w-3.5 h-3.5 text-emerald-500" /> {plan.validityDays} Dias
                                     </p>

@@ -50,18 +50,20 @@ export default function DashboardPage() {
     }, []);
 
     // React Query for Stats
-    const { data: stats = { revenue: 0, revenueTotal: 0, appointments: 0, clients: 0 }, isLoading, isError } = useQuery({
-        queryKey: ['dashboardStats'],
+    const { data: stats = { revenue: 0, revenueTotal: 0, appointments: 0, clients: 0 }, isLoading, isError, refetch } = useQuery({
+        queryKey: ['dashboardStats', user?.barbershopId],
         queryFn: async () => {
-            const res = await api.get('/dashboard/stats');
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+            const res = await api.get(`/dashboard/stats?barbershopId=${bId}`);
             return {
                 revenue: res.data.revenueToday || 0,
                 revenueTotal: res.data.revenueTotal || 0,
                 appointments: res.data.appointmentsToday || 0,
-                clients: res.data.clientsTotal || 0
+                clients: res.data.clientsTotal || 0,
+                revenueTrend: res.data.revenueTrend
             };
         },
-        // Enable only if we have a user, regardless of role (client dashboard might differ but let's keep logic)
+        // Enable only if we have a user
         enabled: !!user,
         staleTime: 30000,
     });
@@ -95,14 +97,24 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <Link
-                    href="/search"
-                    target="_blank"
-                    className="px-6 py-3 bg-[#0F111A] border border-white/10 hover:border-emerald-500/50 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 group"
-                >
-                    Acessar Marketplace
-                    <ExternalLink className="w-3 h-3 group-hover:text-emerald-500" />
-                </Link>
+                <div className="flex flex-wrap items-center gap-4">
+                    <button
+                        onClick={() => refetch()}
+                        className="px-6 py-3 bg-white/5 border border-white/10 hover:border-emerald-500/50 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 group"
+                    >
+                        <ShoppingBag className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                        Atualizar Dados
+                    </button>
+
+                    <Link
+                        href="/search"
+                        target="_blank"
+                        className="px-6 py-3 bg-[#0F111A] border border-white/10 hover:border-emerald-500/50 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 group"
+                    >
+                        Acessar Marketplace
+                        <ExternalLink className="w-3 h-3 group-hover:text-emerald-500" />
+                    </Link>
+                </div>
             </div>
 
             {/* Top Cards Row */}

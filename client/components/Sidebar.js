@@ -148,6 +148,7 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
 
                     {/* Financeiro */}
                     <MenuGroup title="Financeiro" id="financeiro" icon={DollarSign}>
+                        <MenuItem href="/dashboard/finance/caixa" icon={Wallet} label="Caixa do Dia" />
                         <MenuItem href="/dashboard/finance/dashboard" icon={PieChart} label="Dashboard" />
                         <MenuItem href="/dashboard/finance" icon={Wallet} label="Movimentações" />
                         <MenuItem href="/dashboard/reports/commissions" icon={DollarSign} label="Comissões" />
