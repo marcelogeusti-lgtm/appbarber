@@ -6,10 +6,15 @@ const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 
 exports.createPlan = async (req, res) => {
     try {
-        const { name, description, benefits, price, validityDays, barbershopId, quantityOfCuts, allowedMethods } = req.body;
+        let { name, description, benefits, price, validityDays, barbershopId, quantityOfCuts, allowedMethods } = req.body;
 
-        if (!name || !price || !barbershopId) {
+        if (!name || price === undefined || price === null || !barbershopId) {
             return res.status(400).json({ message: 'Nome, preço e barbearia são obrigatórios.' });
+        }
+
+        const priceNumber = parseFloat(price);
+        if (isNaN(priceNumber)) {
+            return res.status(400).json({ message: 'O preço deve ser um número válido.' });
         }
 
         const plan = await prisma.subscriptionPlan.create({
@@ -17,7 +22,7 @@ exports.createPlan = async (req, res) => {
                 name,
                 description,
                 benefits: Array.isArray(benefits) ? benefits : [],
-                price: parseFloat(price),
+                price: priceNumber,
                 validityDays: parseInt(validityDays) || 30,
                 quantityOfCuts: parseInt(quantityOfCuts) || 0,
                 barbershopId,

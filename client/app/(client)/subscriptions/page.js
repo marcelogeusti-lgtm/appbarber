@@ -95,7 +95,12 @@ export default function SubscriptionsPage() {
                             <Zap className="w-8 h-8 text-emerald-500" />
                         </div>
                         <h2 className="text-xl font-black uppercase">{selectedPlan?.name}</h2>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest leading-none">R$ {parseFloat(selectedPlan?.price).toFixed(2)} / mês</p>
+                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest leading-none">
+                            R$ {(() => {
+                                const price = Number(selectedPlan?.price);
+                                return !isNaN(price) ? price.toFixed(2) : '0.00';
+                            })()} / mês
+                        </p>
                     </div>
 
                     {checkoutData.qrCode ? (
@@ -198,7 +203,12 @@ export default function SubscriptionsPage() {
                                         <h3 className="text-xl font-black uppercase tracking-tight leading-none mb-2">{plan.name}</h3>
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-xs font-black text-emerald-500 uppercase tracking-tighter">R$</span>
-                                            <span className="text-3xl font-black">{parseFloat(plan.price).toFixed(2)}</span>
+                                            <span className="text-3xl font-black">
+                                                {(() => {
+                                                    const price = Number(plan.price);
+                                                    return !isNaN(price) ? price.toFixed(2) : '0.00';
+                                                })()}
+                                            </span>
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">/mês</span>
                                         </div>
                                     </div>

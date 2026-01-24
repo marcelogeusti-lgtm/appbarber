@@ -7,7 +7,10 @@ import { useRouter } from 'next/navigation';
 export default function SubscriptionsTab({ plans = [] }) {
     const router = useRouter();
     const [loading, setLoading] = useState(null);
-    const formatCurrency = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const formatCurrency = (val) => {
+        const num = Number(val);
+        return !isNaN(num) ? num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+    };
 
     const handlePurchase = async (plan) => {
         if (!confirm(`Deseja assinar o plano "${plan.name}" por ${formatCurrency(plan.price)}?`)) return;

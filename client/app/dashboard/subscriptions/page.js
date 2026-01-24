@@ -156,7 +156,12 @@ export default function SubscriptionPlansPage() {
                                 <h3 className="text-2xl font-black uppercase tracking-tight text-white group-hover:text-emerald-500 transition-colors leading-none mb-2">{plan.name}</h3>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-xs font-black text-emerald-500 uppercase">R$</span>
-                                    <p className="text-4xl font-black text-white tracking-tighter">{plan.price.toFixed(2)}</p>
+                                    <p className="text-4xl font-black text-white tracking-tighter">
+                                        {(() => {
+                                            const price = Number(plan.price);
+                                            return !isNaN(price) ? price.toFixed(2) : '0.00';
+                                        })()}
+                                    </p>
                                 </div>
                             </div>
 

@@ -43,7 +43,6 @@ function ClientLayoutContent({ children }) {
         { icon: Heart, label: 'Favoritos', href: '/favorites' },
         { icon: CreditCard, label: 'Meus Cartões', href: '/cards' },
         { icon: Repeat, label: 'Assinaturas', href: '/subscriptions' },
-        { icon: Package, label: 'Pacotes', href: '/packages' },
         { icon: Clock, label: 'Histórico', href: '/history' },
         { icon: MessageSquare, label: 'Ouvidoria', href: '/support' },
     ];
