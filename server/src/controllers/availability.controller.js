@@ -55,136 +55,134 @@ exports.getAvailableSlots = async (req, res) => {
             }
         });
 
-    });
+        console.log(`[Availability] Calculating for Shop ${barbershopId} on ${date}. Active Pros: ${pros.length}`);
 
-    console.log(`[Availability] Calculating for Shop ${barbershopId} on ${date}. Active Pros: ${pros.length}`);
+        if (pros.length === 0) {
+            console.warn(`[Availability] No active professionals found for Shop ${barbershopId}`);
+            return res.json([]); // Return empty list, don't just hang or error
+        }
 
-    if (pros.length === 0) {
-        console.warn(`[Availability] No active professionals found for Shop ${barbershopId}`);
-        return res.json([]); // Return empty list, don't just hang or error
-    }
-
-    // 3. Get Appointments (Stored in UTC, query by range)
-    const appointments = await prisma.appointment.findMany({
-        where: {
-            barbershopId,
-            date: {
-                gte: startOfDaySP,
-                lte: endOfDaySP
+        // 3. Get Appointments (Stored in UTC, query by range)
+        const appointments = await prisma.appointment.findMany({
+            where: {
+                barbershopId,
+                date: {
+                    gte: startOfDaySP,
+                    lte: endOfDaySP
+                },
+                status: { not: 'CANCELLED' }
             },
-            status: { not: 'CANCELLED' }
-        },
-        include: {
-            service: true,
-            order: {
-                include: {
-                    items: {
-                        include: { service: true }
+            include: {
+                service: true,
+                order: {
+                    include: {
+                        items: {
+                            include: { service: true }
+                        }
                     }
                 }
             }
-        }
-    });
-
-    const availability = [];
-
-    for (const pro of pros) {
-        const proSchedule = pro.professionalProfile?.schedules[0];
-
-        if (!proSchedule) {
-            availability.push({ proId: pro.id, proName: pro.name, slots: [] });
-            continue;
-        }
-
-        const slots = [];
-
-        // Helper to create a specific time on that day in SP
-        const createTimeSP = (timeStr) => {
-            // timeStr is "09:00"
-            return zonedTimeToUtc(`${date}T${timeStr}:00`, TIMEZONE);
-        };
-
-        const workStart = createTimeSP(proSchedule.startTime);
-        const workEnd = createTimeSP(proSchedule.endTime);
-
-        let breakStart = null;
-        let breakEnd = null;
-        if (proSchedule.breakStart && proSchedule.breakEnd) {
-            breakStart = createTimeSP(proSchedule.breakStart);
-            breakEnd = createTimeSP(proSchedule.breakEnd);
-        }
-
-        // Iterate slots (every 30 mins)
-        let currentSlot = workStart; // This is a Date object (UTC equivalent of Start Time SP)
-        const stepMinutes = 30;
-
-        while (currentSlot < workEnd) {
-            const potentialEnd = addMinutes(currentSlot, totalDuration);
-
-            // 1. Must finish before work ends
-            if (potentialEnd > workEnd) {
-                currentSlot = addMinutes(currentSlot, stepMinutes);
-                continue;
-            }
-
-            // 2. Must not overlap break
-            let overlapsBreak = false;
-            if (breakStart && breakEnd) {
-                // Standard Overlap: (StartA < EndB) && (EndA > StartB)
-                if (currentSlot < breakEnd && potentialEnd > breakStart) {
-                    overlapsBreak = true;
-                }
-            }
-
-            if (overlapsBreak) {
-                currentSlot = addMinutes(currentSlot, stepMinutes);
-                continue;
-            }
-
-            // 3. Must not overlap existing appointments
-            const isOccupied = appointments.some(app => {
-                if (app.professionalId !== pro.id) return false;
-
-                const appStart = new Date(app.date); // Already UTC
-
-                // Logic to sum durations if multiple services in order
-                let appDuration = app.service?.duration || 30;
-                if (app.order && app.order.items && app.order.items.length > 0) {
-                    const serviceItems = app.order.items.filter(i => i.type === 'SERVICE' && i.service);
-                    if (serviceItems.length > 0) {
-                        appDuration = serviceItems.reduce((sum, item) => sum + (item.service.duration * item.quantity), 0);
-                    }
-                }
-
-                const appEnd = addMinutes(appStart, appDuration);
-
-                // Allow strict touch? (EndA == StartB is OK)
-                // If currentSlot == appEnd, it's fine.
-                // Overlap: StartA < EndB && EndA > StartB
-                return (currentSlot < appEnd && potentialEnd > appStart);
-            });
-
-            if (!isOccupied) {
-                // Convert back to SP Time string for frontend display "09:00"
-                const zonedSlot = utcToZonedTime(currentSlot, TIMEZONE);
-                const timeString = format(zonedSlot, 'HH:mm');
-                slots.push(timeString);
-            }
-
-            currentSlot = addMinutes(currentSlot, stepMinutes);
-        }
-
-        availability.push({
-            proId: pro.id,
-            proName: pro.name,
-            slots
         });
+
+        const availability = [];
+
+        for (const pro of pros) {
+            const proSchedule = pro.professionalProfile?.schedules[0];
+
+            if (!proSchedule) {
+                availability.push({ proId: pro.id, proName: pro.name, slots: [] });
+                continue;
+            }
+
+            const slots = [];
+
+            // Helper to create a specific time on that day in SP
+            const createTimeSP = (timeStr) => {
+                // timeStr is "09:00"
+                return zonedTimeToUtc(`${date}T${timeStr}:00`, TIMEZONE);
+            };
+
+            const workStart = createTimeSP(proSchedule.startTime);
+            const workEnd = createTimeSP(proSchedule.endTime);
+
+            let breakStart = null;
+            let breakEnd = null;
+            if (proSchedule.breakStart && proSchedule.breakEnd) {
+                breakStart = createTimeSP(proSchedule.breakStart);
+                breakEnd = createTimeSP(proSchedule.breakEnd);
+            }
+
+            // Iterate slots (every 30 mins)
+            let currentSlot = workStart; // This is a Date object (UTC equivalent of Start Time SP)
+            const stepMinutes = 30;
+
+            while (currentSlot < workEnd) {
+                const potentialEnd = addMinutes(currentSlot, totalDuration);
+
+                // 1. Must finish before work ends
+                if (potentialEnd > workEnd) {
+                    currentSlot = addMinutes(currentSlot, stepMinutes);
+                    continue;
+                }
+
+                // 2. Must not overlap break
+                let overlapsBreak = false;
+                if (breakStart && breakEnd) {
+                    // Standard Overlap: (StartA < EndB) && (EndA > StartB)
+                    if (currentSlot < breakEnd && potentialEnd > breakStart) {
+                        overlapsBreak = true;
+                    }
+                }
+
+                if (overlapsBreak) {
+                    currentSlot = addMinutes(currentSlot, stepMinutes);
+                    continue;
+                }
+
+                // 3. Must not overlap existing appointments
+                const isOccupied = appointments.some(app => {
+                    if (app.professionalId !== pro.id) return false;
+
+                    const appStart = new Date(app.date); // Already UTC
+
+                    // Logic to sum durations if multiple services in order
+                    let appDuration = app.service?.duration || 30;
+                    if (app.order && app.order.items && app.order.items.length > 0) {
+                        const serviceItems = app.order.items.filter(i => i.type === 'SERVICE' && i.service);
+                        if (serviceItems.length > 0) {
+                            appDuration = serviceItems.reduce((sum, item) => sum + (item.service.duration * item.quantity), 0);
+                        }
+                    }
+
+                    const appEnd = addMinutes(appStart, appDuration);
+
+                    // Allow strict touch? (EndA == StartB is OK)
+                    // If currentSlot == appEnd, it's fine.
+                    // Overlap: StartA < EndB && EndA > StartB
+                    return (currentSlot < appEnd && potentialEnd > appStart);
+                });
+
+                if (!isOccupied) {
+                    // Convert back to SP Time string for frontend display "09:00"
+                    const zonedSlot = utcToZonedTime(currentSlot, TIMEZONE);
+                    const timeString = format(zonedSlot, 'HH:mm');
+                    slots.push(timeString);
+                }
+
+                currentSlot = addMinutes(currentSlot, stepMinutes);
+            }
+
+            availability.push({
+                proId: pro.id,
+                proName: pro.name,
+                slots
+            });
+        }
+
+        res.json(availability);
+
+    } catch (error) {
+        console.error('Availability calculation error:', error);
+        res.status(500).json({ message: 'Error calculating availability' });
     }
-
-    res.json(availability);
-
-} catch (error) {
-    console.error('Availability calculation error:', error);
-    res.status(500).json({ message: 'Error calculating availability' });
-}
 };
