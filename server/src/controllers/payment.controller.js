@@ -17,43 +17,64 @@ exports.createPayment = async (req, res) => {
             include: { authUser: true }
         });
 
-        const paymentResult = await PaymentOrchestrator.createPayment({
-            amount,
-            method,
-            description: description || `Payment for user ${user?.name || userId}`,
-            gateway,
-            barbershopId,
-            customer: {
-                name: user?.name || 'Cliente',
-                email: user?.authUser?.email || user?.email,
-                phone: user?.phone
-            }
-        });
-
-        const payment = await prisma.payment.create({
+        // 1. Create Pending Payment
+        const pendingPayment = await prisma.payment.create({
             data: {
-                gateway: paymentResult.gateway,
+                gateway: gateway || 'PENDING',
                 method,
-                externalId: paymentResult.paymentId,
-                status: paymentResult.status,
+                status: 'PENDING',
                 amount,
                 userId,
                 appointmentId,
                 orderId,
-                barbershopId,
-                qrCode: paymentResult.qrCode,
-                pixCopiaECola: paymentResult.pixCopiaECola
+                barbershopId
             }
         });
 
-        return res.status(201).json({
-            paymentId: payment.id,
-            qrCode: payment.qrCode,
-            pixCopiaECola: payment.pixCopiaECola,
-            status: payment.status,
-            externalId: payment.externalId
-        });
+        try {
+            // 2. Call Gateway
+            const paymentResult = await PaymentOrchestrator.createPayment({
+                amount,
+                method,
+                description: description || `Payment for user ${user?.name || userId}`,
+                gateway,
+                barbershopId,
+                customer: {
+                    name: user?.name || 'Cliente',
+                    email: user?.authUser?.email || user?.email,
+                    phone: user?.phone
+                },
+                externalId: pendingPayment.id // Pass DB UUID
+            });
 
+            // 3. Update Payment
+            const updatedPayment = await prisma.payment.update({
+                where: { id: pendingPayment.id },
+                data: {
+                    gateway: paymentResult.gateway,
+                    externalId: paymentResult.paymentId,
+                    status: paymentResult.status,
+                    qrCode: paymentResult.qrCode,
+                    pixCopiaECola: paymentResult.pixCopiaECola
+                }
+            });
+
+            return res.status(201).json({
+                paymentId: updatedPayment.id,
+                qrCode: updatedPayment.qrCode,
+                qrCodeBase64: paymentResult.qrCodeBase64, // Pass ephemeral base64
+                pixCopiaECola: updatedPayment.pixCopiaECola,
+                status: updatedPayment.status,
+                externalId: updatedPayment.externalId
+            });
+        } catch (gatewayError) {
+            console.error('Gateway Error:', gatewayError);
+            await prisma.payment.update({
+                where: { id: pendingPayment.id },
+                data: { status: 'FAILED' }
+            });
+            return res.status(502).json({ error: 'Failed to communicate with payment gateway' });
+        }
     } catch (error) {
         console.error('Create Payment Error:', error);
         return res.status(500).json({ error: 'Failed to create payment' });
@@ -82,39 +103,63 @@ exports.createPixPayment = async (req, res) => {
 
         const amount = appointment.service.price;
 
-        const paymentResult = await PaymentOrchestrator.createPayment({
-            amount,
-            method: 'PIX',
-            description: `Agendamento #${appointment.id.slice(0, 8)}`,
-            barbershopId: appointment.barbershopId,
-            customer: {
-                name: appointment.client.name,
-                email: appointment.client.authUser?.email,
-                phone: appointment.client.phone
-            }
-        });
-
-        const payment = await prisma.payment.create({
+        // 1. Create PENDING Payment locally first
+        const pendingPayment = await prisma.payment.create({
             data: {
-                gateway: paymentResult.gateway,
+                gateway: 'PENDING', // Will be updated
                 method: 'PIX',
-                externalId: paymentResult.paymentId,
-                status: paymentResult.status,
-                amount,
+                status: 'PENDING',
+                amount: amount,
                 userId: req.user.id,
                 appointmentId: appointment.id,
-                barbershopId: appointment.barbershopId,
-                qrCode: paymentResult.qrCode,
-                pixCopiaECola: paymentResult.pixCopiaECola
+                barbershopId: appointment.barbershopId
             }
         });
 
-        return res.status(201).json({
-            paymentId: payment.id,
-            qrCode: payment.qrCode,
-            pixCopiaECola: payment.pixCopiaECola,
-            status: payment.status
-        });
+        try {
+            // 2. Call Gateway with the generated ID as externalReference
+            const paymentResult = await PaymentOrchestrator.createPayment({
+                amount,
+                method: 'PIX',
+                description: `Agendamento #${appointment.id.slice(0, 8)}`,
+                barbershopId: appointment.barbershopId,
+                customer: {
+                    name: appointment.client.name,
+                    email: appointment.client.authUser?.email,
+                    phone: appointment.client.phone
+                },
+                externalId: pendingPayment.id // Pass the DB UUID
+            });
+
+            // 3. Update Payment with Gateway Response
+            const updatedPayment = await prisma.payment.update({
+                where: { id: pendingPayment.id },
+                data: {
+                    gateway: paymentResult.gateway,
+                    externalId: paymentResult.paymentId, // The ID from Gateway (e.g., MP ID)
+                    status: paymentResult.status,
+                    qrCode: paymentResult.qrCode,
+                    pixCopiaECola: paymentResult.pixCopiaECola
+                }
+            });
+
+            return res.status(201).json({
+                paymentId: updatedPayment.id,
+                qrCode: updatedPayment.qrCode,
+                qrCodeBase64: paymentResult.qrCodeBase64,
+                pixCopiaECola: updatedPayment.pixCopiaECola,
+                status: updatedPayment.status
+            });
+
+        } catch (gatewayError) {
+            console.error('Gateway Error:', gatewayError);
+            // Optional: Mark as FAILED or cancel
+            await prisma.payment.update({
+                where: { id: pendingPayment.id },
+                data: { status: 'FAILED' }
+            });
+            return res.status(502).json({ error: 'Erro de comunicação com gateway de pagamento.' });
+        }
     } catch (error) {
         console.error('Create Pix Error:', error);
         return res.status(500).json({ error: 'Erro ao gerar Pix' });

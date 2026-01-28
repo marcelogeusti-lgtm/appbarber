@@ -7,7 +7,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
         this.apiUrl = 'https://api.mercadopago.com/v1';
     }
 
-    async createPayment({ amount, description, customer, credentials }) {
+    async createPayment({ amount, description, customer, credentials, externalId }) {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
@@ -16,6 +16,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 transaction_amount: parseFloat(amount),
                 description: description,
                 payment_method_id: 'pix', // Standard for dynamic pix
+                external_reference: externalId, // Correctly use the externalId
                 payer: {
                     email: customer.email || 'guest@example.com',
                     first_name: customer.name?.split(' ')[0] || 'Cliente',

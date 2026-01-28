@@ -45,7 +45,7 @@ class PaymentOrchestrator {
     }
 
     async createPayment(params) {
-        const { method, barbershopId, customer, amount, description } = params;
+        const { method, barbershopId, customer, amount, description, externalId } = params;
 
         const gatewayToUse = params.gateway || await this.getActiveGateway(barbershopId, method);
         const adapter = this.gateways[gatewayToUse];
@@ -62,7 +62,8 @@ class PaymentOrchestrator {
             description,
             customer,
             credentials,
-            method
+            method,
+            externalId // Pass the unique Payment ID to the adapter
         });
 
         // Standardized Response

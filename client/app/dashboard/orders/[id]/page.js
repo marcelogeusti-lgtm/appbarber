@@ -24,6 +24,8 @@ export default function OrderDetailsPage() {
     const [discountValue, setDiscountValue] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState('');
     const [processing, setProcessing] = useState(false);
+    const [generatedPayment, setGeneratedPayment] = useState(null); // Stores QR Code data
+    const [paymentStatusCheckInterval, setPaymentStatusCheckInterval] = useState(null);
 
     useEffect(() => {
         if (id) {
@@ -116,8 +118,14 @@ export default function OrderDetailsPage() {
         setShowPaymentModal(true);
     };
 
-    const handleConfirmPayment = async () => {
-        if (!selectedMethod) {
+    useEffect(() => {
+        return () => {
+            if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval);
+        };
+    }, [paymentStatusCheckInterval]);
+
+    const handleConfirmPayment = async (isAutomatic = false) => {
+        if (!selectedMethod && !isAutomatic) {
             alert('Selecione uma forma de pagamento.');
             return;
         }
@@ -125,17 +133,66 @@ export default function OrderDetailsPage() {
         setProcessing(true);
         try {
             await api.post(`/orders/${id}/pay`, {
-                paymentMethod: selectedMethod,
+                paymentMethod: isAutomatic ? 'PIX' : selectedMethod,
                 discount: order.discount || 0
             });
             fetchOrder();
+
+            // Reset States
             setShowPaymentModal(false);
             setSelectedMethod('');
+            setGeneratedPayment(null);
+            if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval);
+
         } catch (err) {
             console.error(err);
             alert('Erro ao processar pagamento.');
         } finally {
             setProcessing(false);
+        }
+    };
+
+    const handleGeneratePix = async () => {
+        setProcessing(true);
+        try {
+            // Calculate final value
+            const finalValue = order.subtotal - (order.discount || 0);
+
+            const res = await api.post('/payments/create', {
+                method: 'PIX',
+                amount: finalValue,
+                orderId: id,
+                barbershopId: order.barbershopId,
+                description: `Comanda #${order.id.slice(0, 6)}`
+            });
+
+            setGeneratedPayment(res.data);
+
+            // Start Polling
+            const interval = setInterval(() => checkPaymentStatus(res.data.paymentId), 3000);
+            setPaymentStatusCheckInterval(interval);
+
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao gerar Pix: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const checkPaymentStatus = async (paymentId) => {
+        try {
+            const res = await api.get(`/payments/${paymentId}`);
+            if (res.data.status === 'paid' || res.data.status === 'PAID') {
+                clearInterval(paymentStatusCheckInterval);
+                setPaymentStatusCheckInterval(null);
+
+                // Close Order Automatically
+                alert('Pagamento Pix Confirmado!');
+                await handleConfirmPayment(true);
+            }
+        } catch (err) {
+            console.error("Status Check Error", err);
         }
     };
 
@@ -425,21 +482,80 @@ export default function OrderDetailsPage() {
                         </div>
 
                         <div className="p-8 border-t border-slate-800 bg-slate-900/50">
+                            {/* Pix QR Code Display */}
+                            {selectedMethod === 'PIX' && generatedPayment && (
+                                <div className="mb-6 space-y-4 animate-in fade-in slide-in-from-top-4">
+                                    <div className="bg-white p-4 rounded-xl w-fit mx-auto border-4 border-emerald-500">
+                                        {generatedPayment.qrCodeBase64 ? (
+                                            <img src={`data:image/jpeg;base64,${generatedPayment.qrCodeBase64}`} className="w-48 h-48" alt="QR Code Pix" />
+                                        ) : (
+                                            /* Fallback if only text */
+                                            <div className="w-48 h-48 flex items-center justify-center bg-slate-100 text-slate-900 font-bold text-xs text-center p-2 break-all overflow-hidden">
+                                                QR Code Disponível no Copia e Cola
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block text-center">Pix Copia e Cola</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                readOnly
+                                                value={generatedPayment.pixCopiaECola || generatedPayment.qrCode}
+                                                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-400 font-mono"
+                                                onClick={(e) => e.target.select()}
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(generatedPayment.pixCopiaECola || generatedPayment.qrCode);
+                                                    alert('Copiado!');
+                                                }}
+                                                className="bg-emerald-500 text-white px-4 rounded-lg font-bold text-xs hover:bg-emerald-600 transition"
+                                            >
+                                                COPIAR
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl text-center">
+                                        <p className="text-blue-400 text-xs font-bold animate-pulse">Aguardando confirmação automática...</p>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="flex justify-between items-center mb-6">
                                 <span className="text-slate-400 font-medium">Total a Receber</span>
                                 <span className="text-3xl font-black text-white">R$ {formatCurrency(order.total)}</span>
                             </div>
 
-                            <button
-                                onClick={handleConfirmPayment}
-                                disabled={processing || !selectedMethod}
-                                className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${processing || !selectedMethod
-                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                    : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40'
-                                    }`}
-                            >
-                                {processing ? 'Processando...' : 'Confirmar Recebimento'}
-                            </button>
+                            {selectedMethod === 'PIX' && !generatedPayment ? (
+                                <div className="grid grid-cols-1 gap-3">
+                                    <button
+                                        onClick={handleGeneratePix}
+                                        disabled={processing}
+                                        className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 transition flex items-center justify-center gap-2"
+                                    >
+                                        <Zap className="w-4 h-4" />
+                                        {processing ? 'Gerando...' : 'Gerar QR Code Pix'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleConfirmPayment(false)}
+                                        disabled={processing}
+                                        className="w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition"
+                                    >
+                                        Já recebi manualmente
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => handleConfirmPayment(false)}
+                                    disabled={processing || !selectedMethod || (selectedMethod === 'PIX' && !generatedPayment && false)} // Allow manual confirm even if generated
+                                    className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${processing || !selectedMethod
+                                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                        : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40'
+                                        }`}
+                                >
+                                    {processing ? 'Processando...' : 'Confirmar Recebimento'}
+                                </button>
+                            )}
 
                             <button
                                 onClick={() => setShowPaymentModal(false)}

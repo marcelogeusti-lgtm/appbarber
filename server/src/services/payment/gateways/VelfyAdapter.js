@@ -9,7 +9,7 @@ class VelfyAdapter extends GatewayAdapter {
         this.apiKey = process.env.VELFY_API_KEY;
     }
 
-    async createPayment({ amount, description, customer, credentials }) {
+    async createPayment({ amount, description, customer, credentials, externalId }) {
         // Use credentials passed from Orchestrator (from DB)
         const publicKey = credentials?.publicKey;
         const secretKey = credentials?.secretKey;
