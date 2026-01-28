@@ -68,15 +68,62 @@ class PaymentOrchestrator {
         // Standardized Response
         return {
             paymentId: result.externalId,
-            status: 'pending',
+            status: result.status || 'pending',
             method,
             gateway: gatewayToUse,
             qrCode: result.qrCode || null,
             qrCodeBase64: result.qrCodeBase64 || null,
-            pixCopiaECola: result.qrCode || null, // Common alias
+            pixCopiaECola: result.pixCopiaECola || result.qrCode || null, // Common alias
             clientSecret: result.clientSecret || null, // For Stripe/MP elements
             checkoutUrl: result.checkoutUrl || null
         };
+    }
+
+    async processWebhook(gatewayName, req) {
+        const gateway = gatewayName.toLowerCase();
+        const adapter = this.gateways[gateway];
+        if (!adapter) throw new Error(`Webhook gateway '${gateway}' not supported.`);
+
+        // 1. Basic Validation
+        const isValid = await adapter.validateWebhook(req);
+        if (!isValid) return { isValid: false };
+
+        // 2. Extract External ID (psp_reference_id)
+        // MP: req.body.data.id or req.body.id
+        const externalId = (req.body.data?.id || req.body.id)?.toString();
+        if (!externalId) return { isValid: true, status: 'ignore' };
+
+        // 3. Status Mapping (Logic depends on Gateway)
+        if (gateway === 'mercadopago') {
+            // For MP, it's safer to fetch the payment status directly from their API
+            // after receiving a notification, as the body might be just an ID.
+            const paymentRecord = await this.getPaymentByExternalId(externalId);
+            if (!paymentRecord) return { isValid: true, status: 'not_found' };
+
+            const credentials = await this.getGatewayConfig(paymentRecord.barbershopId, 'MERCADOPAGO');
+
+            // Use dedicated getPaymentStatus method
+            const response = await adapter.getPaymentStatus({
+                externalId,
+                credentials
+            });
+
+            return {
+                isValid: true,
+                externalId,
+                status: response.status
+            };
+        }
+
+        return { isValid: true, externalId, status: 'unknown' };
+    }
+
+    async getPaymentByExternalId(externalId) {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        return await prisma.payment.findFirst({
+            where: { externalId }
+        });
     }
 
     async getGatewayConfig(barbershopId, gatewayName) {

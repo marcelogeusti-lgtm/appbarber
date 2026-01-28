@@ -480,59 +480,13 @@ exports.createAppointment = async (req, res) => {
         });
         // ---------------------------------
 
-        // --- PAYMENT ORCHESTRATION ---
-        let paymentInfo = null;
-        if (paymentMethod === 'ONLINE' || req.body.forma_pagamento === 'PIX' || req.body.forma_pagamento === 'CREDIT_CARD') {
-            try {
-                paymentInfo = await PaymentOrchestrator.createPayment({
-                    amount: order.total,
-                    method: req.body.forma_pagamento === 'local' ? 'PIX' : (req.body.forma_pagamento || 'PIX'),
-                    description: `Agendamento: ${service.name} - ${barbershop.name}`,
-                    barbershopId: service.barbershopId,
-                    customer: {
-                        name: currentUser?.name || guestName,
-                        email: currentUser?.email || guestEmail,
-                        phone: currentUser?.phone || guestPhone
-                    }
-                });
-
-                // Update Appointment with Payment ID if needed
-                if (paymentInfo.paymentId) {
-                    await prisma.appointment.update({
-                        where: { id: appointment.id },
-                        data: {
-                            paymentStatus: 'PENDING',
-                            paymentMethod: 'ONLINE'
-                        }
-                    });
-
-                    // Link payment to order/appointment in DB
-                    await prisma.payment.create({
-                        data: {
-                            gateway: paymentInfo.gateway,
-                            method: paymentInfo.method,
-                            externalId: paymentInfo.paymentId,
-                            status: 'pending',
-                            amount: order.total,
-                            userId: clientId,
-                            appointmentId: appointment.id
-                        }
-                    });
-                }
-            } catch (payErr) {
-                console.error('[Orchestrator] Failed to initiate online payment:', payErr.message);
-                // We keep the appointment as pending/scheduled, but flag the payment error?
-                // Or we could fail the whole request. For now, let's keep it but log.
-            }
-        }
-
         const responseUser = currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role } : null;
+
         res.status(201).json({
             appointment_id: appointment.id,
-            status: paymentInfo ? "pendente_pagamento" : "confirmado",
-            mensagem: paymentInfo ? "Agendamento realizado, aguardando pagamento" : "Agendamento realizado com sucesso",
-            payment: paymentInfo,
-            // Keeping original fields just in case frontend needs them for now, but following success spec
+            status: paymentMethod === 'ONLINE' ? "pendente_pagamento" : "confirmado",
+            mensagem: paymentMethod === 'ONLINE' ? "Agendamento realizado, aguardando pagamento" : "Agendamento realizado com sucesso",
+            order_id: order.id,
             appointment,
             order,
             token: createdToken,

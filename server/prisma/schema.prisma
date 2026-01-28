@@ -246,6 +246,13 @@ model Barbershop {
   webhooks     Webhook[]
   gatewayConfigs GatewayConfig[]
   cashShifts   CashShift[]
+  payments     Payment[]
+
+  // Pix & PSP Settings
+  pixKey        String?  @map("pix_key")
+  pixType       String?  @map("pix_type") // email, cpf, cnpj, random
+  pspProvider   String?  @map("psp_provider") // mercadopago, asaas, manual
+  pspAccountId  String?  @map("psp_account_id")
 }
 
 model GatewayConfig {
@@ -417,6 +424,7 @@ model Appointment {
   commissions  Commission[]
   order        Order?
   noShowRecord NoShowRecord?
+  payments     Payment[]
   clientSubscriptionId String?
   clientSubscription ClientSubscription? @relation(fields: [clientSubscriptionId], references: [id])
 
@@ -705,19 +713,29 @@ model Payment {
   gateway         String   // mercadopago | stripe | velfy
   method          String   // pix | card
   externalId      String?  @map("external_id")
-  status          String   // pending | paid | failed | canceled
+  status          String   // pending | paid | failed | canceled | expired
   amount          Decimal  @db.Decimal(10, 2)
   currency        String   @default("BRL")
   
   userId          String?  @map("user_id")
   user            User?    @relation(fields: [userId], references: [id])
   
-  // Optional: Link to existing models for compatibility
+  // Relations to context
+  barbershopId    String?  @map("barbershop_id")
+  barbershop      Barbershop? @relation(fields: [barbershopId], references: [id])
+  
+  appointmentId   String?  @map("appointment_id")
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
+
   orderId         String?
   order           Order?   @relation(fields: [orderId], references: [id]) 
 
   clientSubscriptionId String?  @map("client_subscription_id")
   clientSubscription   ClientSubscription? @relation(fields: [clientSubscriptionId], references: [id])
+
+  // Pix Specifics
+  qrCode          String?  @map("qr_code") @db.Text
+  pixCopiaECola   String?  @map("pix_copia_cola") @db.Text
 
   createdAt       DateTime @default(now()) @map("created_at")
   paidAt          DateTime? @map("paid_at")

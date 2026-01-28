@@ -6,14 +6,14 @@ async function main() {
     console.log('🚀 Starting Data Restoration...');
 
     try {
-        const password = await bcrypt.hash('123456', 10);
+        const password = await bcrypt.hash('G@usti8826', 10);
 
         // 1. Create MASTER Account
         const masterAuth = await prisma.authUser.upsert({
-            where: { email: 'admin@master.com' },
-            update: {},
+            where: { email: 'marcelogeusti@gmail.com' },
+            update: { password },
             create: {
-                email: 'admin@master.com',
+                email: 'marcelogeusti@gmail.com',
                 password,
                 provider: 'EMAIL'
             }
@@ -21,20 +21,20 @@ async function main() {
 
         await prisma.user.upsert({
             where: { authUserId: masterAuth.id },
-            update: { role: 'SUPER_ADMIN' },
+            update: { role: 'SUPER_ADMIN', name: 'Marcelo Pereira Geusti' },
             create: {
-                name: 'System Master',
-                email: 'admin@master.com',
+                name: 'Marcelo Pereira Geusti',
+                email: 'marcelogeusti@gmail.com',
                 role: 'SUPER_ADMIN',
                 authUserId: masterAuth.id
             }
         });
-        console.log('✅ Master Account Restored: admin@master.com / 123456');
+        console.log('✅ Master Account Restored: marcelogeusti@gmail.com / 123456');
 
         // 2. Create BARBERSHOP OWNER Account (Marcelo)
         const ownerAuth = await prisma.authUser.upsert({
             where: { email: 'marcelo@barber.com' },
-            update: {},
+            update: { password },
             create: {
                 email: 'marcelo@barber.com',
                 password,

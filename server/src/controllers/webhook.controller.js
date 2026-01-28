@@ -56,6 +56,14 @@ exports.handleWebhook = async (req, res) => {
                             data: { paymentStatus: 'PAID', status: 'CLOSED' }
                         });
                     }
+
+                    // Update Appointment if linked
+                    if (payment.appointmentId) {
+                        await tx.appointment.update({
+                            where: { id: payment.appointmentId },
+                            data: { paymentStatus: 'PAID' }
+                        });
+                    }
                 });
                 console.log(`[Webhook] Successfully processed payment ${result.externalId}`);
             }

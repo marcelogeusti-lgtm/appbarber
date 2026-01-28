@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     MapPin, Search, Star, Heart, Share2,
     ChevronLeft, ShoppingBag, Clock, CalendarCheck,
-    Banknote, CreditCard, ArrowLeft, Users, Bell
+    Banknote, CreditCard, ArrowLeft, Users, Bell, Zap
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
@@ -139,6 +139,21 @@ export default function BarbershopPage() {
     }, [effectiveSlug]);
 
     useEffect(() => {
+        if (step === 6 && checkoutData?.status === 'pending' && checkoutData?.paymentId) {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await api.get(`/payments/${checkoutData.paymentId}`);
+                    if (res.data.status === 'paid') {
+                        setCheckoutData(prev => ({ ...prev, status: 'paid' }));
+                        clearInterval(interval);
+                    }
+                } catch (e) { console.error('Polling error', e); }
+            }, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [step, checkoutData]);
+
+    useEffect(() => {
         if (!formData.date || !selectedProfessional || !barbershop || !selectedService) return;
 
         async function fetchSlots() {
@@ -222,10 +237,20 @@ export default function BarbershopPage() {
             };
 
             const res = await api.post('/appointments', payload);
+            const appointmentId = res.data.appointment_id;
 
-            if (paymentType === 'online') {
-                // If online, we might show the payment (QR Code / etc)
-                setCheckoutData(res.data.payment);
+            if (paymentType === 'online' && paymentMethod === 'PIX') {
+                // SEPARATE REQUEST FOR PIX as per architecture rule
+                try {
+                    const pixRes = await api.post('/payments/pix', { appointmentId });
+                    setCheckoutData(pixRes.data);
+                } catch (pixErr) {
+                    console.error('Erro ao gerar Pix:', pixErr);
+                    alert('Agendamento criado, mas houve um erro ao gerar o Pix. Você pode tentar pagar no local ou re-gerar o Pix no seu painel.');
+                }
+            } else if (paymentType === 'online' && paymentMethod === 'CREDIT_CARD') {
+                // Placeholder for Card logic - usually handled by a different flow or also backend-driven
+                setCheckoutData({ status: 'pending_card', appointmentId });
             }
 
             setStep(6); // Success / Checkout State
@@ -410,7 +435,15 @@ export default function BarbershopPage() {
                             {/* Step 6: Success / Checkout */}
                             {step === 6 && (
                                 <div className="text-center py-6 space-y-6 animate-in zoom-in">
-                                    {checkoutData?.qrCode ? (
+                                    {checkoutData?.status === 'paid' ? (
+                                        <>
+                                            <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                                <CalendarCheck className="w-10 h-10 text-white" />
+                                            </div>
+                                            <h2 className="text-3xl font-black text-white uppercase">Pagamento Confirmado!</h2>
+                                            <p className="text-slate-400 text-xs">Seu horário já está garantido e aguardamos você!</p>
+                                        </>
+                                    ) : checkoutData?.qrCode ? (
                                         <>
                                             <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
                                                 <Zap className="w-10 h-10 text-emerald-500" />

@@ -53,10 +53,31 @@ class MercadoPagoAdapter extends GatewayAdapter {
         };
     }
 
+    async getPaymentStatus({ externalId, credentials }) {
+        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+
+        try {
+            const response = await axios.get(`${this.apiUrl}/payments/${externalId}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            const data = response.data;
+            return {
+                externalId: data.id.toString(),
+                status: data.status === 'approved' ? 'paid' : (data.status === 'pending' || data.status === 'in_process' ? 'pending' : 'failed'),
+                rawResponse: data
+            };
+        } catch (err) {
+            console.error('[MP] Get Status Error:', err.response?.data || err.message);
+            throw new Error(`Erro ao buscar status no Mercado Pago: ${err.message}`);
+        }
+    }
+
     validateWebhook(req) {
-        // MP uses query params (id/topic) or header. 
-        // Security usually involves checking the ID against their API.
-        return true;
+        // Simple validation for MP: check if it has the required fields
+        const body = req.body;
+        return !!(body && (body.type === 'payment' || body.action?.includes('payment')));
     }
 }
 
