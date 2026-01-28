@@ -4,7 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '../../../../lib/api';
 import {
     Receipt, User, Calendar, Clock, Plus, Trash2,
-    CreditCard, CheckCircle, AlertCircle, Scissors, Package, Percent, X
+    CreditCard, CheckCircle, AlertCircle, Scissors, Package, Percent, X,
+    Zap, DollarSign, Globe
 } from 'lucide-react';
 
 export default function OrderDetailsPage() {
@@ -413,8 +414,8 @@ export default function OrderDetailsPage() {
                                     key={method.id}
                                     onClick={() => setSelectedMethod(method.id)}
                                     className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${selectedMethod === method.id
-                                            ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
-                                            : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-600 hover:bg-slate-800'
+                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                                        : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-600 hover:bg-slate-800'
                                         }`}
                                 >
                                     <span className="text-2xl">{method.icon}</span>
@@ -433,8 +434,8 @@ export default function OrderDetailsPage() {
                                 onClick={handleConfirmPayment}
                                 disabled={processing || !selectedMethod}
                                 className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${processing || !selectedMethod
-                                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                        : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40'
+                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                    : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40'
                                     }`}
                             >
                                 {processing ? 'Processando...' : 'Confirmar Recebimento'}
