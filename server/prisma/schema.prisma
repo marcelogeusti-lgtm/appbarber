@@ -102,6 +102,7 @@ model Client {
   // Keep preferences/notifications?
   notifications Notification[]
   theme         String @default("dark")
+  active        Boolean @default(true)
 }
 
 model CardToken {

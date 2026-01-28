@@ -44,7 +44,8 @@ exports.listClients = async (req, res) => {
         // Fetch from Client table instead of User
         const clients = await prisma.client.findMany({
             where: {
-                id: { in: validIds }
+                id: { in: validIds },
+                active: true // Filter active clients
             },
             select: {
                 id: true,
@@ -125,6 +126,12 @@ exports.createClient = async (req, res) => {
                     avatarUrl: avatarUrl || null,
                     theme: 'dark'
                 }
+            });
+        } else if (!client.active) {
+            // Re-activate if they were soft-deleted
+            client = await prisma.client.update({
+                where: { id: client.id },
+                data: { active: true }
             });
         }
 
@@ -273,7 +280,7 @@ exports.updateClientProfile = async (req, res) => {
     }
 };
 
-// Delete Client (Remove link from Barbershop)
+// Delete Client (Soft Delete: Mark as inactive)
 exports.deleteClient = async (req, res) => {
     try {
         const { id } = req.params;
@@ -281,19 +288,11 @@ exports.deleteClient = async (req, res) => {
 
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        // Logic: Remove all logs and links to this barbershop.
-        // We don't delete the Client model itself because they might be linked to other shops.
-        // But removing CommunicationLog makes them disappear from "listClients".
-
-        await prisma.communicationLog.deleteMany({
-            where: { clientId: id, barbershopId }
+        // Update Client to inactive instead of deleting
+        await prisma.client.update({
+            where: { id },
+            data: { active: false }
         });
-
-        // Optional: Should we also delete appointments/orders? 
-        // Probably not, for historical reasons. But the user asked to "exclude".
-        // If they have appointments/orders, they will still appear in listClients due to those unions.
-        // To truly "exclude", we'd need a soft-delete flag on the link or similar.
-        // For now, let's just do CommunicationLog as it's the primary manual link.
 
         res.json({ message: 'Cliente removido da sua lista com sucesso' });
     } catch (error) {

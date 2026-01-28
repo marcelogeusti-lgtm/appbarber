@@ -48,6 +48,7 @@ exports.getDashboardStats = async (req, res) => {
             }),
             // Real Clients (Unique IDs with history)
             // Rule: Has at least one appointment OR one order OR one manual entry (CommunicationLog)
+            // Filtering for only ACTIVE clients (Soft Delete)
             prisma.$queryRaw`
                 SELECT COUNT(DISTINCT "clientId") as count FROM (
                     SELECT "clientId" FROM "Appointment" WHERE "barbershopId" = ${barbershopId}
@@ -56,6 +57,7 @@ exports.getDashboardStats = async (req, res) => {
                     UNION
                     SELECT "clientId" FROM "CommunicationLog" WHERE "barbershopId" = ${barbershopId}
                 ) as all_links
+                WHERE "clientId" IN (SELECT "id" FROM "Client" WHERE "active" = true)
             `
         ]);
 

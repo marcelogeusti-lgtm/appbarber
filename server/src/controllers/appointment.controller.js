@@ -139,7 +139,7 @@ exports.createAppointment = async (req, res) => {
                     if (existingClient) {
                         client = await tx.client.update({
                             where: { id: existingClient.id },
-                            data: { authUserId: authUser.id, name: guestName }
+                            data: { authUserId: authUser.id, name: guestName, active: true }
                         });
                     } else {
                         client = await tx.client.create({
@@ -173,10 +173,11 @@ exports.createAppointment = async (req, res) => {
                         }
                     });
                 } else {
-                    // Update name/info if provided
-                    if (guestName && existingClient.name !== guestName) {
-                        await prisma.client.update({ where: { id: existingClient.id }, data: { name: guestName } });
-                    }
+                    // Update info and ensure active
+                    await prisma.client.update({
+                        where: { id: existingClient.id },
+                        data: { name: guestName || existingClient.name, active: true }
+                    });
                 }
                 clientId = existingClient.id;
                 currentUser = { ...existingClient, role: 'CLIENT' };
