@@ -590,6 +590,66 @@ exports.updateAppointmentStatus = async (req, res) => {
             }
         });
 
+        // HANDLE PAYMENT ON COMPLETION (If provided)
+        if (status === 'COMPLETED' && req.body.paymentMethod && req.body.paymentMethod !== 'ONLINE') {
+            // Create Payment Record for Local Payment
+            const { paymentMethod, paidAmount } = req.body;
+            const amount = paidAmount || appointment.service.price;
+
+            // Check if already paid to avoid duplicates
+            if (appointment.paymentStatus !== 'PAID') {
+                // 1. Create Payment
+                await prisma.payment.create({
+                    data: {
+                        gateway: 'MANUAL', // or LOCAL
+                        method: paymentMethod, // CASH, CREDIT_CARD, DEBIT_CARD, PIX
+                        status: 'paid',
+                        amount: amount,
+                        userId: appointment.clientId, // Client paying
+                        barbershopId: appointment.barbershopId,
+                        appointmentId: appointment.id,
+                        orderId: appointment.order?.id, // If order exists
+                        paidAt: new Date()
+                    }
+                });
+
+                // 2. Update Appointment Payment Status
+                await prisma.appointment.update({
+                    where: { id: id },
+                    data: {
+                        paymentStatus: 'PAID',
+                        paymentMethod: paymentMethod // Record final method used
+                    }
+                });
+
+                // 2b. Sync Order Status
+                if (appointment.order?.id) {
+                    await prisma.order.update({
+                        where: { id: appointment.order.id },
+                        data: {
+                            status: 'CLOSED',
+                            paymentStatus: 'PAID',
+                            paymentMethod: paymentMethod,
+                            paidAt: new Date()
+                        }
+                    });
+                }
+
+                // 3. Create Transaction (Cash Flow)
+                await prisma.transaction.create({
+                    data: {
+                        description: `Recebimento Agendamento #${appointment.id.slice(0, 6)}`,
+                        amount: amount,
+                        type: 'INCOME',
+                        category: 'Serviço',
+                        barbershopId: appointment.barbershopId,
+                        appointmentId: appointment.id,
+                        // date: defaults to now
+                    }
+                });
+            }
+        }
+
         // Trigger Commission Calculation on COMPLETED
         if (status === 'COMPLETED') {
             try {

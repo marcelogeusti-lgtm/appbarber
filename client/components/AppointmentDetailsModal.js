@@ -1,5 +1,5 @@
-'use client';
-import { X, Calendar, User, Scissors, Clock, FileText, Pencil } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Calendar, User, Scissors, Clock, FileText, Pencil, CheckCircle, DollarSign, CreditCard, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -7,8 +7,30 @@ export default function AppointmentDetailsModal({
     isOpen,
     onClose,
     appointment,
-    onEdit
+    onEdit,
+    onComplete
 }) {
+    const [showPaymentSelector, setShowPaymentSelector] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) setShowPaymentSelector(false);
+    }, [isOpen, appointment]);
+
+    const handleFinishClick = () => {
+        if (appointment.paymentStatus === 'PAID') {
+            if (confirm('Pagamento já realizado anteriormente. Finalizar o atendimento?')) {
+                onComplete(appointment.id);
+            }
+        } else {
+            setShowPaymentSelector(true);
+        }
+    };
+
+    const handlePaymentSelect = (method) => {
+        // Here we could implement more complex logic like entering amount, but for now strict strict to just method selection as requested for flow
+        onComplete(appointment.id, method);
+    };
+
     if (!isOpen || !appointment) return null;
 
     return (
@@ -49,8 +71,8 @@ export default function AppointmentDetailsModal({
                     {/* Status Badge */}
                     <div className="flex justify-center">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${appointment.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                appointment.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                                    'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                            appointment.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                             }`}>
                             {appointment.status === 'CONFIRMED' ? 'Confirmado' :
                                 appointment.status === 'CANCELLED' ? 'Cancelado' :
@@ -117,6 +139,42 @@ export default function AppointmentDetailsModal({
                             <p className="text-slate-300 text-xs italic">
                                 "{appointment.notes}"
                             </p>
+                        </div>
+                    )}
+
+                    {/* Actions Footer - Finalization Flow */}
+                    {(appointment.status === 'CONFIRMED' || appointment.status === 'PENDING' || appointment.status === 'SCHEDULED') && (
+                        <div className="pt-4 mt-2 border-t border-slate-800">
+                            {!showPaymentSelector ? (
+                                <button
+                                    onClick={handleFinishClick}
+                                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                                >
+                                    <CheckCircle className="w-5 h-5" />
+                                    Finalizar Atendimento
+                                </button>
+                            ) : (
+                                <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Selecione o Pagamento</p>
+                                        <button onClick={() => setShowPaymentSelector(false)} className="text-[10px] text-red-400 hover:text-red-300 uppercase font-black">Cancelar</button>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <button onClick={() => handlePaymentSelect('CASH')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
+                                            <DollarSign className="w-6 h-6 text-emerald-500" />
+                                            <span className="text-[9px] font-bold uppercase text-slate-300">Dinheiro</span>
+                                        </button>
+                                        <button onClick={() => handlePaymentSelect('PIX')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
+                                            <Zap className="w-6 h-6 text-emerald-500" />
+                                            <span className="text-[9px] font-bold uppercase text-slate-300">Pix</span>
+                                        </button>
+                                        <button onClick={() => handlePaymentSelect('CREDIT_CARD')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
+                                            <CreditCard className="w-6 h-6 text-emerald-500" />
+                                            <span className="text-[9px] font-bold uppercase text-slate-300">Cartão</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

@@ -32,6 +32,10 @@ export default function SchedulePage() {
     const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
 
+    const fetchData = () => {
+        setLastFetchedMonth(null); // Triggers useEffect to reload
+    };
+
     useEffect(() => {
         fetchResources();
     }, []);
@@ -202,6 +206,26 @@ export default function SchedulePage() {
         }
     };
 
+    const handleCompleteAppointment = async (appointmentId, paymentMethod) => {
+        try {
+            setLoading(true);
+            await api.patch(`/appointments/${appointmentId}`, {
+                status: 'COMPLETED',
+                paymentMethod: paymentMethod // Optional, only if passed (Local Payment)
+            });
+
+            // Refresh
+            setViewingAppointment(null);
+            fetchData();
+            alert('Atendimento finalizado com sucesso!');
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao finalizar atendimento: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (loading && professionals.length === 0) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Sincronizando agenda...</div>;
 
     const selectedProData = professionals.find(p => p.id === selectedPro);
@@ -342,6 +366,7 @@ export default function SchedulePage() {
                 onClose={() => setViewingAppointment(null)}
                 appointment={viewingAppointment}
                 onEdit={handleEditFromDetails}
+                onComplete={handleCompleteAppointment}
             />
 
             <EditModal
