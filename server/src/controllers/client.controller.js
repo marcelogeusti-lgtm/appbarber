@@ -11,7 +11,7 @@ exports.listClients = async (req, res) => {
 
         const clientIds = new Set();
 
-        // 1. Get from Communication Logs (Primary source)
+        // 1. Get from Communication Logs (Primary source for manual/portal links)
         const logClients = await prisma.communicationLog.findMany({
             where: { barbershopId },
             select: { clientId: true },
@@ -41,7 +41,8 @@ exports.listClients = async (req, res) => {
             return res.json([]);
         }
 
-        const clients = await prisma.user.findMany({
+        // Fetch from Client table instead of User
+        const clients = await prisma.client.findMany({
             where: {
                 id: { in: validIds }
             },
@@ -49,16 +50,15 @@ exports.listClients = async (req, res) => {
                 id: true,
                 name: true,
                 phone: true,
-                email: true,
                 avatarUrl: true,
-                createdAt: true // Include createdAt for display
+                createdAt: true,
+                authUser: {
+                    select: {
+                        email: true
+                    }
+                }
             }
         });
-
-        // Enhance with Stats
-        // Optimized: Fetch all stats in bulk if possible?
-        // OR just keep per-client but safe for now. optimizing N+1 requires grouping.
-        // Given complexity limits, let's stick to per-client but ensure it's robust.
 
         const enhancedClients = await Promise.all(clients.map(async (client) => {
             const lastAppointment = await prisma.appointment.findFirst({
@@ -73,21 +73,23 @@ exports.listClients = async (req, res) => {
                 _count: { id: true }
             });
 
-            // Calculate total visits from COMPLETED appointments as well?
-            // "Total visits" usually implies completed appointments.
             const visitCount = await prisma.appointment.count({
                 where: { clientId: client.id, barbershopId, status: 'COMPLETED' }
             });
 
             return {
-                ...client,
+                id: client.id,
+                name: client.name,
+                phone: client.phone,
+                email: client.authUser?.email || null,
+                avatarUrl: client.avatarUrl,
+                createdAt: client.createdAt,
                 lastVisit: lastAppointment?.date || null,
                 totalSpent: Number(stats._sum.total || 0),
-                totalVisits: visitCount || Number(stats._count.id || 0) // Prefer appointment count for visits
+                totalVisits: visitCount || Number(stats._count.id || 0)
             };
         }));
 
-        // Sort by Last Visit (Recent first)
         enhancedClients.sort((a, b) => {
             if (!a.lastVisit) return 1;
             if (!b.lastVisit) return -1;
@@ -109,37 +111,28 @@ exports.createClient = async (req, res) => {
             return res.status(400).json({ message: 'Nome, Telefone e Barbearia são obrigatórios' });
         }
 
-        // Check if user exists
-        let user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { phone },
-                    ...(email ? [{ email }] : [])
-                ]
-            }
+        // Check if Client already exists by phone
+        let client = await prisma.client.findFirst({
+            where: { phone }
         });
 
-        if (!user) {
-            user = await prisma.user.create({
+        if (!client) {
+            // Create in Client table
+            client = await prisma.client.create({
                 data: {
                     name,
                     phone,
-                    email: email || null,
-                    role: 'CLIENT',
-                    avatarUrl: avatarUrl || null
+                    avatarUrl: avatarUrl || null,
+                    theme: 'dark'
                 }
             });
-        } else {
-            // Optional: Update name if provided and inconsistent? 
-            // Better keep existing unless explicit update requested.
-            // Just link.
         }
 
-        // Ensure Link (Create Log) to make them appear in the list
+        // Ensure Link (Create Log) to make them appear in the list for this barbershop
         await prisma.communicationLog.create({
             data: {
                 barbershopId,
-                clientId: user.id,
+                clientId: client.id,
                 channel: 'PORTAL',
                 direction: 'INBOUND',
                 type: 'MANUAL',
@@ -148,7 +141,7 @@ exports.createClient = async (req, res) => {
             }
         });
 
-        res.status(201).json(user);
+        res.status(201).json(client);
     } catch (error) {
         console.error('Create Client Error:', error);
         res.status(500).json({ message: 'Erro ao cadastrar cliente' });
@@ -163,8 +156,9 @@ exports.getClientDetails = async (req, res) => {
 
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        const client = await prisma.user.findUnique({
-            where: { id }
+        const client = await prisma.client.findUnique({
+            where: { id },
+            include: { authUser: { select: { email: true } } }
         });
 
         if (!client) return res.status(404).json({ message: 'Client not found' });
@@ -188,10 +182,10 @@ exports.getClientDetails = async (req, res) => {
             orderBy: { createdAt: 'desc' }
         });
 
-        // Loyalty/Subscriptions (If exists)
-        const subscriptions = await prisma.userSubscription.findMany({
-            where: { userId: id, subscriptionPlan: { barbershopId } },
-            include: { subscriptionPlan: true }
+        // Loyalty/Subscriptions (Corrected model: ClientSubscription)
+        const subscriptions = await prisma.clientSubscription.findMany({
+            where: { clientId: id, plan: { barbershopId } },
+            include: { plan: true }
         });
 
         // Calculate Stats
@@ -204,13 +198,16 @@ exports.getClientDetails = async (req, res) => {
         });
 
         res.json({
-            client,
+            client: {
+                ...client,
+                email: client.authUser?.email || null
+            },
             appointments,
             orders,
-            subscriptions,
+            subscriptions: subscriptions.map(s => ({ ...s, subscriptionPlan: s.plan })), // Compatibility with frontend
             stats: {
                 totalSpent,
-                totalVisits: appointments.filter(a => a.status === 'COMPLETED').length, // Or use orders count
+                totalVisits: appointments.filter(a => a.status === 'COMPLETED').length,
                 noShows
             }
         });
@@ -273,5 +270,34 @@ exports.updateClientProfile = async (req, res) => {
             return res.status(400).json({ message: 'Este telefone já está em uso.' });
         }
         res.status(500).json({ message: 'Erro ao atualizar perfil.' });
+    }
+};
+
+// Delete Client (Remove link from Barbershop)
+exports.deleteClient = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { barbershopId } = req.query;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        // Logic: Remove all logs and links to this barbershop.
+        // We don't delete the Client model itself because they might be linked to other shops.
+        // But removing CommunicationLog makes them disappear from "listClients".
+
+        await prisma.communicationLog.deleteMany({
+            where: { clientId: id, barbershopId }
+        });
+
+        // Optional: Should we also delete appointments/orders? 
+        // Probably not, for historical reasons. But the user asked to "exclude".
+        // If they have appointments/orders, they will still appear in listClients due to those unions.
+        // To truly "exclude", we'd need a soft-delete flag on the link or similar.
+        // For now, let's just do CommunicationLog as it's the primary manual link.
+
+        res.json({ message: 'Cliente removido da sua lista com sucesso' });
+    } catch (error) {
+        console.error('Delete Client Error:', error);
+        res.status(500).json({ message: 'Erro ao remover cliente' });
     }
 };

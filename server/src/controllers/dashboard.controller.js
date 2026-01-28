@@ -47,14 +47,15 @@ exports.getDashboardStats = async (req, res) => {
                 _sum: { total: true }
             }),
             // Real Clients (Unique IDs with history)
-            // Rule: Has at least one appointment OR one finalized order
+            // Rule: Has at least one appointment OR one order OR one manual entry (CommunicationLog)
             prisma.$queryRaw`
-                SELECT COUNT(DISTINCT "id") as count FROM "Client"
-                WHERE "id" IN (
+                SELECT COUNT(DISTINCT "clientId") as count FROM (
                     SELECT "clientId" FROM "Appointment" WHERE "barbershopId" = ${barbershopId}
                     UNION
                     SELECT "clientId" FROM "Order" WHERE "barbershopId" = ${barbershopId} AND "status" IN ('CLOSED', 'PAID')
-                )
+                    UNION
+                    SELECT "clientId" FROM "CommunicationLog" WHERE "barbershopId" = ${barbershopId}
+                ) as all_links
             `
         ]);
 

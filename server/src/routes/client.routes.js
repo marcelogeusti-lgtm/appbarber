@@ -10,7 +10,8 @@ router.post('/', authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), createClient);
 router.get('/:id', authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), getClientDetails);
 
 // Client Self-Management
-const { updateClientProfile } = require('../controllers/client.controller');
+const { updateClientProfile, deleteClient } = require('../controllers/client.controller');
 router.put('/profile', authorize('CLIENT'), updateClientProfile);
+router.delete('/:id', authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), deleteClient);
 
 module.exports = router;

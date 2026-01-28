@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar, Plus } from 'lucide-react';
+import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar, Plus, Trash2, AlertCircle } from 'lucide-react';
 import api from '../../../lib/api';
 import ClientDetailsModal from '../../../components/ClientDetailsModal';
 import NewClientModal from '../../../components/NewClientModal';
@@ -65,6 +65,19 @@ export default function ClientsPage() {
     };
 
     const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+    const handleDelete = async (clientId) => {
+        if (!confirm('Tem certeza que deseja remover este cliente da sua lista?')) return;
+
+        try {
+            const bId = user?.barbershop?.id || user?.barbershopId;
+            await api.delete(`/clients/${clientId}?barbershopId=${bId}`);
+            fetchClients(bId);
+        } catch (error) {
+            console.error('Error deleting client:', error);
+            alert('Erro ao remover cliente.');
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -168,13 +181,22 @@ export default function ClientsPage() {
                                         </span>
                                     </td>
                                     <td className="p-4 text-right">
-                                        <button
-                                            onClick={() => setSelectedClient(client)}
-                                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
-                                            title="Ver Detalhes"
-                                        >
-                                            <Eye className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => setSelectedClient(client)}
+                                                className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
+                                                title="Ver Detalhes"
+                                            >
+                                                <Eye className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(client.id)}
+                                                className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                                title="Remover Cliente"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
