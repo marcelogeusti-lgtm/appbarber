@@ -603,26 +603,24 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                     </button>
 
                     <div className="flex gap-4">
-                        {tab < 6 ? (
-                            <button
-                                type="button"
-                                onClick={() => setTab(tab + 1)}
-                                className="flex items-center gap-2 bg-white text-slate-900 px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95"
-                            >
-                                Próximo Passo <ChevronRight className="w-4 h-4" />
-                            </button>
-                        ) : (
-                            <button
-                                type="submit"
-                                form="proForm"
-                                disabled={loading || uploading}
-                                className={`flex items-center gap-2 bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 ${(loading || uploading) ? 'opacity-50 cursor-not-allowed' : ''
-                                    }`}
-                            >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                {isEdit ? 'SALVAR ALTERAÇÕES' : 'FINALIZAR CADASTRO'}
-                            </button>
-                        )}
+                        <button
+                            type="button"
+                            onClick={() => tab < 6 ? setTab(tab + 1) : null}
+                            className={`flex items-center gap-2 bg-white text-slate-900 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95 ${tab === 6 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            disabled={tab === 6}
+                        >
+                            Próximo Passo <ChevronRight className="w-4 h-4" />
+                        </button>
+
+                        <button
+                            type="submit"
+                            form="proForm"
+                            disabled={loading || uploading}
+                            className={`flex items-center gap-2 bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 ${(loading || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                            {isEdit ? 'SALVAR ALTERAÇÕES' : 'FINALIZAR CADASTRO'}
+                        </button>
                     </div>
                 </footer>
             </div>

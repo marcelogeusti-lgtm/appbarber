@@ -46,7 +46,7 @@ export default function ServicesPage() {
         e.preventDefault();
         try {
             if (!barbershopId) {
-                alert('Erro: Sua conta não está vinculada a uma barbearia.');
+                alert('⚠️ Atenção: Sua conta ainda não possui uma barbearia vinculada. Por favor, registre sua barbearia primeiro no menu de configurações.');
                 return;
             }
 
