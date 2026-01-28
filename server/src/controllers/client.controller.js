@@ -285,10 +285,40 @@ exports.deleteClient = async (req, res) => {
     try {
         const { id } = req.params;
         const { barbershopId } = req.query;
+        const requestingUser = req.user; // From protect middleware
 
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        // Update Client to inactive instead of deleting
+        // 1. Authorization: Only ADMIN or SUPER_ADMIN (or the barber of the shop) 
+        // Note: authorize middleware already handles role check, but we verify here for safety.
+        if (!['ADMIN', 'SUPER_ADMIN', 'BARBER'].includes(requestingUser.role)) {
+            return res.status(403).json({ message: 'Sem permissão para excluir clientes.' });
+        }
+
+        // 2. Protection: Don't allow soft-deleting a client if they have an associated administrative User record
+        const client = await prisma.client.findUnique({
+            where: { id },
+            include: { authUser: { include: { user: true } } }
+        });
+
+        if (!client) return res.status(404).json({ message: 'Cliente não encontrado.' });
+
+        // If the client record is linked to a Professional/Admin User, we MUST NOT "deactivate" it 
+        // if that deactivation affects their login or other modules. 
+        // Actually, setting active: false on 'Client' only hides them from the client list.
+        // But the user said: "mesmo que esse cliente for o dono da barbearia a conta dele como dono do saas não deve ser exluida"
+
+        if (client.authUser?.user && ['ADMIN', 'SUPER_ADMIN'].includes(client.authUser.user.role)) {
+            // If it's the owner, we just say we can't delete the owner from their own management list as a "client" 
+            // to avoid confusion, or we just allow it but ENSURE we don't touch the User table.
+            // Given the user's worry, let's BLOCK deletion of administrative users from the client list 
+            // and explain they are system admins.
+            return res.status(400).json({
+                message: 'Não é possível excluir um Administrador ou Master da lista de clientes.'
+            });
+        }
+
+        // 3. Perform Soft Delete
         await prisma.client.update({
             where: { id },
             data: { active: false }

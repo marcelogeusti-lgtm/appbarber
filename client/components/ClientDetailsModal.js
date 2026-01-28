@@ -172,10 +172,12 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                             {clientData.subscriptions.map(sub => (
                                                 <div key={sub.id} className="bg-gradient-to-r from-emerald-900/20 to-slate-900 p-4 rounded-xl border border-emerald-500/20">
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="font-bold text-white">{sub.subscriptionPlan.name}</h4>
+                                                        <h4 className="font-bold text-white">{sub.plan?.name || 'Plano Sem Nome'}</h4>
                                                         <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">ATIVO</span>
                                                     </div>
-                                                    <p className="text-xs text-slate-400">Expira em: {formatDate(sub.endDate)}</p>
+                                                    <p className="text-xs text-slate-400">
+                                                        Expira em: {sub.endDate ? formatDate(sub.endDate) : 'Vitalício'}
+                                                    </p>
                                                 </div>
                                             ))}
                                         </div>
