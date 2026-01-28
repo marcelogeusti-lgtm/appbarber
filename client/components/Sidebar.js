@@ -7,7 +7,7 @@ import {
     ShoppingBag, Receipt, DollarSign, PieChart, Wallet,
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, ScrollText, MessageSquare,
-    PanelLeftClose, PanelLeftOpen, X
+    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield
 } from 'lucide-react';
 
 export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
@@ -141,10 +141,21 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                     </MenuGroup>
 
                     {/* Conteúdo (Cursos) for SUPER_ADMIN or authorized users */}
-                    {/* Assuming logic handled by page access, showing link for all for now or check user role if available in props */}
-                    <MenuGroup title="Educação" id="educacao" icon={ScrollText}>
-                        <MenuItem href="/dashboard/courses" icon={ScrollText} label="Cursos" />
+                    {/* Access to Education Panel */}
+                    <MenuGroup title="Educação" id="educacao" icon={GraduationCap}>
+                        <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Cursos" />
                     </MenuGroup>
+
+                    {/* Master Management - Only for SUPER_ADMIN */}
+                    {user?.role === 'SUPER_ADMIN' && (
+                        <>
+                            <div className="h-px bg-emerald-500/20 mx-2 my-2"></div>
+                            <MenuGroup title="Gestão Master" id="master" icon={Shield}>
+                                <MenuItem href="/dashboard/super-admin" icon={LayoutDashboard} label="Dashboard SaaS" badge="Master" />
+                                <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Gestão Cursos" badge="Master" />
+                            </MenuGroup>
+                        </>
+                    )}
 
                     {/* Financeiro */}
                     <MenuGroup title="Financeiro" id="financeiro" icon={DollarSign}>
