@@ -83,9 +83,49 @@ export default function SettingsPage() {
 
     if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Carregando configurações...</div>;
 
+    // Helper: Image Compression
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            if (!file.type.match('image.*')) return reject(new Error('Arquivo não é uma imagem'));
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const MAX_WIDTH = 800; // Resize to max 800px
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.8)); // Compress quality 0.8
+                };
+            };
+            reader.onerror = error => reject(error);
+        });
+    };
+
     return (
         <div className="max-w-5xl mx-auto space-y-8">
             {/* PAGE HEADER */}
+            {/* ... header code ... */}
             <div className="flex items-center gap-4">
                 <div className="p-3 bg-slate-800 rounded-2xl text-white">
                     <Settings className="w-6 h-6" />
@@ -105,6 +145,7 @@ export default function SettingsPage() {
             )}
 
             <form onSubmit={handleSave} className="bg-[#111827] p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl space-y-10 animate-in fade-in slide-in-from-left-4">
+                {/* ... inputs ... */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-4">
                         <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
@@ -206,13 +247,15 @@ export default function SettingsPage() {
                                         type="file"
                                         accept="image/*"
                                         className="absolute inset-0 opacity-0 cursor-pointer"
-                                        onChange={(e) => {
+                                        onChange={async (e) => {
                                             const file = e.target.files[0];
                                             if (file) {
-                                                if (file.size > 4000000) return alert('A imagem deve ter no máximo 4MB');
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => setBarbershop({ ...barbershop, logoUrl: reader.result });
-                                                reader.readAsDataURL(file);
+                                                try {
+                                                    const compressedDataUrl = await compressImage(file);
+                                                    setBarbershop({ ...barbershop, logoUrl: compressedDataUrl });
+                                                } catch (err) {
+                                                    alert('Erro ao processar imagem: ' + err.message);
+                                                }
                                             }
                                         }}
                                     />
@@ -249,16 +292,16 @@ export default function SettingsPage() {
                                             type="file"
                                             accept="image/*"
                                             className="absolute inset-0 opacity-0 cursor-pointer"
-                                            onChange={(e) => {
+                                            onChange={async (e) => {
                                                 const file = e.target.files[0];
                                                 if (file) {
-                                                    if (file.size > 4000000) return alert('A imagem deve ter no máximo 4MB');
-                                                    const reader = new FileReader();
-                                                    reader.onloadend = () => {
-                                                        const newBanners = [...(barbershop.bannerUrls || []), reader.result];
+                                                    try {
+                                                        const compressedDataUrl = await compressImage(file);
+                                                        const newBanners = [...(barbershop.bannerUrls || []), compressedDataUrl];
                                                         setBarbershop({ ...barbershop, bannerUrls: newBanners });
-                                                    };
-                                                    reader.readAsDataURL(file);
+                                                    } catch (err) {
+                                                        alert('Erro ao processar imagem: ' + err.message);
+                                                    }
                                                 }
                                             }}
                                         />

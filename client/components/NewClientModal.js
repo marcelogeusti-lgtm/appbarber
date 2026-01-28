@@ -27,8 +27,8 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1920;
-                    const MAX_HEIGHT = 1920;
+                    const MAX_WIDTH = 800; // Reduced from 1920 for faster uploads
+                    const MAX_HEIGHT = 800;
                     let width = img.width;
                     let height = img.height;
 
@@ -55,7 +55,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                         } else {
                             reject(new Error('Canvas conversion failed'));
                         }
-                    }, 'image/jpeg', 0.9);
+                    }, 'image/jpeg', 0.8);
                 };
             };
         });
