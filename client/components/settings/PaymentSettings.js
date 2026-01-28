@@ -6,7 +6,7 @@ import { CreditCard, CheckCircle, AlertTriangle, Lock } from 'lucide-react';
 export default function PaymentSettings() {
     const [configs, setConfigs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(null); // 'velify' | 'stripe' | null
+    const [saving, setSaving] = useState(null); // 'velfy' | 'stripe' | null
 
     useEffect(() => {
         fetchConfigs();
@@ -56,18 +56,18 @@ export default function PaymentSettings() {
                 </div>
             </div>
 
-            {/* VELIFY CONFIG */}
+            {/* VELFY CONFIG */}
             <GatewayCard
-                title="Velify (PIX)"
+                title="Velfy (PIX)"
                 description="Recebimento instantâneo via PIX com QR Code dinâmico."
-                gateway="velify"
-                config={getConfig('velify')}
+                gateway="velfy"
+                config={getConfig('velfy')}
                 onSave={handleSave}
-                saving={saving === 'velify'}
+                saving={saving === 'velfy'}
                 icon={<div className="w-12 h-12 rounded-xl bg-white overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
-                    <img src="/logos/velfy.png" alt="Velify" className="w-full h-full object-cover" />
+                    <img src="/logos/velfy.png" alt="Velfy" className="w-full h-full object-cover" />
                 </div>}
-                helpText="Use as credenciais fornecidas pela equipe Velify (Chave Pública e Chave Secreta) para ativar o recebimento automático via PIX."
+                helpText="Use as credenciais fornecidas pela equipe Velfy (Chave Pública e Chave Secreta) para ativar o recebimento automático via PIX."
                 fields={[
                     { name: 'publicKey', label: 'Chave Pública (Public Key)', placeholder: 'pk_...' },
                     { name: 'secretKey', label: 'Chave Secreta (Secret Key)', type: 'password', placeholder: 'sk_...' }
@@ -146,7 +146,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                             {localData.isActive && <CheckCircle className="w-4 h-4 text-emerald-500" />}
                         </h3>
                         <p className="text-slate-500 text-xs mt-1 max-w-sm">{description}</p>
-                        <p className="text-[10px] text-emerald-500/50 mt-2 italic max-w-sm font-medium">{fields.length > 0 && "Como conectar:"} <span className="text-slate-400 not-italic">{config.helpText || fields[0]?.helpText || fields.find(f => true)?.label && description && title && title.includes('Stripe') ? "Acesse o painel da Stripe (Dashboard > Developers > API Keys) e copie a 'Secret Key' e a 'Publishable Key'." : title.includes('Mercado') ? "Acesse o Portal de Desenvolvedores do Mercado Pago e copie o 'Production Access Token'." : "Siga as orientações enviadas no seu e-mail de boas-vindas da Velify."}</span></p>
+                        <p className="text-[10px] text-emerald-500/50 mt-2 italic max-w-sm font-medium">{fields.length > 0 && "Como conectar:"} <span className="text-slate-400 not-italic">{config.helpText || fields[0]?.helpText || fields.find(f => true)?.label && description && title && title.includes('Stripe') ? "Acesse o painel da Stripe (Dashboard > Developers > API Keys) e copie a 'Secret Key' e a 'Publishable Key'." : title.includes('Mercado') ? "Acesse o Portal de Desenvolvedores do Mercado Pago e copie o 'Production Access Token'." : "Siga as orientações enviadas no seu e-mail de boas-vindas da Velfy."}</span></p>
                     </div>
                 </div>
 

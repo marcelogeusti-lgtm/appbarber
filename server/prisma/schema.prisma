@@ -109,7 +109,7 @@ model CardToken {
   clientId      String
   client        Client   @relation(fields: [clientId], references: [id])
   
-  gateway       String   // mercadopago, stripe, velify
+  gateway       String   // mercadopago, stripe, velfy
   token         String   // The tokenized card from gateway
   last4         String?
   brand         String?
@@ -252,7 +252,7 @@ model GatewayConfig {
   barbershopId  String
   barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
   
-  gateway       String   // STRIPE, MERCADOPAGO, VELIFY
+  gateway       String   // STRIPE, MERCADOPAGO, VELFY
   isActive      Boolean  @default(false)
   
   // Stores API Keys, Access Tokens, Secrets as JSON
@@ -701,7 +701,7 @@ model CommunicationLog {
 
 model Payment {
   id              String   @id @default(uuid())
-  gateway         String   // mercadopago | stripe | velify
+  gateway         String   // mercadopago | stripe | velfy
   method          String   // pix | card
   externalId      String?  @map("external_id")
   status          String   // pending | paid | failed | canceled
@@ -726,7 +726,7 @@ model Payment {
 
 model SubscriptionExternal {
   id              String   @id @default(uuid())
-  gateway         String   // stripe | mercadopago | velify
+  gateway         String   // stripe | mercadopago | velfy
   externalId      String   @map("external_subscription_id")
   status          String   // active | past_due | canceled
   plan            String   // monthly | yearly
@@ -745,7 +745,7 @@ model SubscriptionExternal {
 
 model WebhookLog {
   id              String   @id @default(uuid())
-  gateway         String   // stripe | mercadopago | velify
+  gateway         String   // stripe | mercadopago | velfy
   event           String
   payload         Json
   processed       Boolean  @default(false)

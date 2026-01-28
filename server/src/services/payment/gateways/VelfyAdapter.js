@@ -2,11 +2,11 @@ const GatewayAdapter = require('./GatewayAdapter');
 const axios = require('axios');
 // const config = require('../config'); // Future config import
 
-class VelifyAdapter extends GatewayAdapter {
+class VelfyAdapter extends GatewayAdapter {
     constructor() {
         super();
-        this.apiUrl = process.env.VELIFY_API_URL || 'https://api.velify.com'; // Placeholder
-        this.apiKey = process.env.VELIFY_API_KEY;
+        this.apiUrl = process.env.VELFY_API_URL || 'https://api.velfy.com'; // Placeholder
+        this.apiKey = process.env.VELFY_API_KEY;
     }
 
     async createPayment({ amount, description, customer, credentials }) {
@@ -16,7 +16,7 @@ class VelifyAdapter extends GatewayAdapter {
         const apiUrl = credentials?.apiUrl || this.apiUrl;
 
         // Mock Implementation until API Docs are confirmed
-        console.log('[Velify] Creating Payment:', amount, 'using Keys:', publicKey ? '***' : 'Missing', secretKey ? '***' : 'Missing');
+        console.log('[Velfy] Creating Payment:', amount, 'using Keys:', publicKey ? '***' : 'Missing', secretKey ? '***' : 'Missing');
 
         // Real call would be:
         // const response = await axios.post(`${apiUrl}/pix/cob`, { ... }, { headers: { Authorization: apiKey } });
@@ -33,7 +33,7 @@ class VelifyAdapter extends GatewayAdapter {
 
     validateWebhook(req) {
         // Implement security check (IP Whitelist or Signature)
-        const signature = req.headers['x-velify-signature'];
+        const signature = req.headers['x-velfy-signature'];
         if (process.env.NODE_ENV === 'development') return true;
 
         // TODO: Validate signature
@@ -41,4 +41,4 @@ class VelifyAdapter extends GatewayAdapter {
     }
 }
 
-module.exports = VelifyAdapter;
+module.exports = VelfyAdapter;

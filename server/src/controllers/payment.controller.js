@@ -30,7 +30,7 @@ exports.createPayment = async (req, res) => {
             amount,
             method,
             description: description || `Payment for user ${user.name}`,
-            gateway, // Optional, defaults to Velify
+            gateway, // Optional, defaults to Velfy
             barbershopId: user.barbershopId, // PASSING CONTEXT
             customer: {
                 name: user.name,

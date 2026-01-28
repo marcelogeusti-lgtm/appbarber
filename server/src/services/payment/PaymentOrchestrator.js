@@ -1,11 +1,11 @@
-const VelifyAdapter = require('./gateways/VelifyAdapter');
+const VelfyAdapter = require('./gateways/VelfyAdapter');
 const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter');
 const StripeAdapter = require('./gateways/StripeAdapter');
 
 class PaymentOrchestrator {
     constructor() {
         this.gateways = {
-            velify: new VelifyAdapter(),
+            velfy: new VelfyAdapter(),
             mercadopago: new MercadoPagoAdapter(),
             stripe: new StripeAdapter()
         };
@@ -15,7 +15,7 @@ class PaymentOrchestrator {
      * Determines which gateway to use based on requested method and shop config
      */
     async getActiveGateway(barbershopId, method = 'PIX') {
-        if (!barbershopId) return 'velify';
+        if (!barbershopId) return 'velfy';
 
         try {
             const { PrismaClient } = require('@prisma/client');
@@ -26,13 +26,13 @@ class PaymentOrchestrator {
                 where: { barbershopId, isActive: true }
             });
 
-            if (activeConfigs.length === 0) return 'velify';
+            if (activeConfigs.length === 0) return 'velfy';
 
             // Strategy: 
             // If PIX, prioritize Velify or MercadoPago
             // If CARD, prioritize Stripe or MercadoPago
             if (method === 'PIX') {
-                const preferred = activeConfigs.find(c => c.gateway === 'VELIFY' || c.gateway === 'MERCADOPAGO');
+                const preferred = activeConfigs.find(c => c.gateway === 'VELFY' || c.gateway === 'MERCADOPAGO');
                 return (preferred?.gateway || activeConfigs[0].gateway).toLowerCase();
             } else {
                 const preferred = activeConfigs.find(c => c.gateway === 'STRIPE' || c.gateway === 'MERCADOPAGO');
@@ -40,7 +40,7 @@ class PaymentOrchestrator {
             }
         } catch (e) {
             console.error(`[Orchestrator] Discovery Error: ${e.message}`);
-            return 'velify';
+            return 'velfy';
         }
     }
 
