@@ -603,32 +603,108 @@ export default function BarbershopPage() {
                                     {step === 4 && (
                                         <div className="space-y-6 animate-in slide-in-from-right">
                                             <div className="space-y-4">
-                                                <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none" />
-                                                <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none" />
+                                                <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500 transition" />
+                                                <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500 transition" />
                                             </div>
 
-                                            {/* Reminder Selection */}
+                                            {/* Reminder Selection - New UI */}
                                             <div className="space-y-3">
-                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                                    <Clock className="w-3 h-3 text-emerald-500" />
-                                                    Lembrete no WhatsApp
-                                                </h3>
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    {[
-                                                        { label: '30 min antes', value: '30' },
-                                                        { label: '1 hora antes', value: '60' },
-                                                        { label: '2 horas antes', value: '120' },
-                                                        { label: 'Não lembrar', value: '' }
-                                                    ].map(opt => (
-                                                        <button
-                                                            key={opt.value}
-                                                            onClick={() => setFormData({ ...formData, reminderMinutes: opt.value })}
-                                                            className={`p-3 rounded-xl border text-[10px] font-black uppercase transition ${formData.reminderMinutes === opt.value ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
-                                                        >
-                                                            {opt.label}
-                                                        </button>
-                                                    ))}
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <Bell className="w-3 h-3 text-emerald-500" />
+                                                    Lembretes
+                                                </label>
+                                                <div className="relative">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, showReminderOptions: !formData.showReminderOptions })}
+                                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500 transition"
+                                                    >
+                                                        <span>
+                                                            {formData.reminderMinutes === '' ? 'Não lembrar' :
+                                                                formData.reminderMinutes === '30' ? '30 minutos antes' :
+                                                                    formData.reminderMinutes === '60' ? '1 hora antes' :
+                                                                        formData.reminderMinutes === '120' ? '2 horas antes' : '1 hora antes'}
+                                                        </span>
+                                                        <ChevronLeft className={`w-5 h-5 text-slate-500 transition-transform ${formData.showReminderOptions ? '-rotate-90' : 'rotate-270'}`} />
+                                                    </button>
+
+                                                    {/* Dropdown Options */}
+                                                    {formData.showReminderOptions && (
+                                                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a202e] border border-slate-700 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95">
+                                                            {[
+                                                                { label: '30 minutos antes', value: '30' },
+                                                                { label: '1 hora antes', value: '60' },
+                                                                { label: '2 horas antes', value: '120' },
+                                                                { label: 'Não lembrar', value: '' }
+                                                            ].map(opt => (
+                                                                <button
+                                                                    key={opt.value}
+                                                                    onClick={() => setFormData({ ...formData, reminderMinutes: opt.value, showReminderOptions: false })}
+                                                                    className={`w-full text-left p-4 text-sm font-bold transition hover:bg-slate-800 ${formData.reminderMinutes === opt.value ? 'text-emerald-500 bg-emerald-500/5' : 'text-slate-300'}`}
+                                                                >
+                                                                    {opt.label}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
+                                            </div>
+
+                                            {/* Payment Selection - Integrated */}
+                                            <div className="space-y-4 pt-4 border-t border-slate-800">
+                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <Banknote className="w-3 h-3 text-emerald-500" />
+                                                    Pagamento
+                                                </h3>
+
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    <div onClick={() => setPaymentType('local')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'local' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'local' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                <Banknote className="w-4 h-4" />
+                                                            </div>
+                                                            <div>
+                                                                <p className={`font-bold text-xs uppercase ${paymentType === 'local' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar no Local</p>
+                                                            </div>
+                                                        </div>
+                                                        {paymentType === 'local' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                    </div>
+
+                                                    {barbershop?.online_payment_enabled && (
+                                                        <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                    <Zap className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className={`font-bold text-xs uppercase ${paymentType === 'online' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar Online</p>
+                                                                </div>
+                                                            </div>
+                                                            {paymentType === 'online' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Online Methods Sub-selection */}
+                                                {paymentType === 'online' && (
+                                                    <div className="space-y-2 animate-in slide-in-from-top-2 pt-2">
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase ml-1">Escolha o método:</p>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <button
+                                                                onClick={() => setPaymentMethod('PIX')}
+                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
+                                                            >
+                                                                <span>💠</span> PIX
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPaymentMethod('CREDIT_CARD')}
+                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
+                                                            >
+                                                                <span>💳</span> CARTÃO
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Final Summary */}
@@ -649,46 +725,16 @@ export default function BarbershopPage() {
                                                 </div>
                                             </div>
 
-                                            <button onClick={nextStep} className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20">Avançar para Pagamento</button>
-                                        </div>
-                                    )}
-
-                                    {/* STEP 5: Payment Selection */}
-                                    {step === 5 && (
-                                        <div className="space-y-6 animate-in slide-in-from-right">
-                                            <div className="space-y-3">
-                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Onde deseja pagar?</h3>
-
-                                                <div onClick={() => setPaymentType('local')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'local' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <Banknote className="w-5 h-5" />
-                                                        <div><p className="font-bold text-xs uppercase">Pagar no Local</p><p className="text-[10px] opacity-70">Direto na barbearia</p></div>
-                                                    </div>
-                                                    {paymentType === 'local' && <div className="w-3 h-3 bg-white rounded-full"></div>}
-                                                </div>
-
-                                                {barbershop?.online_payment_enabled && (
-                                                    <div onClick={() => setPaymentType('online')} className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800'}`}>
-                                                        <div className="flex items-center gap-3">
-                                                            <Zap className="w-5 h-5 text-emerald-500" />
-                                                            <div><p className="font-bold text-xs uppercase">Pagamento Online</p><p className="text-[10px] opacity-70">Rápido e Seguro</p></div>
-                                                        </div>
-                                                        {paymentType === 'online' && <div className="w-3 h-3 bg-white rounded-full"></div>}
-                                                    </div>
+                                            <button
+                                                onClick={handleBook}
+                                                className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2"
+                                            >
+                                                {paymentType === 'online' ? (
+                                                    <><Zap className="w-4 h-4" /> Pagar e Agendar</>
+                                                ) : (
+                                                    <><CalendarCheck className="w-4 h-4" /> Finalizar Agendamento</>
                                                 )}
-                                            </div>
-
-                                            {paymentType === 'online' && (
-                                                <div className="space-y-3 animate-in fade-in">
-                                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Método Online</h3>
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        <button onClick={() => setPaymentMethod('PIX')} className={`p-3 rounded-xl border text-[10px] font-black uppercase transition ${paymentMethod === 'PIX' ? 'bg-white text-black' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>PIX</button>
-                                                        <button onClick={() => setPaymentMethod('CREDIT_CARD')} className={`p-3 rounded-xl border text-[10px] font-black uppercase transition ${paymentMethod === 'CREDIT_CARD' ? 'bg-white text-black' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>CARTÃO</button>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <button onClick={handleBook} className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20">Finalizar Agendamento</button>
+                                            </button>
                                         </div>
                                     )}
                                 </div>
