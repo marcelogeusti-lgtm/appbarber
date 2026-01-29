@@ -939,119 +939,124 @@ export default function BarbershopPage() {
                                             )}
                                         </div>
                                     )}
-
-                                    {/* WAITLIST MODAL */}
-                                    {waitlistOpen && (
-                                        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-                                            <div className="bg-[#111827] w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95">
-                                                <div className="p-6 bg-[#0b0f19] border-b border-slate-800 flex justify-between items-center">
-                                                    <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                                                        <Clock className="w-4 h-4 text-emerald-500" /> Lista de Espera
-                                                    </h3>
-                                                    <button onClick={() => setWaitlistOpen(false)} className="text-slate-500 hover:text-white font-bold text-xs">FECHAR</button>
-                                                </div>
-                                                <div className="p-6 space-y-4">
-                                                    <p className="text-xs text-slate-400 leading-relaxed">
-                                                        Se surgir uma vaga para <strong>{new Date(formData.date + 'T00:00:00').toLocaleDateString()}</strong> com <strong>{selectedProfessional?.name}</strong>, avisaremos você.
-                                                    </p>
-
-                                                    {!formData.name && (
-                                                        <input
-                                                            placeholder="Seu Nome"
-                                                            className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
-                                                            value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                                        />
-                                                    )}
-                                                    {!formData.phone && (
-                                                        <input
-                                                            placeholder="Seu WhatsApp"
-                                                            className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
-                                                            value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                                        />
-                                                    )}
-
-                                                    <textarea
-                                                        placeholder="Alguma observação? (Ex: Posso chegar 18h30)"
-                                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition h-24 resize-none"
-                                                        value={waitlistNote}
-                                                        onChange={e => setWaitlistNote(e.target.value)}
-                                                    />
-
-                                                    <button
-                                                        onClick={handleJoinWaitlist}
-                                                        disabled={waitlistLoading}
-                                                        className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase hover:bg-slate-200 transition disabled:opacity-50"
-                                                    >
-                                                        {waitlistLoading ? 'Salvando...' : 'Confirmar Interesse'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
-                            );
+                            </div>
+                    </div>
+                </div>
+            )}
+
+            {/* WAITLIST MODAL */}
+            {waitlistOpen && (
+                <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                    <div className="bg-[#111827] w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95">
+                        <div className="p-6 bg-[#0b0f19] border-b border-slate-800 flex justify-between items-center">
+                            <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-emerald-500" /> Lista de Espera
+                            </h3>
+                            <button onClick={() => setWaitlistOpen(false)} className="text-slate-500 hover:text-white font-bold text-xs">FECHAR</button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Se surgir uma vaga para <strong>{new Date(formData.date + 'T00:00:00').toLocaleDateString()}</strong> com <strong>{selectedProfessional?.name}</strong>, avisaremos você.
+                            </p>
+
+                            {!formData.name && (
+                                <input
+                                    placeholder="Seu Nome"
+                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                />
+                            )}
+                            {!formData.phone && (
+                                <input
+                                    placeholder="Seu WhatsApp"
+                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                    value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                />
+                            )}
+
+                            <textarea
+                                placeholder="Alguma observação? (Ex: Posso chegar 18h30)"
+                                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition h-24 resize-none"
+                                value={waitlistNote}
+                                onChange={e => setWaitlistNote(e.target.value)}
+                            />
+
+                            <button
+                                onClick={handleJoinWaitlist}
+                                disabled={waitlistLoading}
+                                className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase hover:bg-slate-200 transition disabled:opacity-50"
+                            >
+                                {waitlistLoading ? 'Salvando...' : 'Confirmar Interesse'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
-                            function BannerCarousel({images}) {
+function BannerCarousel({ images }) {
     const [currentIndex, setCurrentIndex] = useState(0);
-                            const [touchStart, setTouchStart] = useState(null);
-                            const [touchEnd, setTouchEnd] = useState(null);
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
 
     // Auto-slide
     useEffect(() => {
         const interval = setInterval(() => {
-                                setCurrentIndex(prev => (prev + 1) % images.length);
+            setCurrentIndex(prev => (prev + 1) % images.length);
         }, 5000); // 5s slide
         return () => clearInterval(interval);
     }, [images.length]);
 
-                            const minSwipeDistance = 50;
+    const minSwipeDistance = 50;
 
     const onTouchStart = (e) => {
-                                setTouchEnd(null);
-                            setTouchStart(e.targetTouches[0].clientX);
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
     };
 
     const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
 
     const onTouchEnd = () => {
         if (!touchStart || !touchEnd) return;
-                            const distance = touchStart - touchEnd;
+        const distance = touchStart - touchEnd;
         const isLeftSwipe = distance > minSwipeDistance;
-                            const isRightSwipe = distance < -minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
 
-                            if (isLeftSwipe) {
-                                setCurrentIndex(prev => (prev + 1) % images.length);
+        if (isLeftSwipe) {
+            setCurrentIndex(prev => (prev + 1) % images.length);
         } else if (isRightSwipe) {
-                                setCurrentIndex(prev => (prev - 1 + images.length) % images.length);
+            setCurrentIndex(prev => (prev - 1 + images.length) % images.length);
         }
     };
 
-                            return (
-                            <div
-                                className="absolute inset-0 z-0 bg-black"
-                                onTouchStart={onTouchStart}
-                                onTouchMove={onTouchMove}
-                                onTouchEnd={onTouchEnd}
-                            >
-                                {images.map((img, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-60' : 'opacity-0'}`}
-                                    >
-                                        <img src={img} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
-                                    </div>
-                                ))}
+    return (
+        <div
+            className="absolute inset-0 z-0 bg-black"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+        >
+            {images.map((img, idx) => (
+                <div
+                    key={idx}
+                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-60' : 'opacity-0'}`}
+                >
+                    <img src={img} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
+                </div>
+            ))}
 
-                                {/* Indicators */}
-                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                                    {images.map((_, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/30'}`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                            );
+            {/* Indicators */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                {images.map((_, idx) => (
+                    <div
+                        key={idx}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/30'}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
 }
