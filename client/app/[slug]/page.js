@@ -246,7 +246,8 @@ export default function BarbershopPage() {
                     setCheckoutData(pixRes.data);
                 } catch (pixErr) {
                     console.error('Erro ao gerar Pix:', pixErr);
-                    alert('Agendamento criado, mas houve um erro ao gerar o Pix. Você pode tentar pagar no local ou re-gerar o Pix no seu painel.');
+                    const msg = pixErr.response?.data?.error || 'Erro ao gerar Pix. Tente novamente ou pague no local.';
+                    alert(msg);
                 }
             } else if (paymentType === 'online' && paymentMethod === 'CREDIT_CARD') {
                 // Placeholder for Card logic - usually handled by a different flow or also backend-driven
@@ -690,18 +691,22 @@ export default function BarbershopPage() {
                                                     <div className="space-y-2 animate-in slide-in-from-top-2 pt-2">
                                                         <p className="text-[10px] font-bold text-slate-500 uppercase ml-1">Escolha o método:</p>
                                                         <div className="grid grid-cols-2 gap-2">
-                                                            <button
-                                                                onClick={() => setPaymentMethod('PIX')}
-                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
-                                                            >
-                                                                <span>💠</span> PIX
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setPaymentMethod('CREDIT_CARD')}
-                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
-                                                            >
-                                                                <span>💳</span> CARTÃO
-                                                            </button>
+                                                            {(barbershop.acceptedPaymentMethods?.includes('PIX') || !barbershop.acceptedPaymentMethods) && (
+                                                                <button
+                                                                    onClick={() => setPaymentMethod('PIX')}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
+                                                                >
+                                                                    <span>💠</span> PIX
+                                                                </button>
+                                                            )}
+                                                            {(barbershop.acceptedPaymentMethods?.some(m => ['CREDIT_CARD', 'DEBIT_CARD'].includes(m)) || !barbershop.acceptedPaymentMethods) && (
+                                                                <button
+                                                                    onClick={() => setPaymentMethod('CREDIT_CARD')}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
+                                                                >
+                                                                    <span>💳</span> CARTÃO
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )}
