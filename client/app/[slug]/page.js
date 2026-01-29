@@ -902,7 +902,8 @@ export default function BarbershopPage() {
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
