@@ -233,6 +233,13 @@ class PaymentOrchestrator {
         });
         return config?.credentials || {};
     }
+
+    async getPublicKey(barbershopId) {
+        // Default to MercadoPago for frontend SDK currently
+        const gateway = 'MERCADOPAGO';
+        const credentials = await this.getGatewayConfig(barbershopId, gateway);
+        return credentials?.publicKey || process.env.MP_PUBLIC_KEY;
+    }
 }
 
 module.exports = new PaymentOrchestrator();
