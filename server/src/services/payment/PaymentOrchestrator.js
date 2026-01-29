@@ -98,9 +98,10 @@ class PaymentOrchestrator {
         // Check if we already have a customer ID for this gateway
         let gatewayCustomer = await prisma.gatewayCustomer.findUnique({
             where: {
-                clientId_gateway: {
+                clientId_gateway_barbershopId: {
                     clientId: client.id,
-                    gateway: gatewayToUse.toUpperCase()
+                    gateway: gatewayToUse.toUpperCase(),
+                    barbershopId: barbershopId
                 }
             }
         });
