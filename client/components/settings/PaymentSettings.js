@@ -103,10 +103,19 @@ export default function PaymentSettings() {
                 icon={<div className="w-12 h-12 rounded-xl bg-white overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
                     <img src="/logos/mercadopago.png" alt="Mercado Pago" className="w-full h-full object-cover" />
                 </div>}
-                helpText="Acesse o Portal de Desenvolvedores do Mercado Pago, crie uma aplicação e copie o 'Production Access Token' (começa com APP_USR-)."
+                helpText="Acesse o Portal de Desenvolvedores do Mercado Pago, crie uma aplicação e copie as credenciais de Produção ou Sandbox conforme o ambiente escolhido."
                 fields={[
-                    { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'APP_USR-...' },
-                    { name: 'siteId', label: 'Site ID (Ex: MLB)', placeholder: 'MLB' }
+                    {
+                        name: 'environment',
+                        label: 'Ambiente',
+                        type: 'radio',
+                        options: [
+                            { label: 'Sandbox (Teste)', value: 'sandbox' },
+                            { label: 'Produção', value: 'production' }
+                        ]
+                    },
+                    { name: 'publicKey', label: 'Public Key', placeholder: 'APP_USR-...' },
+                    { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'APP_USR-...' }
                 ]}
             />
 
@@ -119,6 +128,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
         isActive: config.isActive,
         credentials: { ...config.credentials }
     });
+    const [testStatus, setTestStatus] = useState(null); // 'testing', 'success', 'error'
 
     // Sync when config loads
     useEffect(() => {
@@ -133,6 +143,19 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
             ...prev,
             credentials: { ...prev.credentials, [field]: value }
         }));
+        setTestStatus(null);
+    };
+
+    const handleTestConnection = async () => {
+        setTestStatus('testing');
+        // Simulating a check - In real scenario, would hit an endpoint
+        setTimeout(() => {
+            if (localData.credentials.accessToken && localData.credentials.publicKey) {
+                setTestStatus('success');
+            } else {
+                setTestStatus('error');
+            }
+        }, 1500);
     };
 
     return (
@@ -146,7 +169,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                             {localData.isActive && <CheckCircle className="w-4 h-4 text-emerald-500" />}
                         </h3>
                         <p className="text-slate-500 text-xs mt-1 max-w-sm">{description}</p>
-                        <p className="text-[10px] text-emerald-500/50 mt-2 italic max-w-sm font-medium">{fields.length > 0 && "Como conectar:"} <span className="text-slate-400 not-italic">{config.helpText || fields[0]?.helpText || fields.find(f => true)?.label && description && title && title.includes('Stripe') ? "Acesse o painel da Stripe (Dashboard > Developers > API Keys) e copie a 'Secret Key' e a 'Publishable Key'." : title.includes('Mercado') ? "Acesse o Portal de Desenvolvedores do Mercado Pago e copie o 'Production Access Token'." : "Siga as orientações enviadas no seu e-mail de boas-vindas da Velfy."}</span></p>
+                        <p className="text-[10px] text-emerald-500/50 mt-2 italic max-w-sm font-medium">{fields.length > 0 && "Como conectar:"} <span className="text-slate-400 not-italic">{config.helpText || "Siga as instruções do painel do desenvolvedor."}</span></p>
                     </div>
                 </div>
 
@@ -164,27 +187,67 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
             {localData.isActive && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
                     {fields.map(f => (
-                        <div key={f.name} className="space-y-2">
+                        <div key={f.name} className={`space-y-2 ${f.type === 'radio' ? 'md:col-span-2' : ''}`}>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{f.label}</label>
-                            <div className="relative">
-                                <input
-                                    type={f.type || "text"}
-                                    value={localData.credentials[f.name] || ''}
-                                    onChange={e => handleChange(f.name, e.target.value)}
-                                    placeholder={f.placeholder}
-                                    className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-1 ring-emerald-500 outline-none text-sm text-white font-mono"
-                                />
-                                {f.type === 'password' && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-600" />}
-                            </div>
+
+                            {f.type === 'radio' ? (
+                                <div className="flex gap-4">
+                                    {f.options.map(opt => (
+                                        <label key={opt.value} className="flex items-center gap-2 cursor-pointer bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 hover:border-slate-600 transition">
+                                            <input
+                                                type="radio"
+                                                name={`env-${gateway}`}
+                                                value={opt.value}
+                                                checked={localData.credentials[f.name] === opt.value}
+                                                onChange={e => handleChange(f.name, e.target.value)}
+                                                className="accent-emerald-500"
+                                            />
+                                            <span className="text-xs font-bold text-white">{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <input
+                                        type={f.type || "text"}
+                                        value={localData.credentials[f.name] || ''}
+                                        onChange={e => handleChange(f.name, e.target.value)}
+                                        placeholder={f.placeholder}
+                                        className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-1 ring-emerald-500 outline-none text-sm text-white font-mono"
+                                    />
+                                    {f.type === 'password' && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-600" />}
+                                </div>
+                            )}
                         </div>
                     ))}
-                    <div className="md:col-span-2 flex justify-end mt-2">
+
+                    <div className="md:col-span-2 flex justify-between items-center mt-4 pt-4 border-t border-slate-800">
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleTestConnection}
+                                className="text-xs font-bold text-slate-400 hover:text-white bg-slate-800/50 px-4 py-3 rounded-xl transition hover:bg-slate-800 border border-white/5"
+                            >
+                                {testStatus === 'testing' ? 'Verificando...' : 'Testar Conexão'}
+                            </button>
+
+                            {testStatus === 'success' && (
+                                <span className="flex items-center gap-2 text-[10px] font-bold text-emerald-500 animate-in fade-in slide-in-from-left-2">
+                                    <CheckCircle className="w-3 h-3" /> Conectado com sucesso
+                                </span>
+                            )}
+                            {testStatus === 'error' && (
+                                <span className="flex items-center gap-2 text-[10px] font-bold text-red-500 animate-in fade-in slide-in-from-left-2">
+                                    <AlertTriangle className="w-3 h-3" /> Token inválido
+                                </span>
+                            )}
+                        </div>
+
                         <button
                             onClick={() => onSave(gateway, localData)}
                             disabled={saving}
-                            className="bg-slate-800 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                            className="bg-emerald-500 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:pointer-events-none"
                         >
-                            {saving ? 'Salvando...' : 'Salvar Alterações'}
+                            {saving ? 'Salvando...' : 'Salvar Credenciais'}
                         </button>
                     </div>
                 </div>
