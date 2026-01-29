@@ -58,6 +58,7 @@ class PaymentOrchestrator {
         const credentials = await this.getGatewayConfig(barbershopId, gatewayToUse);
 
         const result = await adapter.createPayment({
+            ...params, // Pass all params (token, installments, etc)
             amount,
             description,
             customer,
