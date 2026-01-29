@@ -675,42 +675,43 @@ export default function BarbershopPage() {
                                                         {paymentType === 'local' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
                                                     </div>
 
-                                                    {barbershop?.online_payment_enabled && (
-                                                        <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
-                                                                    <Zap className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className={`font-bold text-xs uppercase ${paymentType === 'online' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar Online</p>
-                                                                </div>
+                                                    {/* ALWAYS SHOW ONLINE OPTION (User Request) */}
+                                                    <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                <Zap className="w-4 h-4" />
                                                             </div>
-                                                            {paymentType === 'online' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                            <div>
+                                                                <p className={`font-bold text-xs uppercase ${paymentType === 'online' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar Online</p>
+                                                            </div>
                                                         </div>
-                                                    )}
+                                                        {paymentType === 'online' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                    </div>
                                                 </div>
 
                                                 {/* Online Methods Sub-selection */}
                                                 {paymentType === 'online' && (
                                                     <div className="space-y-2 animate-in slide-in-from-top-2 pt-2">
                                                         <p className="text-[10px] font-bold text-slate-500 uppercase ml-1">Escolha o método:</p>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                            {(barbershop.acceptedPaymentMethods?.includes('PIX') || !barbershop.acceptedPaymentMethods) && (
-                                                                <button
-                                                                    onClick={() => setPaymentMethod('PIX')}
-                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
-                                                                >
-                                                                    <span>💠</span> PIX
-                                                                </button>
-                                                            )}
-                                                            {(barbershop.acceptedPaymentMethods?.some(m => ['CREDIT_CARD', 'DEBIT_CARD'].includes(m)) || !barbershop.acceptedPaymentMethods) && (
-                                                                <button
-                                                                    onClick={() => setPaymentMethod('CREDIT_CARD')}
-                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex items-center justify-center gap-2 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
-                                                                >
-                                                                    <span>💳</span> CARTÃO
-                                                                </button>
-                                                            )}
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <button
+                                                                onClick={() => setPaymentMethod('PIX')}
+                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
+                                                            >
+                                                                <span className="text-sm">💠</span> PIX
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPaymentMethod('CREDIT_CARD')}
+                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
+                                                            >
+                                                                <span className="text-sm">💳</span> CRÉDITO
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPaymentMethod('DEBIT_CARD')}
+                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'DEBIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
+                                                            >
+                                                                <span className="text-sm">🏧</span> DÉBITO
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 )}
