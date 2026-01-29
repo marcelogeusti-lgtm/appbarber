@@ -43,6 +43,26 @@ export default function BarbershopPage() {
     const [barbershop, setBarbershop] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('servicos');
+    // Cards State
+    const [savedCards, setSavedCards] = useState([]);
+    const [selectedCardId, setSelectedCardId] = useState('');
+    const [cvv, setCvv] = useState('');
+    const [saveCardForFuture, setSaveCardForFuture] = useState(false);
+
+    useEffect(() => {
+        if (barbershop?.id) {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                api.get(`/payments/cards?barbershopId=${barbershop.id}`)
+                    .then(res => {
+                        setSavedCards(res.data);
+                        if (res.data.length > 0) setSelectedCardId(res.data[0].id);
+                        else setSelectedCardId('new');
+                    })
+                    .catch(err => console.error("Failed to load cards", err));
+            }
+        }
+    }, [barbershop]);
     const [products, setProducts] = useState([]);
     const [mySubscription, setMySubscription] = useState(null);
     const [points, setPoints] = useState(0);
