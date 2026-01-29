@@ -244,17 +244,21 @@ export default function BarbershopPage() {
                 try {
                     const pixRes = await api.post('/payments/pix', { appointmentId });
                     setCheckoutData(pixRes.data);
+                    setStep(6); // Success / Checkout State ONLY if Pix generated
                 } catch (pixErr) {
                     console.error('Erro ao gerar Pix:', pixErr);
                     const msg = pixErr.response?.data?.error || 'Erro ao gerar Pix. Tente novamente ou pague no local.';
                     alert(msg);
+                    return; // STOP execution, do not show success screen
                 }
             } else if (paymentType === 'online' && paymentMethod === 'CREDIT_CARD') {
                 // Placeholder for Card logic - usually handled by a different flow or also backend-driven
                 setCheckoutData({ status: 'pending_card', appointmentId });
+                setStep(6);
+            } else {
+                // Local Payment
+                setStep(6);
             }
-
-            setStep(6); // Success / Checkout State
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.message || 'Erro ao agendar');
