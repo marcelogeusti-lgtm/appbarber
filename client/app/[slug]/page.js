@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
+import CardForm from '../../components/payment/CardForm';
 
 // Dynamic Sub-components (Lazy Loaded)
 const ServicesTab = dynamic(() => import('../../components/client-view/ServicesTab'), {
@@ -475,6 +476,40 @@ export default function BarbershopPage() {
                                             >
                                                 Copiar Código PIX
                                             </button>
+                                        </>
+                                    ) : checkoutData?.status === 'pending_card' ? (
+                                        <>
+                                            <div className="text-left w-full max-w-md mx-auto">
+                                                <h2 className="text-xl font-black text-white uppercase text-center mb-6">Pagamento com Cartão</h2>
+
+                                                <CardForm
+                                                    publicKey={barbershop.gatewayConfigs?.find(g => g.gateway === 'MERCADOPAGO')?.publicKey}
+                                                    amount={totalValue}
+                                                    onSubmit={async (cardData) => {
+                                                        try {
+                                                            await api.post('/payments/card', {
+                                                                appointmentId: checkoutData.appointmentId,
+                                                                token: cardData.token,
+                                                                issuerId: cardData.issuer_id,
+                                                                paymentMethodId: cardData.payment_method_id,
+                                                                installments: cardData.installments,
+                                                                payer: {
+                                                                    email: formData.email,
+                                                                    identification: cardData.payer.identification
+                                                                }
+                                                            });
+                                                            setCheckoutData(prev => ({ ...prev, status: 'paid' }));
+                                                        } catch (err) {
+                                                            alert('Erro ao processar cartão: ' + (err.response?.data?.error || err.message));
+                                                        }
+                                                    }}
+                                                    onCancel={() => {
+                                                        setStep(5); // Go back to payment method selection
+                                                        setCheckoutData(null);
+                                                    }}
+                                                    barbershopId={barbershop.id}
+                                                />
+                                            </div>
                                         </>
                                     ) : (
                                         <>
