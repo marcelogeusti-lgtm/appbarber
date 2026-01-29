@@ -4,7 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     MapPin, Search, Star, Heart, Share2,
     ChevronLeft, ShoppingBag, Clock, CalendarCheck,
-    Banknote, CreditCard, ArrowLeft, Users, Bell, Zap
+    Banknote, CreditCard, ArrowLeft, Users, Bell, Zap,
+    ExternalLink, AlertCircle
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
