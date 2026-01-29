@@ -270,6 +270,8 @@ model Barbershop {
   gatewayConfigs GatewayConfig[]
   cashShifts   CashShift[]
   payments     Payment[]
+  gatewayCustomers GatewayCustomer[]
+  cardTokens       CardToken[]
 
   // Pix & PSP Settings
   pixKey        String?  @map("pix_key")

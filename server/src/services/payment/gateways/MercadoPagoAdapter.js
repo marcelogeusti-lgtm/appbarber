@@ -61,22 +61,29 @@ class MercadoPagoAdapter extends GatewayAdapter {
     }
 
     async createCustomer({ email, name, phone, credentials }) {
-        const accessToken = credentials?.accessToken;
+        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+
         try {
-            // Check if exists first (optional, logic might be in Orchestrator)
             // Create
-            const res = await axios.post(`${this.apiUrl}/customers`, { email, first_name: name }, {
+            const res = await axios.post(`${this.apiUrl}/customers`, {
+                email,
+                first_name: name?.split(' ')[0] || 'Cliente',
+                last_name: name?.split(' ').slice(1).join(' ') || ''
+            }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             return res.data; // { id: "..." }
         } catch (err) {
             console.error('[MP] Create Customer Error:', err.response?.data || err.message);
-            throw new Error("Falha ao criar cliente no MP");
+            throw new Error(`Falha ao criar cliente no MP: ${err.response?.data?.message || err.message}`);
         }
     }
 
     async saveCard({ customerId, token, credentials }) {
-        const accessToken = credentials?.accessToken;
+        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+
         try {
             const res = await axios.post(`${this.apiUrl}/customers/${customerId}/cards`, { token }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -84,7 +91,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
             return res.data; // { id: "...", first_six_digits, last_four_digits, ... }
         } catch (err) {
             console.error('[MP] Save Card Error:', err.response?.data || err.message);
-            throw new Error("Falha ao salvar cartão no MP");
+            throw new Error(`Falha ao salvar cartão no MP: ${err.response?.data?.message || err.message}`);
         }
     }
 

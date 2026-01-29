@@ -59,7 +59,6 @@ app.use('/api/gateways', require('./routes/gateway.routes'));
 app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
-app.use('/api/cards', require('./routes/card.routes'));
 
 // Initialize Notification Service (Listeners)
 const notificationService = require('./services/notificationService');

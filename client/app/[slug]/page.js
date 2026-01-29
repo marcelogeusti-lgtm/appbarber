@@ -538,9 +538,10 @@ export default function BarbershopPage() {
                                                                 issuerId: cardData.issuer_id,
                                                                 paymentMethodId: cardData.payment_method_id,
                                                                 installments: cardData.installments,
+                                                                saveCard: cardData.saveCard, // New: Pass saving preference
                                                                 payer: {
                                                                     email: formData.email,
-                                                                    identification: cardData.payer.identification
+                                                                    identification: cardData.payer?.identification
                                                                 }
                                                             });
                                                             setCheckoutData(prev => ({ ...prev, status: 'paid' }));

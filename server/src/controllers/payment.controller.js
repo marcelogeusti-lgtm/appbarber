@@ -191,7 +191,7 @@ exports.createPixPayment = async (req, res) => {
 
 exports.createCardPayment = async (req, res) => {
     try {
-        const { appointmentId, token, issuerId, paymentMethodId, installments, payer } = req.body;
+        const { appointmentId, token, issuerId, paymentMethodId, installments, payer, saveCard } = req.body;
         const userId = req.user.id; // Logged user
 
         if (!appointmentId || !token) {
@@ -234,7 +234,7 @@ exports.createCardPayment = async (req, res) => {
         const customerEmail = payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com';
 
         try {
-            // 2. Call Payment Orchestrator (Mercado Pago)
+            // 2. Call Payment Orchestrator (Mercado Pago / Stripe)
             const paymentResult = await PaymentOrchestrator.createPayment({
                 amount,
                 method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
@@ -270,6 +270,38 @@ exports.createCardPayment = async (req, res) => {
                     where: { id: appointmentId },
                     data: { status: 'CONFIRMED' }
                 });
+
+                // 5. Automatic Card Saving Logic
+                if (saveCard) {
+                    try {
+                        console.log(`[PaymentController] Auto-saving card for client ${appointment.clientId}`);
+
+                        // Reuse the Orchestrator's saveCard wrapper
+                        const savedCardData = await PaymentOrchestrator.saveCard({
+                            barbershopId: appointment.barbershopId,
+                            client: appointment.client,
+                            token: token // This is the single-use token from frontend
+                        });
+
+                        // Store in DB for this specific shop context
+                        await prisma.cardToken.create({
+                            data: {
+                                clientId: appointment.clientId,
+                                gateway: savedCardData.gateway.toUpperCase(),
+                                token: savedCardData.token, // This is the CARD_ID for future charges
+                                last4: savedCardData.last4,
+                                brand: savedCardData.brand,
+                                expiryMonth: savedCardData.expiryMonth,
+                                expiryYear: savedCardData.expiryYear,
+                                barbershopId: appointment.barbershopId,
+                                isDefault: false
+                            }
+                        });
+                    } catch (saveError) {
+                        console.error('[PaymentController] Failed to auto-save card:', saveError.message);
+                        // Don't fail the payment if saving card fails
+                    }
+                }
             }
 
             return res.status(201).json({
@@ -324,8 +356,7 @@ exports.saveCard = async (req, res) => {
         // Find/Create Client associated with User
         // Ideally we should have a reliable link. For now using AuthUser link.
         let client = await prisma.client.findFirst({
-            where: { authUserId: req.user.authUser.id }
-            // We assume authMiddleware attaches user with authUser info or we fetch it
+            where: { authUserId: req.user.authUserId }
         });
 
         if (!client) {
@@ -382,7 +413,7 @@ exports.listCards = async (req, res) => {
 
         // 1. Resolve Client
         const client = await prisma.client.findFirst({
-            where: { authUserId: req.user.authUser.id }
+            where: { authUserId: req.user.authUserId }
         });
 
         if (!client) {
