@@ -124,7 +124,8 @@ class PaymentOrchestrator {
                 data: {
                     clientId: client.id,
                     gateway: gatewayToUse.toUpperCase(),
-                    customerId: customerId
+                    customerId: customerId,
+                    barbershopId: barbershopId
                 }
             });
         }
