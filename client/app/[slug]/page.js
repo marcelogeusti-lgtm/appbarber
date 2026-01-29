@@ -251,9 +251,15 @@ export default function BarbershopPage() {
                     alert(msg);
                     return; // STOP execution, do not show success screen
                 }
-            } else if (paymentType === 'online' && paymentMethod === 'CREDIT_CARD') {
-                // Placeholder for Card logic - usually handled by a different flow or also backend-driven
-                setCheckoutData({ status: 'pending_card', appointmentId });
+            } else if (paymentType === 'online' && (paymentMethod === 'CREDIT_CARD' || paymentMethod === 'DEBIT_CARD')) {
+                // Card Payment Flow - We moved to Step 6 to collect card details
+                // The Appointment is created, now we need to capture payment
+                setCheckoutData({
+                    status: 'pending_card',
+                    appointmentId,
+                    amount: totalValue,
+                    method: paymentMethod
+                });
                 setStep(6);
             } else {
                 // Local Payment
