@@ -171,12 +171,30 @@ exports.getBarbershopBySlug = async (req, res) => {
             return res.status(404).json({ message: 'Barbershop not found' });
         }
 
-        // Add computed flag for frontend visibility
-        const online_payment_enabled = (barbershop.gatewayConfigs || []).length > 0;
+        // Compute accepted methods based on active gateways
+        const activeGateways = barbershop.gatewayConfigs?.map(g => g.gateway) || [];
+        const methods = new Set();
+
+        if (activeGateways.includes('VELFY')) {
+            methods.add('PIX');
+        }
+        if (activeGateways.includes('MERCADOPAGO')) {
+            methods.add('PIX');
+            methods.add('CREDIT_CARD');
+            methods.add('DEBIT_CARD');
+        }
+        if (activeGateways.includes('STRIPE')) {
+            methods.add('CREDIT_CARD');
+            methods.add('DEBIT_CARD');
+        }
+
+        const acceptedPaymentMethods = Array.from(methods);
+        const online_payment_enabled = acceptedPaymentMethods.length > 0;
 
         res.json({
             ...barbershop,
-            online_payment_enabled
+            online_payment_enabled,
+            acceptedPaymentMethods
         });
     } catch (error) {
         console.error('getBarbershopBySlug Error:', error);

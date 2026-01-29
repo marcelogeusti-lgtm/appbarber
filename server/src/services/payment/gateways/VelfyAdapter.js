@@ -23,13 +23,16 @@ class VelfyAdapter extends GatewayAdapter {
 
         // Customer Data Formatting
         // Ensure strictly required fields are present
+        const sanitizedDocument = (customer.document || '00000000000').replace(/\D/g, '');
+        const sanitizedPhone = (customer.phone || '00000000000').replace(/\D/g, '');
+
         const customerPayload = {
             name: customer.name || 'Cliente',
             email: customer.email || 'email@naoinformado.com',
-            phone: customer.phone || '00000000000',
+            phone: sanitizedPhone,
             document: {
-                type: (customer.document?.length > 11) ? 'cnpj' : 'cpf', // Simple inference
-                number: customer.document || '00000000000'
+                type: (sanitizedDocument.length > 11) ? 'cnpj' : 'cpf', // Simple inference
+                number: sanitizedDocument
             }
         };
 
