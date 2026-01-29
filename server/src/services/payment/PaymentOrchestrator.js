@@ -81,6 +81,72 @@ class PaymentOrchestrator {
         };
     }
 
+    async saveCard({ barbershopId, client, token }) {
+        // Only supports saving cards on gateways that support it (MP, Stripe)
+        // Defaulting to MercadoPago for this implementation as requested
+        const gatewayToUse = 'mercadopago'; // Could be dynamic
+        const adapter = this.gateways[gatewayToUse];
+
+        if (!adapter || !adapter.saveCard) throw new Error(`Gateway '${gatewayToUse}' does not support saving cards.`);
+
+        const credentials = await this.getGatewayConfig(barbershopId, gatewayToUse);
+
+        // 1. Ensure Customer Exists in Gateway
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+
+        // Check if we already have a customer ID for this gateway
+        let gatewayCustomer = await prisma.gatewayCustomer.findUnique({
+            where: {
+                clientId_gateway: {
+                    clientId: client.id,
+                    gateway: gatewayToUse.toUpperCase()
+                }
+            }
+        });
+
+        let customerId = gatewayCustomer?.customerId;
+
+        if (!customerId) {
+            // Create Customer in Gateway
+            console.log(`[Orchestrator] Creating Customer in ${gatewayToUse} for Client ${client.id}`);
+            const newCustomer = await adapter.createCustomer({
+                email: client.authUser?.email || `client-${client.id}@barber.com`,
+                name: client.name,
+                phone: client.phone,
+                credentials
+            });
+            customerId = newCustomer.id;
+
+            // Save Mapping
+            await prisma.gatewayCustomer.create({
+                data: {
+                    clientId: client.id,
+                    gateway: gatewayToUse.toUpperCase(),
+                    customerId: customerId
+                }
+            });
+        }
+
+        // 2. Save Card
+        console.log(`[Orchestrator] Saving Card for Customer ${customerId} via ${gatewayToUse}`);
+        const savedCard = await adapter.saveCard({
+            customerId,
+            token,
+            credentials
+        });
+
+        // 3. Return Card Details (to be stored in CardToken)
+        return {
+            gateway: gatewayToUse,
+            token: savedCard.id, // The Card ID in MP is the token for future charges
+            last4: savedCard.last_four_digits,
+            brand: savedCard.payment_method?.id || savedCard.issuer?.name || 'unknown',
+            expiryMonth: savedCard.expiration_month,
+            expiryYear: savedCard.expiration_year
+        };
+    }
+
     async processWebhook(gatewayName, req) {
         const gateway = gatewayName.toLowerCase();
         const adapter = this.gateways[gateway];
