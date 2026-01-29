@@ -115,11 +115,14 @@ model GatewayCustomer {
   
   gateway       String   // mercadopago, stripe, velfy
   customerId    String   // The external customer ID (e.g. MP Payer ID)
+
+  barbershopId  String?
+  barbershop    Barbershop? @relation(fields: [barbershopId], references: [id])
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  @@unique([clientId, gateway]) // One customer ID per gateway per client
+  @@unique([clientId, gateway, barbershopId]) // Scope per shop
 }
 
 model CardToken {
@@ -133,6 +136,9 @@ model CardToken {
   brand         String?
   expiryMonth   Int?
   expiryYear    Int?
+
+  barbershopId  String?
+  barbershop    Barbershop? @relation(fields: [barbershopId], references: [id])
   
   isDefault     Boolean  @default(false)
   createdAt     DateTime @default(now())
