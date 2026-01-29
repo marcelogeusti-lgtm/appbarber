@@ -833,125 +833,225 @@ export default function BarbershopPage() {
                                             </button>
                                         </div>
                                     )}
+                                    {/* STEP 6: Checkout & Success */}
+                                    {step === 6 && (
+                                        <div className="space-y-6 animate-in slide-in-from-right">
+                                            {checkoutData?.status === 'paid' ? (
+                                                <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                                                    <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(16,185,129,0.5)]">
+                                                        <CalendarCheck className="w-10 h-10" />
+                                                    </div>
+                                                    <h2 className="text-2xl font-black text-white uppercase text-center">Agendamento Confirmado!</h2>
+                                                    <p className="text-slate-400 text-center text-sm max-w-xs">
+                                                        Seu horário foi reservado com sucesso.
+                                                    </p>
+                                                    <button onClick={() => window.location.reload()} className="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase hover:bg-slate-700 transition">
+                                                        Voltar ao Início
+                                                    </button>
+                                                </div>
+                                            ) : checkoutData?.status === 'pending_card' ? (
+                                                <div className="space-y-4">
+                                                    <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                                                        <CreditCard className="w-4 h-4 text-emerald-500" /> Finalizar Pagamento
+                                                    </h3>
+
+                                                    {/* Saved Cards Selection */}
+                                                    {savedCards.length > 0 && (
+                                                        <div className="space-y-2">
+                                                            <p className="text-[10px] font-bold text-slate-500 uppercase">Seus Cartões</p>
+                                                            {savedCards.map(card => (
+                                                                <div key={card.id} onClick={() => setSelectedCardId(card.id)} className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between ${selectedCardId === card.id ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="text-lg">💳</span>
+                                                                        <div>
+                                                                            <p className="font-bold text-xs uppercase">{card.brand} •••• {card.last4}</p>
+                                                                            <p className="text-[10px] text-slate-500">Expira em {card.expiry}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    {selectedCardId === card.id && <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>}
+                                                                </div>
+                                                            ))}
+                                                            <div onClick={() => setSelectedCardId('new')} className={`p-3 rounded-xl border cursor-pointer flex items-center gap-3 ${selectedCardId === 'new' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>
+                                                                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-500"><Zap className="w-4 h-4" /></div>
+                                                                <p className="font-bold text-xs uppercase">Usar Outro Cartão</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {selectedCardId === 'new' ? (
+                                                        <CardForm
+                                                            onSubmit={processCardPayment}
+                                                            amount={totalValue}
+                                                            prefs={{
+                                                                paymentMethodId: paymentMethod === 'DEBIT_CARD' ? 'debit_card' : 'credit_card'
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-bold text-slate-500 uppercase">CVV (Código de Segurança)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    maxLength={4}
+                                                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white font-bold tracking-widest text-center focus:border-emerald-500 outline-none"
+                                                                    placeholder="•••"
+                                                                    value={cvv}
+                                                                    onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                className="w-full bg-emerald-500 text-white py-4 rounded-xl font-black text-xs uppercase"
+                                                                onClick={() => {
+                                                                    // Placeholder: In real app, use SDK to create token from CVV + CardID
+                                                                    alert("Integração CVV pendente: " + selectedCardId);
+                                                                }}
+                                                            >
+                                                                Pagar Agora
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center space-y-6 pt-4">
+                                                    <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                                                        <Zap className="w-4 h-4 text-emerald-500" /> Pagamento via PIX
+                                                    </h3>
+                                                    {checkoutData?.qrCodeBase64 ? (
+                                                        <div className="bg-white p-4 rounded-xl">
+                                                            <img src={`data:image/png;base64,${checkoutData.qrCodeBase64}`} alt="PIX QR Code" className="w-48 h-48 mix-blend-multiply" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-48 h-48 bg-slate-800 rounded-xl animate-pulse"></div>
+                                                    )}
+
+                                                    <div className="w-full">
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-2 text-center">Copia e Cola</p>
+                                                        <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center justify-between gap-3 relative overflow-hidden group">
+                                                            <p className="text-xs text-slate-400 font-mono truncate">{checkoutData?.pixCopiaECola || 'Carregando...'}</p>
+                                                            <button onClick={() => navigator.clipboard.writeText(checkoutData?.pixCopiaECola)} className="bg-emerald-500 text-white p-2 rounded-lg hover:bg-emerald-600 transition">
+                                                                <Share2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-xs text-slate-500 text-center animate-pulse">Aguardando confirmação do pagamento...</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* WAITLIST MODAL */}
+                                    {waitlistOpen && (
+                                        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                                            <div className="bg-[#111827] w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95">
+                                                <div className="p-6 bg-[#0b0f19] border-b border-slate-800 flex justify-between items-center">
+                                                    <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                                                        <Clock className="w-4 h-4 text-emerald-500" /> Lista de Espera
+                                                    </h3>
+                                                    <button onClick={() => setWaitlistOpen(false)} className="text-slate-500 hover:text-white font-bold text-xs">FECHAR</button>
+                                                </div>
+                                                <div className="p-6 space-y-4">
+                                                    <p className="text-xs text-slate-400 leading-relaxed">
+                                                        Se surgir uma vaga para <strong>{new Date(formData.date + 'T00:00:00').toLocaleDateString()}</strong> com <strong>{selectedProfessional?.name}</strong>, avisaremos você.
+                                                    </p>
+
+                                                    {!formData.name && (
+                                                        <input
+                                                            placeholder="Seu Nome"
+                                                            className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                                            value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                        />
+                                                    )}
+                                                    {!formData.phone && (
+                                                        <input
+                                                            placeholder="Seu WhatsApp"
+                                                            className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                                            value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                                        />
+                                                    )}
+
+                                                    <textarea
+                                                        placeholder="Alguma observação? (Ex: Posso chegar 18h30)"
+                                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition h-24 resize-none"
+                                                        value={waitlistNote}
+                                                        onChange={e => setWaitlistNote(e.target.value)}
+                                                    />
+
+                                                    <button
+                                                        onClick={handleJoinWaitlist}
+                                                        disabled={waitlistLoading}
+                                                        className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase hover:bg-slate-200 transition disabled:opacity-50"
+                                                    >
+                                                        {waitlistLoading ? 'Salvando...' : 'Confirmar Interesse'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* WAITLIST MODAL */}
-            {waitlistOpen && (
-                <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-                    <div className="bg-[#111827] w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95">
-                        <div className="p-6 bg-[#0b0f19] border-b border-slate-800 flex justify-between items-center">
-                            <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-emerald-500" /> Lista de Espera
-                            </h3>
-                            <button onClick={() => setWaitlistOpen(false)} className="text-slate-500 hover:text-white font-bold text-xs">FECHAR</button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <p className="text-xs text-slate-400 leading-relaxed">
-                                Se surgir uma vaga para <strong>{new Date(formData.date + 'T00:00:00').toLocaleDateString()}</strong> com <strong>{selectedProfessional?.name}</strong>, avisaremos você.
-                            </p>
-
-                            {!formData.name && (
-                                <input
-                                    placeholder="Seu Nome"
-                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
-                                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                />
-                            )}
-                            {!formData.phone && (
-                                <input
-                                    placeholder="Seu WhatsApp"
-                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
-                                    value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                />
-                            )}
-
-                            <textarea
-                                placeholder="Alguma observação? (Ex: Posso chegar 18h30)"
-                                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition h-24 resize-none"
-                                value={waitlistNote}
-                                onChange={e => setWaitlistNote(e.target.value)}
-                            />
-
-                            <button
-                                onClick={handleJoinWaitlist}
-                                disabled={waitlistLoading}
-                                className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase hover:bg-slate-200 transition disabled:opacity-50"
-                            >
-                                {waitlistLoading ? 'Salvando...' : 'Confirmar Interesse'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+                            );
 }
 
-function BannerCarousel({ images }) {
+                            function BannerCarousel({images}) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [touchStart, setTouchStart] = useState(null);
-    const [touchEnd, setTouchEnd] = useState(null);
+                            const [touchStart, setTouchStart] = useState(null);
+                            const [touchEnd, setTouchEnd] = useState(null);
 
     // Auto-slide
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentIndex(prev => (prev + 1) % images.length);
+                                setCurrentIndex(prev => (prev + 1) % images.length);
         }, 5000); // 5s slide
         return () => clearInterval(interval);
     }, [images.length]);
 
-    const minSwipeDistance = 50;
+                            const minSwipeDistance = 50;
 
     const onTouchStart = (e) => {
-        setTouchEnd(null);
-        setTouchStart(e.targetTouches[0].clientX);
+                                setTouchEnd(null);
+                            setTouchStart(e.targetTouches[0].clientX);
     };
 
     const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
 
     const onTouchEnd = () => {
         if (!touchStart || !touchEnd) return;
-        const distance = touchStart - touchEnd;
+                            const distance = touchStart - touchEnd;
         const isLeftSwipe = distance > minSwipeDistance;
-        const isRightSwipe = distance < -minSwipeDistance;
+                            const isRightSwipe = distance < -minSwipeDistance;
 
-        if (isLeftSwipe) {
-            setCurrentIndex(prev => (prev + 1) % images.length);
+                            if (isLeftSwipe) {
+                                setCurrentIndex(prev => (prev + 1) % images.length);
         } else if (isRightSwipe) {
-            setCurrentIndex(prev => (prev - 1 + images.length) % images.length);
+                                setCurrentIndex(prev => (prev - 1 + images.length) % images.length);
         }
     };
 
-    return (
-        <div
-            className="absolute inset-0 z-0 bg-black"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-        >
-            {images.map((img, idx) => (
-                <div
-                    key={idx}
-                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-60' : 'opacity-0'}`}
-                >
-                    <img src={img} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
-                </div>
-            ))}
+                            return (
+                            <div
+                                className="absolute inset-0 z-0 bg-black"
+                                onTouchStart={onTouchStart}
+                                onTouchMove={onTouchMove}
+                                onTouchEnd={onTouchEnd}
+                            >
+                                {images.map((img, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-60' : 'opacity-0'}`}
+                                    >
+                                        <img src={img} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
+                                    </div>
+                                ))}
 
-            {/* Indicators */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                {images.map((_, idx) => (
-                    <div
-                        key={idx}
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/30'}`}
-                    />
-                ))}
-            </div>
-        </div>
-    );
+                                {/* Indicators */}
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                                    {images.map((_, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/30'}`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            );
 }
