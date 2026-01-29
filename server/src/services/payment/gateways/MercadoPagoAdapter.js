@@ -7,7 +7,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
         this.apiUrl = 'https://api.mercadopago.com/v1';
     }
 
-    async createPayment({ amount, description, customer, credentials, externalId }) {
+    async createPayment({ amount, description, customer, credentials, externalId, method, token, installments, issuerId, paymentMethodId, payer }) {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
@@ -15,20 +15,34 @@ class MercadoPagoAdapter extends GatewayAdapter {
             const payload = {
                 transaction_amount: parseFloat(amount),
                 description: description,
-                payment_method_id: 'pix', // Standard for dynamic pix
-                external_reference: externalId, // Correctly use the externalId
+                external_reference: externalId,
+                notification_url: `${process.env.BACKEND_URL}/api/webhooks/mercadopago`,
                 payer: {
                     email: customer.email || 'guest@example.com',
                     first_name: customer.name?.split(' ')[0] || 'Cliente',
                     last_name: customer.name?.split(' ').slice(1).join(' ') || 'Visitante'
-                },
-                notification_url: `${process.env.BACKEND_URL}/api/webhooks/mercadopago`
+                }
             };
+
+            if (method === 'PIX') {
+                payload.payment_method_id = 'pix';
+            } else if (method === 'CREDIT_CARD' || method === 'DEBIT_CARD') {
+                if (!token) throw new Error("Token do cartão obrigatório para pagamentos via cartão.");
+
+                payload.token = token;
+                payload.installments = Number(installments) || 1;
+                payload.payment_method_id = paymentMethodId; // visible in frontend
+                payload.issuer_id = issuerId;
+
+                if (payer) {
+                    payload.payer = { ...payload.payer, ...payer };
+                }
+            }
 
             const response = await axios.post(`${this.apiUrl}/payments`, payload, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
-                    'X-Idempotency-Key': `pix_${Date.now()}`
+                    'X-Idempotency-Key': `pay_${externalId}_${Date.now()}`
                 }
             });
 
@@ -43,6 +57,34 @@ class MercadoPagoAdapter extends GatewayAdapter {
         } catch (err) {
             console.error('[MP] Create Payment Error:', err.response?.data || err.message);
             throw new Error(`Erro Mercado Pago: ${err.response?.data?.message || err.message}`);
+        }
+    }
+
+    async createCustomer({ email, name, phone, credentials }) {
+        const accessToken = credentials?.accessToken;
+        try {
+            // Check if exists first (optional, logic might be in Orchestrator)
+            // Create
+            const res = await axios.post(`${this.apiUrl}/customers`, { email, first_name: name }, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            return res.data; // { id: "..." }
+        } catch (err) {
+            console.error('[MP] Create Customer Error:', err.response?.data || err.message);
+            throw new Error("Falha ao criar cliente no MP");
+        }
+    }
+
+    async saveCard({ customerId, token, credentials }) {
+        const accessToken = credentials?.accessToken;
+        try {
+            const res = await axios.post(`${this.apiUrl}/customers/${customerId}/cards`, { token }, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            return res.data; // { id: "...", first_six_digits, last_four_digits, ... }
+        } catch (err) {
+            console.error('[MP] Save Card Error:', err.response?.data || err.message);
+            throw new Error("Falha ao salvar cartão no MP");
         }
     }
 
