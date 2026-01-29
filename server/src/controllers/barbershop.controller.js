@@ -172,6 +172,16 @@ exports.getBarbershopBySlug = async (req, res) => {
         }
 
         // Compute accepted methods based on active gateways
+        const maskedConfigs = barbershop.gatewayConfigs?.map(g => {
+            const creds = g.credentials || {};
+            // Return only public keys
+            return {
+                gateway: g.gateway,
+                isActive: g.isActive,
+                publicKey: creds.publicKey || creds.clientId // specific public info
+            };
+        }) || [];
+
         const activeGateways = barbershop.gatewayConfigs?.map(g => g.gateway) || [];
         const methods = new Set();
 
@@ -191,8 +201,12 @@ exports.getBarbershopBySlug = async (req, res) => {
         const acceptedPaymentMethods = Array.from(methods);
         const online_payment_enabled = acceptedPaymentMethods.length > 0;
 
+        // Remove sensitive gatewayConfigs from the original object
+        const { gatewayConfigs, ...safeBarbershop } = barbershop;
+
         res.json({
-            ...barbershop,
+            ...safeBarbershop,
+            gatewayConfigs: maskedConfigs,
             online_payment_enabled,
             acceptedPaymentMethods
         });
