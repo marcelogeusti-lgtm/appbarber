@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreditCard, ChevronLeft, Plus, Trash2, X } from 'lucide-react';
-import api from '../../lib/clientApi';
-import CardForm from '../../components/payment/CardForm';
+import api from '../../../lib/clientApi';
+import CardForm from '../../../components/payment/CardForm';
 
 export default function CardsPage() {
     const router = useRouter();
