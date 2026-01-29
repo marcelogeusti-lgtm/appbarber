@@ -374,3 +374,48 @@ exports.saveCard = async (req, res) => {
         return res.status(500).json({ error: 'Falha ao salvar cartão: ' + error.message });
     }
 };
+
+exports.listCards = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { barbershopId } = req.query; // Optional filter
+
+        // 1. Resolve Client
+        const client = await prisma.client.findFirst({
+            where: { authUserId: req.user.authUser.id }
+        });
+
+        if (!client) {
+            return res.json([]); // No cards possible if no client profile
+        }
+
+        // 2. Query Cards
+        const where = { clientId: client.id };
+        if (barbershopId) where.barbershopId = barbershopId;
+
+        const cards = await prisma.cardToken.findMany({
+            where,
+            include: {
+                barbershop: { select: { name: true, slug: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // 3. Transform for frontend (mask sensitive just in case, though DB already masked)
+        const sanitized = cards.map(c => ({
+            id: c.id,
+            brand: c.brand,
+            last4: c.last4,
+            expiry: `${c.expiryMonth}/${c.expiryYear}`, // format
+            barbershopName: c.barbershop?.name || 'Geral',
+            barbershopId: c.barbershopId,
+            isDefault: c.isDefault
+        }));
+
+        return res.json(sanitized);
+
+    } catch (error) {
+        console.error('List Cards Error:', error);
+        return res.status(500).json({ error: 'Erro ao listar cartões' });
+    }
+};

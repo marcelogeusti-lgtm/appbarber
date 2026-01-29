@@ -15,6 +15,9 @@ router.post('/card', protect, paymentController.createCardPayment);
 // POST /api/payments/cards - Save a card for future use
 router.post('/cards', protect, paymentController.saveCard);
 
+// GET /api/payments/cards - List saved cards
+router.get('/cards', protect, paymentController.listCards);
+
 // GET /api/payments/:id - Checks payment status
 router.get('/:id', protect, paymentController.getPaymentStatus);
 
