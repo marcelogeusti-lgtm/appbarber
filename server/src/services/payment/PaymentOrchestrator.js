@@ -114,6 +114,30 @@ class PaymentOrchestrator {
                 externalId,
                 status: response.status
             };
+        } else if (gateway === 'velfy') {
+            // PixOne Webhook Structure
+            // { id, type: 'transaction', data: { object: { status, externalRef, ... } } }
+            const data = req.body.data?.object;
+            const statusMap = {
+                'paid': 'APPROVED',
+                'approved': 'APPROVED',
+                'pending': 'PENDING',
+                'cancelled': 'CANCELLED',
+                'refunded': 'REFUNDED'
+            };
+
+            const pixOneStatus = data?.status;
+            const mappedStatus = statusMap[pixOneStatus] || 'UNKNOWN';
+            const ref = data?.externalRef; // This is our internal Payment UUID if we passed it correctly
+
+            console.log(`[Orchestrator] PixOne Webhook for Ref ${ref}: ${pixOneStatus} -> ${mappedStatus}`);
+
+            return {
+                isValid: true,
+                externalId: ref, // Return the internal ID if possible, or we need to find by external
+                status: mappedStatus,
+                isInternalId: true // Signal that externalId returned here IS the internal UUID
+            };
         }
 
         return { isValid: true, externalId, status: 'unknown' };

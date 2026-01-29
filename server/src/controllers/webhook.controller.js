@@ -27,11 +27,23 @@ exports.handleWebhook = async (req, res) => {
         const result = await PaymentOrchestrator.processWebhook(gateway, req);
 
         // 3. Business Logic: Update Payment & Subscription Status
-        if (result.isValid && result.status === 'paid' && result.externalId) {
-            const payment = await prisma.payment.findFirst({
-                where: { externalId: result.externalId },
-                include: { clientSubscription: true }
-            });
+        // 3. Business Logic: Update Payment & Subscription Status
+        const isPaid = result.status === 'paid' || result.status === 'APPROVED';
+
+        if (result.isValid && isPaid && result.externalId) {
+            let payment;
+
+            if (result.isInternalId) {
+                payment = await prisma.payment.findUnique({
+                    where: { id: result.externalId },
+                    include: { clientSubscription: true }
+                });
+            } else {
+                payment = await prisma.payment.findFirst({
+                    where: { externalId: result.externalId },
+                    include: { clientSubscription: true }
+                });
+            }
 
             if (payment && payment.status !== 'paid') {
                 await prisma.$transaction(async (tx) => {
