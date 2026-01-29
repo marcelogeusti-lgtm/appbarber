@@ -189,6 +189,111 @@ exports.createPixPayment = async (req, res) => {
     }
 };
 
+exports.createCardPayment = async (req, res) => {
+    try {
+        const { appointmentId, token, issuerId, paymentMethodId, installments, payer } = req.body;
+        const userId = req.user.id; // Logged user
+
+        if (!appointmentId || !token) {
+            return res.status(400).json({ error: 'Missing required data (appointmentId, token)' });
+        }
+
+        const appointment = await prisma.appointment.findUnique({
+            where: { id: appointmentId },
+            include: {
+                barbershop: true,
+                service: true,
+                client: { include: { authUser: true } }
+            }
+        });
+
+        if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' });
+
+        const amount = appointment.service.price;
+
+        // Fetch User details for fallback
+        const payerUser = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { authUser: true }
+        });
+
+        // 1. Create PENDING Payment in DB
+        const pendingPayment = await prisma.payment.create({
+            data: {
+                gateway: 'PENDING',
+                method: 'CREDIT_CARD', // or infer from paymentMethodId
+                status: 'PENDING',
+                amount: amount,
+                userId: req.user.id,
+                appointmentId: appointment.id,
+                barbershopId: appointment.barbershopId
+            }
+        });
+
+        const customerName = payerUser?.name || appointment.client.name || 'Cliente';
+        const customerEmail = payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com';
+
+        try {
+            // 2. Call Payment Orchestrator (Mercado Pago)
+            const paymentResult = await PaymentOrchestrator.createPayment({
+                amount,
+                method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
+                description: `Agendamento #${appointment.id.slice(0, 8)}`,
+                barbershopId: appointment.barbershopId,
+                customer: {
+                    name: customerName,
+                    email: customerEmail,
+                    phone: payerUser?.phone || appointment.client.phone
+                },
+                externalId: pendingPayment.id,
+                // Card Details
+                token,
+                installments: installments || 1,
+                issuerId,
+                paymentMethodId,
+                payer: payer || { email: customerEmail }
+            });
+
+            // 3. Update Payment Record
+            const updatedPayment = await prisma.payment.update({
+                where: { id: pendingPayment.id },
+                data: {
+                    gateway: paymentResult.gateway,
+                    externalId: paymentResult.paymentId,
+                    status: paymentResult.status
+                }
+            });
+
+            // 4. If Approved, Confirm Appointment
+            if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
+                await prisma.appointment.update({
+                    where: { id: appointmentId },
+                    data: { status: 'CONFIRMED' }
+                });
+            }
+
+            return res.status(201).json({
+                paymentId: updatedPayment.id,
+                status: updatedPayment.status,
+                externalId: updatedPayment.externalId
+            });
+
+        } catch (gatewayError) {
+            console.error('Gateway Error (Card):', gatewayError);
+            await prisma.payment.update({
+                where: { id: pendingPayment.id },
+                data: { status: 'FAILED' }
+            });
+            return res.status(502).json({
+                error: 'Falha no pagamento: ' + (gatewayError.message || 'Erro desconhecido')
+            });
+        }
+    } catch (error) {
+        console.error('Create Card Payment Error:', error);
+        return res.status(500).json({ error: 'Erro interno ao processar cartão' });
+    }
+};
+
 exports.getPaymentStatus = async (req, res) => {
     try {
         const { id } = req.params;
