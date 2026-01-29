@@ -73,7 +73,9 @@ exports.createPayment = async (req, res) => {
                 where: { id: pendingPayment.id },
                 data: { status: 'FAILED' }
             });
-            return res.status(502).json({ error: 'Failed to communicate with payment gateway' });
+            return res.status(502).json({
+                error: 'Erro no pagamento: ' + (gatewayError.message || 'Erro deconhecido')
+            });
         }
     } catch (error) {
         console.error('Create Payment Error:', error);
@@ -103,6 +105,16 @@ exports.createPixPayment = async (req, res) => {
 
         const amount = appointment.service.price;
 
+        // 1. Fetch Payer User Details (to get CPF if available)
+        // Try to find in User table (which has CPF) related to the logged user
+        const payerUser = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { authUser: true }
+        });
+
+        // Also check if the client from appointment has a related user or just authUser
+        // For now, prioritize the logged-in user's profile if it exists
+
         // 1. Create PENDING Payment locally first
         const pendingPayment = await prisma.payment.create({
             data: {
@@ -117,17 +129,26 @@ exports.createPixPayment = async (req, res) => {
         });
 
         try {
+            // Prepare Customer Data
+            // Priority: User/Payer Profile -> Appointment Client -> Fallback
+
+            // CPF logic: Only User table has CPF currently
+            const cpf = payerUser?.cpf || payerUser?.document || '';
+
+            const customerData = {
+                name: payerUser?.name || appointment.client.name || 'Cliente',
+                email: payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com',
+                phone: payerUser?.phone || appointment.client.phone || '00000000000',
+                document: cpf.replace(/\D/g, '') // Send raw CPF if found
+            };
+
             // 2. Call Gateway with the generated ID as externalReference
             const paymentResult = await PaymentOrchestrator.createPayment({
                 amount,
                 method: 'PIX',
                 description: `Agendamento #${appointment.id.slice(0, 8)}`,
                 barbershopId: appointment.barbershopId,
-                customer: {
-                    name: appointment.client.name,
-                    email: appointment.client.authUser?.email,
-                    phone: appointment.client.phone
-                },
+                customer: customerData,
                 externalId: pendingPayment.id // Pass the DB UUID
             });
 
@@ -158,7 +179,9 @@ exports.createPixPayment = async (req, res) => {
                 where: { id: pendingPayment.id },
                 data: { status: 'FAILED' }
             });
-            return res.status(502).json({ error: 'Erro de comunicação com gateway de pagamento.' });
+            return res.status(502).json({
+                error: 'Erro Pix: ' + (gatewayError.message || 'Falha na comunicação')
+            });
         }
     } catch (error) {
         console.error('Create Pix Error:', error);
