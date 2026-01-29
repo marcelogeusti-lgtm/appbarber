@@ -12,6 +12,9 @@ router.post('/pix', protect, paymentController.createPixPayment);
 // POST /api/payments/card - Initiates a Card payment for an appointment
 router.post('/card', protect, paymentController.createCardPayment);
 
+// POST /api/payments/cards - Save a card for future use
+router.post('/cards', protect, paymentController.saveCard);
+
 // GET /api/payments/:id - Checks payment status
 router.get('/:id', protect, paymentController.getPaymentStatus);
 

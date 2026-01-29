@@ -311,3 +311,66 @@ exports.getPaymentStatus = async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+exports.saveCard = async (req, res) => {
+    try {
+        const { token, barbershopId } = req.body;
+        const userId = req.user.id;
+
+        if (!token || !barbershopId) {
+            return res.status(400).json({ error: 'Missing required data (token, barbershopId)' });
+        }
+
+        // Find/Create Client associated with User
+        // Ideally we should have a reliable link. For now using AuthUser link.
+        let client = await prisma.client.findFirst({
+            where: { authUserId: req.user.authUser.id }
+            // We assume authMiddleware attaches user with authUser info or we fetch it
+        });
+
+        if (!client) {
+            // Should create? Yes, user is logged in.
+            // But we need phone/name?
+            const userProfile = await prisma.user.findUnique({ where: { id: userId }, include: { authUser: true } });
+            if (!userProfile) return res.status(404).json({ error: 'User profile not found' });
+
+            // Try updating client
+            client = await prisma.client.create({
+                data: {
+                    name: userProfile.name,
+                    phone: userProfile.phone,
+                    authUserId: userProfile.authUserId || undefined, // If linked
+                    // default active
+                }
+            });
+        }
+
+        // 1. Call Orchestrator
+        const savedCardData = await PaymentOrchestrator.saveCard({
+            barbershopId,
+            client,
+            token
+        });
+
+        // 2. Save CardToken in DB
+        const cardToken = await prisma.cardToken.create({
+            data: {
+                clientId: client.id,
+                gateway: savedCardData.gateway.toUpperCase(),
+                token: savedCardData.token, // MP Card ID
+                last4: savedCardData.last4,
+                brand: savedCardData.brand,
+                expiryMonth: savedCardData.expiryMonth,
+                expiryYear: savedCardData.expiryYear,
+                barbershopId: barbershopId, // Context
+                isDefault: false // Logic for default?
+            }
+        });
+
+        return res.status(201).json(cardToken);
+
+    } catch (error) {
+        console.error('Save Card Controller Error:', error);
+        return res.status(500).json({ error: 'Falha ao salvar cartão: ' + error.message });
+    }
+};
