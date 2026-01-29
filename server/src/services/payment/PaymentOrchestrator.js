@@ -14,30 +14,19 @@ class PaymentOrchestrator {
     /**
      * Determines which gateway to use based on requested method and shop config
      */
-    async getActiveGateway(barbershopId, method = 'PIX') {
+    async getActiveGateway(barbershopId) {
         if (!barbershopId) return 'velfy';
 
         try {
             const { PrismaClient } = require('@prisma/client');
             const prisma = new PrismaClient();
 
-            // Find active gateway for this shop
-            const activeConfigs = await prisma.gatewayConfig.findMany({
+            // Find the ONLY active gateway for this shop
+            const activeConfig = await prisma.gatewayConfig.findFirst({
                 where: { barbershopId, isActive: true }
             });
 
-            if (activeConfigs.length === 0) return 'velfy';
-
-            // Strategy: 
-            // If PIX, prioritize Velify or MercadoPago
-            // If CARD, prioritize Stripe or MercadoPago
-            if (method === 'PIX') {
-                const preferred = activeConfigs.find(c => c.gateway === 'VELFY' || c.gateway === 'MERCADOPAGO');
-                return (preferred?.gateway || activeConfigs[0].gateway).toLowerCase();
-            } else {
-                const preferred = activeConfigs.find(c => c.gateway === 'STRIPE' || c.gateway === 'MERCADOPAGO');
-                return (preferred?.gateway || activeConfigs[0].gateway).toLowerCase();
-            }
+            return activeConfig ? activeConfig.gateway.toLowerCase() : 'velfy';
         } catch (e) {
             console.error(`[Orchestrator] Discovery Error: ${e.message}`);
             return 'velfy';
@@ -47,24 +36,42 @@ class PaymentOrchestrator {
     async createPayment(params) {
         const { method, barbershopId, customer, amount, description, externalId } = params;
 
-        const gatewayToUse = params.gateway || await this.getActiveGateway(barbershopId, method);
+        const gatewayToUse = params.gateway || await this.getActiveGateway(barbershopId);
         const adapter = this.gateways[gatewayToUse];
 
         if (!adapter) throw new Error(`Gateway '${gatewayToUse}' not supported.`);
 
         console.log(`[Orchestrator] Creating ${method} via ${gatewayToUse} for Shop ${barbershopId}`);
 
+        // If paying with a saved card/token but no customerId, try to resolve it
+        let customerId = params.customerId;
+        if (!customerId && params.clientId && gatewayToUse !== 'velfy') {
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            const gc = await prisma.gatewayCustomer.findUnique({
+                where: {
+                    clientId_gateway_barbershopId: {
+                        clientId: params.clientId,
+                        gateway: gatewayToUse.toUpperCase(),
+                        barbershopId: barbershopId
+                    }
+                }
+            });
+            customerId = gc?.customerId;
+        }
+
         // Get credentials
         const credentials = await this.getGatewayConfig(barbershopId, gatewayToUse);
 
         const result = await adapter.createPayment({
-            ...params, // Pass all params (token, installments, etc)
+            ...params,
             amount,
             description,
             customer,
             credentials,
             method,
-            externalId // Pass the unique Payment ID to the adapter
+            externalId,
+            customerId
         });
 
         // Standardized Response
@@ -75,8 +82,8 @@ class PaymentOrchestrator {
             gateway: gatewayToUse,
             qrCode: result.qrCode || null,
             qrCodeBase64: result.qrCodeBase64 || null,
-            pixCopiaECola: result.pixCopiaECola || result.qrCode || null, // Common alias
-            clientSecret: result.clientSecret || null, // For Stripe/MP elements
+            pixCopiaECola: result.pixCopiaECola || result.qrCode || null,
+            clientSecret: result.clientSecret || null,
             checkoutUrl: result.checkoutUrl || null
         };
     }

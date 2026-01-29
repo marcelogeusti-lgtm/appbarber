@@ -192,6 +192,7 @@ exports.getBarbershopBySlug = async (req, res) => {
             methods.add('PIX');
             methods.add('CREDIT_CARD');
             methods.add('DEBIT_CARD');
+            methods.add('BOLETO');
         }
         if (activeGateways.includes('STRIPE')) {
             methods.add('CREDIT_CARD');

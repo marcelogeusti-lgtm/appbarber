@@ -51,6 +51,17 @@ exports.saveConfig = async (req, res) => {
             });
         }
 
+        if (isActive) {
+            // Deactivate all other gateways for this barbershop
+            await prisma.gatewayConfig.updateMany({
+                where: {
+                    barbershopId,
+                    gateway: { not: gateway }
+                },
+                data: { isActive: false }
+            });
+        }
+
         const config = await prisma.gatewayConfig.upsert({
             where: {
                 barbershopId_gateway: {

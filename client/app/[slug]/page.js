@@ -283,21 +283,23 @@ export default function BarbershopPage() {
             const res = await api.post('/appointments', payload);
             const appointmentId = res.data.appointment_id;
 
-            if (paymentType === 'online' && paymentMethod === 'PIX') {
-                // SEPARATE REQUEST FOR PIX as per architecture rule
+            if (paymentType === 'online' && (paymentMethod === 'PIX' || paymentMethod === 'BOLETO')) {
+                // SEPARATE REQUEST FOR PIX/BOLETO
                 try {
-                    const pixRes = await api.post('/payments/pix', { appointmentId });
-                    setCheckoutData(pixRes.data);
-                    setStep(6); // Success / Checkout State ONLY if Pix generated
-                } catch (pixErr) {
-                    console.error('Erro ao gerar Pix:', pixErr);
-                    const msg = pixErr.response?.data?.error || 'Erro ao gerar Pix. Tente novamente ou pague no local.';
+                    const payPath = paymentMethod === 'PIX' ? '/payments/pix' : '/payments/create';
+                    const payRes = await api.post(payPath, {
+                        appointmentId,
+                        method: paymentMethod
+                    });
+                    setCheckoutData(payRes.data);
+                    setStep(6);
+                } catch (payErr) {
+                    console.error(`Erro ao gerar ${paymentMethod}:`, payErr);
+                    const msg = payErr.response?.data?.error || `Erro ao gerar ${paymentMethod}. Tente novamente ou pague no local.`;
                     alert(msg);
-                    return; // STOP execution, do not show success screen
+                    return;
                 }
             } else if (paymentType === 'online' && (paymentMethod === 'CREDIT_CARD' || paymentMethod === 'DEBIT_CARD')) {
-                // Card Payment Flow - We moved to Step 6 to collect card details
-                // The Appointment is created, now we need to capture payment
                 setCheckoutData({
                     status: 'pending_card',
                     appointmentId,
@@ -306,7 +308,6 @@ export default function BarbershopPage() {
                 });
                 setStep(6);
             } else {
-                // Local Payment
                 setStep(6);
             }
         } catch (err) {
@@ -585,6 +586,26 @@ export default function BarbershopPage() {
                                                 </div>
                                             )}
                                         </div>
+                                    ) : checkoutData?.checkoutUrl ? (
+                                        <div className="text-center py-6 space-y-6">
+                                            <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
+                                                <Banknote className="w-10 h-10 text-emerald-500" />
+                                            </div>
+                                            <h2 className="text-2xl font-black text-white uppercase">Pague via Boleto</h2>
+                                            <p className="text-slate-400 text-xs px-6">Seu boleto foi gerado com sucesso. Clique no botão abaixo para visualizar e pagar.</p>
+
+                                            <a
+                                                href={checkoutData.checkoutUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                                Abrir Boleto
+                                            </a>
+
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">O agendamento será confirmado após a compensação.</p>
+                                        </div>
                                     ) : checkoutData?.qrCode ? (
                                         <div className="text-center py-6 space-y-6">
                                             <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
@@ -844,29 +865,49 @@ export default function BarbershopPage() {
                                                 </div>
 
                                                 {/* Online Methods Sub-selection */}
-                                                {paymentType === 'online' && (
-                                                    <div className="space-y-2 animate-in slide-in-from-top-2 pt-2">
-                                                        <p className="text-[10px] font-bold text-slate-500 uppercase ml-1">Escolha o método:</p>
-                                                        <div className="grid grid-cols-3 gap-2">
-                                                            <button
-                                                                onClick={() => setPaymentMethod('PIX')}
-                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
-                                                            >
-                                                                <span className="text-sm">💠</span> PIX
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setPaymentMethod('CREDIT_CARD')}
-                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
-                                                            >
-                                                                <span className="text-sm">💳</span> CRÉDITO
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setPaymentMethod('DEBIT_CARD')}
-                                                                className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'DEBIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80'}`}
-                                                            >
-                                                                <span className="text-sm">🏧</span> DÉBITO
-                                                            </button>
+                                                {paymentType === 'online' && barbershop.online_payment_enabled && (
+                                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2 pt-2">
+                                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Escolha o método:</p>
+                                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                                            {barbershop.acceptedPaymentMethods?.includes('PIX') && (
+                                                                <button
+                                                                    onClick={() => setPaymentMethod('PIX')}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                >
+                                                                    <span className="text-sm">💠</span> PIX
+                                                                </button>
+                                                            )}
+                                                            {barbershop.acceptedPaymentMethods?.includes('CREDIT_CARD') && (
+                                                                <button
+                                                                    onClick={() => setPaymentMethod('CREDIT_CARD')}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                >
+                                                                    <span className="text-sm">💳</span> CRÉDITO
+                                                                </button>
+                                                            )}
+                                                            {barbershop.acceptedPaymentMethods?.includes('DEBIT_CARD') && (
+                                                                <button
+                                                                    onClick={() => setPaymentMethod('DEBIT_CARD')}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'DEBIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                >
+                                                                    <span className="text-sm">🏧</span> DÉBITO
+                                                                </button>
+                                                            )}
+                                                            {barbershop.acceptedPaymentMethods?.includes('BOLETO') && (
+                                                                <button
+                                                                    onClick={() => setPaymentMethod('BOLETO')}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'BOLETO' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                >
+                                                                    <span className="text-sm">📄</span> BOLETO
+                                                                </button>
+                                                            )}
                                                         </div>
+                                                        {!barbershop.online_payment_enabled && (
+                                                            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
+                                                                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                                                                <p className="text-[10px] font-bold text-amber-200 uppercase leading-tight">Pagamentos online temporariamente indisponíveis para este estabelecimento.</p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

@@ -26,13 +26,23 @@ class MercadoPagoAdapter extends GatewayAdapter {
 
             if (method === 'PIX') {
                 payload.payment_method_id = 'pix';
+            } else if (method === 'BOLETO') {
+                payload.payment_method_id = 'bolbradesco'; // Standard for BR
+                if (payer?.identification) {
+                    payload.payer.identification = payer.identification;
+                }
             } else if (method === 'CREDIT_CARD' || method === 'DEBIT_CARD') {
+                // ... card logic
                 if (!token) throw new Error("Token do cartão obrigatório para pagamentos via cartão.");
 
                 payload.token = token;
                 payload.installments = Number(installments) || 1;
-                payload.payment_method_id = paymentMethodId; // visible in frontend
+                payload.payment_method_id = paymentMethodId;
                 payload.issuer_id = issuerId;
+
+                if (customerId) {
+                    payload.payer = { ...payload.payer, id: customerId };
+                }
 
                 if (payer) {
                     payload.payer = { ...payload.payer, ...payer };
@@ -51,7 +61,8 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 externalId: data.id.toString(),
                 qrCode: data.point_of_interaction?.transaction_data?.qr_code,
                 qrCodeBase64: data.point_of_interaction?.transaction_data?.qr_code_base64,
-                status: data.status === 'approved' ? 'paid' : 'pending',
+                status: data.status === 'approved' ? 'paid' : (data.status === 'pending' || data.status === 'in_process' ? 'pending' : 'failed'),
+                checkoutUrl: data.transaction_details?.external_resource_url, // For Boleto
                 rawResponse: data
             };
         } catch (err) {

@@ -450,3 +450,64 @@ exports.listCards = async (req, res) => {
         return res.status(500).json({ error: 'Erro ao listar cartões' });
     }
 };
+
+exports.deleteCard = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 1. Resolve Client
+        const client = await prisma.client.findFirst({
+            where: { authUserId: req.user.authUserId }
+        });
+
+        if (!client) return res.status(404).json({ error: 'Cliente não encontrado' });
+
+        // 2. Delete Card (Ensure it belongs to this client)
+        const result = await prisma.cardToken.deleteMany({
+            where: {
+                id: id,
+                clientId: client.id
+            }
+        });
+
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Cartão não encontrado ou não pertence a você' });
+        }
+
+        return res.json({ message: 'Cartão removido com sucesso' });
+
+    } catch (error) {
+        console.error('Delete Card Error:', error);
+        return res.status(500).json({ error: 'Erro ao remover cartão' });
+    }
+};
+
+exports.getPublicKey = async (req, res) => {
+    try {
+        const { barbershopId } = req.query;
+        if (!barbershopId) return res.status(400).json({ error: 'Barbershop ID is required' });
+
+        const activeConfig = await prisma.gatewayConfig.findFirst({
+            where: {
+                barbershopId,
+                isActive: true
+            }
+        });
+
+        if (!activeConfig) {
+            return res.status(404).json({ error: 'Nenhum gateway ativo encontrado para este estabelecimento' });
+        }
+
+        const credentials = activeConfig.credentials || {};
+        const publicKey = credentials.publicKey || credentials.clientId;
+
+        return res.json({
+            gateway: activeConfig.gateway,
+            publicKey: publicKey
+        });
+
+    } catch (error) {
+        console.error('Get Public Key Error:', error);
+        return res.status(500).json({ error: 'Erro ao buscar chave pública' });
+    }
+};

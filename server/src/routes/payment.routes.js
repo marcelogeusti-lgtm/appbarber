@@ -21,4 +21,10 @@ router.get('/cards', protect, paymentController.listCards);
 // GET /api/payments/:id - Checks payment status
 router.get('/:id', protect, paymentController.getPaymentStatus);
 
+// GET /api/payments/public-key - Get active gateway public key for a shop
+router.get('/public-key', paymentController.getPublicKey);
+
+// DELETE /api/payments/cards/:id - Remove a saved card
+router.delete('/cards/:id', protect, paymentController.deleteCard);
+
 module.exports = router;
