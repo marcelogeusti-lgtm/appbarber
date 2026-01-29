@@ -94,6 +94,31 @@ export default function BarbershopPage() {
 
     const [pendingFees, setPendingFees] = useState([]);
 
+    async function processCardPayment(token, issuerId, paymentMethodId, installments) {
+        try {
+            // If this is a "saved card" flow, token should be generated via CVV
+            // If New Card, token comes from form
+
+            const payload = {
+                appointmentId: checkoutData.appointmentId,
+                token,
+                issuerId,
+                paymentMethodId,
+                installments,
+                payer: {
+                    email: formData.email,
+                    name: formData.name
+                }
+            };
+
+            await api.post('/payments/card', payload);
+            setCheckoutData(prev => ({ ...prev, status: 'paid' })); // Optimistic update or wait for poll
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.error || 'Erro ao processar pagamento.');
+        }
+    }
+
     // Waitlist State
     const [waitlistOpen, setWaitlistOpen] = useState(false);
     const [waitlistNote, setWaitlistNote] = useState('');
