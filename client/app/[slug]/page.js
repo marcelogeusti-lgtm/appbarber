@@ -94,17 +94,15 @@ export default function BarbershopPage() {
 
     const [pendingFees, setPendingFees] = useState([]);
 
-    async function processCardPayment(token, issuerId, paymentMethodId, installments) {
+    async function processCardPayment(token, issuerId, paymentMethodId, installments, saveCard = false) {
         try {
-            // If this is a "saved card" flow, token should be generated via CVV
-            // If New Card, token comes from form
-
             const payload = {
                 appointmentId: checkoutData.appointmentId,
                 token,
                 issuerId,
                 paymentMethodId,
                 installments,
+                saveCard, // Novo: Envia preferência de salvamento
                 payer: {
                     email: formData.email,
                     name: formData.name
@@ -112,7 +110,7 @@ export default function BarbershopPage() {
             };
 
             await api.post('/payments/card', payload);
-            setCheckoutData(prev => ({ ...prev, status: 'paid' })); // Optimistic update or wait for poll
+            setCheckoutData(prev => ({ ...prev, status: 'paid' })); // Atualização otimista
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.error || 'Erro ao processar pagamento.');
@@ -489,24 +487,111 @@ export default function BarbershopPage() {
                         {/* Modal Content */}
                         <div className="flex-1 overflow-y-auto p-6">
 
-                            {/* Step 6: Success / Checkout */}
+                            {/* Step 6: Success / Checkout State */}
                             {step === 6 && (
-                                <div className="text-center py-6 space-y-6 animate-in zoom-in">
+                                <div className="space-y-6 animate-in zoom-in">
                                     {checkoutData?.status === 'paid' ? (
-                                        <>
+                                        <div className="text-center py-6 space-y-6">
                                             <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
                                                 <CalendarCheck className="w-10 h-10 text-white" />
                                             </div>
                                             <h2 className="text-3xl font-black text-white uppercase">Pagamento Confirmado!</h2>
                                             <p className="text-slate-400 text-xs">Seu horário já está garantido e aguardamos você!</p>
-                                        </>
+                                        </div>
+                                    ) : checkoutData?.status === 'pending_card' ? (
+                                        <div className="space-y-6">
+                                            <h2 className="text-xl font-black text-white uppercase text-center mb-6">Pagamento com Cartão</h2>
+
+                                            {/* Saved Cards Selection */}
+                                            {savedCards.length > 0 && (
+                                                <div className="space-y-3">
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Seus Cartões Salvos</p>
+                                                    <div className="space-y-2">
+                                                        {savedCards.map(card => (
+                                                            <div
+                                                                key={card.id}
+                                                                onClick={() => { setSelectedCardId(card.id); setCvv(''); }}
+                                                                className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${selectedCardId === card.id ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'}`}
+                                                            >
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedCardId === card.id ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                        <CreditCard className="w-5 h-5" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-bold text-xs uppercase">{card.brand} •••• {card.last4}</p>
+                                                                        <p className="text-[10px] text-slate-500">Expira em {card.expiryMonth}/{card.expiryYear}</p>
+                                                                    </div>
+                                                                </div>
+                                                                {selectedCardId === card.id && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                            </div>
+                                                        ))}
+                                                        <div
+                                                            onClick={() => setSelectedCardId('new')}
+                                                            className={`p-4 rounded-2xl border cursor-pointer flex items-center gap-4 transition ${selectedCardId === 'new' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'}`}
+                                                        >
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedCardId === 'new' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                <Zap className="w-5 h-5" />
+                                                            </div>
+                                                            <p className="font-bold text-xs uppercase">Usar Novo Cartão</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {selectedCardId === 'new' || savedCards.length === 0 ? (
+                                                <div className="animate-in fade-in slide-in-from-top-4">
+                                                    <CardForm
+                                                        publicKey={barbershop.gatewayConfigs?.find(g => g.gateway === 'MERCADOPAGO')?.publicKey}
+                                                        amount={totalValue}
+                                                        onSubmit={async (cardData) => {
+                                                            await processCardPayment(
+                                                                cardData.token,
+                                                                cardData.issuer_id,
+                                                                cardData.payment_method_id,
+                                                                cardData.installments,
+                                                                cardData.saveCard
+                                                            );
+                                                        }}
+                                                        onCancel={() => {
+                                                            setStep(4);
+                                                            setCheckoutData(null);
+                                                        }}
+                                                        barbershopId={barbershop.id}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4 animate-in fade-in slide-in-from-top-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Código de Segurança (CVV)</label>
+                                                        <input
+                                                            type="text"
+                                                            maxLength={4}
+                                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:ring-1 ring-emerald-500 outline-none transition"
+                                                            placeholder="•••"
+                                                            value={cvv}
+                                                            onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        disabled={cvv.length < 3}
+                                                        className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition disabled:opacity-50"
+                                                        onClick={() => {
+                                                            const card = savedCards.find(c => c.id === selectedCardId);
+                                                            processCardPayment(card.token, null, null, 1, false);
+                                                        }}
+                                                    >
+                                                        Confirmar Pagamento com Cartão Salvo
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : checkoutData?.qrCode ? (
-                                        <>
+                                        <div className="text-center py-6 space-y-6">
                                             <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
                                                 <Zap className="w-10 h-10 text-emerald-500" />
                                             </div>
                                             <h2 className="text-2xl font-black text-white uppercase">Pague via PIX</h2>
-                                            <div className="bg-white p-4 rounded-3xl inline-block mx-auto mb-4">
+                                            <div className="bg-white p-4 rounded-3xl inline-block mx-auto mb-4 border-8 border-white">
                                                 {checkoutData.qrCodeBase64 ? (
                                                     <img src={`data:image/png;base64,${checkoutData.qrCodeBase64}`} alt="PIX" className="w-48 h-48" />
                                                 ) : (
@@ -515,62 +600,44 @@ export default function BarbershopPage() {
                                                     </div>
                                                 )}
                                             </div>
-                                            <button
-                                                onClick={() => { if (checkoutData?.qrCode) { navigator.clipboard.writeText(checkoutData.qrCode); alert('Copiado!'); } }}
-                                                className="w-full py-4 bg-slate-900 border border-white/5 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition truncate px-4"
-                                            >
-                                                Copiar Código PIX
-                                            </button>
-                                        </>
-                                    ) : checkoutData?.status === 'pending_card' ? (
-                                        <>
-                                            <div className="text-left w-full max-w-md mx-auto">
-                                                <h2 className="text-xl font-black text-white uppercase text-center mb-6">Pagamento com Cartão</h2>
 
-                                                <CardForm
-                                                    publicKey={barbershop.gatewayConfigs?.find(g => g.gateway === 'MERCADOPAGO')?.publicKey}
-                                                    amount={totalValue}
-                                                    onSubmit={async (cardData) => {
-                                                        try {
-                                                            await api.post('/payments/card', {
-                                                                appointmentId: checkoutData.appointmentId,
-                                                                token: cardData.token,
-                                                                issuerId: cardData.issuer_id,
-                                                                paymentMethodId: cardData.payment_method_id,
-                                                                installments: cardData.installments,
-                                                                saveCard: cardData.saveCard, // New: Pass saving preference
-                                                                payer: {
-                                                                    email: formData.email,
-                                                                    identification: cardData.payer?.identification
-                                                                }
-                                                            });
-                                                            setCheckoutData(prev => ({ ...prev, status: 'paid' }));
-                                                        } catch (err) {
-                                                            alert('Erro ao processar cartão: ' + (err.response?.data?.error || err.message));
-                                                        }
-                                                    }}
-                                                    onCancel={() => {
-                                                        setStep(5); // Go back to payment method selection
-                                                        setCheckoutData(null);
-                                                    }}
-                                                    barbershopId={barbershop.id}
-                                                />
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Código Copia e Cola</p>
+                                                <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4 overflow-hidden group text-left">
+                                                    <p className="text-[10px] text-slate-400 font-mono truncate">{checkoutData.pixCopiaECola || checkoutData.qrCode}</p>
+                                                    <button
+                                                        onClick={() => { navigator.clipboard.writeText(checkoutData.pixCopiaECola || checkoutData.qrCode); alert('Copiado!'); }}
+                                                        className="bg-emerald-500 text-white p-2 rounded-lg hover:bg-emerald-600 transition shrink-0"
+                                                    >
+                                                        <Share2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </>
+
+                                            <p className="text-xs text-slate-500 animate-pulse">Aguardando confirmação do pagamento...</p>
+                                        </div>
                                     ) : (
-                                        <>
+                                        <div className="text-center py-6 space-y-6">
                                             <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
                                                 <CalendarCheck className="w-10 h-10 text-white" />
                                             </div>
-                                            <h2 className="text-3xl font-black text-white uppercase">Tudo Certo!</h2>
-                                        </>
+                                            <h2 className="text-3xl font-black text-white uppercase">Agendamento Realizado!</h2>
+                                            <p className="text-slate-400 text-xs text-center px-6">Tudo pronto! Você receberá uma confirmação em breve.</p>
+                                        </div>
                                     )}
 
-                                    <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-3 text-left">
-                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Serviço</span><span className="font-bold">{selectedService?.name || 'Agendamento'}</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-bold text-[10px]">Total</span><span className="font-bold text-emerald-500">{formatCurrency(totalValue || 0)}</span></div>
+                                    {/* Modal Footer Shared for Step 6 */}
+                                    <div className="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 space-y-3">
+                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-black text-[10px] tracking-widest">Serviço</span><span className="font-bold text-white">{selectedService?.name || 'Agendamento'}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-black text-[10px] tracking-widest">Valor Total</span><span className="font-black text-emerald-500">{formatCurrency(totalValue || 0)}</span></div>
                                     </div>
-                                    <button onClick={() => router.push('/home')} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black text-xs uppercase hover:bg-emerald-600 transition tracking-widest">Ver Meus Agendamentos</button>
+
+                                    <button
+                                        onClick={() => router.push('/home')}
+                                        className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-xs uppercase hover:bg-emerald-600 transition tracking-widest shadow-xl shadow-emerald-500/20"
+                                    >
+                                        Ver Meus Agendamentos
+                                    </button>
                                 </div>
                             )}
 
@@ -832,112 +899,6 @@ export default function BarbershopPage() {
                                                     <><CalendarCheck className="w-4 h-4" /> Finalizar Agendamento</>
                                                 )}
                                             </button>
-                                        </div>
-                                    )}
-                                    {/* STEP 6: Checkout & Success */}
-                                    {step === 6 && (
-                                        <div className="space-y-6 animate-in slide-in-from-right">
-                                            {checkoutData?.status === 'paid' ? (
-                                                <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                                                    <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-                                                        <CalendarCheck className="w-10 h-10" />
-                                                    </div>
-                                                    <h2 className="text-2xl font-black text-white uppercase text-center">Agendamento Confirmado!</h2>
-                                                    <p className="text-slate-400 text-center text-sm max-w-xs">
-                                                        Seu horário foi reservado com sucesso.
-                                                    </p>
-                                                    <button onClick={() => window.location.reload()} className="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase hover:bg-slate-700 transition">
-                                                        Voltar ao Início
-                                                    </button>
-                                                </div>
-                                            ) : checkoutData?.status === 'pending_card' ? (
-                                                <div className="space-y-4">
-                                                    <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                                                        <CreditCard className="w-4 h-4 text-emerald-500" /> Finalizar Pagamento
-                                                    </h3>
-
-                                                    {/* Saved Cards Selection */}
-                                                    {savedCards.length > 0 && (
-                                                        <div className="space-y-2">
-                                                            <p className="text-[10px] font-bold text-slate-500 uppercase">Seus Cartões</p>
-                                                            {savedCards.map(card => (
-                                                                <div key={card.id} onClick={() => setSelectedCardId(card.id)} className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between ${selectedCardId === card.id ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span className="text-lg">💳</span>
-                                                                        <div>
-                                                                            <p className="font-bold text-xs uppercase">{card.brand} •••• {card.last4}</p>
-                                                                            <p className="text-[10px] text-slate-500">Expira em {card.expiry}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    {selectedCardId === card.id && <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>}
-                                                                </div>
-                                                            ))}
-                                                            <div onClick={() => setSelectedCardId('new')} className={`p-3 rounded-xl border cursor-pointer flex items-center gap-3 ${selectedCardId === 'new' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>
-                                                                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-500"><Zap className="w-4 h-4" /></div>
-                                                                <p className="font-bold text-xs uppercase">Usar Outro Cartão</p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {selectedCardId === 'new' ? (
-                                                        <CardForm
-                                                            onSubmit={processCardPayment}
-                                                            amount={totalValue}
-                                                            prefs={{
-                                                                paymentMethodId: paymentMethod === 'DEBIT_CARD' ? 'debit_card' : 'credit_card'
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-bold text-slate-500 uppercase">CVV (Código de Segurança)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    maxLength={4}
-                                                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white font-bold tracking-widest text-center focus:border-emerald-500 outline-none"
-                                                                    placeholder="•••"
-                                                                    value={cvv}
-                                                                    onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
-                                                                />
-                                                            </div>
-                                                            <button
-                                                                className="w-full bg-emerald-500 text-white py-4 rounded-xl font-black text-xs uppercase"
-                                                                onClick={() => {
-                                                                    // Placeholder: In real app, use SDK to create token from CVV + CardID
-                                                                    alert("Integração CVV pendente: " + selectedCardId);
-                                                                }}
-                                                            >
-                                                                Pagar Agora
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center space-y-6 pt-4">
-                                                    <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                                                        <Zap className="w-4 h-4 text-emerald-500" /> Pagamento via PIX
-                                                    </h3>
-                                                    {checkoutData?.qrCodeBase64 ? (
-                                                        <div className="bg-white p-4 rounded-xl">
-                                                            <img src={`data:image/png;base64,${checkoutData.qrCodeBase64}`} alt="PIX QR Code" className="w-48 h-48 mix-blend-multiply" />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-48 h-48 bg-slate-800 rounded-xl animate-pulse"></div>
-                                                    )}
-
-                                                    <div className="w-full">
-                                                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-2 text-center">Copia e Cola</p>
-                                                        <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center justify-between gap-3 relative overflow-hidden group">
-                                                            <p className="text-xs text-slate-400 font-mono truncate">{checkoutData?.pixCopiaECola || 'Carregando...'}</p>
-                                                            <button onClick={() => navigator.clipboard.writeText(checkoutData?.pixCopiaECola)} className="bg-emerald-500 text-white p-2 rounded-lg hover:bg-emerald-600 transition">
-                                                                <Share2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    <p className="text-xs text-slate-500 text-center animate-pulse">Aguardando confirmação do pagamento...</p>
-                                                </div>
-                                            )}
                                         </div>
                                     )}
                                 </div>
