@@ -103,6 +103,23 @@ model Client {
   notifications Notification[]
   theme         String @default("dark")
   active        Boolean @default(true)
+  
+  // Payment Gateway Customers (For Reusability)
+  gatewayCustomers GatewayCustomer[]
+}
+
+model GatewayCustomer {
+  id            String   @id @default(uuid())
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id])
+  
+  gateway       String   // mercadopago, stripe, velfy
+  customerId    String   // The external customer ID (e.g. MP Payer ID)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([clientId, gateway]) // One customer ID per gateway per client
 }
 
 model CardToken {
