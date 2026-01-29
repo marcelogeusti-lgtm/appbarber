@@ -73,7 +73,10 @@ exports.handleWebhook = async (req, res) => {
                     if (payment.appointmentId) {
                         await tx.appointment.update({
                             where: { id: payment.appointmentId },
-                            data: { paymentStatus: 'PAID' }
+                            data: {
+                                paymentStatus: 'PAID',
+                                status: 'CONFIRMED'
+                            }
                         });
                     }
                 });
