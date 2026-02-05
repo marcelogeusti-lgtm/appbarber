@@ -169,7 +169,7 @@ exports.getAvailableSlots = async (req, res) => {
                     // --- SAME DAY BUFFER LOGICK ---
                     // If target date is today, only show slots >= now + 15 mins
                     const nowSP = utcToZonedTime(new Date(), TIMEZONE);
-                    const isToday = format(zonedDate, 'yyyy-MM-dd') === format(nowSP, 'yyyy-MM-dd');
+                    const isToday = format(dateSP, 'yyyy-MM-dd') === format(nowSP, 'yyyy-MM-dd');
 
                     if (isToday) {
                         const bufferTime = addMinutes(nowSP, 15);
