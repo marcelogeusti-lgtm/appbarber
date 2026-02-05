@@ -127,9 +127,11 @@ export default function DashboardPage() {
                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Link de Agendamento Profissional</span>
                     </div>
 
-                    <div className="flex gap-2">
-                        <div className="flex-1 bg-[#0F111A] rounded-xl border border-white/5 flex items-center px-4 py-3 relative group">
-                            <span className="text-xs text-emerald-500/50 truncate font-mono">{publicUrl || 'https://...'}</span>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1 min-w-0 bg-[#0F111A] rounded-xl border border-white/5 flex items-center px-4 py-3 relative group">
+                            <span className="text-[10px] sm:text-xs text-emerald-500/50 truncate font-mono block w-full pr-8">
+                                {publicUrl || 'https://...'}
+                            </span>
                             <button onClick={copyToClipboard} className="absolute right-2 p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors">
                                 <Copy className="w-4 h-4" />
                             </button>
@@ -138,7 +140,7 @@ export default function DashboardPage() {
                             href={publicUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-white text-black px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-emerald-400 transition-colors flex items-center"
+                            className="bg-white text-black px-6 py-4 sm:py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-400 transition-colors flex items-center justify-center sm:justify-start whitespace-nowrap"
                         >
                             Abrir Página
                         </a>
