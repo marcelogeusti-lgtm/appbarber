@@ -1,5 +1,5 @@
 const eventBus = require('../events/eventBus');
-const whatsappNotifier = require('./whatsappNotifier');
+const whatsappService = require('../communication/WhatsAppService');
 const internalNotifier = require('./internalNotifier');
 
 console.log('[NotificationService] Initializing listeners...');
@@ -17,10 +17,16 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
 
     // 2. WhatsApp Notification (Best Effort - fail safe)
     try {
-        await whatsappNotifier.sendConfirmation(payload);
+        const dateObj = new Date(payload.date);
+        await whatsappService.sendTemplate(payload.client.phone, 'CONFIRMATION', {
+            clientName: payload.client.name,
+            barbershopName: payload.barbershop.name,
+            date: dateObj.toLocaleDateString('pt-BR'),
+            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            serviceName: payload.service.name
+        });
     } catch (err) {
         console.error('[NotificationService] WhatsApp Notification Failed:', err);
-        // Do not rethrow, keep system alive
     }
 });
 
@@ -35,7 +41,12 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
     }
 
     try {
-        await whatsappNotifier.sendReminder(payload);
+        const dateObj = new Date(payload.date);
+        await whatsappService.sendTemplate(payload.client.phone, 'REMINDER', {
+            clientName: payload.client.name,
+            barbershopName: payload.barbershop.name,
+            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        });
     } catch (err) {
         console.error('[NotificationService] WhatsApp Reminder Failed:', err);
     }

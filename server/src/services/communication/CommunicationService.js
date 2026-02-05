@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const whatsAppProvider = require('./providers/WhatsAppProvider');
+const whatsappService = require('./WhatsAppService');
 const emailProvider = require('./providers/EmailProvider');
 
 class CommunicationService {
@@ -48,23 +48,12 @@ class CommunicationService {
 
         // 1. WhatsApp
         if (client.phone) {
-            // Remove non-digits
-            const phone = client.phone.replace(/\D/g, '');
-            // Simple validation (must be 55 + DDD + Num)
-            const targetPhone = phone.startsWith('55') ? phone : `55${phone}`;
-
-            // Check connection first
-            if (whatsAppProvider.status !== 'CONNECTED') {
-                console.log('WhatsApp disconnected, skipping confirmation request.');
-                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', messageContent, 'SKIPPED');
-            } else {
-                try {
-                    await whatsAppProvider.sendText(targetPhone, messageContent);
-                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', messageContent, 'SENT');
-                } catch (error) {
-                    console.error('Failed to send WA:', error);
-                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', messageContent, 'FAILED');
-                }
+            try {
+                await whatsappService.sendText(client.phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', messageContent, 'SENT');
+            } catch (error) {
+                console.error('Failed to send WA:', error);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CONFIRMATION_REQUEST', messageContent, 'FAILED');
             }
         }
 
@@ -104,20 +93,12 @@ class CommunicationService {
 
         // 1. WhatsApp
         if (client.phone) {
-            const phone = client.phone.replace(/\D/g, '');
-            const targetPhone = phone.startsWith('55') ? phone : `55${phone}`;
-
-            if (whatsAppProvider.status !== 'CONNECTED') {
-                console.log('WhatsApp disconnected, skipping reminder.');
-                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'SKIPPED');
-            } else {
-                try {
-                    await whatsAppProvider.sendText(targetPhone, messageContent);
-                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'SENT');
-                } catch (error) {
-                    console.error('Failed to send WA Reminder:', error);
-                    await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'FAILED');
-                }
+            try {
+                await whatsappService.sendText(client.phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'SENT');
+            } catch (error) {
+                console.error('Failed to send WA Reminder:', error);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'REMINDER', messageContent, 'FAILED');
             }
         }
     }
