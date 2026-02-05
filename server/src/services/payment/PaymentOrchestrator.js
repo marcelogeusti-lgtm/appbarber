@@ -63,6 +63,50 @@ class PaymentOrchestrator {
         // Get credentials
         const credentials = await this.getGatewayConfig(barbershopId, gatewayToUse);
 
+        // --- SPLIT CALCULATION (If applicable) ---
+        let disbursements = [];
+        if (params.appointmentId && gatewayToUse === 'mercadopago') {
+            try {
+                const { PrismaClient } = require('@prisma/client');
+                const prisma = new PrismaClient();
+                const appointment = await prisma.appointment.findUnique({
+                    where: { id: params.appointmentId },
+                    include: {
+                        service: { include: { commissionOverrides: true } },
+                        professional: true
+                    }
+                });
+
+                if (appointment && appointment.professional.mpPayoutId) {
+                    const service = appointment.service;
+                    const override = service.commissionOverrides?.find(o => o.professionalId === appointment.professionalId);
+
+                    let commType = override ? override.type : service.commissionType;
+                    let commValue = override ? Number(override.value) : Number(service.commissionValue);
+
+                    let splitAmount = 0;
+                    const totalAmount = parseFloat(amount);
+
+                    if (commType === 'PERCENTAGE') {
+                        splitAmount = totalAmount * (commValue / 100);
+                    } else {
+                        splitAmount = Math.min(commValue, totalAmount);
+                    }
+
+                    if (splitAmount > 0) {
+                        disbursements.push({
+                            collector_id: appointment.professional.mpPayoutId,
+                            amount: parseFloat(splitAmount.toFixed(2)),
+                            external_reference: `pro_payout_${appointment.id}`
+                        });
+                        console.log(`[Orchestrator] Split calculated: ${splitAmount} for Pro ${appointment.professional.name}`);
+                    }
+                }
+            } catch (splitErr) {
+                console.error('[Orchestrator] Split Calc Error:', splitErr.message);
+            }
+        }
+
         const result = await adapter.createPayment({
             ...params,
             amount,
@@ -71,7 +115,8 @@ class PaymentOrchestrator {
             credentials,
             method,
             externalId,
-            customerId
+            customerId,
+            disbursements: disbursements.length > 0 ? disbursements : undefined
         });
 
         // Standardized Response

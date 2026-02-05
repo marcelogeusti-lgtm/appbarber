@@ -69,6 +69,7 @@ notificationService.init();
 
 // Master / Educational Platform
 app.use('/api', require('./routes/master.routes'));
+app.use('/api', require('./routes/integration.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
