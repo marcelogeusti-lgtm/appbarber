@@ -37,11 +37,22 @@ class GoogleCalendarService {
     async handleCallback(code, professionalId) {
         const { tokens } = await this.oauth2Client.getToken(code);
 
-        // Suggestion: Store tokens in a new 'Integration' model or as JSON in Professional
-        // For now, let's assume we have a way to store this.
-        console.log(`[GoogleCalendar] Tokens received for Pro ${professionalId}`);
+        // Save tokens to User via Professional
+        // professionalId is passed as 'state'
+        if (professionalId) {
+            const professional = await prisma.professional.findUnique({
+                where: { id: professionalId }
+            });
 
-        // TODO: Save tokens to DB
+            if (professional && professional.userId) {
+                await prisma.user.update({
+                    where: { id: professional.userId },
+                    data: { googleTokens: tokens } // JSON field
+                });
+                console.log(`[GoogleCalendar] Tokens saved for User ${professional.userId}`);
+            }
+        }
+
         return tokens;
     }
 

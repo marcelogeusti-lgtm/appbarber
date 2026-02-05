@@ -4,6 +4,29 @@ const googleCalendarService = require('../services/communication/GoogleCalendarS
 const whatsAppProvider = require('../services/communication/providers/WhatsAppProvider');
 const { protect } = require('../middlewares/auth.middleware');
 
+// Google Calendar Auth URL
+router.get('/google/auth-url', protect, async (req, res) => {
+    try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+
+        // Find professional profile linked to current user
+        const professional = await prisma.professional.findUnique({
+            where: { userId: req.user.id }
+        });
+
+        if (!professional) {
+            return res.status(404).json({ message: 'Perfil profissional não encontrado.' });
+        }
+
+        const url = googleCalendarService.generateAuthUrl(professional.id);
+        res.json({ url });
+    } catch (error) {
+        console.error('Error generating auth url:', error);
+        res.status(500).json({ message: 'Erro ao gerar link de autenticação' });
+    }
+});
+
 // Google Calendar OAuth Callback
 router.get('/google/callback', async (req, res) => {
     const { code, state } = req.query; // state is professionalId
