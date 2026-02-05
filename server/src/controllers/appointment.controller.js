@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const axios = require('axios');
-const { format } = require('date-fns');
+const { format, addMinutes, isBefore } = require('date-fns');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const saasPlans = require('../config/saasPlans');
@@ -9,6 +9,7 @@ const notificationController = require('../controllers/notification.controller')
 const whatsappNotifier = require('../services/notificationService/whatsappNotifier');
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
+const FeatureFlagService = require('../services/FeatureFlagService');
 const TIMEZONE = 'America/Sao_Paulo';
 
 const generateToken = (user) => {

@@ -1,7 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { addMinutes, format, isBefore, isAfter, isEqual, parse } = require('date-fns');
-const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
+const { utcToZonedTime, format } = require('date-fns-tz');
+const { addMinutes, isBefore, startOfDay, endOfDay } = require('date-fns');
+const FeatureFlagService = require('../services/FeatureFlagService');
 
 const TIMEZONE = 'America/Sao_Paulo';
 
@@ -166,16 +167,20 @@ exports.getAvailableSlots = async (req, res) => {
                     // Convert back to SP Time string for frontend display "09:00"
                     const zonedSlot = utcToZonedTime(currentSlot, TIMEZONE);
 
-                    // --- SAME DAY BUFFER LOGICK ---
-                    // If target date is today, only show slots >= now + 15 mins
-                    const nowSP = utcToZonedTime(new Date(), TIMEZONE);
-                    const isToday = format(dateSP, 'yyyy-MM-dd') === format(nowSP, 'yyyy-MM-dd');
+                    // --- SAME DAY BUFFER LOGICK (GATED) ---
+                    // If target date is today, only show slots >= now + 15 mins IF flag is enabled
+                    const bufferEnabled = await FeatureFlagService.isEnabled('booking_buffer', barbershopId);
 
-                    if (isToday) {
-                        const bufferTime = addMinutes(nowSP, 15);
-                        if (isBefore(zonedSlot, bufferTime)) {
-                            currentSlot = addMinutes(currentSlot, stepMinutes);
-                            continue;
+                    if (bufferEnabled) {
+                        const nowSP = utcToZonedTime(new Date(), TIMEZONE);
+                        const isToday = format(dateSP, 'yyyy-MM-dd') === format(nowSP, 'yyyy-MM-dd');
+
+                        if (isToday) {
+                            const bufferTime = addMinutes(nowSP, 15);
+                            if (isBefore(zonedSlot, bufferTime)) {
+                                currentSlot = addMinutes(currentSlot, stepMinutes);
+                                continue;
+                            }
                         }
                     }
                     // ------------------------------
