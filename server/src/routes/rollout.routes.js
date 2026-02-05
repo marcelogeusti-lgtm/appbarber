@@ -5,7 +5,7 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 // Protect all rollout routes for SUPER_ADMIN only
 router.use(authMiddleware.protect);
-router.use(authMiddleware.restrictTo('SUPER_ADMIN'));
+router.use(authMiddleware.authorize('SUPER_ADMIN'));
 
 router.get('/flags', rolloutController.getFlags);
 router.post('/toggle', rolloutController.toggleFlag);
