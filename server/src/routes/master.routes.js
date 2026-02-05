@@ -41,4 +41,7 @@ router.get('/content/banners', contentController.getBanners);
 router.get('/content/updates', contentController.getUpdates);
 router.post('/content/updates/read', contentController.markUpdateRead);
 
+// Webhooks
+router.post('/webhooks/kiwi', masterController.handleKiwiWebhook);
+
 module.exports = router;

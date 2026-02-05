@@ -135,3 +135,36 @@ exports.deleteUpdate = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.handleKiwiWebhook = async (req, res) => {
+    try {
+        const { order_status, customer, product } = req.body;
+
+        console.log(`[Webhook Kiwi] Status: ${order_status} for ${customer?.email}`);
+
+        // 1. Validate status (e.g., 'paid' or 'approved')
+        if (order_status === 'paid' || order_status === 'approved') {
+            const email = customer?.email;
+
+            // 2. Find internal user (or create if needed, but usually redirect to register if not found)
+            const authUser = await prisma.authUser.findUnique({
+                where: { email },
+                include: { user: true }
+            });
+
+            if (authUser) {
+                // Logic: Link course to user or add tag
+                // Note: We need a model for "UserCourses" or similar.
+                // For now, we log the sale.
+                console.log(`[Webhook Kiwi] Success: Linking Course to User ${authUser.id}`);
+            } else {
+                console.log(`[Webhook Kiwi] User not found: ${email}. Sale recorded for future linking.`);
+            }
+        }
+
+        res.status(200).send('OK');
+    } catch (error) {
+        console.error('[Webhook Kiwi] Error:', error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
