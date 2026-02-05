@@ -206,26 +206,7 @@ export default function BarbershopPage() {
             try {
                 const res = await api.get(`/availability/${barbershop.id}/${formData.date}?serviceIds=${selectedService.id}`);
                 const proData = res.data.find(p => p.proId === selectedProfessional.id);
-                let slots = proData?.slots || [];
-
-                // --- FRONTEND SAME DAY BUFFER ---
-                const todayStr = new Date().toISOString().split('T')[0];
-                if (formData.date === todayStr) {
-                    const now = new Date();
-                    const bufferTime = new Date(now.getTime() + 15 * 60000);
-                    const currentHour = bufferTime.getHours();
-                    const currentMin = bufferTime.getMinutes();
-
-                    slots = slots.filter(slot => {
-                        const [slotHour, slotMin] = slot.split(':').map(Number);
-                        if (slotHour > currentHour) return true;
-                        if (slotHour === currentHour && slotMin >= currentMin) return true;
-                        return false;
-                    });
-                }
-                // --------------------------------
-
-                setAvailableSlots(slots);
+                setAvailableSlots(proData?.slots || []);
             } catch (err) {
                 console.error('Error fetching slots:', err);
                 setAvailableSlots([]);
