@@ -207,6 +207,7 @@ model User {
 
   auditLogs             AuditLog[]
   googleTokens          Json?    // For Google Calendar OAuth2
+  mpPayoutId            String?  // For automated payment splits (Mercado Pago ID)
 }
 
 model Notification {

@@ -24,6 +24,15 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 }
             };
 
+            // Support for Payment Split (Disbursements)
+            if (params.disbursements && params.disbursements.length > 0) {
+                payload.disbursements = params.disbursements.map(d => ({
+                    id: d.collector_id,
+                    amount: d.amount,
+                    external_reference: d.external_reference || `split_${externalId}`
+                }));
+            }
+
             if (method === 'PIX') {
                 payload.payment_method_id = 'pix';
             } else if (method === 'BOLETO') {
