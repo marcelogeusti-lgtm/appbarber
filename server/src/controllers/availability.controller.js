@@ -117,6 +117,12 @@ exports.getAvailableSlots = async (req, res) => {
             let currentSlot = workStart; // This is a Date object (UTC equivalent of Start Time SP)
             const stepMinutes = 30;
 
+            // --- SAME DAY BUFFER PRE-CALCULATION ---
+            const bufferEnabled = await FeatureFlagService.isEnabled('booking_buffer', barbershopId);
+            const nowSP = utcToZonedTime(new Date(), TIMEZONE);
+            const isToday = format(dateSP, 'yyyy-MM-dd') === format(nowSP, 'yyyy-MM-dd');
+            const bufferTime = addMinutes(nowSP, 15);
+
             while (currentSlot < workEnd) {
                 const potentialEnd = addMinutes(currentSlot, totalDuration);
 
