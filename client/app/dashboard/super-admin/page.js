@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
+import UpdateRolloutManager from './UpdateRolloutManager';
 
 export default function SuperAdminPage() {
     const [barbershops, setBarbershops] = useState([]);
@@ -78,6 +79,9 @@ export default function SuperAdminPage() {
                     <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity"></div>
                 </div>
             </div>
+
+            {/* Master Update Manager */}
+            <UpdateRolloutManager />
 
             <div className="bg-[#111827] rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden relative">
                 <div className="p-8 border-b border-slate-800/50 flex items-center justify-between">

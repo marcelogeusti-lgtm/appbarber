@@ -877,15 +877,16 @@ model UserSystemUpdateRead {
 
 model FeatureFlag {
   id           String   @id @default(uuid())
-  key          String   @unique
+  key          String
   description  String?
   enabled      Boolean  @default(false)
-  barbershopId String?  // Optional: Enable for specific tenant
+  barbershopId String?  // Optional: Enable for specific tenant (null for global)
   barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
   
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  @@unique([key, barbershopId])
   @@index([barbershopId])
 }
 

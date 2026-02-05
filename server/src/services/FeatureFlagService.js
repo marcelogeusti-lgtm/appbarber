@@ -12,10 +12,9 @@ class FeatureFlagService {
         try {
             // 1. Check for specific tenant flag
             if (barbershopId) {
-                const tenantFlag = await prisma.featureFlag.findFirst({
+                const tenantFlag = await prisma.featureFlag.findUnique({
                     where: {
-                        key,
-                        barbershopId,
+                        key_barbershopId: { key, barbershopId }
                     }
                 });
 
@@ -24,7 +23,9 @@ class FeatureFlagService {
 
             // 2. Fallback to global flag (where barbershopId is null)
             const globalFlag = await prisma.featureFlag.findUnique({
-                where: { key }
+                where: {
+                    key_barbershopId: { key, barbershopId: null }
+                }
             });
 
             return globalFlag ? globalFlag.enabled : false;
@@ -39,8 +40,10 @@ class FeatureFlagService {
      */
     static async setFlag(key, enabled, barbershopId = null, description = null) {
         return prisma.featureFlag.upsert({
-            where: { key },
-            update: { enabled, barbershopId, description },
+            where: {
+                key_barbershopId: { key, barbershopId }
+            },
+            update: { enabled, description },
             create: { key, enabled, barbershopId, description }
         });
     }

@@ -168,19 +168,10 @@ exports.getAvailableSlots = async (req, res) => {
                     const zonedSlot = utcToZonedTime(currentSlot, TIMEZONE);
 
                     // --- SAME DAY BUFFER LOGICK (GATED) ---
-                    // If target date is today, only show slots >= now + 15 mins IF flag is enabled
-                    const bufferEnabled = await FeatureFlagService.isEnabled('booking_buffer', barbershopId);
-
-                    if (bufferEnabled) {
-                        const nowSP = utcToZonedTime(new Date(), TIMEZONE);
-                        const isToday = format(dateSP, 'yyyy-MM-dd') === format(nowSP, 'yyyy-MM-dd');
-
-                        if (isToday) {
-                            const bufferTime = addMinutes(nowSP, 15);
-                            if (isBefore(zonedSlot, bufferTime)) {
-                                currentSlot = addMinutes(currentSlot, stepMinutes);
-                                continue;
-                            }
+                    if (bufferEnabled && isToday) {
+                        if (isBefore(zonedSlot, bufferTime)) {
+                            currentSlot = addMinutes(currentSlot, stepMinutes);
+                            continue;
                         }
                     }
                     // ------------------------------

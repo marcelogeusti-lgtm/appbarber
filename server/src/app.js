@@ -60,6 +60,7 @@ app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
 app.use('/api/feature-flags', require('./routes/featureFlag.routes'));
+app.use('/api/rollout', require('./routes/rollout.routes'));
 // app.use('/api/audit-logs', require('./routes/auditLog.routes')); // Future
 
 // Initialize Notification Service (Listeners)
