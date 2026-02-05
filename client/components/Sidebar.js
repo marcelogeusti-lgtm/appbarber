@@ -166,7 +166,7 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                             <div className="h-px bg-emerald-500/20 mx-2 my-2"></div>
                             <MenuGroup title="Gestão Master (Exclusivo)" id="master" icon={Shield}>
                                 <MenuItem href="/dashboard/super-admin" icon={LayoutDashboard} label="Controle SaaS Global" badge="Master" />
-                                <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Configurar Cursos" badge="Master" />
+                                <MenuItem href="/dashboard/super-admin/courses" icon={GraduationCap} label="Configurar Cursos" badge="Master" />
                             </MenuGroup>
                         </>
                     )}

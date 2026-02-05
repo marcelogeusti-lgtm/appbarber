@@ -114,14 +114,16 @@ exports.getAvailableSlots = async (req, res) => {
             }
 
             // Iterate slots (every 30 mins)
-            let currentSlot = workStart; // This is a Date object (UTC equivalent of Start Time SP)
+            let currentSlot = workStart; // This is a Date object (UTC)
             const stepMinutes = 30;
 
             // --- SAME DAY BUFFER PRE-CALCULATION ---
             const bufferEnabled = await FeatureFlagService.isEnabled('booking_buffer', barbershopId);
-            const nowSP = utcToZonedTime(new Date(), TIMEZONE);
-            const isToday = format(dateSP, 'yyyy-MM-dd') === format(nowSP, 'yyyy-MM-dd');
-            const bufferTime = addMinutes(nowSP, 15);
+            const now = new Date();
+            // isToday check: Does the requested date string match today's date in SP?
+            const nowSP = utcToZonedTime(now, TIMEZONE);
+            const isToday = format(nowSP, 'yyyy-MM-dd') === date;
+            const bufferTimeUTC = addMinutes(now, 15);
 
             while (currentSlot < workEnd) {
                 const potentialEnd = addMinutes(currentSlot, totalDuration);
@@ -135,7 +137,6 @@ exports.getAvailableSlots = async (req, res) => {
                 // 2. Must not overlap break
                 let overlapsBreak = false;
                 if (breakStart && breakEnd) {
-                    // Standard Overlap: (StartA < EndB) && (EndA > StartB)
                     if (currentSlot < breakEnd && potentialEnd > breakStart) {
                         overlapsBreak = true;
                     }
@@ -149,39 +150,31 @@ exports.getAvailableSlots = async (req, res) => {
                 // 3. Must not overlap existing appointments
                 const isOccupied = appointments.some(app => {
                     if (app.professionalId !== pro.id) return false;
+                    const appStart = new Date(app.date);
 
-                    const appStart = new Date(app.date); // Already UTC
-
-                    // Logic to sum durations if multiple services in order
                     let appDuration = app.service?.duration || 30;
-                    if (app.order && app.order.items && app.order.items.length > 0) {
+                    if (app.order?.items?.length > 0) {
                         const serviceItems = app.order.items.filter(i => i.type === 'SERVICE' && i.service);
                         if (serviceItems.length > 0) {
                             appDuration = serviceItems.reduce((sum, item) => sum + (item.service.duration * item.quantity), 0);
                         }
                     }
-
                     const appEnd = addMinutes(appStart, appDuration);
-
-                    // Allow strict touch? (EndA == StartB is OK)
-                    // If currentSlot == appEnd, it's fine.
-                    // Overlap: StartA < EndB && EndA > StartB
                     return (currentSlot < appEnd && potentialEnd > appStart);
                 });
 
                 if (!isOccupied) {
-                    // Convert back to SP Time string for frontend display "09:00"
-                    const zonedSlot = utcToZonedTime(currentSlot, TIMEZONE);
-
-                    // --- SAME DAY BUFFER LOGICK (GATED) ---
+                    // --- SAME DAY BUFFER LOGIC (GATED) ---
+                    // Using UTC comparison for absolute accuracy
                     if (bufferEnabled && isToday) {
-                        if (isBefore(zonedSlot, bufferTime)) {
+                        if (currentSlot < bufferTimeUTC) {
                             currentSlot = addMinutes(currentSlot, stepMinutes);
                             continue;
                         }
                     }
                     // ------------------------------
 
+                    const zonedSlot = utcToZonedTime(currentSlot, TIMEZONE);
                     const timeString = format(zonedSlot, 'HH:mm');
                     slots.push(timeString);
                 }
