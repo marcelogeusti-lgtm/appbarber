@@ -812,6 +812,7 @@ model Course {
   thumbnailUrl String?
   link        String   @db.Text // Affiliate Link
   category    String?  // e.g. "Marketing", "Técnica", "Gestão"
+  duration    String?  // e.g. "4h 30m"
   active      Boolean  @default(true)
   
   order       Int      @default(0) // Display order
