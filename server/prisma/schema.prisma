@@ -204,6 +204,8 @@ model User {
   // Cash Shift Management
   openedShifts          CashShift[] @relation("OpenedShifts")
   closedShifts          CashShift[] @relation("ClosedShifts")
+
+  auditLogs             AuditLog[]
 }
 
 model Notification {
@@ -278,6 +280,9 @@ model Barbershop {
   pixType       String?  @map("pix_type") // email, cpf, cnpj, random
   pspProvider   String?  @map("psp_provider") // mercadopago, asaas, manual
   pspAccountId  String?  @map("psp_account_id")
+
+  featureFlags  FeatureFlag[]
+  auditLogs     AuditLog[]
 }
 
 model GatewayConfig {
@@ -868,4 +873,43 @@ model UserSystemUpdateRead {
   readAt         DateTime @default(now())
 
   @@unique([userId, systemUpdateId])
+}
+
+model FeatureFlag {
+  id           String   @id @default(uuid())
+  key          String   @unique
+  description  String?
+  enabled      Boolean  @default(false)
+  barbershopId String?  // Optional: Enable for specific tenant
+  barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([barbershopId])
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorId      String?  // User who performed the action
+  actor        User?    @relation(fields: [actorId], references: [id])
+  
+  action       String   // e.g. "UPDATE_PRICE", "DELETE_APPOINTMENT"
+  entity       String   // e.g. "Service", "Appointment"
+  entityId     String?
+  
+  oldData      Json?
+  newData      Json?
+  
+  barbershopId String?
+  barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
+  
+  ipAddress    String?
+  userAgent    String?
+  
+  timestamp    DateTime @default(now())
+
+  @@index([barbershopId])
+  @@index([actorId])
+  @@index([entity, entityId])
 }
