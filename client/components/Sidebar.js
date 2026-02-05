@@ -140,22 +140,10 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                         <MenuItem href="/dashboard/subscribers" icon={Users} label="Assinantes" />
                     </MenuGroup>
 
-                    {/* Conteúdo (Cursos) for SUPER_ADMIN or authorized users */}
-                    {/* Access to Education Panel */}
+                    {/* Conteúdo (Cursos) */}
                     <MenuGroup title="Educação" id="educacao" icon={GraduationCap}>
                         <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Cursos" />
                     </MenuGroup>
-
-                    {/* Master Management - Only for SUPER_ADMIN */}
-                    {user?.role === 'SUPER_ADMIN' && (
-                        <>
-                            <div className="h-px bg-emerald-500/20 mx-2 my-2"></div>
-                            <MenuGroup title="Gestão Master" id="master" icon={Shield}>
-                                <MenuItem href="/dashboard/super-admin" icon={LayoutDashboard} label="Dashboard SaaS" badge="Master" />
-                                <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Gestão Cursos" badge="Master" />
-                            </MenuGroup>
-                        </>
-                    )}
 
                     {/* Financeiro */}
                     <MenuGroup title="Financeiro" id="financeiro" icon={DollarSign}>
@@ -171,6 +159,17 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                     <MenuGroup title="Configurações" id="config" icon={Settings}>
                         <MenuItem href="/dashboard/settings" icon={Settings} label="Ajustes do Sistema" />
                     </MenuGroup>
+
+                    {/* Master Management - EXCLUSIVE for MASTER ACCOUNT */}
+                    {user?.role === 'SUPER_ADMIN' && (
+                        <>
+                            <div className="h-px bg-emerald-500/20 mx-2 my-2"></div>
+                            <MenuGroup title="Gestão Master (Exclusivo)" id="master" icon={Shield}>
+                                <MenuItem href="/dashboard/super-admin" icon={LayoutDashboard} label="Controle SaaS Global" badge="Master" />
+                                <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Configurar Cursos" badge="Master" />
+                            </MenuGroup>
+                        </>
+                    )}
 
                 </nav>
 

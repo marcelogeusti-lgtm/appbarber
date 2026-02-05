@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { utcToZonedTime, format } = require('date-fns-tz');
-const { addMinutes, isBefore, startOfDay, endOfDay } = require('date-fns');
+const { utcToZonedTime, zonedTimeToUtc, format } = require('date-fns-tz');
+const { addMinutes, isBefore, startOfDay, endOfDay, parse } = require('date-fns');
 const FeatureFlagService = require('../services/FeatureFlagService');
 
 const TIMEZONE = 'America/Sao_Paulo';
