@@ -1,6 +1,7 @@
 const eventBus = require('../events/eventBus');
 const whatsappService = require('../communication/WhatsAppService');
 const internalNotifier = require('./internalNotifier');
+const pushService = require('./PushNotificationService');
 
 console.log('[NotificationService] Initializing listeners...');
 
