@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const googleCalendarService = require('../services/communication/GoogleCalendarService');
 const axios = require('axios');
 const { format, addMinutes, isBefore } = require('date-fns');
 const bcrypt = require('bcryptjs');
@@ -446,6 +447,13 @@ exports.createAppointment = async (req, res) => {
         });
 
         const { appointment, order } = result;
+
+        // 5. Trigger Syncs (Best Effort)
+        try {
+            await googleCalendarService.syncAppointmentToGoogle(appointment.id);
+        } catch (syncErr) {
+            console.error('[Sync] Google Calendar Error:', syncErr.message);
+        }
 
         // --- Notification Trigger (Professional) ---
         try {
