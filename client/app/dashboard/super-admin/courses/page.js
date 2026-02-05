@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { GraduationCap, Plus, Edit, Trash2, PlayCircle, Clock } from 'lucide-react';
-import api from '../../../../lib/clientApi';
+import api from '../../../../lib/api';
 import Skeleton from '../../../../components/ui/Skeleton';
 import CourseFormModal from '../../courses/CourseFormModal';
 import { useRouter } from 'next/navigation';

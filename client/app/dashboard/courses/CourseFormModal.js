@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { X, Check, Loader2, Image as ImageIcon, Link as LinkIcon, Type, AlignLeft, Clock, Tag } from 'lucide-react';
-import api from '../../../lib/clientApi';
+import api from '../../../lib/api';
 
 const courseSchema = z.object({
     title: z.string().min(3, 'Título muito curto'),

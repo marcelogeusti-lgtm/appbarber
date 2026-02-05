@@ -1,7 +1,7 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
 import { PlayCircle, GraduationCap, Clock, ExternalLink } from 'lucide-react';
-import api from '../../../lib/clientApi';
+import api from '../../../lib/api';
 import Skeleton from '../../../components/ui/Skeleton';
 
 export default function CoursesPage() {
