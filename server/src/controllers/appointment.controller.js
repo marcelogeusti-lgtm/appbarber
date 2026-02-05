@@ -234,13 +234,16 @@ exports.createAppointment = async (req, res) => {
             return res.status(400).json({ message: 'Data ou hora inválida.' });
         }
 
-        // --- SAME DAY BUFFER VALIDATION ---
-        const nowSP = utcToZonedTime(new Date(), TIMEZONE);
-        const bufferTime = addMinutes(nowSP, 15);
-        if (isBefore(appointmentDateTime, bufferTime)) {
-            return res.status(400).json({
-                message: 'Não é possível agendar para um horário que já passou ou muito próximo do atual (mínimo 15 min de antecedência).'
-            });
+        // --- SAME DAY BUFFER VALIDATION (GATED) ---
+        const bufferEnabled = await FeatureFlagService.isEnabled('booking_buffer', barbershopId);
+        if (bufferEnabled) {
+            const nowSP = utcToZonedTime(new Date(), TIMEZONE);
+            const bufferTime = addMinutes(nowSP, 15);
+            if (isBefore(appointmentDateTime, bufferTime)) {
+                return res.status(400).json({
+                    message: 'Não é possível agendar para um horário que já passou ou muito próximo do atual (mínimo 15 min de antecedência).'
+                });
+            }
         }
         // ----------------------------------
 
