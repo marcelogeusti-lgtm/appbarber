@@ -12,8 +12,24 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
     // 1. Internal Notification (Critical - should always fire)
     try {
         await internalNotifier.createAppointmentNotification(payload);
+
+        // --- Push Notification Broadcast ---
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        const subs = await prisma.pushSubscription.findMany({ where: { userId: payload.professionalId } });
+
+        if (subs.length > 0) {
+            await pushService.broadcast(subs.map(s => ({
+                endpoint: s.endpoint,
+                keys: { p256dh: s.p256dh, auth: s.auth }
+            })), {
+                title: '📅 Novo Agendamento!',
+                body: `${payload.client.name} marcou ${payload.service.name} para ${new Date(payload.date).toLocaleDateString('pt-BR')} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+                url: '/dashboard/appointments'
+            });
+        }
     } catch (err) {
-        console.error('[NotificationService] Internal Notification Failed:', err);
+        console.error('[NotificationService] Internal/Push Notification Failed:', err);
     }
 
     // 2. WhatsApp Notification (Best Effort - fail safe)

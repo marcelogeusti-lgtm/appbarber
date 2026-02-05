@@ -28,4 +28,32 @@ router.get('/whatsapp/status', protect, async (req, res) => {
     }
 });
 
+// Push Subscription (Register Device)
+router.post('/push/subscribe', protect, async (req, res) => {
+    try {
+        const { subscription } = req.body;
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+
+        await prisma.pushSubscription.upsert({
+            where: { endpoint: subscription.endpoint },
+            update: {
+                p256dh: subscription.keys.p256dh,
+                auth: subscription.keys.auth,
+                userId: req.user.id
+            },
+            create: {
+                endpoint: subscription.endpoint,
+                p256dh: subscription.keys.p256dh,
+                auth: subscription.keys.auth,
+                userId: req.user.id
+            }
+        });
+
+        res.status(201).json({ message: 'Subscribed' });
+    } catch (error) {
+        res.status(500).json({ message: 'Subscription failed' });
+    }
+});
+
 module.exports = router;

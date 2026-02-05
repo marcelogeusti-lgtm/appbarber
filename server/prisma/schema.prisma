@@ -209,6 +209,7 @@ model User {
   googleTokens          Json?    // For Google Calendar OAuth2
   mpPayoutId            String?  // For automated payment splits (Mercado Pago ID)
   enrolledCourses       UserCourse[]
+  pushSubscriptions     PushSubscription[]
 }
 
 model Notification {
@@ -930,4 +931,14 @@ model AuditLog {
   @@index([barbershopId])
   @@index([actorId])
   @@index([entity, entityId])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }
