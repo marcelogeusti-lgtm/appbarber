@@ -226,16 +226,16 @@ export default function SchedulePage() {
         }
     };
 
-    if (loading && professionals.length === 0) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Sincronizando agenda...</div>;
+    if (loading && professionals.length === 0) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs">Sincronizando agenda...</div>;
 
     const selectedProData = professionals.find(p => p.id === selectedPro);
 
     return (
-        <div className="space-y-6 pb-20 text-slate-300">
+        <div className="space-y-6 pb-20 text-muted-foreground">
             {/* Header Redesign */}
-            <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-sm relative overflow-hidden">
+            <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
                 <div className="relative z-10 w-full xl:w-auto">
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-white mb-4">Agenda Operacional</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground mb-4">Agenda Operacional</h1>
 
                     {/* Professional Selector (Dropdown) */}
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -243,30 +243,30 @@ export default function SchedulePage() {
                             <select
                                 value={selectedPro}
                                 onChange={(e) => setSelectedPro(e.target.value)}
-                                className="appearance-none bg-slate-950 text-white pl-12 pr-12 py-4 rounded-2xl border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-black text-xs uppercase tracking-widest cursor-pointer hover:bg-slate-900 transition min-w-[280px]"
+                                className="appearance-none bg-background text-foreground pl-12 pr-12 py-4 rounded-2xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none font-black text-xs uppercase tracking-widest cursor-pointer hover:bg-muted transition min-w-[280px]"
                             >
                                 <option value="all">Todos Profissionais</option>
                                 {professionals.map(pro => (
                                     <option key={pro.id} value={pro.id}>{pro.name}</option>
                                 ))}
                             </select>
-                            <User className="w-5 h-5 text-emerald-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-[10px]">
+                            <User className="w-5 h-5 text-primary absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground text-[10px]">
                                 ▼
                             </div>
                         </div>
 
                         {/* Date Navigation */}
-                        <div className="flex items-center gap-3 bg-slate-950 p-2 rounded-2xl border border-slate-800 w-full sm:w-auto justify-between sm:justify-start">
-                            <button onClick={prev} className="p-2 hover:bg-[#111827] rounded-xl transition shadow-sm"><ChevronLeft className="w-5 h-5 text-slate-500" /></button>
+                        <div className="flex items-center gap-3 bg-background p-2 rounded-2xl border border-border w-full sm:w-auto justify-between sm:justify-start">
+                            <button onClick={prev} className="p-2 hover:bg-muted rounded-xl transition shadow-sm"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
                             <div className="px-4 text-center min-w-[140px]">
-                                <p className="font-black text-xs text-white uppercase tracking-widest">
+                                <p className="font-black text-xs text-foreground uppercase tracking-widest">
                                     {viewMode === 'day' ? format(currentDate, 'dd MMMM', { locale: ptBR }) :
                                         viewMode === 'week' ? `Semana ${format(startOfWeek(currentDate), 'dd/MM')}` :
                                             format(currentDate, 'MMMM yyyy', { locale: ptBR })}
                                 </p>
                             </div>
-                            <button onClick={next} className="p-2 hover:bg-[#111827] rounded-xl transition shadow-sm"><ChevronRight className="w-5 h-5 text-slate-500" /></button>
+                            <button onClick={next} className="p-2 hover:bg-muted rounded-xl transition shadow-sm"><ChevronRight className="w-5 h-5 text-muted-foreground" /></button>
                         </div>
                     </div>
                 </div>
@@ -274,12 +274,12 @@ export default function SchedulePage() {
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto relative z-10">
 
                     {/* View Mode */}
-                    <div className="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 w-full sm:w-auto">
+                    <div className="flex bg-background p-1 rounded-2xl border border-border w-full sm:w-auto">
                         {['day', 'week', 'month'].map(v => (
                             <button
                                 key={v}
                                 onClick={() => setViewMode(v)}
-                                className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === v ? 'bg-[#111827] text-emerald-500 shadow-xl border border-emerald-500/10' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === v ? 'bg-card text-primary shadow-xl border border-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
                             >
                                 {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mês'}
                             </button>
@@ -291,7 +291,7 @@ export default function SchedulePage() {
                     {/* Squeeze In Button */}
                     <button
                         onClick={() => setIsSqueezeInOpen(true)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-100 text-[#111827] px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition shadow-xl shadow-white/5"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-secondary/90 transition shadow-xl shadow-white/5"
                     >
                         <PlusCircle className="w-4 h-4" /> Encaixe Rápido
                     </button>
@@ -299,29 +299,29 @@ export default function SchedulePage() {
             </header>
 
             {/* Tabs Navigation (Only for Day View & Specific Pro preferably, but valid generally) */}
-            <div className="flex items-center gap-4 border-b border-slate-800/50 pb-1 overflow-x-auto">
+            <div className="flex items-center gap-4 border-b border-border/50 pb-1 overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('appointments')}
-                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'appointments' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'appointments' ? 'text-primary border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
                 >
                     Agendamentos
                 </button>
                 <button
                     onClick={() => setActiveTab('waitlist')}
-                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 flex items-center gap-2 ${activeTab === 'waitlist' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 flex items-center gap-2 ${activeTab === 'waitlist' ? 'text-primary border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
                 >
                     Lista de Espera
-                    {waitlist.length > 0 && <span className="bg-emerald-500 text-[#111827] px-1.5 py-0.5 rounded text-[9px]">{waitlist.length}</span>}
+                    {waitlist.length > 0 && <span className="bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-[9px]">{waitlist.length}</span>}
                 </button>
                 <button
                     onClick={() => setActiveTab('availability')}
-                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'availability' ? 'text-emerald-500 border-emerald-500' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+                    className={`pb-4 px-2 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'availability' ? 'text-primary border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
                 >
                     Horários Livres
                 </button>
             </div>
 
-            <div className="bg-[#111827] rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden min-h-[600px]">
+            <div className="bg-card rounded-[2.5rem] border border-border shadow-2xl overflow-hidden min-h-[600px]">
                 {activeTab === 'appointments' && (
                     <>
 
@@ -338,7 +338,7 @@ export default function SchedulePage() {
 
                 {activeTab === 'availability' && (
                     <div className="p-20 text-center">
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Visualização de horários livres em desenvolvimento.</p>
+                        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Visualização de horários livres em desenvolvimento.</p>
                     </div>
                 )}
             </div>
@@ -380,31 +380,31 @@ export default function SchedulePage() {
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Data</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase">Data</label>
                                 <input
                                     type="date"
                                     value={editingAppointment.dateOnly}
                                     onChange={(e) => setEditingAppointment({ ...editingAppointment, dateOnly: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                                    className="w-full bg-background border border-border rounded-xl p-3 text-foreground text-sm outline-none focus:border-primary"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Horário</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase">Horário</label>
                                 <input
                                     type="time"
                                     value={editingAppointment.timeOnly}
                                     onChange={(e) => setEditingAppointment({ ...editingAppointment, timeOnly: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                                    className="w-full bg-background border border-border rounded-xl p-3 text-foreground text-sm outline-none focus:border-primary"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase">Status</label>
                             <select
                                 value={editingAppointment.status}
                                 onChange={(e) => setEditingAppointment({ ...editingAppointment, status: e.target.value })}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                                className="w-full bg-background border border-border rounded-xl p-3 text-foreground text-sm outline-none focus:border-primary"
                             >
                                 <option value="PENDING">Pendente</option>
                                 <option value="CONFIRMED">Confirmado</option>
@@ -415,11 +415,11 @@ export default function SchedulePage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Profissional</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase">Profissional</label>
                             <select
                                 value={editingAppointment.professionalId}
                                 onChange={(e) => setEditingAppointment({ ...editingAppointment, professionalId: e.target.value })}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500"
+                                className="w-full bg-background border border-border rounded-xl p-3 text-foreground text-sm outline-none focus:border-primary"
                             >
                                 {professionals.map(pro => (
                                     <option key={pro.id} value={pro.id}>{pro.name}</option>
@@ -428,11 +428,11 @@ export default function SchedulePage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Notas</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase">Notas</label>
                             <textarea
                                 value={editingAppointment.notes || ''}
                                 onChange={(e) => setEditingAppointment({ ...editingAppointment, notes: e.target.value })}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm outline-none focus:border-emerald-500 h-24 resize-none"
+                                className="w-full bg-background border border-border rounded-xl p-3 text-foreground text-sm outline-none focus:border-primary h-24 resize-none"
                                 placeholder="Notas internas..."
                             />
                         </div>
@@ -446,33 +446,33 @@ export default function SchedulePage() {
 function WaitlistView({ waitlist, professionals }) {
     if (waitlist.length === 0) return (
         <div className="py-40 text-center space-y-6">
-            <div className="w-24 h-24 bg-slate-950 rounded-[2.5rem] border border-slate-800 flex items-center justify-center mx-auto text-slate-700 shadow-inner">
+            <div className="w-24 h-24 bg-card rounded-[2.5rem] border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-inner">
                 <Clock className="w-10 h-10" />
             </div>
             <div className="max-w-xs mx-auto">
-                <h3 className="text-xl font-black text-white uppercase tracking-tighter">Lista Vazia</h3>
-                <p className="text-slate-600 text-[11px] font-bold uppercase tracking-widest mt-2 leading-relaxed">Nenhum cliente na lista de espera para este dia.</p>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tighter">Lista Vazia</h3>
+                <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 leading-relaxed">Nenhum cliente na lista de espera para este dia.</p>
             </div>
         </div>
     );
 
     return (
-        <div className="divide-y divide-slate-800/50">
+        <div className="divide-y divide-border/50">
             {waitlist.map(entry => (
-                <div key={entry.id} className="p-8 hover:bg-emerald-500/5 transition flex items-center justify-between group">
+                <div key={entry.id} className="p-8 hover:bg-primary/5 transition flex items-center justify-between group">
                     <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center text-slate-500 font-black text-xl">
+                        <div className="w-16 h-16 bg-background rounded-2xl border border-border flex items-center justify-center text-muted-foreground font-black text-xl">
                             {entry.clientName?.charAt(0)}
                         </div>
                         <div>
-                            <h4 className="font-black text-lg text-white uppercase tracking-tight">{entry.clientName}</h4>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 mb-2">{entry.service?.name}</p>
-                            <span className="bg-slate-950 text-slate-400 border border-slate-800 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                            <h4 className="font-black text-lg text-foreground uppercase tracking-tight">{entry.clientName}</h4>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 mb-2">{entry.service?.name}</p>
+                            <span className="bg-background text-muted-foreground border border-border px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
                                 Aguardando desde {format(new Date(entry.createdAt), 'HH:mm')}
                             </span>
                         </div>
                     </div>
-                    <button className="bg-emerald-500 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20">
+                    <button className="bg-primary text-primary-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20">
                         Agendar
                     </button>
                 </div>
@@ -487,33 +487,33 @@ function WaitlistView({ waitlist, professionals }) {
 function DayView({ appointments, professionals, selectedPro, onEdit }) {
     if (appointments.length === 0) return <EmptyState />;
     return (
-        <div className="divide-y divide-slate-800/50">
+        <div className="divide-y divide-border/50">
             {appointments.sort((a, b) => new Date(a.date) - new Date(b.date)).map(app => (
-                <div key={app.id} className="p-8 hover:bg-emerald-500/5 transition flex flex-col md:flex-row items-start md:items-center gap-8 group">
-                    <div className="text-center md:border-r border-slate-800 pr-8 min-w-[120px]">
-                        <p className="text-3xl font-black text-white leading-none tracking-tighter">
+                <div key={app.id} className="p-8 hover:bg-primary/5 transition flex flex-col md:flex-row items-start md:items-center gap-8 group">
+                    <div className="text-center md:border-r border-border pr-8 min-w-[120px]">
+                        <p className="text-3xl font-black text-foreground leading-none tracking-tighter">
                             {format(new Date(app.date), 'HH:mm')}
                         </p>
-                        <p className="text-[10px] text-emerald-500 font-black uppercase mt-2 tracking-widest border border-emerald-500/20 px-2 py-0.5 rounded">Confirmado</p>
+                        <p className="text-[10px] text-primary font-black uppercase mt-2 tracking-widest border border-primary/20 px-2 py-0.5 rounded">Confirmado</p>
                     </div>
 
                     <div className="flex-1 space-y-3 cursor-pointer" onClick={() => onEdit && onEdit(app)}>
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center text-slate-500 font-black group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 bg-background rounded-2xl border border-border flex items-center justify-center text-muted-foreground font-black group-hover:scale-110 transition-transform">
                                 {app.client?.name.charAt(0)}
                             </div>
                             <div>
-                                <h4 className="font-black text-lg uppercase tracking-tight text-white group-hover:text-emerald-500 transition-colors">{app.client?.name}</h4>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                                <h4 className="font-black text-lg uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">{app.client?.name}</h4>
+                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-700"></div> {app.client?.phone}
                                 </p>
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-4">
-                            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-300 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 group-hover:border-emerald-500/30 transition-colors">
-                                <Scissors className="w-3.5 h-3.5 text-emerald-500" /> {app.service?.name}
+                            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-background px-4 py-2 rounded-xl border border-border group-hover:border-primary/30 transition-colors">
+                                <Scissors className="w-3.5 h-3.5 text-primary" /> {app.service?.name}
                             </span>
-                            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-950/50 px-4 py-2 rounded-xl border border-slate-800">
+                            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-background/50 px-4 py-2 rounded-xl border border-border">
                                 <User className="w-3.5 h-3.5 text-slate-600" /> {app.summaryProName || professionals.find(p => p.id === app.professionalId)?.name}
                             </span>
                             {app.isSqueezeIn && (
@@ -528,7 +528,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit }) {
                         <a
                             href={`https://wa.me/55${app.client?.phone?.replace(/\D/g, '')}?text=Olá ${app.client?.name}! Confirmamos seu horário às ${format(new Date(app.date), 'HH:mm')} na Corte %26 Conexão.`}
                             target="_blank"
-                            className="flex-1 md:flex-none bg-emerald-500 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20 text-center"
+                            className="flex-1 md:flex-none bg-primary text-primary-foreground px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 text-center"
                         >
                             WhatsApp
                         </a>
@@ -543,7 +543,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit }) {
                                     }
                                 }
                             }}
-                            className="flex-1 md:flex-none bg-slate-950 text-red-500 border border-slate-800 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition text-center"
+                            className="flex-1 md:flex-none bg-card text-destructive border border-border px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive hover:text-destructive-foreground transition text-center"
                         >
                             Excluir
                         </button>
@@ -568,11 +568,11 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                     <div
                         key={i}
                         onClick={() => onDayClick(day)} // Still opens DayDetailsModal if clicking emptiness
-                        className={`min-h-[500px] border-r border-slate-800 flex flex-col cursor-pointer hover:bg-slate-800/20 transition ${isToday ? 'bg-emerald-500/5' : ''}`}
+                        className={`min-h-[500px] border-r border-border flex flex-col cursor-pointer hover:bg-muted/20 transition ${isToday ? 'bg-primary/5' : ''}`}
                     >
-                        <div className="p-6 text-center border-b border-slate-800">
-                            <p className="text-[10px] font-black uppercase text-slate-600 tracking-[0.2em] mb-2">{format(day, 'EEE', { locale: ptBR })}</p>
-                            <p className={`w-10 h-10 flex items-center justify-center mx-auto rounded-xl font-black text-sm tracking-tighter ${isToday ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20' : 'text-slate-200 border border-slate-800 bg-slate-950'}`}>
+                        <div className="p-6 text-center border-b border-border">
+                            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] mb-2">{format(day, 'EEE', { locale: ptBR })}</p>
+                            <p className={`w-10 h-10 flex items-center justify-center mx-auto rounded-xl font-black text-sm tracking-tighter ${isToday ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/20' : 'text-muted-foreground border border-border bg-card'}`}>
                                 {format(day, 'd')}
                             </p>
                         </div>
@@ -584,20 +584,20 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                                         e.stopPropagation(); // Prevent opening DayDetailsModal
                                         onEdit && onEdit(app);
                                     }}
-                                    className="p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-sm hover:border-emerald-500/40 transition-all group group hover:bg-slate-900 cursor-pointer"
+                                    className="p-4 bg-background rounded-2xl border border-border shadow-sm hover:border-primary/40 transition-all group group hover:bg-card cursor-pointer"
                                 >
-                                    <p className="font-black text-[11px] text-white leading-none tracking-widest">{format(new Date(app.date), 'HH:mm')}</p>
-                                    <p className="text-[10px] font-bold text-slate-500 mt-2 truncate group-hover:text-slate-300 transition-colors uppercase">{app.client?.name}</p>
+                                    <p className="font-black text-[11px] text-foreground leading-none tracking-widest">{format(new Date(app.date), 'HH:mm')}</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground mt-2 truncate group-hover:text-foreground transition-colors uppercase">{app.client?.name}</p>
                                     <div className="flex items-center gap-1.5 mt-2">
-                                        <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
-                                        <p className="text-[9px] text-emerald-500 font-black uppercase truncate tracking-tighter">{app.service?.name}</p>
+                                        <div className="w-1 h-1 rounded-full bg-primary"></div>
+                                        <p className="text-[9px] text-primary font-black uppercase truncate tracking-tighter">{app.service?.name}</p>
                                     </div>
                                     {app.isSqueezeIn && <div className="mt-1 text-[8px] text-orange-500 uppercase font-black">Encaixe</div>}
                                 </div>
                             ))}
                             {dayApps.length === 0 && (
                                 <div className="h-full flex items-center justify-center opacity-10">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] -rotate-90 text-slate-700">Disponível</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] -rotate-90 text-muted-foreground">Disponível</p>
                                 </div>
                             )}
                         </div>
@@ -617,8 +617,8 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
     return (
         <div className="grid grid-cols-7 h-full">
             {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
-                <div key={d} className="p-6 text-center border-b border-slate-800 bg-slate-950/20">
-                    <p className="text-[10px] font-black uppercase text-slate-600 tracking-[0.2em]">{d}</p>
+                <div key={d} className="p-6 text-center border-b border-border bg-card/20">
+                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">{d}</p>
                 </div>
             ))}
             {days.map((day, i) => {
@@ -629,14 +629,14 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
                     <div
                         key={i}
                         onClick={() => onDayClick(day)}
-                        className={`min-h-[140px] p-4 border-r border-b border-slate-800 group hover:bg-emerald-500/5 transition-all cursor-pointer ${!isCurrentMonth ? 'opacity-10 bg-slate-950 pointer-events-none' : ''}`}
+                        className={`min-h-[140px] p-4 border-r border-b border-border group hover:bg-primary/5 transition-all cursor-pointer ${!isCurrentMonth ? 'opacity-10 bg-card pointer-events-none' : ''}`}
                     >
                         <div className="flex justify-between items-center mb-4">
-                            <span className={`text-[12px] font-black tracking-tighter ${isToday ? 'bg-emerald-500 text-white w-7 h-7 flex items-center justify-center rounded-lg shadow-lg shadow-emerald-500/20' : 'text-slate-600'}`}>
+                            <span className={`text-[12px] font-black tracking-tighter ${isToday ? 'bg-primary text-primary-foreground w-7 h-7 flex items-center justify-center rounded-lg shadow-lg shadow-primary/20' : 'text-muted-foreground'}`}>
                                 {format(day, 'd')}
                             </span>
                             {dayApps.length > 0 && (
-                                <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter border border-emerald-500/20">
+                                <span className="bg-primary/10 text-primary text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter border border-primary/20">
                                     {dayApps.length} Jobs
                                 </span>
                             )}
@@ -649,13 +649,13 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
                                         e.stopPropagation();
                                         onEdit && onEdit(app);
                                     }}
-                                    className="text-[8px] bg-slate-950 px-2 py-1.5 rounded-lg font-black text-slate-400 truncate border border-slate-800 group-hover:border-emerald-500/30 hover:border-emerald-500 transition-colors cursor-pointer"
+                                    className="text-[8px] bg-background px-2 py-1.5 rounded-lg font-black text-muted-foreground truncate border border-border group-hover:border-primary/30 hover:border-primary transition-colors cursor-pointer"
                                 >
-                                    <span className="text-emerald-500 font-mono">{format(new Date(app.date), 'HH:mm')}</span> {app.client?.name}
+                                    <span className="text-primary font-mono">{format(new Date(app.date), 'HH:mm')}</span> {app.client?.name}
                                 </div>
                             ))}
                             {dayApps.length > 3 && (
-                                <p className="text-[9px] font-black text-slate-700 text-center uppercase tracking-widest mt-2">+ {dayApps.length - 3} Horários</p>
+                                <p className="text-[9px] font-black text-muted-foreground text-center uppercase tracking-widest mt-2">+ {dayApps.length - 3} Horários</p>
                             )}
                         </div>
                     </div>
@@ -669,12 +669,12 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
 function EmptyState() {
     return (
         <div className="py-40 text-center space-y-6">
-            <div className="w-24 h-24 bg-slate-950 rounded-[2.5rem] border border-slate-800 flex items-center justify-center mx-auto text-slate-700 shadow-2xl">
+            <div className="w-24 h-24 bg-card rounded-[2.5rem] border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-2xl">
                 <CalendarIcon className="w-10 h-10" />
             </div>
             <div className="max-w-xs mx-auto">
-                <h3 className="text-xl font-black text-white uppercase tracking-tighter">Agenda Vazia</h3>
-                <p className="text-slate-600 text-[11px] font-bold uppercase tracking-widest mt-2 leading-relaxed">Nenhum compromisso agendado para o período selecionado.</p>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tighter">Agenda Vazia</h3>
+                <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 leading-relaxed">Nenhum compromisso agendado para o período selecionado.</p>
             </div>
         </div>
     );

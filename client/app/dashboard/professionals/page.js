@@ -1,247 +1,232 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
-import {
-    Plus, User, Phone, Mail, Clock, Shield, X, Check,
-    Calendar, Trash2, Edit, MapPin, Eye, EyeOff, Building
-} from 'lucide-react';
-import ProfessionalModal from '../../../components/ProfessionalModal';
+import { Plus, Trash2, Edit2, X, User, Phone, Mail, Award, Scissors } from 'lucide-react';
 
 export default function ProfessionalsPage() {
-    const [pros, setPros] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [selectedPro, setSelectedPro] = useState(null);
+    const queryClient = useQueryClient();
+    const [isAdding, setIsAdding] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', specialty: '', bio: '' });
+    const [user, setUser] = useState(null);
+    const [barbershopId, setBarbershopId] = useState(null);
 
     useEffect(() => {
-        fetchPros();
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const parsed = JSON.parse(userStr);
+            setUser(parsed);
+            const bId = parsed.barbershopId || parsed.barbershop?.id || parsed.ownedBarbershops?.[0]?.id;
+            setBarbershopId(bId);
+        }
     }, []);
 
-    const fetchPros = async () => {
+    // Queries
+    const { data: professionals = [], isLoading: loadingPros } = useQuery({
+        queryKey: ['professionals', barbershopId],
+        queryFn: async () => {
+            const res = await api.get(`/professionals?barbershopId=${barbershopId}`);
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!barbershopId,
+    });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) return;
-            const user = JSON.parse(userStr);
-            const res = await api.get(`/professionals?barbershopId=${user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id}`);
-            setPros(res.data);
-            setLoading(false);
+            if (!barbershopId) {
+                alert('Barbearia não encontrada.');
+                return;
+            }
+
+            const payload = { ...formData, barbershopId };
+
+            if (editingId) {
+                await api.put(`/professionals/${editingId}`, payload);
+            } else {
+                await api.post('/professionals', payload);
+            }
+
+            setFormData({ name: '', email: '', phone: '', specialty: '', bio: '' });
+            setIsAdding(false);
+            setEditingId(null);
+            queryClient.invalidateQueries(['professionals', barbershopId]);
         } catch (err) {
-            console.error(err);
-            setLoading(false);
+            alert('Erro ao salvar profissional');
         }
     };
 
-    const handleEditPro = (pro) => {
-        setSelectedPro(pro);
-        setModalOpen(true);
+    const handleEdit = (pro) => {
+        setFormData({
+            name: pro.name || pro.user?.name || '',
+            email: pro.email || pro.user?.email || '',
+            phone: pro.phone || pro.user?.phone || '',
+            specialty: pro.specialty || '',
+            bio: pro.bio || ''
+        });
+        setEditingId(pro.id);
+        setIsAdding(true);
     };
 
-    const handleAddPro = () => {
-        setSelectedPro(null);
-        setModalOpen(true);
-    };
-
-    const handleDeletePro = async (proId, proName) => {
-        if (!confirm(`⚠️ AVISO DE EXCLUSÃO DEFINITIVA: 
-
-Você está prestes a apagar TODOS os dados do profissional ${proName} permanentemente.
-
-Esta ação irá REMOVER:
-- Perfil e Dados de Acesso
-- Agenda e Horários
-- TODO o histórico de Agendamentos vinculados
-- Registros de Comissões e Vendas
-- Lista de Espera
-
-Esta ação é IRREVERSÍVEL e não pode ser desfeita. O e-mail, CPF e Telefone serão liberados para um novo cadastro totalmente do zero.
-
-Deseja realmente apagar tudo agora?`)) return;
-
+    const handleDelete = async (id) => {
+        if (!confirm('Tem certeza que deseja excluir esse profissional?')) return;
         try {
-            await api.delete(`/professionals/${proId}`);
-            await fetchPros();
-            alert('✅ Profissional removido com sucesso!');
+            await api.delete(`/professionals/${id}`);
+            queryClient.invalidateQueries(['professionals', barbershopId]);
         } catch (err) {
-            console.error(err);
-            alert('❌ Erro ao remover: ' + (err.response?.data?.message || err.message));
+            alert('Erro ao excluir profissional');
         }
     };
 
-    if (loading) return (
-        <div className="p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-            <span className="font-black uppercase text-[10px] tracking-widest">Carregando sua equipe...</span>
-        </div>
-    );
+    if (loadingPros) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Carregando profissionais...</div>;
 
     return (
         <div className="space-y-8 pb-20">
-            {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] -mr-32 -mt-32" />
-                <div className="flex items-center gap-6 relative z-10">
-                    <div className="p-4 bg-emerald-500/10 text-emerald-500 rounded-[1.5rem] border border-emerald-500/20 shadow-inner">
-                        <User className="w-10 h-10" />
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
+                        <User className="w-8 h-8" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black uppercase tracking-tighter text-foreground">Equipe</h1>
-                        <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest italic mt-1">Gerencie talentos, horários e permissões.</p>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Equipe de Profissionais</h1>
+                        <p className="text-muted-foreground text-sm font-medium italic">Gerencie os profissionais que realizam atendimentos no seu estabelecimento.</p>
                     </div>
                 </div>
-                <button
-                    onClick={handleAddPro}
-                    className="relative z-10 flex items-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/30 hover:bg-primary/90 hover:scale-105 transition-all active:scale-95"
-                >
-                    <Plus className="w-5 h-5" /> Adicionar Profissional
-                </button>
+                {!isAdding && (
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" /> Novo Profissional
+                    </button>
+                )}
             </header>
 
-            {/* List */}
+            {isAdding && (
+                <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl animate-in fade-in slide-in-from-top-4">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-black uppercase tracking-widest text-foreground">
+                            {editingId ? 'Editar Perfil' : 'Novo Integrante'}
+                        </h2>
+                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', email: '', phone: '', specialty: '', bio: '' }); }} className="text-muted-foreground hover:text-destructive transition-colors">
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nome Completo</label>
+                            <input
+                                placeholder="Ex: Marcelo Geusti"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">E-mail de Acesso</label>
+                            <input
+                                type="email"
+                                placeholder="email@exemplo.com"
+                                value={formData.email}
+                                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Celular / WhatsApp</label>
+                            <input
+                                placeholder="(00) 00000-0000"
+                                value={formData.phone}
+                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Especialidade Principal</label>
+                            <input
+                                placeholder="Ex: Barbeiro Master / Colorista"
+                                value={formData.specialty}
+                                onChange={e => setFormData({ ...formData, specialty: e.target.value })}
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
+                            />
+                        </div>
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Bio / Descrição (Opcional)</label>
+                            <textarea
+                                placeholder="Conte um pouco sobre a experiência..."
+                                value={formData.bio}
+                                onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner min-h-[120px]"
+                            />
+                        </div>
+                        <div className="md:col-span-2 pt-4">
+                            <button type="submit" className="w-full bg-primary text-primary-foreground p-5 rounded-2xl font-black uppercase tracking-[0.2em] transition hover:bg-primary/90 shadow-2xl shadow-primary/20 active:scale-95">
+                                {editingId ? 'ATUALIZAR PROFISSIONAL' : 'CADASTRAR NA EQUIPE'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {pros.map(pro => (
-                    <div key={pro.id} className={`group bg-card rounded-[2.5rem] border transition-all duration-500 relative overflow-hidden flex flex-col ${pro.active ? 'border-border hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5' : 'border-destructive/20 opacity-70'
-                        }`}>
+                {professionals.map(pro => (
+                    <div key={pro.id} className="bg-card p-10 rounded-[2.5rem] border border-border hover:border-primary/50 transition-all group relative flex flex-col items-center text-center shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                        <div className="w-24 h-24 rounded-[2rem] bg-muted mb-6 flex items-center justify-center border-4 border-background shadow-inner relative group-hover:scale-105 transition-transform duration-500 overflow-hidden">
+                            {pro.user?.avatarUrl ? (
+                                <img src={pro.user.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
+                            ) : <User className="w-10 h-10 text-primary" />}
+                        </div>
 
-                        {/* Status Batch */}
-                        {!pro.active && (
-                            <div className="absolute top-6 left-6 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">
-                                Inativo
+                        <div className="mb-6">
+                            <h3 className="font-black text-xl text-foreground uppercase tracking-tight group-hover:text-primary transition-colors leading-tight">
+                                {pro.name || pro.user?.name}
+                            </h3>
+                            <p className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest mt-2 border border-primary/20 inline-block">
+                                {pro.specialty || 'Profissional'}
+                            </p>
+                        </div>
+
+                        <div className="space-y-3 w-full border-t border-border/50 pt-6 mb-8">
+                            <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground justify-center">
+                                <Phone className="w-4 h-4 text-primary" />
+                                <span>{pro.phone || pro.user?.phone || 'N/A'}</span>
                             </div>
-                        )}
+                            <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground justify-center">
+                                <Mail className="w-4 h-4 text-primary" />
+                                <span className="truncate max-w-[200px]">{pro.email || pro.user?.email || 'N/A'}</span>
+                            </div>
+                        </div>
 
-                        {/* Action Buttons */}
-                        <div className="absolute top-6 right-6 z-10 flex gap-2">
+                        <div className="flex gap-4 w-full mt-auto">
                             <button
-                                onClick={() => handleEditPro(pro)}
-                                className="p-3 rounded-2xl bg-muted/80 backdrop-blur-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/10 transition-all"
-                                title="Editar"
+                                onClick={() => handleEdit(pro)}
+                                className="flex-1 bg-muted border border-border p-4 rounded-2xl flex justify-center items-center text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all font-black text-[10px] uppercase tracking-widest"
                             >
-                                <Edit className="w-4 h-4" />
+                                <Edit2 className="w-4 h-4 mr-2" /> Editar
                             </button>
                             <button
-                                onClick={() => handleDeletePro(pro.id, pro.name)}
-                                className="p-3 rounded-2xl bg-muted/80 backdrop-blur-md border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 hover:bg-destructive/10 transition-all"
-                                title="Remover"
+                                onClick={() => handleDelete(pro.id)}
+                                className="p-4 bg-muted border border-border rounded-2xl flex justify-center items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
                         </div>
-
-                        {/* Card Image/Avatar Header */}
-                        <div className="h-32 bg-muted relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card" />
-                            {pro.professionalProfile?.showPublicly ? (
-                                <div className="absolute top-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20 backdrop-blur-md">
-                                    <Eye className="w-3 h-3" /> Público
-                                </div>
-                            ) : (
-                                <div className="absolute top-4 left-4 flex items-center gap-1 text-[8px] font-black uppercase text-muted-foreground bg-muted/10 px-2 py-1 rounded-full border border-border backdrop-blur-md">
-                                    <EyeOff className="w-3 h-3" /> Privado
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="px-8 pb-8 -mt-12 flex-1 flex flex-col relative z-20">
-                            <div className="flex items-end gap-4 mb-6">
-                                <div className="w-24 h-24 rounded-[2rem] bg-card border-4 border-card shadow-2xl overflow-hidden group-hover:scale-105 transition-transform duration-500 relative shrink-0">
-                                    {pro.avatarUrl ? (
-                                        <img src={pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center font-black text-4xl text-primary">
-                                            {pro.name.charAt(0)}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="pb-2">
-                                    <h3 className="font-black text-2xl text-foreground uppercase tracking-tighter leading-none">{pro.name}</h3>
-                                    <p className="text-primary text-[10px] font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
-                                        <Shield className="w-3 h-3" /> {pro.professionalProfile?.position || 'Profissional'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 mb-8 flex-1">
-                                <div className="flex items-center gap-3 text-muted-foreground">
-                                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center border border-border shadow-inner group-hover:text-primary transition-colors">
-                                        <Phone className="w-4 h-4" />
-                                    </div>
-                                    <span className="font-bold text-sm tracking-tight">{pro.phone || 'N/A'}</span>
-                                </div>
-                                <div className="flex items-center gap-3 text-muted-foreground">
-                                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center border border-border shadow-inner group-hover:text-primary transition-colors">
-                                        <Mail className="w-4 h-4" />
-                                    </div>
-                                    <span className="font-bold text-sm tracking-tight truncate">{pro.email}</span>
-                                </div>
-                                {pro.professionalProfile?.city && (
-                                    <div className="flex items-center gap-3 text-muted-foreground">
-                                        <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center border border-border shadow-inner group-hover:text-primary transition-colors">
-                                            <MapPin className="w-4 h-4" />
-                                        </div>
-                                        <span className="font-bold text-sm tracking-tight truncate">{pro.professionalProfile.city} - {pro.professionalProfile.state}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-muted/50 p-4 rounded-3xl border border-border group-hover:border-primary/20 transition-all cursor-default">
-                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-1">Agenda</p>
-                                    <div className="flex items-center gap-2 text-foreground">
-                                        <Clock className="w-3 h-3 text-primary" />
-                                        <span className="text-[10px] font-black">{pro.professionalProfile?.schedules?.filter(s => !s.isOff).length || 0} Dias</span>
-                                    </div>
-                                </div>
-                                <div className="bg-muted/50 p-4 rounded-3xl border border-border group-hover:border-primary/20 transition-all cursor-default">
-                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-1">Serviços</p>
-                                    <div className="flex items-center gap-2 text-foreground">
-                                        <Building className="w-3 h-3 text-primary" />
-                                        <span className="text-[10px] font-black">{pro.professionalProfile?.services?.length || 0} Itens</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => handleEditPro(pro)}
-                            className="m-8 mt-0 bg-secondary border border-border p-4 rounded-2xl font-black text-[10px] text-muted-foreground uppercase tracking-[0.2em] group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary group-hover:shadow-xl group-hover:shadow-primary/20 transition-all flex items-center justify-center gap-3"
-                        >
-                            <Edit className="w-4 h-4" /> Gerenciar Profile
-                        </button>
                     </div>
                 ))}
-
-                {/* Empty State */}
-                {pros.length === 0 && (
-                    <div className="col-span-full py-20 bg-card rounded-[3rem] border-2 border-dashed border-border flex flex-col items-center justify-center text-center">
-                        <div className="w-24 h-24 bg-muted rounded-[2rem] flex items-center justify-center mb-6 border border-border">
-                            <User className="w-12 h-12 text-muted-foreground" />
-                        </div>
-                        <h3 className="text-2xl font-black text-foreground uppercase tracking-tighter">Nenhum Profissional Cadastrado</h3>
-                        <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest mt-2">Comece adicionando seu primeiro membro de equipe.</p>
-                        <button
-                            onClick={handleAddPro}
-                            className="mt-8 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-emerald-500/30 hover:bg-emerald-600 transition"
-                        >
-                            Cadastrar Agora
-                        </button>
-                    </div>
-                )}
             </div>
 
-            <ProfessionalModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                professional={selectedPro}
-                onSuccess={fetchPros}
-            />
+            {professionals.length === 0 && !isAdding && (
+                <div className="text-center py-32 bg-card rounded-[3rem] border-2 border-dashed border-border shadow-inner">
+                    <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6 text-muted-foreground/30">
+                        <Award className="w-10 h-10" />
+                    </div>
+                    <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest italic">Nenhum profissional na equipe ainda.</p>
+                </div>
+            )}
         </div>
     );
 }
-
-const Loader2 = ({ className }) => (
-    <div className={`animate-spin ${className}`}>
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2V6M12 18V22M6 12H2M22 12H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    </div>
-);

@@ -41,25 +41,23 @@ export default function OrderDetailsPage() {
             setLoading(false);
         } catch (err) {
             console.error(err);
-            // alert('Erro ao carregar comanda');
         }
     };
 
     const fetchResources = async () => {
-        // Fetch products and services for the add item dropdowns
         try {
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id; // Simplify getting ID
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
             if (bId) {
                 const [prodRes, servRes] = await Promise.all([
                     api.get(`/products?barbershopId=${bId}`),
                     api.get(`/services?barbershopId=${bId}`)
                 ]);
-                setProducts(prodRes.data);
-                setServices(servRes.data);
+                setProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
+                setServices(Array.isArray(servRes.data) ? servRes.data : []);
             }
         } catch (err) {
             console.error("Error fetching resources", err);
@@ -85,7 +83,7 @@ export default function OrderDetailsPage() {
             }
 
             await api.post(`/orders/${id}/items`, payload);
-            fetchOrder(); // Refresh
+            fetchOrder();
         } catch (err) {
             alert('Erro ao adicionar item');
         }
@@ -138,7 +136,6 @@ export default function OrderDetailsPage() {
             });
             fetchOrder();
 
-            // Reset States
             setShowPaymentModal(false);
             setSelectedMethod('');
             setGeneratedPayment(null);
@@ -155,7 +152,6 @@ export default function OrderDetailsPage() {
     const handleGeneratePix = async () => {
         setProcessing(true);
         try {
-            // Calculate final value
             const finalValue = order.subtotal - (order.discount || 0);
 
             const res = await api.post('/payments/create', {
@@ -168,7 +164,6 @@ export default function OrderDetailsPage() {
 
             setGeneratedPayment(res.data);
 
-            // Start Polling
             const interval = setInterval(() => checkPaymentStatus(res.data.paymentId), 3000);
             setPaymentStatusCheckInterval(interval);
 
@@ -184,10 +179,8 @@ export default function OrderDetailsPage() {
         try {
             const res = await api.get(`/payments/${paymentId}`);
             if (res.data.status === 'paid' || res.data.status === 'PAID') {
-                clearInterval(paymentStatusCheckInterval);
+                if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval);
                 setPaymentStatusCheckInterval(null);
-
-                // Close Order Automatically
                 alert('Pagamento Pix Confirmado!');
                 await handleConfirmPayment(true);
             }
@@ -196,37 +189,35 @@ export default function OrderDetailsPage() {
         }
     };
 
-    const formatCurrency = (value) => {
-        const num = Number(value);
-        return isNaN(num) ? '0.00' : num.toFixed(2);
-    };
+    const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-    if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Carregando comanda...</div>;
-    if (!order) return <div className="p-8 text-center text-red-500 font-bold">Comanda nÃ£o encontrada</div>;
+    if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Sincronizando comanda...</div>;
+    if (!order) return <div className="p-8 text-center text-destructive font-black uppercase text-xs tracking-widest">Comanda não encontrada</div>;
 
     const isClosed = order.status === 'CLOSED' || order.status === 'PAID';
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-xl">
-                <div className="flex items-center gap-6">
-                    <div className={`p-4 rounded-3xl ${isClosed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-blue-500/20 text-blue-500'}`}>
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32" />
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className={`p-4 rounded-3xl border shadow-inner ${isClosed ? 'bg-primary/10 text-primary border-primary/20' : 'bg-secondary/10 text-secondary border-secondary/20'}`}>
                         <Receipt className="w-10 h-10" />
                     </div>
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Comanda #{order.id.slice(0, 6)}</h1>
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isClosed
-                                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                                : 'bg-blue-500/10 border-blue-500/50 text-blue-500'
+                            <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Comanda #{order.id.slice(0, 6)}</h1>
+                            <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${isClosed
+                                ? 'bg-primary/10 border-primary/30 text-primary'
+                                : 'bg-secondary/10 border-secondary/30 text-secondary-foreground'
                                 }`}>
                                 {isClosed ? 'Finalizada' : 'Aberta'}
                             </span>
                         </div>
-                        <div className="flex items-center gap-4 text-slate-400 text-sm font-medium">
-                            <span className="flex items-center gap-1"><User className="w-4 h-4" /> {order.client?.name || 'Cliente Recorrente'}</span>
-                            <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {new Date(order.createdAt).toLocaleDateString()}</span>
+                        <div className="flex items-center gap-4 text-muted-foreground text-sm font-bold uppercase tracking-widest italic">
+                            <span className="flex items-center gap-2"><User className="w-4 h-4 text-primary" /> {order.client?.name || order.guestName || 'Venda Avulsa'}</span>
+                            <span className="flex items-center gap-2 text-[10px]"><Calendar className="w-4 h-4" /> {new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
                         </div>
                     </div>
                 </div>
@@ -234,9 +225,9 @@ export default function OrderDetailsPage() {
                 {!isClosed && (
                     <button
                         onClick={handleOpenPayment}
-                        className="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 transition flex items-center gap-2"
+                        className="relative z-10 bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center gap-3"
                     >
-                        <CheckCircle className="w-5 h-5" /> Finalizar Conta
+                        <CheckCircle className="w-6 h-6" /> Finalizar Conta
                     </button>
                 )}
             </header>
@@ -244,35 +235,35 @@ export default function OrderDetailsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Items List */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-[#111827] rounded-[2.5rem] border border-slate-800 overflow-hidden shadow-lg">
-                        <div className="p-8 border-b border-slate-800 flex justify-between items-center">
-                            <h3 className="text-white font-bold uppercase tracking-wide flex items-center gap-2">
-                                <Receipt className="w-5 h-5 text-slate-500" /> Itens do Pedido
+                    <div className="bg-card rounded-[2.5rem] border border-border overflow-hidden shadow-sm">
+                        <div className="p-8 border-b border-border bg-muted/20 flex justify-between items-center">
+                            <h3 className="text-foreground font-black uppercase text-sm tracking-widest flex items-center gap-3">
+                                <Receipt className="w-5 h-5 text-primary" /> Itens do Pedido
                             </h3>
                         </div>
-                        <div className="p-6 space-y-4">
+                        <div className="p-8 space-y-4">
                             {order.items?.map(item => (
-                                <div key={item.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-800 group hover:border-slate-700 transition">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-slate-800 rounded-xl text-slate-400">
-                                            {item.type === 'SERVICE' ? <Scissors className="w-5 h-5" /> : <Package className="w-5 h-5" />}
+                                <div key={item.id} className="flex items-center justify-between p-6 bg-background rounded-3xl border border-border group hover:border-primary/30 transition-all">
+                                    <div className="flex items-center gap-5">
+                                        <div className="p-4 bg-muted rounded-2xl text-muted-foreground border border-border group-hover:text-primary transition-colors">
+                                            {item.type === 'SERVICE' ? <Scissors className="w-6 h-6" /> : <Package className="w-6 h-6" />}
                                         </div>
                                         <div>
-                                            <p className="text-white font-bold">{item.service?.name || item.product?.name || 'Item desconhecido'}</p>
-                                            <p className="text-slate-500 text-xs font-medium uppercase tracking-wider">{item.type === 'SERVICE' ? 'ServiÃ§o' : 'Produto'}</p>
+                                            <p className="text-foreground font-black uppercase text-sm tracking-tight">{item.service?.name || item.product?.name || 'Item desconhecido'}</p>
+                                            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em] mt-1">{item.type === 'SERVICE' ? 'Serviço' : 'Produto'}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-8">
                                         <div className="text-right">
-                                            <p className="text-white font-bold">R$ {formatCurrency(item.total)}</p>
-                                            <p className="text-slate-600 text-xs">{item.quantity}x R$ {formatCurrency(item.unitPrice)}</p>
+                                            <p className="text-primary font-black text-xl uppercase tracking-tighter">{formatBRL(item.total)}</p>
+                                            <p className="text-muted-foreground text-[10px] uppercase font-bold">{item.quantity}x R$ {formatBRL(item.unitPrice)}</p>
                                         </div>
                                         {!isClosed && (
                                             <button
                                                 onClick={() => handleRemoveItem(item.id)}
-                                                className="p-2 text-red-500 bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-500 hover:text-white"
+                                                className="p-3 text-destructive bg-destructive/5 rounded-xl border border-transparent hover:border-destructive/30 hover:bg-destructive/10 transition-all group-hover:opacity-100 opacity-0 md:opacity-100"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         )}
                                     </div>
@@ -280,56 +271,56 @@ export default function OrderDetailsPage() {
                             ))}
 
                             {order.items?.length === 0 && (
-                                <div className="text-center py-12 text-slate-500 font-medium italic">
-                                    Nenhum item adicionado ainda.
+                                <div className="text-center py-24 text-muted-foreground font-black uppercase tracking-widest text-[10px] italic bg-muted/10 rounded-3xl border-2 border-dashed border-border">
+                                    Nenhum item adicionado à comanda.
                                 </div>
                             )}
                         </div>
 
                         {!isClosed && (
-                            <div className="p-6 bg-slate-900/30 border-t border-slate-800 grid grid-cols-2 gap-4">
+                            <div className="p-8 bg-muted/30 border-t border-border grid grid-cols-2 gap-6">
                                 {/* Add Service Dropdown */}
                                 <div className="relative group">
-                                    <button className="w-full p-4 bg-blue-500/10 rounded-2xl border border-blue-500/30 text-blue-400 font-bold text-xs uppercase tracking-wider hover:bg-blue-500/20 transition flex items-center justify-center gap-2">
-                                        <Scissors className="w-4 h-4" /> Add ServiÃ§o
+                                    <button className="w-full p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                        <Scissors className="w-5 h-5" /> Add Serviço
                                     </button>
-                                    <div className="absolute bottom-full left-0 w-full mb-2 bg-[#111827] border border-blue-500/30 rounded-xl shadow-xl overflow-hidden hidden group-hover:block max-h-60 overflow-y-auto z-10">
+                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
                                         {services.length > 0 ? services.map(serv => (
                                             <button
                                                 key={serv.id}
                                                 onClick={() => handleAddItem('SERVICE', serv.id)}
-                                                className="w-full text-left p-3 hover:bg-slate-800 text-slate-300 text-xs font-bold border-b border-slate-800 last:border-0 transition"
+                                                className="w-full text-left p-4 hover:bg-muted text-foreground text-xs font-black uppercase tracking-tight border-b border-border/50 last:border-0 transition"
                                             >
                                                 <div className="flex justify-between items-center">
                                                     <span>{serv.name}</span>
-                                                    <span className="text-blue-400">R$ {formatCurrency(serv.price)}</span>
+                                                    <span className="text-primary">{formatBRL(serv.price)}</span>
                                                 </div>
                                             </button>
                                         )) : (
-                                            <div className="p-3 text-center text-slate-500 text-xs">Nenhum serviÃ§o disponÃ­vel</div>
+                                            <div className="p-4 text-center text-muted-foreground text-[10px] font-black uppercase">Nenhum serviço disponível</div>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Add Product Dropdown */}
                                 <div className="relative group">
-                                    <button className="w-full p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 text-emerald-400 font-bold text-xs uppercase tracking-wider hover:bg-emerald-500/20 transition flex items-center justify-center gap-2">
-                                        <Package className="w-4 h-4" /> Add Produto
+                                    <button className="w-full p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                        <Package className="w-5 h-5" /> Add Produto
                                     </button>
-                                    <div className="absolute bottom-full left-0 w-full mb-2 bg-[#111827] border border-emerald-500/30 rounded-xl shadow-xl overflow-hidden hidden group-hover:block max-h-60 overflow-y-auto z-10">
+                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
                                         {products.length > 0 ? products.map(prod => (
                                             <button
                                                 key={prod.id}
                                                 onClick={() => handleAddItem('PRODUCT', prod.id)}
-                                                className="w-full text-left p-3 hover:bg-slate-800 text-slate-300 text-xs font-bold border-b border-slate-800 last:border-0 transition"
+                                                className="w-full text-left p-4 hover:bg-muted text-foreground text-xs font-black uppercase tracking-tight border-b border-border/50 last:border-0 transition"
                                             >
                                                 <div className="flex justify-between items-center">
                                                     <span>{prod.name}</span>
-                                                    <span className="text-emerald-400">R$ {formatCurrency(prod.price)}</span>
+                                                    <span className="text-primary">{formatBRL(prod.price)}</span>
                                                 </div>
                                             </button>
                                         )) : (
-                                            <div className="p-3 text-center text-slate-500 text-xs">Nenhum produto disponÃ­vel</div>
+                                            <div className="p-4 text-center text-muted-foreground text-[10px] font-black uppercase">Nenhum produto disponível</div>
                                         )}
                                     </div>
                                 </div>
@@ -340,31 +331,33 @@ export default function OrderDetailsPage() {
 
                 {/* Summary */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-lg sticky top-6">
-                        <h3 className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-6">Resumo do Pagamento</h3>
+                    <div className="bg-card p-10 rounded-[3rem] border border-border shadow-xl sticky top-8">
+                        <h3 className="text-muted-foreground font-black text-[10px] uppercase tracking-[0.2em] mb-8">Resumo do Fechamento</h3>
 
-                        <div className="space-y-4 mb-8 border-b border-slate-800 pb-8">
-                            <div className="flex justify-between text-slate-400 font-medium">
+                        <div className="space-y-5 mb-10 border-b border-border pb-10">
+                            <div className="flex justify-between text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
                                 <span>Subtotal</span>
-                                <span>R$ {formatCurrency(order.subtotal)}</span>
+                                <span className="text-foreground">{formatBRL(order.subtotal)}</span>
                             </div>
-                            <div className="flex justify-between text-slate-400 font-medium">
+                            <div className="flex justify-between text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
                                 <span>Desconto</span>
-                                <span>R$ {formatCurrency(order.discount)}</span>
+                                <span className="text-destructive">- {formatBRL(order.discount)}</span>
                             </div>
-                            <div className="flex justify-between text-white font-black text-xl pt-4 border-t border-slate-800/50">
-                                <span>Total</span>
-                                <span className="text-emerald-500">R$ {formatCurrency(order.total)}</span>
+                            <div className="flex justify-between items-end text-foreground pt-6 border-t border-border/50">
+                                <span className="text-xs font-black uppercase tracking-widest">Total a Pagar</span>
+                                <span className="text-4xl font-black text-primary uppercase tracking-tighter leading-none">{formatBRL(order.total)}</span>
                             </div>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             {isClosed && (
-                                <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center gap-3">
-                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
-                                    <div className="text-emerald-500">
-                                        <p className="text-xs font-bold uppercase">Pago via {order.paymentMethod || 'Caixa'}</p>
-                                        <p className="text-[10px] opacity-70">{new Date(order.paidAt).toLocaleString()}</p>
+                                <div className="p-6 bg-primary/10 rounded-3xl border border-primary/20 flex items-center gap-5">
+                                    <div className="p-3 bg-primary text-primary-foreground rounded-2xl">
+                                        <CheckCircle className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black uppercase tracking-widest text-primary">Liquidado via {order.paymentMethod || 'Caixa'}</p>
+                                        <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
                                     </div>
                                 </div>
                             )}
@@ -375,9 +368,9 @@ export default function OrderDetailsPage() {
                                         setDiscountValue(order.discount || 0);
                                         setShowDiscountModal(true);
                                     }}
-                                    className="w-full p-4 bg-orange-500/10 rounded-2xl border border-orange-500/30 text-orange-400 font-bold text-xs uppercase tracking-wider hover:bg-orange-500/20 transition flex items-center justify-center gap-2"
+                                    className="w-full p-5 bg-background text-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-muted transition flex items-center justify-center gap-3 shadow-inner"
                                 >
-                                    <Percent className="w-4 h-4" /> Aplicar Desconto
+                                    <Percent className="w-5 h-5 text-primary" /> Aplicar Desconto
                                 </button>
                             )}
                         </div>
@@ -387,62 +380,65 @@ export default function OrderDetailsPage() {
 
             {/* Discount Modal */}
             {showDiscountModal && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
-                    <div className="bg-[#111827] w-full max-w-md rounded-3xl shadow-2xl border border-slate-800 overflow-hidden animate-in zoom-in-95">
-                        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                            <h3 className="text-white font-black text-lg uppercase flex items-center gap-2">
-                                <Percent className="w-5 h-5 text-orange-500" />
-                                Aplicar Desconto
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-card w-full max-w-md rounded-[2.5rem] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95">
+                        <div className="p-8 border-b border-border bg-muted/20 flex justify-between items-center">
+                            <h3 className="text-foreground font-black text-lg uppercase tracking-widest flex items-center gap-3">
+                                <Percent className="w-6 h-6 text-primary" />
+                                Ajustar Desconto
                             </h3>
                             <button
                                 onClick={() => setShowDiscountModal(false)}
-                                className="p-2 hover:bg-slate-800 rounded-lg transition"
+                                className="p-2 hover:bg-muted rounded-xl transition text-muted-foreground"
                             >
-                                <X className="w-5 h-5 text-slate-400" />
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
-                        <div className="p-6 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Valor do Desconto (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    max={order.subtotal}
-                                    value={discountValue}
-                                    onChange={(e) => setDiscountValue(e.target.value)}
-                                    className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold text-lg focus:ring-2 ring-orange-500 outline-none"
-                                    placeholder="0.00"
-                                />
-                            </div>
-
-                            <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 space-y-2">
-                                <div className="flex justify-between text-sm text-slate-400">
-                                    <span>Subtotal</span>
-                                    <span>R$ {formatCurrency(order.subtotal)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm text-orange-400 font-bold">
-                                    <span>Desconto</span>
-                                    <span>- R$ {formatCurrency(discountValue)}</span>
-                                </div>
-                                <div className="flex justify-between text-lg text-white font-black pt-2 border-t border-slate-800">
-                                    <span>Novo Total</span>
-                                    <span className="text-emerald-500">R$ {formatCurrency(order.subtotal - (parseFloat(discountValue) || 0))}</span>
+                        <div className="p-8 space-y-8">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Valor do Desconto (R$)</label>
+                                <div className="relative">
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-black text-xl">R$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        max={order.subtotal}
+                                        value={discountValue}
+                                        onChange={(e) => setDiscountValue(e.target.value)}
+                                        className="w-full p-6 pl-16 bg-background border border-border rounded-2xl text-foreground font-black text-2xl focus:ring-4 ring-primary/10 outline-none transition-all"
+                                        placeholder="0.00"
+                                    />
                                 </div>
                             </div>
 
-                            <div className="flex gap-3">
+                            <div className="bg-muted/50 p-6 rounded-3xl border border-border space-y-3 shadow-inner">
+                                <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    <span>Subtotal Original</span>
+                                    <span>{formatBRL(order.subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between text-[10px] font-black text-destructive uppercase tracking-widest">
+                                    <span>Abatimento</span>
+                                    <span>- {formatBRL(discountValue)}</span>
+                                </div>
+                                <div className="flex justify-between items-end text-foreground pt-4 border-t border-border">
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Novo Total</span>
+                                    <span className="text-2xl font-black text-primary uppercase tracking-tighter">{formatBRL(order.subtotal - (parseFloat(discountValue) || 0))}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
                                 <button
                                     onClick={() => setShowDiscountModal(false)}
-                                    className="flex-1 p-3 bg-slate-800 rounded-xl font-bold text-sm hover:bg-slate-700 transition text-white"
+                                    className="flex-1 p-5 bg-background border border-border rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-muted transition text-foreground"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleApplyDiscount}
-                                    className="flex-1 p-3 bg-orange-500 rounded-xl font-bold text-sm hover:bg-orange-600 transition text-white shadow-lg shadow-orange-500/20"
+                                    className="flex-1 p-5 bg-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition text-primary-foreground shadow-2xl shadow-primary/20"
                                 >
-                                    Aplicar
+                                    Confirmar
                                 </button>
                             </div>
                         </div>
@@ -452,116 +448,117 @@ export default function OrderDetailsPage() {
 
             {/* Payment Selection Modal */}
             {showPaymentModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
-                    <div className="bg-[#111827] w-full max-w-lg rounded-3xl shadow-2xl border border-slate-800 overflow-hidden animate-in zoom-in-95">
-                        <div className="p-8 border-b border-slate-800">
-                            <h3 className="text-white font-black text-2xl uppercase tracking-tighter mb-1">Finalizar Comanda</h3>
-                            <p className="text-slate-400 text-sm">Selecione a forma de pagamento para concluir.</p>
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-card w-full max-w-lg rounded-[3rem] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95">
+                        <div className="p-10 border-b border-border bg-muted/10">
+                            <h3 className="text-foreground font-black text-3xl uppercase tracking-tighter mb-2">Finalizar Comanda</h3>
+                            <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest italic">Escolha o método para processamento.</p>
                         </div>
 
-                        <div className="p-8 grid grid-cols-2 gap-4">
+                        <div className="p-10 grid grid-cols-2 gap-5">
                             {[
-                                { id: 'PIX', label: 'Pix', icon: 'ðŸ’ ' },
-                                { id: 'CASH', label: 'Dinheiro', icon: 'ðŸ’µ' },
-                                { id: 'CREDIT_CARD', label: 'CrÃ©dito', icon: 'ðŸ’³' },
-                                { id: 'DEBIT_CARD', label: 'DÃ©bito', icon: 'ðŸ’³' },
-                                { id: 'ONLINE', label: 'Online Link', icon: 'ðŸŒ' },
+                                { id: 'PIX', label: 'Pix Instantâneo', icon: '⚡' },
+                                { id: 'CASH', label: 'Dinheiro Vivo', icon: '💵' },
+                                { id: 'CREDIT_CARD', label: 'Cartão Crédito', icon: '💳' },
+                                { id: 'DEBIT_CARD', label: 'Cartão Débito', icon: '🏧' },
+                                { id: 'ONLINE', label: 'Link de Pagamento', icon: '🌐' },
                             ].map(method => (
                                 <button
                                     key={method.id}
                                     onClick={() => setSelectedMethod(method.id)}
-                                    className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${selectedMethod === method.id
-                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
-                                        : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-600 hover:bg-slate-800'
+                                    className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all duration-300 ${selectedMethod === method.id
+                                        ? 'border-primary bg-primary/5 text-primary shadow-2xl shadow-primary/10 scale-105'
+                                        : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-muted/50'
                                         }`}
                                 >
-                                    <span className="text-2xl">{method.icon}</span>
-                                    <span className="font-bold text-sm uppercase tracking-wider">{method.label}</span>
+                                    <span className="text-3xl">{method.icon}</span>
+                                    <span className="font-black text-[10px] uppercase tracking-widest">{method.label}</span>
                                 </button>
                             ))}
                         </div>
 
-                        <div className="p-8 border-t border-slate-800 bg-slate-900/50">
+                        <div className="p-10 border-t border-border bg-muted/20">
                             {/* Pix QR Code Display */}
                             {selectedMethod === 'PIX' && generatedPayment && (
-                                <div className="mb-6 space-y-4 animate-in fade-in slide-in-from-top-4">
-                                    <div className="bg-white p-4 rounded-xl w-fit mx-auto border-4 border-emerald-500">
+                                <div className="mb-8 space-y-6 animate-in fade-in slide-in-from-top-6 duration-500">
+                                    <div className="bg-white p-6 rounded-[2.5rem] w-fit mx-auto border-4 border-primary shadow-2xl shadow-primary/10">
                                         {generatedPayment.qrCodeBase64 ? (
-                                            <img src={`data:image/jpeg;base64,${generatedPayment.qrCodeBase64}`} className="w-48 h-48" alt="QR Code Pix" />
+                                            <img src={`data:image/jpeg;base64,${generatedPayment.qrCodeBase64}`} className="w-56 h-56" alt="QR Code Pix" />
                                         ) : (
-                                            /* Fallback if only text */
-                                            <div className="w-48 h-48 flex items-center justify-center bg-slate-100 text-slate-900 font-bold text-xs text-center p-2 break-all overflow-hidden">
-                                                QR Code Disponível no Copia e Cola
+                                            <div className="w-56 h-56 flex items-center justify-center bg-muted text-foreground font-black text-[10px] text-center p-6 break-all uppercase tracking-widest">
+                                                QR Code no Copia e Cola
                                             </div>
                                         )}
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block text-center">Pix Copia e Cola</label>
-                                        <div className="flex gap-2">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] block text-center">Pix Copia e Cola</label>
+                                        <div className="flex gap-3">
                                             <input
                                                 readOnly
                                                 value={generatedPayment.pixCopiaECola || generatedPayment.qrCode}
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-400 font-mono"
+                                                className="w-full bg-background border border-border rounded-xl p-4 text-[10px] text-muted-foreground font-mono truncate"
                                                 onClick={(e) => e.target.select()}
                                             />
                                             <button
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(generatedPayment.pixCopiaECola || generatedPayment.qrCode);
-                                                    alert('Copiado!');
+                                                    alert('✅ Código copiado!');
                                                 }}
-                                                className="bg-emerald-500 text-white px-4 rounded-lg font-bold text-xs hover:bg-emerald-600 transition"
+                                                className="bg-primary text-primary-foreground px-6 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
                                             >
                                                 COPIAR
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl text-center">
-                                        <p className="text-blue-400 text-xs font-bold animate-pulse">Aguardando confirmação automática...</p>
+                                    <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl text-center">
+                                        <p className="text-primary text-[10px] font-black uppercase tracking-widest animate-pulse flex items-center justify-center gap-2">
+                                            <Zap className="w-3 h-3" /> Aguardando liquidação automática...
+                                        </p>
                                     </div>
                                 </div>
                             )}
 
-                            <div className="flex justify-between items-center mb-6">
-                                <span className="text-slate-400 font-medium">Total a Receber</span>
-                                <span className="text-3xl font-black text-white">R$ {formatCurrency(order.total)}</span>
+                            <div className="flex justify-between items-center mb-8 px-2">
+                                <span className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest italic">Valor Final</span>
+                                <span className="text-4xl font-black text-foreground uppercase tracking-tighter">{formatBRL(order.total)}</span>
                             </div>
 
                             {selectedMethod === 'PIX' && !generatedPayment ? (
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="grid grid-cols-1 gap-4">
                                     <button
                                         onClick={handleGeneratePix}
                                         disabled={processing}
-                                        className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 transition flex items-center justify-center gap-2"
+                                        className="w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95"
                                     >
-                                        <Zap className="w-4 h-4" />
-                                        {processing ? 'Gerando...' : 'Gerar QR Code Pix'}
+                                        <Zap className="w-5 h-5" />
+                                        {processing ? 'GERANDO...' : 'PROCESSAR VIA PIX API'}
                                     </button>
                                     <button
                                         onClick={() => handleConfirmPayment(false)}
                                         disabled={processing}
-                                        className="w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-widest bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition"
+                                        className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition"
                                     >
-                                        Já recebi manualmente
+                                        Já recebi manualmente no balcão
                                     </button>
                                 </div>
                             ) : (
                                 <button
                                     onClick={() => handleConfirmPayment(false)}
-                                    disabled={processing || !selectedMethod || (selectedMethod === 'PIX' && !generatedPayment && false)} // Allow manual confirm even if generated
-                                    className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${processing || !selectedMethod
-                                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                        : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40'
+                                    disabled={processing || !selectedMethod}
+                                    className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 scale-100 active:scale-95 ${processing || !selectedMethod
+                                        ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed opacity-50'
+                                        : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20'
                                         }`}
                                 >
-                                    {processing ? 'Processando...' : 'Confirmar Recebimento'}
+                                    {processing ? 'FINALIZANDO...' : 'CONFIRMAR RECEBIMENTO'}
                                 </button>
                             )}
 
                             <button
                                 onClick={() => setShowPaymentModal(false)}
-                                className="w-full mt-4 py-3 text-slate-500 font-bold text-xs uppercase hover:text-white transition"
+                                className="w-full mt-6 py-3 text-muted-foreground font-black text-[10px] uppercase tracking-widest hover:text-foreground transition-colors"
                             >
-                                Cancelar
+                                Voltar para a comanda
                             </button>
                         </div>
                     </div>

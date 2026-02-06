@@ -128,24 +128,24 @@ export default function ServicesPage() {
         }
     };
 
-    if (loadingServices) return <div className="p-8 text-center">Carregando serviços...</div>;
+    if (loadingServices) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs">Carregando serviços...</div>;
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-3xl border border-slate-800 shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <Scissors className="w-8 h-8" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Meus Serviços</h1>
-                        <p className="text-slate-500 text-sm font-medium italic">Configure os serviços e preços que aparecem para seus clientes.</p>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Meus Serviços</h1>
+                        <p className="text-muted-foreground text-sm font-medium italic">Configure os serviços e preços que aparecem para seus clientes.</p>
                     </div>
                 </div>
                 {!isAdding && (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 transition"
+                        className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
                     >
                         <Plus className="w-4 h-4" /> Novo Serviço
                     </button>
@@ -153,89 +153,89 @@ export default function ServicesPage() {
             </header>
 
             {isAdding && (
-                <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl animate-in fade-in slide-in-from-top-4">
+                <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl animate-in fade-in slide-in-from-top-4">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold uppercase tracking-wider text-white">
+                        <h2 className="text-xl font-bold uppercase tracking-wider text-foreground">
                             {editingId ? 'Editar Serviço' : 'Novo Serviço'}
                         </h2>
-                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] }); }} className="text-slate-400 hover:text-red-500 transition">
+                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] }); }} className="text-muted-foreground hover:text-destructive transition">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Basic Info */}
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nome do Serviço</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nome do Serviço</label>
                             <input
                                 placeholder="Ex: Corte Degradê"
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                                 required
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Preço Atual (R$)</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Preço Atual (R$)</label>
                             <input
                                 placeholder="50.00"
                                 value={formData.price}
                                 onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                                 required
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duração (Minutos)</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Duração (Minutos)</label>
                             <input
                                 placeholder="30"
                                 type="number"
                                 value={formData.duration}
                                 onChange={e => setFormData({ ...formData, duration: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                                 required
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Breve Descrição</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Breve Descrição</label>
                             <input
                                 placeholder="Detalhes para o cliente..."
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                             />
                         </div>
 
                         {/* Commission Section */}
-                        <div className="md:col-span-2 border-t border-slate-800 pt-6 mt-2">
-                            <h3 className="text-white font-bold text-lg mb-4">Comissão do Serviço</h3>
+                        <div className="md:col-span-2 border-t border-border pt-6 mt-2">
+                            <h3 className="text-foreground font-bold text-lg mb-4">Comissão do Serviço</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tipo de Comissão</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tipo de Comissão</label>
                                     <select
                                         value={formData.commissionType}
                                         onChange={e => setFormData({ ...formData, commissionType: e.target.value })}
-                                        className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                        className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                                     >
                                         <option value="PERCENTAGE">Porcentagem (%)</option>
                                         <option value="FIXED">Valor Fixo (R$)</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Valor</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Valor</label>
                                     <input
                                         type="number"
                                         placeholder={formData.commissionType === 'PERCENTAGE' ? 'Ex: 40' : 'Ex: 20.00'}
                                         value={formData.commissionValue}
                                         onChange={e => setFormData({ ...formData, commissionValue: e.target.value })}
-                                        className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition"
+                                        className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                                     />
                                 </div>
                             </div>
 
                             {/* Overrides */}
                             <div className="mt-6">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2 block">Regras Específicas por Funcionário</label>
-                                <div className="bg-slate-950 rounded-xl p-4 space-y-3 border border-slate-800 max-h-60 overflow-y-auto">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Regras Específicas por Funcionário</label>
+                                <div className="bg-background rounded-xl p-4 space-y-3 border border-border max-h-60 overflow-y-auto">
                                     {professionals.map(pro => {
                                         const userObj = pro.user || pro;
                                         const proId = userObj.id;
@@ -244,20 +244,20 @@ export default function ServicesPage() {
                                         const override = formData.overrides?.find(o => o.professionalId === proId);
 
                                         return (
-                                            <div key={proId} className="flex items-center gap-3 p-2 rounded-lg bg-slate-900/50">
+                                            <div key={proId} className="flex items-center gap-3 p-2 rounded-lg bg-card border border-border/50">
                                                 <input
                                                     type="checkbox"
                                                     checked={!!override}
                                                     onChange={() => toggleOverride(proId)}
-                                                    className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-emerald-500 accent-emerald-500"
+                                                    className="w-5 h-5 rounded border-border bg-muted text-primary accent-primary"
                                                 />
-                                                <span className="text-sm font-bold text-slate-300 flex-1">{proName}</span>
+                                                <span className="text-sm font-bold text-muted-foreground flex-1">{proName}</span>
                                                 {override && (
                                                     <div className="flex gap-2">
                                                         <select
                                                             value={override.type}
                                                             onChange={(e) => updateOverride(proId, 'type', e.target.value)}
-                                                            className="bg-slate-950 border border-slate-700 text-xs text-white rounded p-1 outline-none"
+                                                            className="bg-background border border-border text-xs text-foreground rounded p-1 outline-none"
                                                         >
                                                             <option value="PERCENTAGE">%</option>
                                                             <option value="FIXED">R$</option>
@@ -266,20 +266,20 @@ export default function ServicesPage() {
                                                             type="number"
                                                             value={override.value}
                                                             onChange={(e) => updateOverride(proId, 'value', e.target.value)}
-                                                            className="w-20 bg-slate-950 border border-slate-700 text-xs text-white rounded p-1 outline-none"
+                                                            className="w-20 bg-background border border-border text-xs text-foreground rounded p-1 outline-none"
                                                         />
                                                     </div>
                                                 )}
                                             </div>
                                         );
                                     })}
-                                    {professionals.length === 0 && <p className="text-xs text-slate-500 italic">Nenhum profissional encontrado.</p>}
+                                    {professionals.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum profissional encontrado.</p>}
                                 </div>
                             </div>
                         </div>
 
                         <div className="md:col-span-2 pt-4">
-                            <button type="submit" className="w-full bg-white text-slate-900 p-4 rounded-xl font-black uppercase tracking-widest transition hover:bg-slate-200 shadow-lg">
+                            <button type="submit" className="w-full bg-primary text-primary-foreground p-4 rounded-xl font-black uppercase tracking-widest transition hover:bg-primary/90 shadow-lg">
                                 {editingId ? 'ATUALIZAR SERVIÇO' : 'CADASTRAR SERVIÇO'}
                             </button>
                         </div>
@@ -289,33 +289,33 @@ export default function ServicesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {services.map(service => (
-                    <div key={service.id} className="bg-[#111827] p-8 rounded-[2rem] border border-slate-800 hover:border-emerald-500/50 transition-all group relative">
+                    <div key={service.id} className="bg-card p-8 rounded-[2rem] border border-border hover:border-primary/50 transition-all group relative">
                         <div className="flex justify-between items-start mb-6">
                             <div>
-                                <h3 className="font-black text-xl text-white uppercase tracking-tight group-hover:text-emerald-500 transition-colors">{service.name}</h3>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1 mt-1">
+                                <h3 className="font-black text-xl text-foreground uppercase tracking-tight group-hover:text-primary transition-colors">{service.name}</h3>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-1">
                                     <Clock className="w-3 h-3" /> {service.duration} MINUTOS
                                 </p>
                             </div>
-                            <div className="text-xl font-black text-emerald-500 bg-emerald-500/10 px-4 py-2 rounded-2xl border border-emerald-500/20">
+                            <div className="text-xl font-black text-primary bg-primary/10 px-4 py-2 rounded-2xl border border-primary/20">
                                 R$ {service.price}
                             </div>
                         </div>
 
-                        <p className="text-slate-400 text-xs font-medium italic mb-8 h-8 overflow-hidden line-clamp-2">
+                        <p className="text-muted-foreground text-xs font-medium italic mb-8 h-8 overflow-hidden line-clamp-2">
                             {service.description || 'Sem descrição adicional para este serviço.'}
                         </p>
 
                         <div className="flex gap-2">
                             <button
                                 onClick={() => handleEdit(service)}
-                                className="flex-1 border border-slate-700 bg-slate-900 p-3 rounded-xl flex justify-center items-center text-slate-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all"
+                                className="flex-1 border border-border bg-muted p-3 rounded-xl flex justify-center items-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
                             >
                                 <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => handleDelete(service.id)}
-                                className="flex-1 border border-slate-700 bg-slate-900 p-3 rounded-xl flex justify-center items-center text-slate-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                                className="flex-1 border border-border bg-muted p-3 rounded-xl flex justify-center items-center text-muted-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-all"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
@@ -325,12 +325,12 @@ export default function ServicesPage() {
             </div>
 
             {services.length === 0 && !isAdding && (
-                <div className="text-center py-32 bg-[#111827] rounded-[3rem] border-2 border-dashed border-slate-800">
-                    <div className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-700">
+                <div className="text-center py-32 bg-card rounded-[3rem] border-2 border-dashed border-border">
+                    <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6 text-muted-foreground">
                         <Scissors className="w-10 h-10" />
                     </div>
-                    <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest">Nenhum serviço disponível</p>
-                    <button onClick={() => setIsAdding(true)} className="text-emerald-500 font-black uppercase text-xs mt-3 tracking-widest hover:underline">
+                    <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Nenhum serviço disponível</p>
+                    <button onClick={() => setIsAdding(true)} className="text-primary font-black uppercase text-xs mt-3 tracking-widest hover:underline">
                         Clique aqui para começar
                     </button>
                 </div>

@@ -6,17 +6,7 @@ import { Calendar, Smartphone, Bell, CheckCircle, AlertTriangle, ExternalLink, L
 
 export default function IntegrationSettings() {
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl">
-                    <Calendar className="w-6 h-6" />
-                </div>
-                <div>
-                    <h2 className="text-xl font-black uppercase tracking-tight text-white">Integrações de Serviço</h2>
-                    <p className="text-slate-500 text-xs font-medium">Conecte ferramentas externas para turbinar sua operação.</p>
-                </div>
-            </div>
-
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             <GoogleCalendarCard />
             <WhatsAppCard />
             <PushNotificationCard />
@@ -80,8 +70,8 @@ function GoogleCalendarCard() {
                     onClick={handleConnect}
                     disabled={loading || connected}
                     className={`flex items-center gap-2 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${connected
-                            ? 'bg-emerald-500/10 text-emerald-500 cursor-default'
-                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'
+                        ? 'bg-emerald-500/10 text-emerald-500 cursor-default'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'
                         }`}
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
@@ -151,53 +141,32 @@ function WhatsAppCard() {
 }
 
 function PushNotificationCard() {
-    const { isSubscribed, subscribeUser } = usePushNotifications();
-    const [loading, setLoading] = useState(false);
-
-    const handleSubscribe = async () => {
-        setLoading(true);
-        // Need VAPID key here - usually from env or API
-        // For now hardcoded or fetched
-        try {
-            // Fetch VAPID public key
-            // const key = await api.get('/integration/push/vapid-key');
-            // await subscribeUser(key.data);
-            alert('Push Notification requer configuração de chaves VAPID no backend.');
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     return (
-        <div className="p-6 md:p-8 rounded-[2rem] border border-slate-800 bg-[#111827] hover:border-purple-500/30 transition-all duration-300">
-            <div className="flex items-start justify-between">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-600 overflow-hidden flex items-center justify-center border border-purple-700 shadow-xl shrink-0">
-                        <Bell className="w-6 h-6 text-white" />
+        <div className="p-8 rounded-[2rem] border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden">
+            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+            <div className="flex flex-col md:flex-row items-start justify-between gap-6">
+                <div className="flex gap-5">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 overflow-hidden flex items-center justify-center border border-primary/20 shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+                        <Bell className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                            Notificações Push
-                            {isSubscribed && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                        <h3 className="text-lg font-black text-foreground flex items-center gap-3 uppercase tracking-tight">
+                            Alertas Automáticos
+                            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner">
+                                <CheckCircle className="w-3 h-3" /> Operacional
+                            </span>
                         </h3>
-                        <p className="text-slate-500 text-xs mt-1 max-w-lg">
-                            Receba alertas sobre novos agendamentos e cancelamentos diretamente no seu dispositivo.
+                        <p className="text-muted-foreground text-xs mt-2 font-medium italic leading-relaxed opacity-80">
+                            Seu sistema envia notificações automaticamente sobre agendamentos e cancelamentos diretamente para os dispositivos autorizados.
                         </p>
                     </div>
                 </div>
 
-                <button
-                    onClick={handleSubscribe}
-                    disabled={isSubscribed || loading}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isSubscribed
-                            ? 'bg-purple-500/10 text-purple-500 cursor-default'
-                            : 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-500/20'
-                        }`}
-                >
-                    {isSubscribed ? 'ATIVADO' : 'ATIVAR'}
-                </button>
+                <div className="bg-background/50 border border-border px-6 py-4 rounded-2xl flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-ping"></div>
+                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Sincronizado</span>
+                </div>
             </div>
         </div>
     );

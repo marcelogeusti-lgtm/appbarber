@@ -57,86 +57,86 @@ export default function SubscriptionPlansPage() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-slate-500 animate-pulse font-black uppercase text-xs">Carregando planos...</div>;
+    if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs">Carregando planos...</div>;
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#111827] p-8 rounded-3xl border border-slate-800 shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <CreditCard className="w-8 h-8" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Clube de Assinatura</h1>
-                        <p className="text-slate-500 text-sm font-medium italic">Gestão de planos recorrentes e fidelização</p>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Clube de Assinatura</h1>
+                        <p className="text-muted-foreground text-sm font-medium italic">Gestão de planos recorrentes e fidelização</p>
                     </div>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
-                    className="flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 transition"
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
                 >
                     {isAdding ? 'CANCELAR' : <><Plus className="w-4 h-4" /> CRIAR NOVO PLANO</>}
                 </button>
             </header>
 
             {isAdding && (
-                <form onSubmit={handleCreatePlan} className="bg-[#111827] p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl animate-in zoom-in-95 duration-300 space-y-6">
+                <form onSubmit={handleCreatePlan} className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl animate-in zoom-in-95 duration-300 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome do Plano</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nome do Plano</label>
                             <input
                                 required placeholder="Ex: Essencial Mensal"
                                 value={newPlan.name} onChange={e => setNewPlan({ ...newPlan, name: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço (R$)</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Preço (R$)</label>
                             <input
                                 type="number" step="0.01" required placeholder="99.90"
                                 value={newPlan.price} onChange={e => setNewPlan({ ...newPlan, price: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Qtd de Cortes</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Qtd de Cortes</label>
                             <input
                                 type="number" required placeholder="4"
                                 value={newPlan.quantityOfCuts} onChange={e => setNewPlan({ ...newPlan, quantityOfCuts: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Validade (Dias)</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Validade (Dias)</label>
                             <input
                                 type="number" required placeholder="30"
                                 value={newPlan.validityDays} onChange={e => setNewPlan({ ...newPlan, validityDays: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all text-sm"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all text-sm"
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descrição</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Descrição</label>
                             <textarea
                                 placeholder="Uma breve descrição sobre o plano..."
                                 value={newPlan.description || ''} onChange={e => setNewPlan({ ...newPlan, description: e.target.value })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all h-24 text-sm"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all h-24 text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Benefícios (Separados por vírgula)</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Benefícios (Separados por vírgula)</label>
                             <textarea
                                 placeholder="Corte ilimitado, 10% OFF em produtos, Cerveja grátis..."
                                 value={newPlan.benefitsText || ''} onChange={e => setNewPlan({ ...newPlan, benefitsText: e.target.value, benefits: e.target.value.split(',').map(b => b.trim()).filter(b => b) })}
-                                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-white transition-all h-24 text-sm"
+                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all h-24 text-sm"
                             />
                         </div>
                     </div>
 
-                    {error && <p className="text-xs font-bold text-red-500 uppercase">{error}</p>}
-                    <button type="submit" className="w-full bg-emerald-500 text-black py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/10">
+                    {error && <p className="text-xs font-bold text-destructive uppercase">{error}</p>}
+                    <button type="submit" className="w-full bg-primary text-primary-foreground py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-xl shadow-primary/10">
                         PUBLICAR PLANO NO CLUBE
                     </button>
                 </form>
@@ -144,19 +144,19 @@ export default function SubscriptionPlansPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {plans.map(plan => (
-                    <div key={plan.id} className="bg-[#111827] p-8 rounded-[3rem] border border-slate-800 shadow-sm hover:shadow-2xl hover:border-emerald-500/50 transition-all relative group overflow-hidden">
+                    <div key={plan.id} className="bg-card p-8 rounded-[3rem] border border-border shadow-sm hover:shadow-2xl hover:border-primary/50 transition-all relative group overflow-hidden">
                         <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleDelete(plan.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors">
+                            <button onClick={() => handleDelete(plan.id)} className="p-2 text-muted-foreground hover:text-destructive transition-colors">
                                 <Trash2 className="w-5 h-5" />
                             </button>
                         </div>
 
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-2xl font-black uppercase tracking-tight text-white group-hover:text-emerald-500 transition-colors leading-none mb-2">{plan.name}</h3>
+                                <h3 className="text-2xl font-black uppercase tracking-tight text-foreground group-hover:text-primary transition-colors leading-none mb-2">{plan.name}</h3>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-xs font-black text-emerald-500 uppercase">R$</span>
-                                    <p className="text-4xl font-black text-white tracking-tighter">
+                                    <span className="text-xs font-black text-primary uppercase">R$</span>
+                                    <p className="text-4xl font-black text-foreground tracking-tighter">
                                         {(() => {
                                             const price = Number(plan.price);
                                             return !isNaN(price) ? price.toFixed(2) : '0.00';
@@ -165,36 +165,36 @@ export default function SubscriptionPlansPage() {
                                 </div>
                             </div>
 
-                            {plan.description && <p className="text-slate-500 text-xs font-medium leading-relaxed uppercase tracking-tighter line-clamp-2">{plan.description}</p>}
+                            {plan.description && <p className="text-muted-foreground text-xs font-medium leading-relaxed uppercase tracking-tighter line-clamp-2">{plan.description}</p>}
 
                             <div className="space-y-3 pt-2">
                                 {plan.benefits?.map((benefit, idx) => (
                                     <div key={idx} className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                                            <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-none stroke-emerald-500 stroke-[4]"><path d="M20 6L9 17l-5-5" /></svg>
+                                        <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                            <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-none stroke-primary stroke-[4]"><path d="M20 6L9 17l-5-5" /></svg>
                                         </div>
-                                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tight">{benefit}</span>
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{benefit}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-800/50">
+                            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border/50">
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">Créditos</p>
-                                    <p className="flex items-center gap-2 font-black text-xs text-slate-300 uppercase tracking-tighter">
-                                        <Target className="w-3.5 h-3.5 text-emerald-500" /> {plan.quantityOfCuts || 'Ilimitado'}
+                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em]">Créditos</p>
+                                    <p className="flex items-center gap-2 font-black text-xs text-muted-foreground uppercase tracking-tighter">
+                                        <Target className="w-3.5 h-3.5 text-primary" /> {plan.quantityOfCuts || 'Ilimitado'}
                                     </p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">Ciclo</p>
-                                    <p className="flex items-center gap-2 font-black text-xs text-slate-300 uppercase tracking-tighter">
-                                        <Calendar className="w-3.5 h-3.5 text-emerald-500" /> {plan.validityDays} Dias
+                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em]">Ciclo</p>
+                                    <p className="flex items-center gap-2 font-black text-xs text-muted-foreground uppercase tracking-tighter">
+                                        <Calendar className="w-3.5 h-3.5 text-primary" /> {plan.validityDays} Dias
                                     </p>
                                 </div>
                             </div>
 
                             <div className="pt-4">
-                                <span className="bg-emerald-500/5 text-emerald-500/80 border border-emerald-500/10 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                                <span className="bg-primary/5 text-primary/80 border border-primary/10 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
                                     <ShoppingBag className="w-3.5 h-3.5" strokeWidth={3} /> Plano Ativo para Vendas
                                 </span>
                             </div>
@@ -203,9 +203,9 @@ export default function SubscriptionPlansPage() {
                 ))}
 
                 {plans.length === 0 && !isAdding && (
-                    <div className="col-span-full py-20 text-center space-y-4 bg-[#111827] rounded-[3rem] border-2 border-dashed border-slate-800">
-                        <CreditCard className="w-12 h-12 text-slate-800 mx-auto" />
-                        <p className="text-slate-600 font-bold uppercase text-[10px] tracking-[0.2em]">Nenhum plano disponível para esta unidade.</p>
+                    <div className="col-span-full py-20 text-center space-y-4 bg-card rounded-[3rem] border-2 border-dashed border-border">
+                        <CreditCard className="w-12 h-12 text-muted-foreground mx-auto" />
+                        <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">Nenhum plano disponível para esta unidade.</p>
                     </div>
                 )}
             </div>

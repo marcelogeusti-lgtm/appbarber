@@ -61,8 +61,8 @@ export default function DashboardLayout({ children }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -133,19 +133,19 @@ export default function DashboardLayout({ children }) {
 
                     <main className="flex-1 p-8 md:p-12 overflow-x-hidden relative">
                         {isLocked ? (
-                            <div className="absolute inset-0 z-50 bg-[#0a0f1a]/80 backdrop-blur-sm flex items-center justify-center p-8">
-                                <div className="bg-[#111827] border border-slate-800 p-8 rounded-3xl max-w-md w-full text-center shadow-2xl">
-                                    <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <LogOut className="w-10 h-10 text-red-500" />
+                            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-8">
+                                <div className="bg-card border border-border p-8 rounded-3xl max-w-md w-full text-center shadow-2xl">
+                                    <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <LogOut className="w-10 h-10 text-destructive" />
                                     </div>
-                                    <h2 className="text-2xl font-black text-white mb-2">Assinatura Inativa</h2>
-                                    <p className="text-slate-400 mb-8 leading-relaxed">
+                                    <h2 className="text-2xl font-black text-foreground mb-2">Assinatura Inativa</h2>
+                                    <p className="text-muted-foreground mb-8 leading-relaxed">
                                         Sua assinatura está inativa ou vencida. Para continuar utilizando os recursos administrativos, por favor regularize seu plano.
                                     </p>
-                                    <button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.02] transition-transform">
+                                    <button className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
                                         Regularizar Agora
                                     </button>
-                                    <p className="mt-4 text-[10px] text-slate-600 uppercase tracking-widest">
+                                    <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest">
                                         Dúvidas? Entre em contato com o suporte.
                                     </p>
                                 </div>
