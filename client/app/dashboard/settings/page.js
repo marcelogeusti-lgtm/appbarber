@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { Settings, Save, MapPin, Phone, Hash } from 'lucide-react';
+import IntegrationSettings from '../../../components/settings/IntegrationSettings';
 
 export default function SettingsPage() {
     const [barbershop, setBarbershop] = useState({ name: '', slug: '', address: '', phone: '' });
@@ -380,6 +381,11 @@ export default function SettingsPage() {
                     </button>
                 </div>
             </form >
+
+            {/* INTEGRATIONS */}
+            <div className="pt-10 border-t border-slate-800">
+                <IntegrationSettings />
+            </div>
 
             <div className="bg-[#111827] border border-emerald-500/10 rounded-3xl p-8 space-y-4 mt-8">
                 <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest ring-1 ring-emerald-500/20 w-fit px-2 py-0.5 rounded">Nota Importante ⚠️</h4>

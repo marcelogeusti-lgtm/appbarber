@@ -17,6 +17,7 @@
         "clsx": "^2.0.0",
         "date-fns": "^2.30.0",
         "firebase": "^12.8.0",
+        "framer-motion": "^12.33.0",
         "lucide-react": "^0.290.0",
         "next": "14.0.0",
         "react": "^18",

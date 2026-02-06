@@ -1,20 +1,24 @@
 'use client';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Navbar from '@/components/landing/Navbar';
+import Hero from '@/components/landing/Hero';
+import Features from '@/components/landing/Features';
+import HowItWorks from '@/components/landing/HowItWorks';
+import Pricing from '@/components/landing/Pricing';
+import Testimonials from '@/components/landing/Testimonials';
+import FAQ from '@/components/landing/FAQ';
+import Footer from '@/components/landing/Footer';
 
-export default function RootPage() {
-    const router = useRouter();
-
-    useEffect(() => {
-        router.replace('/login');
-    }, [router]);
-
+export default function Home() {
     return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-            <div className="animate-pulse flex flex-col items-center gap-4">
-                <div className="w-12 h-12 bg-orange-500 rounded-xl"></div>
-                <p className="text-white font-bold uppercase tracking-widest text-xs">Acessando Corte & Conexão...</p>
-            </div>
-        </div>
+        <main className="min-h-screen bg-black text-white selection:bg-primary selection:text-black">
+            <Navbar />
+            <Hero />
+            <Features />
+            <HowItWorks />
+            <Testimonials />
+            <Pricing />
+            <FAQ />
+            <Footer />
+        </main>
     );
 }

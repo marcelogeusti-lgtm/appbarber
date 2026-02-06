@@ -1,0 +1,78 @@
+'use client';
+import { Scissors, Instagram, Facebook, Twitter } from 'lucide-react';
+
+export default function Footer() {
+    return (
+        <footer className="bg-[#050505] border-t border-white/5 pt-20 pb-10">
+            <div className="container mx-auto px-4">
+                <div className="grid md:grid-cols-4 gap-12 mb-16">
+
+                    {/* Brand */}
+                    <div className="col-span-1 md:col-span-1">
+                        <div className="flex items-center gap-2 mb-6">
+                            <div className="bg-primary/10 p-2 rounded-xl">
+                                <Scissors className="w-6 h-6 text-primary" />
+                            </div>
+                            <span className="text-2xl font-bold text-white">Barbe<span className="text-primary">On</span></span>
+                        </div>
+                        <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                            A plataforma completa para barbeiros que desejam escalar seu negócio e fidelizar clientes.
+                        </p>
+                        <div className="flex gap-4">
+                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-black transition-all">
+                                <Instagram className="w-5 h-5" />
+                            </a>
+                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-black transition-all">
+                                <Facebook className="w-5 h-5" />
+                            </a>
+                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-black transition-all">
+                                <Twitter className="w-5 h-5" />
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Links 1 */}
+                    <div>
+                        <h4 className="text-white font-bold mb-6">Produto</h4>
+                        <ul className="space-y-4 text-sm text-gray-500">
+                            <li><a href="#" className="hover:text-primary transition-colors">Funcionalidades</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Planos</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Atualizações</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Para Franquias</a></li>
+                        </ul>
+                    </div>
+
+                    {/* Links 2 */}
+                    <div>
+                        <h4 className="text-white font-bold mb-6">Empresa</h4>
+                        <ul className="space-y-4 text-sm text-gray-500">
+                            <li><a href="#" className="hover:text-primary transition-colors">Sobre Nós</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Carreiras</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
+                        </ul>
+                    </div>
+
+                    {/* Links 3 */}
+                    <div>
+                        <h4 className="text-white font-bold mb-6">Legal</h4>
+                        <ul className="space-y-4 text-sm text-gray-500">
+                            <li><a href="#" className="hover:text-primary transition-colors">Termos de Uso</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Privacidade</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Cookies</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center bg-[#050505] gap-4">
+                    <p className="text-gray-600 text-sm">© 2024 BarbeOn SaaS. Todos os direitos reservados.</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span>Feito com</span>
+                        <span className="text-red-500">♥</span>
+                        <span>para barbeiros.</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    );
+}
