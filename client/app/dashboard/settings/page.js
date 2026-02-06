@@ -4,7 +4,7 @@ import api from '../../../lib/api';
 import {
     Settings, Save, MapPin, Phone, Hash, ChevronDown,
     Image as ImageIcon, Shield, MessageSquare, Zap,
-    Globe, Smartphone, CreditCard, ExternalLink
+    Globe, Smartphone, CreditCard, ExternalLink, CheckCircle
 } from 'lucide-react';
 import IntegrationSettings from '../../../components/settings/IntegrationSettings';
 import Link from 'next/link';
@@ -14,9 +14,15 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState(null);
-    const [activeAccordion, setActiveAccordion] = useState('perfil'); // 'perfil', 'branding', 'regras', 'comunicacao', 'integracoes', 'notificacoes'
+    const [activeAccordion, setActiveAccordion] = useState('perfil');
+    const [isMaster, setIsMaster] = useState(false);
 
     useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            setIsMaster(user.role === 'SUPER_ADMIN');
+        }
         fetchBarbershop();
     }, []);
 
@@ -337,30 +343,34 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        {/* Hidden Tech Info - Accessible only if needed by master */}
-                        <div className="bg-destructive/5 p-6 rounded-2xl border border-destructive/10">
-                            <h5 className="text-[9px] font-black text-destructive uppercase tracking-widest mb-2 flex items-center gap-2">
-                                <Shield className="w-3 h-3" /> Camada Técnica de Governança
-                            </h5>
-                            <p className="text-[10px] text-muted-foreground leading-relaxed italic">
-                                Chave de API e endpoint de comunicação são gerenciados automaticamente pelo **Barbe-On Maestro**.
-                                Não recomendamos a alteração manual dessas configurações para evitar interrupções no serviço.
-                            </p>
-                        </div>
+                        {/* Hidden Tech Info - Accessible only for master */}
+                        {isMaster && (
+                            <div className="bg-destructive/5 p-6 rounded-2xl border border-destructive/10 animate-in fade-in slide-in-from-top-4">
+                                <h5 className="text-[9px] font-black text-destructive uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <Shield className="w-3 h-3" /> Camada Técnica de Governança (Master Only)
+                                </h5>
+                                <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+                                    Chave de API e endpoint de comunicação são gerenciados automaticamente pelo **Barbe-On Maestro**.
+                                    Não recomendamos a alteração manual dessas configurações para evitar interrupções no serviço.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </AccordionItem>
 
-                {/* 5. INTEGRAÇÕES */}
-                <AccordionItem
-                    id="integracoes"
-                    title="Conexões Externas"
-                    icon={<Zap className="w-5 h-5" />}
-                    desc="Google Calendar, Pagamentos e ferramentas extras."
-                    active={activeAccordion}
-                    setActive={setActiveAccordion}
-                >
-                    <IntegrationSettings />
-                </AccordionItem>
+                {/* 5. INTEGRAÇÕES - Master Only */}
+                {isMaster && (
+                    <AccordionItem
+                        id="integracoes"
+                        title="Conexões Externas"
+                        icon={<Zap className="w-5 h-5" />}
+                        desc="Google Calendar, Pagamentos e ferramentas extras."
+                        active={activeAccordion}
+                        setActive={setActiveAccordion}
+                    >
+                        <IntegrationSettings />
+                    </AccordionItem>
+                )}
 
                 {/* 6. NOTIFICAÇÕES */}
                 <AccordionItem
