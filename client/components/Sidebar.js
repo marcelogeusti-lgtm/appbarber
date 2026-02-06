@@ -87,35 +87,35 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
             )}
 
             <aside className={`
-                fixed inset-y-0 left-0 z-50 bg-[#0F111A] border-r border-white/5 flex flex-col h-full transition-all duration-300 shadow-2xl md:shadow-none
+                fixed inset-y-0 left-0 z-50 bg-sidebar border-r border-border flex flex-col h-full transition-all duration-300 shadow-2xl md:shadow-none
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
                 md:translate-x-0 md:sticky md:top-0 md:h-screen
                 ${isCollapsed ? 'md:w-20' : 'md:w-72'}
             `}>
                 {/* Header */}
-                <div className={`p-6 border-b border-white/5 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+                <div className={`p-6 border-b border-border flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                     <div className={`flex items-center gap-3 ${isCollapsed ? 'hidden' : 'flex'}`}>
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                            <Store className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shadow-lg shadow-primary/20">
+                            <Store className="w-4 h-4 text-primary" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-black text-white italic tracking-tight">Barbe<span className="text-emerald-500">On</span></h2>
+                            <h2 className="text-sm font-black text-foreground italic tracking-tight">Barbe<span className="text-primary">On</span></h2>
                         </div>
                     </div>
 
                     {/* Desktop Collapse Toggle */}
-                    <button onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex text-slate-500 hover:text-white transition-colors">
+                    <button onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors">
                         {isCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
                     </button>
 
                     {/* Mobile Close Button */}
-                    <button onClick={onClose} className="md:hidden text-slate-400 hover:text-white">
+                    <button onClick={onClose} className="md:hidden text-muted-foreground hover:text-foreground">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
                 {/* Navigation */}
-                <nav className={`flex-1 overflow-y-auto py-4 px-3 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 ${isLocked ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+                <nav className={`flex-1 overflow-y-auto py-4 px-3 space-y-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 ${isLocked ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
 
                     {/* Principal */}
                     <div className="space-y-1">
@@ -123,7 +123,7 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                         <MenuItem href="/dashboard/schedule" icon={Calendar} label="Agenda" />
                     </div>
 
-                    <div className="h-px bg-white/5 mx-2 my-2"></div>
+                    <div className="h-px bg-border mx-2 my-2"></div>
 
                     {/* Cadastros */}
                     <MenuGroup title="Cadastros" id="cadastros" icon={Users}>
@@ -153,7 +153,7 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                         <MenuItem href="/dashboard/finance/integrations" icon={CreditCard} label="Integrações" />
                     </MenuGroup>
 
-                    <div className="h-px bg-white/5 mx-2 my-2"></div>
+                    <div className="h-px bg-border mx-2 my-2"></div>
 
                     {/* Configurações */}
                     <MenuGroup title="Configurações" id="config" icon={Settings}>
@@ -163,7 +163,7 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                     {/* Master Management - EXCLUSIVE for MASTER ACCOUNT */}
                     {user?.role === 'SUPER_ADMIN' && (
                         <>
-                            <div className="h-px bg-emerald-500/20 mx-2 my-2"></div>
+                            <div className="h-px bg-primary/20 mx-2 my-2"></div>
                             <MenuGroup title="Gestão Master (Exclusivo)" id="master" icon={Shield}>
                                 <MenuItem href="/dashboard/super-admin" icon={LayoutDashboard} label="Controle SaaS Global" badge="Master" />
                                 <MenuItem href="/dashboard/super-admin/courses" icon={GraduationCap} label="Configurar Cursos" badge="Master" />
@@ -174,9 +174,9 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                 </nav>
 
                 {/* Footer / User Info */}
-                <div className="p-4 border-t border-white/5 bg-[#0A0C10]">
+                <div className="p-4 border-t border-border bg-sidebar">
                     {!isCollapsed ? (
-                        <div className={`flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-[#151821] ${isLocked ? 'opacity-50' : ''}`}>
+                        <div className={`flex items-center gap-3 p-3 rounded-xl border border-border bg-card/50 ${isLocked ? 'opacity-50' : ''}`}>
                             <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-500 text-xs font-bold">
                                 {user?.name?.[0]}
                             </div>

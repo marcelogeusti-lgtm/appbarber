@@ -44,7 +44,13 @@
 
     --ring: 142 71% 45%;
 
+    --ring: 142 71% 45%;
+
     --radius: 0.75rem;
+
+    /* Sidebar: Light Mode (Usually White or Light Slate) */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
   }
 
   /* DARK THEME - Premium SaaS (Deep & Elegant) */
@@ -88,6 +94,10 @@
     --input: 217 33% 17%;
 
     --ring: 150 100% 45%;
+
+    /* Sidebar: Dark Mode (Slightly different from BG to create depth) */
+    --sidebar: 222 47% 7%;
+    --sidebar-foreground: 210 40% 98%;
   }
 }
 
