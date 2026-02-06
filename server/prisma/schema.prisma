@@ -254,7 +254,8 @@ model Barbershop {
   noShowPercent Float   @default(0)
   noShowText    String?
   
-  subscriptionStatus String @default("ACTIVE") // ACTIVE, OVERDUE, CANCELED
+  subscriptionStatus String @default("ACTIVE") // ACTIVE, OVERDUE, CANCELED, TRIAL
+  trialEndsAt    DateTime?
   saasPlan       String @default("BASIC")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
