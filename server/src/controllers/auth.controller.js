@@ -85,7 +85,14 @@ exports.register = async (req, res) => {
             });
 
             const token = generateToken(result.user, result.authUser);
-            return res.status(201).json({ token, user: result.user, barbershop: result.barbershop });
+
+            // Return user with ownedBarbershops populated so frontend validation works immediately
+            const userWithShop = {
+                ...result.user,
+                ownedBarbershops: [result.barbershop]
+            };
+
+            return res.status(201).json({ token, user: userWithShop, barbershop: result.barbershop });
         }
 
         // 3. CLIENT Registration (Default)
