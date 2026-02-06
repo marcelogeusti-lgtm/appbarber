@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, TrendingUp, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, TrendingUp, ShieldCheck } from 'lucide-react';
 
 export default function Hero() {
     return (

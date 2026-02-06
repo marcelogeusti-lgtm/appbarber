@@ -1,5 +1,5 @@
 'use client';
-import { Calendar, CreditCard, Users, BarChart3, Scissors, Bell, Globe, Shield } from 'lucide-react';
+import { Calendar, CreditCard, Users, BarChart3, Bell, Globe } from 'lucide-react';
 
 const features = [
     {
