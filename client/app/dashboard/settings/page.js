@@ -371,19 +371,21 @@ export default function SettingsPage() {
                     active={activeAccordion}
                     setActive={setActiveAccordion}
                 >
-                    <div className="bg-primary/5 p-10 rounded-[3rem] border border-primary/20 text-center space-y-6">
+                    <div className="bg-primary/5 p-10 rounded-[3rem] border border-primary/20 text-center space-y-8">
                         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20 shadow-inner">
-                            <Smartphone className="w-10 h-10 text-primary animate-bounce" />
+                            <Zap className="w-10 h-10 text-primary animate-pulse" />
                         </div>
-                        <div className="space-y-2">
-                            <h3 className="text-2xl font-black text-foreground uppercase tracking-tight">Alertas Inteligentes Ativos</h3>
-                            <p className="text-muted-foreground text-xs font-medium italic max-w-sm mx-auto leading-relaxed">
-                                Seu sistema envia notificações automáticas sobre novos agendamentos e cancelamentos. Tudo sincronizado em tempo real.
+                        <div className="space-y-4">
+                            <h3 className="text-2xl font-black text-foreground uppercase tracking-tight flex items-center justify-center gap-3">
+                                <CheckCircle className="w-6 h-6 text-primary" /> Seu sistema envia notificações automáticas
+                            </h3>
+                            <p className="text-muted-foreground text-xs font-medium italic max-w-lg mx-auto leading-relaxed">
+                                Agendamentos, cancelamentos e alterações de horário são notificados instantaneamente para você e seus clientes. Tudo configurado e otimizado por padrão.
                             </p>
                         </div>
                         <div className="inline-flex items-center gap-3 bg-background border border-border px-8 py-3 rounded-full">
                             <div className="w-2 h-2 rounded-full bg-primary animate-ping"></div>
-                            <span className="text-[10px] font-black text-foreground uppercase tracking-[0.2em]">Operação Nominal Digital</span>
+                            <span className="text-[10px] font-black text-foreground uppercase tracking-[0.2em]">Fluxo de Notificação Ativo</span>
                         </div>
                     </div>
                 </AccordionItem>

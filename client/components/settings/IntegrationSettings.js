@@ -9,36 +9,24 @@ export default function IntegrationSettings() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             <GoogleCalendarCard />
             <WhatsAppCard />
-            <PushNotificationCard />
         </div>
     );
 }
 
 function GoogleCalendarCard() {
     const [loading, setLoading] = useState(false);
-    const [connected, setConnected] = useState(false); // In real app, fetch from user profile
-
-    useEffect(() => {
-        // ideally check if user has googleTokens
-        // for now we trust the auth flow or check a profile endpoint
-    }, []);
+    const [connected, setConnected] = useState(false);
 
     const handleConnect = async () => {
         setLoading(true);
         try {
             const res = await api.get('/integration/google/auth-url');
             if (res.data.url) {
-                // Open in popup
                 const width = 500;
                 const height = 600;
                 const left = (window.innerWidth - width) / 2;
                 const top = (window.innerHeight - height) / 2;
-
-                window.open(
-                    res.data.url,
-                    'GoogleAuth',
-                    `width=${width},height=${height},top=${top},left=${left}`
-                );
+                window.open(res.data.url, 'GoogleAuth', `width=${width},height=${height},top=${top},left=${left}`);
             }
         } catch (error) {
             alert('Erro ao iniciar conexão com Google');
@@ -48,20 +36,19 @@ function GoogleCalendarCard() {
     };
 
     return (
-        <div className="p-6 md:p-8 rounded-[2rem] border border-slate-800 bg-[#111827] hover:border-blue-500/30 transition-all duration-300">
-            <div className="flex items-start justify-between">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl shrink-0">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" alt="Google Calendar" className="w-8 h-8" />
+        <div className="p-8 rounded-[2rem] border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden mb-6">
+            <div className="flex flex-col md:flex-row items-start justify-between gap-6">
+                <div className="flex gap-5">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+                        <Calendar className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <h3 className="text-lg font-black text-foreground flex items-center gap-3 uppercase tracking-tight">
                             Google Calendar
-                            {connected && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                            {connected && <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">CONECTADO</span>}
                         </h3>
-                        <p className="text-slate-500 text-xs mt-1 max-w-lg">
-                            Sincronize seus agendamentos automaticamente com sua agenda do Google.
-                            Eventos externos bloquearão seu horário no app para evitar conflitos.
+                        <p className="text-muted-foreground text-xs mt-2 font-medium italic leading-relaxed opacity-80 max-w-lg">
+                            Sincronize seus agendamentos automaticamente com sua agenda do Google para evitar conflitos de horário.
                         </p>
                     </div>
                 </div>
@@ -69,13 +56,13 @@ function GoogleCalendarCard() {
                 <button
                     onClick={handleConnect}
                     disabled={loading || connected}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${connected
-                        ? 'bg-emerald-500/10 text-emerald-500 cursor-default'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'
+                    className={`flex items-center gap-3 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${connected
+                        ? 'bg-primary/10 text-primary cursor-default'
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 hover:scale-105 active:scale-95'
                         }`}
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                        connected ? 'CONECTADO' : <><ExternalLink className="w-3 h-3" /> CONECTAR</>
+                        connected ? 'OPERACIONAL' : <><ExternalLink className="w-4 h-4" /> CONECTAR</>
                     )}
                 </button>
             </div>
@@ -84,8 +71,7 @@ function GoogleCalendarCard() {
 }
 
 function WhatsAppCard() {
-    const [status, setStatus] = useState('unknown'); // unknown, CONNECTED, DISCONNECTED
-    const [qrCode, setQrCode] = useState(null);
+    const [status, setStatus] = useState('unknown');
     const [loading, setLoading] = useState(false);
 
     const checkStatus = async () => {
@@ -93,9 +79,6 @@ function WhatsAppCard() {
         try {
             const res = await api.get('/integration/whatsapp/status');
             setStatus(res.data.state || 'DISCONNECTED');
-            if (res.data.qrcode) {
-                setQrCode(res.data.qrcode); // base64
-            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -104,68 +87,42 @@ function WhatsAppCard() {
     };
 
     return (
-        <div className="p-6 md:p-8 rounded-[2rem] border border-slate-800 bg-[#111827] hover:border-emerald-500/30 transition-all duration-300">
-            <div className="flex items-start justify-between">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500 overflow-hidden flex items-center justify-center border border-emerald-600 shadow-xl shrink-0">
-                        <Smartphone className="w-6 h-6 text-white" />
+        <div className="p-8 rounded-[2rem] border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden mb-6">
+            <div className="flex flex-col md:flex-row items-start justify-between gap-6">
+                <div className="flex gap-5">
+                    <div className="w-14 h-14 rounded-2xl bg-[#25D366]/10 overflow-hidden flex items-center justify-center border border-[#25D366]/20 shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+                        <Smartphone className="w-8 h-8 text-[#25D366]" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                            WhatsApp Business
-                            {status === 'CONNECTED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                        <h3 className="text-lg font-black text-foreground flex items-center gap-3 uppercase tracking-tight">
+                            WhatsApp Maestro
+                            {status === 'CONNECTED' && (
+                                <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-[9px] font-black uppercase tracking-widest">
+                                    <CheckCircle className="w-3 h-3" /> Conectado
+                                </span>
+                            )}
                         </h3>
-                        <p className="text-slate-500 text-xs mt-1 max-w-lg">
-                            Envie lembretes e confirmações automáticas para seus clientes.
+                        <p className="text-muted-foreground text-xs mt-2 font-medium italic leading-relaxed opacity-80 max-w-lg">
+                            O coração da sua comunicação. Envie lembretes, confirmações e avisos de cancelamento instantaneamente.
                         </p>
 
-                        <div className="mt-4">
+                        <div className="mt-4 flex items-center gap-4">
                             {status === 'CONNECTED' ? (
-                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-widest">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                    Operacional
-                                </span>
+                                <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em]">
+                                    <div className="w-2 h-2 rounded-full bg-primary animate-ping"></div>
+                                    Monitoramento Ativo
+                                </div>
                             ) : (
-                                <button onClick={checkStatus} className="text-[10px] text-blue-400 font-bold hover:underline">
-                                    Verificar Status
+                                <button
+                                    onClick={checkStatus}
+                                    disabled={loading}
+                                    className="text-[10px] text-primary font-black uppercase tracking-widest hover:underline flex items-center gap-2"
+                                >
+                                    {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Verificar Sincronia'}
                                 </button>
                             )}
                         </div>
                     </div>
-                </div>
-
-                {/* QR Code display area could go here or in a modal */}
-            </div>
-        </div>
-    );
-}
-
-function PushNotificationCard() {
-    return (
-        <div className="p-8 rounded-[2rem] border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden">
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-            <div className="flex flex-col md:flex-row items-start justify-between gap-6">
-                <div className="flex gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 overflow-hidden flex items-center justify-center border border-primary/20 shadow-inner shrink-0 group-hover:scale-110 transition-transform">
-                        <Bell className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-black text-foreground flex items-center gap-3 uppercase tracking-tight">
-                            Alertas Automáticos
-                            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner">
-                                <CheckCircle className="w-3 h-3" /> Operacional
-                            </span>
-                        </h3>
-                        <p className="text-muted-foreground text-xs mt-2 font-medium italic leading-relaxed opacity-80">
-                            Seu sistema envia notificações automaticamente sobre agendamentos e cancelamentos diretamente para os dispositivos autorizados.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="bg-background/50 border border-border px-6 py-4 rounded-2xl flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-ping"></div>
-                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Sincronizado</span>
                 </div>
             </div>
         </div>
