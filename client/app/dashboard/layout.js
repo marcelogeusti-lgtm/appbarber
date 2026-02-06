@@ -72,7 +72,25 @@ export default function DashboardLayout({ children }) {
     const isSubscriptionActive = () => {
         if (user?.role === 'CLIENT' || user?.role === 'SUPER_ADMIN') return true;
         const shop = user?.barbershop || user?.workedBarbershop || user?.ownedBarbershops?.[0];
-        return shop?.subscriptionStatus === 'ACTIVE';
+
+        if (!shop) return false;
+
+        // Allow ACTIVE or TRIAL
+        if (shop.subscriptionStatus === 'ACTIVE') return true;
+
+        if (shop.subscriptionStatus === 'TRIAL') {
+            // Optional: check date on frontend too, but backend is source of truth.
+            // For UX, we assume if it's TRIAL it's valid, or backend would return 403 on data fetch.
+            // But let's check if we have the date to show "Expired" message eventually.
+            if (shop.trialEndsAt) {
+                const now = new Date();
+                const trialEnd = new Date(shop.trialEndsAt);
+                return now < trialEnd;
+            }
+            return true; // If no date but status is TRIAL, assume valid (legacy/fallback)
+        }
+
+        return false;
     };
 
     const isLocked = !isSubscriptionActive();

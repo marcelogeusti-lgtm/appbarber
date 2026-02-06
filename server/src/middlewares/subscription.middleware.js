@@ -32,8 +32,22 @@ exports.checkSubscription = async (req, res, next) => {
         // Anexar plano ao request para uso posterior (ex: limites)
         req.user.saasPlan = barbershop.saasPlan;
 
-        // REGRA B: Acesso bloqueado se não estiver ACTIVE
-        if (barbershop.subscriptionStatus !== 'ACTIVE') {
+        // REGRA B: Acesso bloqueado se não estiver ACTIVE ou TRIAL válido
+        if (barbershop.subscriptionStatus === 'ACTIVE') {
+            // OK
+        } else if (barbershop.subscriptionStatus === 'TRIAL') {
+            const now = new Date();
+            const trialEnd = barbershop.trialEndsAt ? new Date(barbershop.trialEndsAt) : null;
+
+            if (!trialEnd || now > trialEnd) {
+                return res.status(403).json({
+                    message: 'Trial Expired',
+                    reason: 'TRIAL_EXPIRED',
+                    trialEndsAt: barbershop.trialEndsAt
+                });
+            }
+            // OK (Trial Valid)
+        } else {
             return res.status(403).json({
                 message: 'Subscription Inactive',
                 reason: barbershop.subscriptionStatus
