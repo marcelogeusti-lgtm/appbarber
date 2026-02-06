@@ -251,12 +251,12 @@ export default function AuthPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Nome da Barbearia</label>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Nome da Empresa</label>
                                 <input
                                     type="text"
                                     required
                                     className="w-full bg-[#09090b] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
-                                    placeholder="Ex: Barber Shop"
+                                    placeholder="Ex: Minha Barbearia ou Salão"
                                     value={registerData.barbershopName}
                                     onChange={(e) => setRegisterData({ ...registerData, barbershopName: e.target.value })}
                                 />

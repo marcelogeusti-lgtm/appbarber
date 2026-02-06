@@ -62,7 +62,10 @@ exports.register = async (req, res) => {
                         name: barbershopName,
                         slug,
                         ownerId: user.id,
-                        staff: { connect: { id: user.id } }
+                        staff: { connect: { id: user.id } },
+                        // TrialLogic: 15 Days Free
+                        subscriptionStatus: 'TRIAL',
+                        trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 Days from now
                     }
                 });
 
