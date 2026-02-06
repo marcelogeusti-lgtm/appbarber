@@ -22,7 +22,7 @@ exports.checkSubscription = async (req, res, next) => {
 
         const barbershop = await prisma.barbershop.findUnique({
             where: { id: barbershopId },
-            select: { subscriptionStatus: true, saasPlan: true }
+            select: { subscriptionStatus: true, saasPlan: true, trialEndsAt: true }
         });
 
         if (!barbershop) {
