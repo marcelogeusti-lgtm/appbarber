@@ -1,5 +1,5 @@
 'use client';
-import { Scissors, Instagram, Facebook, Twitter } from 'lucide-react';
+import { Scissors, Instagram, Facebook, Twitter, Apple, PlayCircle } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -28,6 +28,27 @@ export default function Footer() {
                             <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-black transition-all">
                                 <Twitter className="w-5 h-5" />
                             </a>
+                        </div>
+
+                        {/* App Store Badges */}
+                        <div className="flex flex-col gap-3 mt-8">
+                            <p className="text-white font-bold text-sm">Baixe o App</p>
+                            <div className="flex gap-2">
+                                <button className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 px-3 flex items-center gap-2 transition-colors group">
+                                    <Apple className="w-5 h-5 text-white group-hover:text-primary transition-colors" />
+                                    <div className="text-left">
+                                        <div className="text-[8px] uppercase text-gray-400">Download on</div>
+                                        <div className="text-xs font-bold text-white leading-none">App Store</div>
+                                    </div>
+                                </button>
+                                <button className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 px-3 flex items-center gap-2 transition-colors group">
+                                    <PlayCircle className="w-5 h-5 text-white group-hover:text-primary transition-colors" />
+                                    <div className="text-left">
+                                        <div className="text-[8px] uppercase text-gray-400">Get it on</div>
+                                        <div className="text-xs font-bold text-white leading-none">Google Play</div>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
