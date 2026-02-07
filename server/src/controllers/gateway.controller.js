@@ -20,7 +20,8 @@ function maskCredentials(gateway, credentials) {
 
 exports.saveConfig = async (req, res) => {
     try {
-        const { gateway, credentials, isActive } = req.body;
+        const { credentials, isActive } = req.body;
+        const gateway = req.body.gateway?.toUpperCase();
         const barbershopId = req.user.barbershopId || req.user.barbershop?.id;
 
         if (!gateway || !credentials) {
@@ -66,7 +67,7 @@ exports.saveConfig = async (req, res) => {
             where: {
                 barbershopId_gateway: {
                     barbershopId,
-                    gateway: gateway.toUpperCase()
+                    gateway
                 }
             },
             update: {
@@ -76,7 +77,7 @@ exports.saveConfig = async (req, res) => {
             },
             create: {
                 barbershopId,
-                gateway: gateway.toUpperCase(),
+                gateway,
                 credentials: finalCredentials,
                 isActive: !!isActive
             }
