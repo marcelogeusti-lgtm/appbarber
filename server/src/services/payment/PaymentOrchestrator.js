@@ -275,6 +275,8 @@ class PaymentOrchestrator {
     async getGatewayConfig(barbershopId, gatewayName) {
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
+        const crypto = require('../../utils/crypto');
+
         const config = await prisma.gatewayConfig.findUnique({
             where: {
                 barbershopId_gateway: {
@@ -283,7 +285,25 @@ class PaymentOrchestrator {
                 }
             }
         });
-        return config?.credentials || {};
+
+        if (!config || !config.credentials) return {};
+
+        const credentials = { ...config.credentials };
+
+        // Auto-decrypt secretKey if present
+        const sensitiveFields = ['secretKey', 'accessToken', 'apiKey', 'clientSecret'];
+
+        sensitiveFields.forEach(field => {
+            if (credentials[field]) {
+                const decrypted = crypto.decrypt(credentials[field]);
+                // If decryption succeeds, use it. If not (e.g. older plain text or invalid), keep original.
+                if (decrypted) {
+                    credentials[field] = decrypted;
+                }
+            }
+        });
+
+        return credentials;
     }
 
     async getPublicKey(barbershopId) {

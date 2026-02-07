@@ -169,7 +169,8 @@ exports.createPixPayment = async (req, res) => {
                 qrCode: updatedPayment.qrCode,
                 qrCodeBase64: paymentResult.qrCodeBase64,
                 pixCopiaECola: updatedPayment.pixCopiaECola,
-                status: updatedPayment.status
+                status: updatedPayment.status,
+                checkoutUrl: paymentResult.checkoutUrl // [NEW] Return Velfy Checkout URL
             });
 
         } catch (gatewayError) {

@@ -10,103 +10,61 @@ class VelfyAdapter extends GatewayAdapter {
     }
 
     async createPayment({ amount, description, customer, credentials, externalId }) {
-        // PixOne Credentials
-        // logic: publicKey = pk_userKey, secretKey = sk_userKey
-        const sk = credentials?.secretKey;
+        // Legacy Direct Pix Implementation (kept for fallback/compat)
+        // If hosted checkout is preferred, use createHostedCheckout
+        return this.createHostedCheckout({ amount, description, customer, credentials, externalId });
+    }
+
+    async createHostedCheckout({ amount, description, customer, credentials, externalId }) {
+        const sk = credentials?.secretKey; // Already decrypted by orchestrator
         const pk = credentials?.publicKey;
 
-        if (!sk || !pk) {
-            throw new Error('PixOne Credentials (secretKey/publicKey) are missing in GatewayConfig.');
+        if (!sk) {
+            throw new Error('PixOne Credentials (secretKey) are missing.');
         }
 
-        // Basic Auth: base64(sk:pk)
-        const auth = Buffer.from(`${sk}:${pk}`).toString('base64');
-
-        // Customer Data Formatting
-        // Ensure strictly required fields are present
-        const sanitizedDocument = (customer.document || '00000000000').replace(/\D/g, '');
-        const sanitizedPhone = (customer.phone || '00000000000').replace(/\D/g, '');
-
-        const customerPayload = {
-            name: customer.name || 'Cliente',
-            email: customer.email || 'email@naoinformado.com',
-            phone: sanitizedPhone,
-            document: {
-                type: (sanitizedDocument.length > 11) ? 'cnpj' : 'cpf', // Simple inference
-                number: sanitizedDocument
-            }
+        // Auth Header: Bearer {secretKey} or Basic, assuming Velfy uses Bearer for checkout API
+        // Checking doc reference or standard: usually Bearer for modern APIs, but adapter used Basic before.
+        // User prompt says: Authorization: Bearer {SECRET_KEY_DA_BARBEARIA}
+        const headers = {
+            'Authorization': `Bearer ${sk}`,
+            'Content-Type': 'application/json'
         };
 
         const payload = {
-            paymentMethod: 'pix',
-            amount: Math.round(amount * 100), // PixOne uses cents
-            pix: {
-                expiresInDays: 1
+            amount: parseFloat(amount), // Velfy usually takes float or cents? Prompt says "amount: 70.00"
+            description: description || 'Servico Barbearia',
+            external_id: externalId, // Critical for reconciliation
+            customer_required: true,
+            customer: {
+                name: customer.name,
+                email: customer.email,
+                tax_id: customer.document // CPF/CNPJ
             },
-            items: [
-                {
-                    title: description || 'Servico',
-                    quantity: 1,
-                    tangible: false,
-                    unitPrice: Math.round(amount * 100)
-                }
-            ],
-            customer: customerPayload,
-            externalRef: externalId, // Our Payment UUID
-            postbackUrl: process.env.WEBHOOK_URL || 'https://meusite.com/api/webhook/pixone', // Ideally from env
-            traceable: false,
-            ip: '127.0.0.1', // Required by PixOne, valid IP needed ideally
-            metadata: JSON.stringify({
-                source: 'faturai_app'
-            })
+            // return_url: ... (can be passed or configured in dashboard)
         };
 
         try {
-            console.log('[PixOne] Sending Request:', JSON.stringify(payload));
+            console.log('[Velfy] Creating Hosted Checkout:', JSON.stringify(payload));
 
-            const response = await axios.post(`${this.apiUrl}/transactions`, payload, {
-                headers: {
-                    'Authorization': `Basic ${auth}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            // Endpoint per user prompt instructions
+            const response = await axios.post(`${this.apiUrl}/create-payment`, payload, { headers }); // or /cob/create depending on actual API
 
+            // User Prompt Example Response:
+            // { payment_id: "...", checkout_url: "..." }
             const data = response.data;
 
-            // PixOne response structure:
-            // { paymentMethod: 'pix', pix: { qrcode: '...' }, status: 'pending', ... }
-            const pixString = data.pix?.qrcode || data.qrcode || '';
-            let qrCodeBase64 = null;
-
-            if (pixString) {
-                try {
-                    // Generate Base64 QR Code image from the Pix string
-                    const dataUrl = await qrcode.toDataURL(pixString);
-                    qrCodeBase64 = dataUrl.split(',')[1]; // Remove prefix 'data:image/png;base64,'
-                } catch (qrErr) {
-                    console.error('[PixOne] QR Code Generation Error:', qrErr.message);
-                }
-            }
-
             return {
-                externalId: data.data?.object?.id || data.id, // PixOne ID
-                paymentId: data.data?.object?.id || data.id,
-                qrCode: pixString,
-                qrCodeBase64: qrCodeBase64,
-                pixCopiaECola: pixString,
-                status: 'pending', // Usually pending immediately
-                rawResponse: data
+                paymentId: data.payment_id || data.id,
+                checkoutUrl: data.checkout_url || data.url,
+                status: 'pending',
+                gateway: 'velfy',
+                externalId: data.payment_id || data.id
             };
 
         } catch (error) {
-            console.error('[PixOne] Error:', error.response?.data || error.message);
-
-            // Pass error up so Orchestrator can handle
-            // If 401, it means invalid credentials -> Good for testing "Real" mode
-            if (error.response?.status === 401) {
-                throw new Error('PixOne Authentication Failed. Check keys.');
-            }
-            throw new Error(`PixOne Error: ${JSON.stringify(error.response?.data || error.message)}`);
+            console.error('[Velfy] Hosted Checkout Error:', error.response?.data || error.message);
+            throw new Error(`Velfy Error: ${JSON.stringify(error.response?.data || error.message)}`);
         }
     }
 

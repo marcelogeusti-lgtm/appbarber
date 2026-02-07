@@ -592,8 +592,8 @@ export default function BarbershopPage() {
                                             <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
                                                 <Banknote className="w-10 h-10 text-emerald-500" />
                                             </div>
-                                            <h2 className="text-2xl font-black text-white uppercase">Pague via Boleto</h2>
-                                            <p className="text-slate-400 text-xs px-6">Seu boleto foi gerado com sucesso. Clique no botão abaixo para visualizar e pagar.</p>
+                                            <h2 className="text-2xl font-black text-white uppercase">Pagamento Online</h2>
+                                            <p className="text-slate-400 text-xs px-6">Link de pagamento gerado com sucesso. Clique no botão abaixo para concluir.</p>
 
                                             <a
                                                 href={checkoutData.checkoutUrl}
@@ -602,7 +602,7 @@ export default function BarbershopPage() {
                                                 className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition"
                                             >
                                                 <ExternalLink className="w-4 h-4" />
-                                                Abrir Boleto
+                                                Ir para Pagamento
                                             </a>
 
                                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">O agendamento será confirmado após a compensação.</p>

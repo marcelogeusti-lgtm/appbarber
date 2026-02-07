@@ -10,11 +10,24 @@ async function verifyFlow() {
     const password = 'password123';
     const barbershopName = `Robust Barbershop ${Date.now()}`;
 
-    console.log(`Starting Robust Verification for ${email}...`);
+    const fs = require('fs');
+    const logFile = 'verification.log';
+    const log = (msg) => {
+        console.log(msg);
+        fs.appendFileSync(logFile, msg + '\n');
+    };
+    const errorLog = (msg) => {
+        console.error(msg);
+        fs.appendFileSync(logFile, 'ERROR: ' + msg + '\n');
+    };
+
+    if (fs.existsSync(logFile)) fs.unlinkSync(logFile);
+
+    log(`Starting Robust Verification for ${email}...`);
 
     try {
         // 1. REGISTER
-        console.log('[1] Registering...');
+        log('[1] Registering...');
         // We need to simulate the request to the controller function if server not running, 
         // BUT best is to test the actual controller logic.
         // Since we cannot easily curl localhost if it's not running in this environment (Request blocked?), 
@@ -49,19 +62,19 @@ async function verifyFlow() {
             throw new Error(`Registration failed: ${resReg.statusCode} ${JSON.stringify(resReg.data)}`);
         }
 
-        console.log('[SUCCESS] Registration successful.');
+        log('[SUCCESS] Registration successful.');
         const user = resReg.data.user;
         const token = resReg.data.token;
 
         // CHECK: Does user have ownedBarbershops?
         if (!user.ownedBarbershops || user.ownedBarbershops.length === 0) {
-            console.error('[FAIL] User object missing ownedBarbershops!');
+            errorLog('[FAIL] User object missing ownedBarbershops!');
         } else {
-            console.log('[PASS] User object has ownedBarbershops.');
+            log('[PASS] User object has ownedBarbershops.');
         }
 
         // 2. CHECK MIDDLEWARE ACCESS (Simulated)
-        console.log('[2] Checking Middleware Access...');
+        log('[2] Checking Middleware Access...');
         const subMiddleware = require('../src/middlewares/subscription.middleware');
 
         const reqMid = {
@@ -71,22 +84,134 @@ async function verifyFlow() {
             }
         };
         const resMid = mockRes();
-        const next = () => { console.log('[PASS] Middleware allowed access (next called).'); };
+        const next = () => { log('[PASS] Middleware allowed access (next called).'); };
 
         await subMiddleware.checkSubscription(reqMid, resMid, next);
 
         if (resMid.statusCode && resMid.statusCode !== 200) {
-            console.error(`[FAIL] Middleware blocked access: ${resMid.statusCode} ${JSON.stringify(resMid.data)}`);
+            errorLog(`[FAIL] Middleware blocked access: ${resMid.statusCode} ${JSON.stringify(resMid.data)}`);
+        }
+
+        // 2.5 CREATE MOCK DATA
+        log('[2.5] Creating Mock Data...');
+        const service = await prisma.service.create({ data: { name: 'Corte Teste', price: 50.00, duration: 30, barbershopId: user.ownedBarbershops[0].id } });
+        const client = await prisma.client.create({ data: { name: 'Cliente Teste', phone: '11988888888' } });
+        await prisma.professional.create({ data: { userId: user.id } }).catch(() => { });
+        const appointment = await prisma.appointment.create({ data: { date: new Date(), status: 'PENDING', serviceId: service.id, professionalId: user.id, clientId: client.id, barbershopId: user.ownedBarbershops[0].id } });
+
+
+        // 3. CHECK PAYMENT CREATION (Velfy)
+        log('[3] Checking Velfy Payment Creation...');
+        const paymentController = require('../src/controllers/payment.controller');
+        const PaymentOrchestrator = require('../src/services/payment/PaymentOrchestrator');
+
+        // Mock Gateway Config to ensure Velfy is active and valid
+        await prisma.gatewayConfig.upsert({
+            where: {
+                barbershopId_gateway: {
+                    barbershopId: user.ownedBarbershops[0].id,
+                    gateway: 'VELFY'
+                }
+            },
+            update: { isActive: true, credentials: { secretKey: 'sk_test_123', publicKey: 'pk_test_123' } },
+            create: {
+                barbershopId: user.ownedBarbershops[0].id,
+                gateway: 'VELFY',
+                isActive: true,
+                credentials: { secretKey: 'sk_test_123', publicKey: 'pk_test_123' }
+            }
+        });
+
+        // Mock Velfy Adapter to avoid real external call failure
+        PaymentOrchestrator.gateways.velfy.createHostedCheckout = async () => ({
+            paymentId: 'mock_pay_123',
+            checkoutUrl: 'https://checkout.velfy.com/pay/mock_pay_123',
+            status: 'pending',
+            gateway: 'velfy',
+            externalId: 'mock_pay_123'
+        });
+
+        const reqPay = {
+            user: { ...user, barbershopId: user.ownedBarbershops[0].id },
+            body: {
+                method: 'PIX',
+                amount: 50.00,
+                description: 'Corte Teste',
+                customer: { name: 'Cliente Teste', email: 'cliente@teste.com' },
+                appointmentId: appointment.id
+            }
+        };
+        const resPay = mockRes();
+
+        await paymentController.createPixPayment(reqPay, resPay);
+
+        if (resPay.statusCode === 201 && resPay.data.checkoutUrl) {
+            log('[PASS] Velfy Payment Created with Checkout URL: ' + resPay.data.checkoutUrl);
+        } else {
+            errorLog(`[FAIL] Payment creation failed or missing checkoutUrl: ${resPay.statusCode} ${JSON.stringify(resPay.data)}`);
         }
 
         // CLEANUP
-        console.log('Cleaning up...');
+        log('Cleaning up...');
+        // Delete dependent records first
+        await prisma.payment.deleteMany({ where: { barbershopId: user.ownedBarbershops[0].id } });
+        await prisma.gatewayConfig.deleteMany({ where: { barbershopId: user.ownedBarbershops[0].id } });
+
+        // Delete Appointment (if created)
+        // Since we created appointment, service, client, professional, we need to clean them.
+        // We can use deleteMany for safety if we didn't store IDs globally, or just select.
+        // But best is to use the IDs we have.
+        // Note: 'appointment', 'service', 'client' variables are in local scope of block above?
+        // Wait, they are in `verifyFlow` scope if I defined them with `const`? 
+        // Ah, previous Replace defined them inside verifyFlow, but I need to make sure they are accessible or delete by relation.
+
+        await prisma.appointment.deleteMany({ where: { barbershopId: user.ownedBarbershops[0].id } });
+        await prisma.service.deleteMany({ where: { barbershopId: user.ownedBarbershops[0].id } });
+
+        // Delete Professional
+        await prisma.professional.delete({ where: { userId: user.id } }).catch(() => { }); // catch in case it wasn't created
+
+        // Delete Barbershop (cascades? maybe not)
         await prisma.barbershop.delete({ where: { id: user.ownedBarbershops[0].id } });
+
+        // Delete User
         await prisma.user.delete({ where: { id: user.id } });
+
+        // Delete Client (linked to nothing now? Client has no barbershopId usually, but here we created it)
+        // Client ID we know? We didn't save it in outer scope.
+        // We should delete client by phone/name if needed, or by ID if we hoist variable.
+        // Check `verifyFlow` scope. I inserted code in `verifyFlow` body. `const service = ...` is in `verifyFlow` scope.
+        // So I can access `client.id`.
+        // However, I wrapped the detailed creation in Step 2.5.
+        // The ReplaceFileContent replaced the lines inside verifyFlow. 
+        // So `const client` is available.
+        // But wait, look at my previous ReplaceFileContent. I added `const client = ...`.
+        // If I use `client.id` here, it should be fine.
+
+        // But I need to be careful if I didn't create it (if error happened before).
+        // Try/Catch block wraps everything.
+
+        // To be safe, I'll delete Clients created for this test if `client` is defined.
+        // Since I can't guarantee `client` is defined if error occurred before 2.5, I shouldn't rely on it unless I check.
+        // But `verifyFlow` function scope... `client` is defined after step 2.
+
+        // Cleanup strategy:
+        // Use `deleteMany` where possible or use the variables if they exist.
+        // Since this is a test script, simplistic cleanup is okay.
+
+        // Actually, Client needs to be deleted.
+        // I'll just leave Client validation/deletion loose or query it.
+        // Let's rely on cascading or manual delete if I can.
+        // But strict variable usage might fail if not defined.
+
+        // Let's use `deleteMany` based on patterns if possible, or just ignore for now if not critical. 
+        // But client with unique phone will block next run.
+        await prisma.client.deleteMany({ where: { phone: '11988888888' } });
+
         await prisma.authUser.delete({ where: { email } });
 
     } catch (error) {
-        console.error('Verification FAILED:', error);
+        errorLog('Verification FAILED: ' + error.message);
     } finally {
         await prisma.$disconnect();
     }

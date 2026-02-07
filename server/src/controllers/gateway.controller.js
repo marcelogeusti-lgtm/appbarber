@@ -52,6 +52,29 @@ exports.saveConfig = async (req, res) => {
             });
         }
 
+        // Encrypt Sensitive Fields if they are new (not merged from old masked values)
+        const crypto = require('../utils/crypto');
+        const sensitiveFields = ['secretKey', 'apiKey', 'accessToken', 'clientSecret'];
+
+        sensitiveFields.forEach(field => {
+            const val = finalCredentials[field];
+            if (val && typeof val === 'string' && !val.includes('...')) {
+                // It's a new plain text value (or the user pasted a new key that happens to have ... but unlikely for these keys)
+                // We double check if it DOES NOT match the old encrypted value (if needed), but here logical flow is:
+                // If it was masked '...', we replaced it with OLD encrypted value.
+                // If it is NOT masked, it is NEW plain text. So we encrypt it.
+                // We should checks if it's already encrypted format (iv:content)? No, user enters plain text.
+                // Avoid double encryption if something weird happens, but unlikely.
+
+                // One edge case: if user enters a key that looks like "val...ue", it might be treated as masked?
+                // The mask is `slice(0,4)...slice(-4)`.
+                // We assume user won't enter a Key that matches the mask format exactly.
+
+                // Perform Encryption
+                finalCredentials[field] = crypto.encrypt(val);
+            }
+        });
+
         if (isActive) {
             // Deactivate all other gateways for this barbershop in a transaction for safety
             await prisma.gatewayConfig.updateMany({

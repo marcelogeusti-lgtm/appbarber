@@ -502,35 +502,69 @@ export default function OrderDetailsPage() {
                             {/* Pix QR Code Display */}
                             {selectedMethod === 'PIX' && generatedPayment && (
                                 <div className="mb-8 space-y-6 animate-in fade-in slide-in-from-top-6 duration-500">
-                                    <div className="bg-white p-6 rounded-[2.5rem] w-fit mx-auto border-4 border-primary shadow-2xl shadow-primary/10">
-                                        {generatedPayment.qrCodeBase64 ? (
-                                            <img src={`data:image/jpeg;base64,${generatedPayment.qrCodeBase64}`} className="w-56 h-56" alt="QR Code Pix" />
-                                        ) : (
-                                            <div className="w-56 h-56 flex items-center justify-center bg-muted text-foreground font-black text-[10px] text-center p-6 break-all uppercase tracking-widest">
-                                                QR Code no Copia e Cola
+                                    {generatedPayment.checkoutUrl ? (
+                                        <div className="text-center space-y-4">
+                                            <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
+                                                <Globe className="w-10 h-10 text-emerald-500" />
                                             </div>
-                                        )}
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] block text-center">Pix Copia e Cola</label>
-                                        <div className="flex gap-3">
-                                            <input
-                                                readOnly
-                                                value={generatedPayment.pixCopiaECola || generatedPayment.qrCode}
-                                                className="w-full bg-background border border-border rounded-xl p-4 text-[10px] text-muted-foreground font-mono truncate"
-                                                onClick={(e) => e.target.select()}
-                                            />
-                                            <button
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(generatedPayment.pixCopiaECola || generatedPayment.qrCode);
-                                                    alert('✅ Código copiado!');
-                                                }}
-                                                className="bg-primary text-primary-foreground px-6 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
+                                            <h2 className="text-2xl font-black text-white uppercase">Checkout Velfy</h2>
+                                            <p className="text-slate-400 text-xs px-6">Link de pagamento gerado com sucesso.</p>
+
+                                            <a
+                                                href={generatedPayment.checkoutUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-3 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
                                             >
-                                                COPIAR
-                                            </button>
+                                                <ExternalLink className="w-4 h-4" />
+                                                Abrir Pagamento
+                                            </a>
+
+                                            <div className="flex gap-2 justify-center mt-2">
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(generatedPayment.checkoutUrl);
+                                                        alert('Link copiado!');
+                                                    }}
+                                                    className="text-[10px] text-slate-500 hover:text-white uppercase font-bold flex items-center gap-2"
+                                                >
+                                                    <CheckCircle className="w-3 h-3" /> Copiar Link
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div className="bg-white p-6 rounded-[2.5rem] w-fit mx-auto border-4 border-primary shadow-2xl shadow-primary/10">
+                                                {generatedPayment.qrCodeBase64 ? (
+                                                    <img src={`data:image/jpeg;base64,${generatedPayment.qrCodeBase64}`} className="w-56 h-56" alt="QR Code Pix" />
+                                                ) : (
+                                                    <div className="w-56 h-56 flex items-center justify-center bg-muted text-foreground font-black text-[10px] text-center p-6 break-all uppercase tracking-widest">
+                                                        QR Code no Copia e Cola
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] block text-center">Pix Copia e Cola</label>
+                                                <div className="flex gap-3">
+                                                    <input
+                                                        readOnly
+                                                        value={generatedPayment.pixCopiaECola || generatedPayment.qrCode}
+                                                        className="w-full bg-background border border-border rounded-xl p-4 text-[10px] text-muted-foreground font-mono truncate"
+                                                        onClick={(e) => e.target.select()}
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(generatedPayment.pixCopiaECola || generatedPayment.qrCode);
+                                                            alert('✅ Código copiado!');
+                                                        }}
+                                                        className="bg-primary text-primary-foreground px-6 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
+                                                    >
+                                                        COPIAR
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                     <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl text-center">
                                         <p className="text-primary text-[10px] font-black uppercase tracking-widest animate-pulse flex items-center justify-center gap-2">
                                             <Zap className="w-3 h-3" /> Aguardando liquidação automática...
