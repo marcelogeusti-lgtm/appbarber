@@ -3,6 +3,9 @@ const prisma = new PrismaClient();
 
 const saasPlans = require('../config/saasPlans');
 
+const subscriptionCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
 exports.checkSubscription = async (req, res, next) => {
     try {
         // Ignorar verificação para Clientes e SUPER_ADMIN (mestre)
@@ -14,43 +17,58 @@ exports.checkSubscription = async (req, res, next) => {
         const barbershopId = req.user.barbershopId || req.user.workedBarbershopId;
 
         if (!barbershopId) {
-            // Se não tem barbearia vinculada, teoricamente não acessa dados sensíveis, 
-            // mas por segurança pode bloquear ou deixar passar dependendo da rota.
-            // Vamos assumir que rotas protegidas precisam de barbearia.
             return res.status(403).json({ message: 'Barbershop association required' });
         }
 
-        const barbershop = await prisma.barbershop.findUnique({
-            where: { id: barbershopId },
-            select: { subscriptionStatus: true, saasPlan: true, trialEndsAt: true }
-        });
+        // CACHE CHECK
+        const cached = subscriptionCache.get(barbershopId);
+        const now = Date.now();
+        let barbershopData;
 
-        if (!barbershop) {
-            return res.status(404).json({ message: 'Barbershop not found' });
+        if (cached && (now - cached.timestamp < CACHE_TTL)) {
+            barbershopData = cached.data;
+        } else {
+            // DB FETCH
+            const barbershop = await prisma.barbershop.findUnique({
+                where: { id: barbershopId },
+                select: { subscriptionStatus: true, saasPlan: true, trialEndsAt: true }
+            });
+
+            if (!barbershop) {
+                return res.status(404).json({ message: 'Barbershop not found' });
+            }
+
+            barbershopData = barbershop;
+
+            // UPDATE CACHE
+            subscriptionCache.set(barbershopId, {
+                timestamp: now,
+                data: barbershopData
+            });
         }
 
-        // Anexar plano ao request para uso posterior (ex: limites)
-        req.user.saasPlan = barbershop.saasPlan;
+        // Anexar plano ao request
+        req.user.saasPlan = barbershopData.saasPlan;
 
         // REGRA B: Acesso bloqueado se não estiver ACTIVE ou TRIAL válido
-        if (barbershop.subscriptionStatus === 'ACTIVE') {
+        if (barbershopData.subscriptionStatus === 'ACTIVE') {
             // OK
-        } else if (barbershop.subscriptionStatus === 'TRIAL') {
-            const now = new Date();
-            const trialEnd = barbershop.trialEndsAt ? new Date(barbershop.trialEndsAt) : null;
+        } else if (barbershopData.subscriptionStatus === 'TRIAL') {
+            const current = new Date();
+            const trialEnd = barbershopData.trialEndsAt ? new Date(barbershopData.trialEndsAt) : null;
 
-            if (!trialEnd || now > trialEnd) {
+            if (!trialEnd || current > trialEnd) {
                 return res.status(403).json({
                     message: 'Trial Expired',
                     reason: 'TRIAL_EXPIRED',
-                    trialEndsAt: barbershop.trialEndsAt
+                    trialEndsAt: barbershopData.trialEndsAt
                 });
             }
             // OK (Trial Valid)
         } else {
             return res.status(403).json({
                 message: 'Subscription Inactive',
-                reason: barbershop.subscriptionStatus
+                reason: barbershopData.subscriptionStatus
             });
         }
 
