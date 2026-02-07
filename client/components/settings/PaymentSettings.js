@@ -25,6 +25,16 @@ export default function PaymentSettings() {
 
     const handleSave = async (gateway, data) => {
         setSaving(gateway);
+        // Optimistic UI update: if activating this one, deactivate all others
+        if (data.isActive) {
+            setConfigs(prev => prev.map(c => ({
+                ...c,
+                isActive: c.gateway === gateway ? true : false
+            })));
+        } else {
+            setConfigs(prev => prev.map(c => c.gateway === gateway ? { ...c, isActive: false } : c));
+        }
+
         try {
             await api.post('/gateways', {
                 gateway,
@@ -32,9 +42,13 @@ export default function PaymentSettings() {
                 credentials: data.credentials
             });
             await fetchConfigs();
-            alert('Configurações de gateway atualizadas com sucesso!');
+            // Silence alert if it was just a toggle
+            if (!data.isToggleOnly) {
+                alert('Configurações de gateway atualizadas com sucesso!');
+            }
         } catch (error) {
             alert('Erro ao salvar: ' + (error.response?.data?.error || error.message));
+            fetchConfigs(); // Rollback on error
         } finally {
             setSaving(null);
         }
@@ -197,7 +211,12 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                         <input
                             type="checkbox"
                             checked={localData.isActive}
-                            onChange={e => setLocalData({ ...localData, isActive: e.target.checked })}
+                            onChange={async (e) => {
+                                const newActive = e.target.checked;
+                                setLocalData({ ...localData, isActive: newActive });
+                                // AUTO-SAVE ON TOGGLE
+                                await onSave(gateway, { ...localData, isActive: newActive, isToggleOnly: true });
+                            }}
                             className="sr-only peer"
                         />
                         <div className="w-14 h-7 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary shadow-inner"></div>

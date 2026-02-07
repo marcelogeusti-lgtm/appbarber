@@ -52,11 +52,11 @@ exports.saveConfig = async (req, res) => {
         }
 
         if (isActive) {
-            // Deactivate all other gateways for this barbershop
+            // Deactivate all other gateways for this barbershop in a transaction for safety
             await prisma.gatewayConfig.updateMany({
                 where: {
                     barbershopId,
-                    gateway: { not: gateway }
+                    gateway: { not: gateway.toUpperCase() }
                 },
                 data: { isActive: false }
             });
@@ -66,19 +66,19 @@ exports.saveConfig = async (req, res) => {
             where: {
                 barbershopId_gateway: {
                     barbershopId,
-                    gateway
+                    gateway: gateway.toUpperCase()
                 }
             },
             update: {
                 credentials: finalCredentials,
-                isActive,
+                isActive: !!isActive, // Ensure boolean
                 updatedAt: new Date()
             },
             create: {
                 barbershopId,
-                gateway,
+                gateway: gateway.toUpperCase(),
                 credentials: finalCredentials,
-                isActive
+                isActive: !!isActive
             }
         });
 

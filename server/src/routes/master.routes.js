@@ -6,7 +6,9 @@ const { protect: authMiddleware } = require('../middlewares/auth.middleware');
 
 // Middleware to ensure SUPER_ADMIN
 const requireMaster = (req, res, next) => {
+    console.log('[MasterAuth] User attempting access:', req.user?.email, 'Role:', req.user?.role);
     if (req.user.role !== 'SUPER_ADMIN') {
+        console.log('[MasterAuth] Defaulting to 403. Role mismatch.');
         return res.status(403).json({ message: 'Acesso negado. Apenas Master.' });
     }
     next();
