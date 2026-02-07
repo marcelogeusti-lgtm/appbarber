@@ -344,9 +344,22 @@ export default function OrderDetailsPage() {
                                 <span className="text-destructive">- {formatBRL(order.discount)}</span>
                             </div>
                             <div className="flex justify-between items-end text-foreground pt-6 border-t border-border/50">
-                                <span className="text-xs font-black uppercase tracking-widest">Total a Pagar</span>
+                                <span className="text-xs font-black uppercase tracking-widest">Total da Comanda</span>
                                 <span className="text-4xl font-black text-primary uppercase tracking-tighter leading-none">{formatBRL(order.total)}</span>
                             </div>
+
+                            {order.totalPaid > 0 && (
+                                <>
+                                    <div className="flex justify-between text-muted-foreground font-bold uppercase text-[10px] tracking-widest pt-4">
+                                        <span>Total Já Pago</span>
+                                        <span className="text-primary font-black">{formatBRL(order.totalPaid)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-foreground font-black uppercase text-xs tracking-widest pt-4 mt-4 border-t-2 border-dashed border-border/50">
+                                        <span>Saldo Devedor</span>
+                                        <span className="text-2xl text-primary">{formatBRL(order.balance)}</span>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         <div className="space-y-4">
@@ -360,6 +373,15 @@ export default function OrderDetailsPage() {
                                         <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
                                     </div>
                                 </div>
+                            )}
+
+                            {!isClosed && order.balance > 0 && (
+                                <button
+                                    onClick={handleOpenPayment}
+                                    className="w-full relative z-10 bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center justify-center gap-3 mb-4"
+                                >
+                                    <DollarSign className="w-5 h-5" /> Pagar Saldo {formatBRL(order.balance)}
+                                </button>
                             )}
 
                             {!isClosed && (
@@ -461,7 +483,6 @@ export default function OrderDetailsPage() {
                                 { id: 'CASH', label: 'Dinheiro Vivo', icon: '💵' },
                                 { id: 'CREDIT_CARD', label: 'Cartão Crédito', icon: '💳' },
                                 { id: 'DEBIT_CARD', label: 'Cartão Débito', icon: '🏧' },
-                                { id: 'ONLINE', label: 'Link de Pagamento', icon: '🌐' },
                             ].map(method => (
                                 <button
                                     key={method.id}

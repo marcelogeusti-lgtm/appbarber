@@ -129,13 +129,27 @@ exports.getOrder = async (req, res) => {
                     }
                 },
                 client: true,
-                professional: true
+                professional: true,
+                payments: {
+                    orderBy: { createdAt: 'desc' }
+                }
             }
         });
 
         if (!order) return res.status(404).json({ message: 'Comanda não encontrada.' });
 
-        res.json(order);
+        // Calculate Balance
+        const totalPaid = order.payments
+            .filter(p => p.status === 'paid' || p.status === 'APPROVED' || p.status === 'PAID')
+            .reduce((acc, p) => acc + Number(p.amount), 0);
+
+        const balance = Math.max(0, order.total - totalPaid);
+
+        res.json({
+            ...order,
+            totalPaid,
+            balance
+        });
     } catch (error) {
         console.error('Get Order Error:', error);
         res.status(500).json({ message: 'Erro ao buscar comanda.' });

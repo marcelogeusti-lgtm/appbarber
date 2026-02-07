@@ -1,5 +1,6 @@
 const GatewayAdapter = require('./GatewayAdapter');
 const axios = require('axios');
+const qrcode = require('qrcode');
 // const config = require('../config'); // Future config import
 
 class VelfyAdapter extends GatewayAdapter {
@@ -74,13 +75,25 @@ class VelfyAdapter extends GatewayAdapter {
 
             // PixOne response structure:
             // { paymentMethod: 'pix', pix: { qrcode: '...' }, status: 'pending', ... }
+            const pixString = data.pix?.qrcode || data.qrcode || '';
+            let qrCodeBase64 = null;
+
+            if (pixString) {
+                try {
+                    // Generate Base64 QR Code image from the Pix string
+                    const dataUrl = await qrcode.toDataURL(pixString);
+                    qrCodeBase64 = dataUrl.split(',')[1]; // Remove prefix 'data:image/png;base64,'
+                } catch (qrErr) {
+                    console.error('[PixOne] QR Code Generation Error:', qrErr.message);
+                }
+            }
 
             return {
                 externalId: data.data?.object?.id || data.id, // PixOne ID
                 paymentId: data.data?.object?.id || data.id,
-                qrCode: data.pix?.qrcode || data.qrcode,
-                qrCodeBase64: null,
-                pixCopiaECola: data.pix?.qrcode || data.qrcode,
+                qrCode: pixString,
+                qrCodeBase64: qrCodeBase64,
+                pixCopiaECola: pixString,
                 status: 'pending', // Usually pending immediately
                 rawResponse: data
             };
