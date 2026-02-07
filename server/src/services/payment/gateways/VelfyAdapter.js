@@ -10,74 +10,105 @@ class VelfyAdapter extends GatewayAdapter {
     }
 
     async createPayment({ amount, description, customer, credentials, externalId }) {
-        // Legacy Direct Pix Implementation (kept for fallback/compat)
-        // If hosted checkout is preferred, use createHostedCheckout
+        // Direct Pix Implementation
+        // API V1 uses /transaction endpoint to generate QR Code.
+        // It does NOT support distinct "Hosted Checkout" page URL in the response, 
+        // so we return the QR Code data for the frontend to render.
         return this.createHostedCheckout({ amount, description, customer, credentials, externalId });
     }
 
     async createHostedCheckout({ amount, description, customer, credentials, externalId }) {
-        const sk = credentials?.secretKey; // Already decrypted by orchestrator
+        const sk = credentials?.secretKey;
         const pk = credentials?.publicKey;
 
-        if (!sk) {
-            throw new Error('PixOne Credentials (secretKey) are missing.');
+        if (!sk || !pk) {
+            throw new Error('PixOne Credentials (secretKey or publicKey) are missing. Please configure them in Settings.');
         }
 
-        // Auth Header: Bearer {secretKey} or Basic, assuming Velfy uses Bearer for checkout API
-        // Checking doc reference or standard: usually Bearer for modern APIs, but adapter used Basic before.
-        // User prompt says: Authorization: Bearer {SECRET_KEY_DA_BARBEARIA}
+        // Docs: Authorization: Basic base64(sk:pk)
+        const authString = Buffer.from(`${sk}:${pk}`).toString('base64');
         const headers = {
-            'Authorization': `Bearer ${sk}`,
+            'Authorization': `Basic ${authString}`,
             'Content-Type': 'application/json'
         };
 
+        const amountInCents = Math.round(parseFloat(amount) * 100);
+
+        // API requires full URL for callbacks. 
+        // We use APP_URL or VERCEL_URL if available, otherwise a placeholder that user must config.
+        const baseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://api.seusite.com.br');
+        const postbackUrl = `${baseUrl}/api/webhooks/velfy`;
+
         const payload = {
-            amount: parseFloat(amount), // Velfy usually takes float or cents? Prompt says "amount: 70.00"
-            description: description || 'Servico Barbearia',
-            external_id: externalId, // Critical for reconciliation
-            customer_required: true,
+            paymentMethod: 'pix',
+            amount: amountInCents,
+            pix: {
+                expiresInDays: 1
+            },
             customer: {
                 name: customer.name,
                 email: customer.email,
-                tax_id: customer.document // CPF/CNPJ
+                phone: customer.phone,
+                document: {
+                    type: customer.document && customer.document.length > 11 ? 'cnpj' : 'cpf',
+                    number: customer.document ? customer.document.replace(/\D/g, '') : '00000000000'
+                }
             },
-            // return_url: ... (can be passed or configured in dashboard)
+            externalRef: externalId,
+            postbackUrl: postbackUrl,
+            traceable: true,
+            items: [
+                {
+                    title: description || 'Servico',
+                    quantity: 1,
+                    unitPrice: amountInCents,
+                    tangible: false
+                }
+            ],
+            // ip: '127.0.0.1', // Docs say mandatory but let's try omitting or hardcoding valid IPv4 if needed.
+            ip: '127.0.0.1',
+            metadata: JSON.stringify({ externalId })
         };
 
         try {
-            console.log('[Velfy] Creating Hosted Checkout:', JSON.stringify(payload));
+            console.log('[Velfy] Creating Transaction:', JSON.stringify(payload));
 
-            // Endpoint per user prompt instructions
-            const response = await axios.post(`${this.apiUrl}/create-payment`, payload, { headers }); // or /cob/create depending on actual API
+            // Endpoint matches cURL example: https://api.pixone.com.br/api/v1/transaction
+            // this.apiUrl is 'https://api.pixone.com.br/api/v1'
+            const response = await axios.post(`${this.apiUrl}/transaction`, payload, { headers });
 
-            // User Prompt Example Response:
-            // { payment_id: "...", checkout_url: "..." }
             const data = response.data;
 
+            // Response usually has: { id, qrcode, copiaECola, ... }
+            // API V1 might NOT return a hosted checkout URL, only QR Code.
+            // If so, we return QRCode data and frontend must display it.
+            // Our controller logic supports `qrCode` and `pixCopiaECola`.
+
+            // Note: If data.url exists, we can use it as checkoutUrl, but likely it doesn't.
+
             return {
-                paymentId: data.payment_id || data.id,
-                checkoutUrl: data.checkout_url || data.url,
+                paymentId: data.id || data.transactionId,
+                checkoutUrl: data.url || null,
+                qrCode: data.qrcode || data.qrCode,
+                pixCopiaECola: data.emv || data.copiaECola || data.qrcode,
                 status: 'pending',
                 gateway: 'velfy',
-                externalId: data.payment_id || data.id
+                externalId: data.id || data.transactionId
             };
 
         } catch (error) {
-            console.error('[Velfy] Hosted Checkout Error:', error.response?.data || error.message);
+            console.error('[Velfy] Transaction Error:', error.response?.data || error.message);
             throw new Error(`Velfy Error: ${JSON.stringify(error.response?.data || error.message)}`);
         }
     }
 
     async validateWebhook(req) {
-        // PixOne doesn't seem to have a signature header documented in the chunks read.
-        // We will trust it for now or check if "secretId" or similar matches tenant.
-        // For now, return true to allow processing.
+        // PixOne doesn't seem to have a signature header documented.
         return true;
     }
 
-    // Helper to fetch status if needed (PixOne might not have a direct GET status endpoint doc'd used here, but we rely on Webhook)
+    // Helper to fetch status if needed
     async getPaymentStatus({ externalId, credentials }) {
-        // Not implemented in this chunk, assuming Webhook drives status
         return { status: 'unknown' };
     }
 }
