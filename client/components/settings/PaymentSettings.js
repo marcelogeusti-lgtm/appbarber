@@ -26,13 +26,14 @@ export default function PaymentSettings() {
     const handleSave = async (gateway, data) => {
         setSaving(gateway);
         // Optimistic UI update: if activating this one, deactivate all others
+        const normalizedGateway = gateway.toUpperCase();
         if (data.isActive) {
             setConfigs(prev => prev.map(c => ({
                 ...c,
-                isActive: c.gateway === gateway ? true : false
+                isActive: c.gateway.toUpperCase() === normalizedGateway ? true : false
             })));
         } else {
-            setConfigs(prev => prev.map(c => c.gateway === gateway ? { ...c, isActive: false } : c));
+            setConfigs(prev => prev.map(c => c.gateway.toUpperCase() === normalizedGateway ? { ...c, isActive: false } : c));
         }
 
         try {
@@ -54,7 +55,7 @@ export default function PaymentSettings() {
         }
     };
 
-    const getConfig = (gateway) => configs.find(c => c.gateway === gateway) || { isActive: false, credentials: {} };
+    const getConfig = (gateway) => configs.find(c => c.gateway.toUpperCase() === gateway.toUpperCase()) || { isActive: false, credentials: {} };
 
     if (loading) return <div className="p-10 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Sincronizando Gateways de Pagamento...</div>;
 
