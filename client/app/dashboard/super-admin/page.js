@@ -4,23 +4,40 @@ import api from '../../../lib/api';
 import UpdateRolloutManager from './UpdateRolloutManager';
 import { Shield, BarChart3, Activity, Zap, TrendingUp, Globe, ExternalLink, Trash2, Settings } from 'lucide-react';
 
+// ... imports remain the same
+
 export default function SuperAdminPage() {
     const [barbershops, setBarbershops] = useState([]);
+    const [stats, setStats] = useState({ activeUnits: 0, mrr: 0, provisioning: 0, churn: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        fetchBarbershops();
+        fetchData();
     }, []);
 
-    const fetchBarbershops = async () => {
+    const fetchData = async () => {
         try {
-            const res = await api.get('/barbershops');
-            setBarbershops(Array.isArray(res.data) ? res.data : []);
+            const [shopsRes, statsRes] = await Promise.all([
+                api.get('/barbershops'),
+                api.get('/admin/stats')
+            ]);
+            setBarbershops(Array.isArray(shopsRes.data) ? shopsRes.data : []);
+            setStats(statsRes.data);
             setLoading(false);
         } catch (err) {
-            setError('Erro ao carregar barbearias. Verifique se você é um Super Admin.');
+            setError('Erro ao carregar dados. Verifique se você é um Super Admin.');
             setLoading(false);
+        }
+    };
+
+    const handleToggleStatus = async (id) => {
+        if (!confirm('Tem certeza que deseja alterar o status desta unidade?')) return;
+        try {
+            await api.patch(`/admin/barbershops/${id}/toggle-status`);
+            fetchData(); // Refresh list
+        } catch (err) {
+            alert('Erro ao alterar status');
         }
     };
 
@@ -51,7 +68,7 @@ export default function SuperAdminPage() {
                     <button className="bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" /> Relatório de Tráfego
                     </button>
-                    <button className="bg-background border border-border text-muted-foreground px-8 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
+                    <button className="bg-card border border-border text-muted-foreground px-8 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
                         Logs de Sistema
                     </button>
                 </div>
@@ -61,29 +78,29 @@ export default function SuperAdminPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard
                     label="Unidades Ativas"
-                    value={barbershops.length}
-                    desc="Crescimento de 15%"
+                    value={stats.activeUnits}
+                    desc={`Total de ${stats.activeUnits} parceiros`} // Simplified description
                     icon={<Globe className="w-6 h-6" />}
                     color="primary"
-                    trend="+15%"
+                    trend="+5%" // Mock trend or calculate
                 />
                 <KPICard
                     label="Receita SaaS (MRR)"
-                    value="R$ 1.2k"
+                    value={`R$ ${stats.mrr.toLocaleString('pt-BR')}`}
                     desc="Recorrência Mensal"
                     icon={<TrendingUp className="w-6 h-6" />}
                     color="primary"
                 />
                 <KPICard
                     label="Provisionamento"
-                    value="3"
+                    value={stats.provisioning}
                     desc="Pendentes de Aprovação"
                     icon={<Zap className="w-6 h-6" />}
                     color="secondary"
                 />
                 <KPICard
                     label="Retenção (Churn)"
-                    value="94%"
+                    value={`${stats.churn}%`}
                     desc="Taxa de Permanência"
                     icon={<Activity className="w-6 h-6" />}
                     color="primary"
@@ -132,6 +149,7 @@ export default function SuperAdminPage() {
                                             <div>
                                                 <p className="font-black text-foreground uppercase text-sm tracking-tight">{shop.name}</p>
                                                 <p className="text-[10px] text-primary font-mono mt-1 group-hover:translate-x-1 transition-transform italic bg-primary/5 px-2 py-0.5 rounded border border-primary/10 inline-block">/{shop.slug}</p>
+                                                {shop.subscriptionStatus === 'SUSPENDED' && <span className="ml-2 text-[9px] bg-destructive text-destructive-foreground px-1 rounded">SUSPENSO</span>}
                                             </div>
                                         </div>
                                     </td>
@@ -140,15 +158,24 @@ export default function SuperAdminPage() {
                                         <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-60 truncate max-w-[200px]">{shop.owner?.email || 'suporte@barbeon.com'}</p>
                                     </td>
                                     <td className="px-8 py-8">
-                                        <span className="bg-primary/10 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner">Diamond Pro+ (SaaS)</span>
+                                        <span className="bg-primary/10 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner">{shop.saasPlan}</span>
                                     </td>
                                     <td className="px-10 py-8 text-right">
                                         <div className="flex justify-end gap-4">
-                                            <button className="bg-background border border-border text-muted-foreground px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-primary/50 hover:text-primary transition-all shadow-sm flex items-center gap-2">
+                                            <button
+                                                onClick={() => alert('Em breve: Acesso administrativo direto ao painel do parceiro.')}
+                                                className="bg-background border border-border text-muted-foreground px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-primary/50 hover:text-primary transition-all shadow-sm flex items-center gap-2"
+                                            >
                                                 <Settings className="w-3 h-3" /> Gerenciar
                                             </button>
-                                            <button className="bg-destructive/10 border border-destructive/20 text-destructive px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95 shadow-sm flex items-center gap-2">
-                                                <Trash2 className="w-3 h-3" /> Suspender
+                                            <button
+                                                onClick={() => handleToggleStatus(shop.id)}
+                                                className={`px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2 ${shop.subscriptionStatus === 'ACTIVE'
+                                                    ? 'bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground'
+                                                    : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white'
+                                                    }`}
+                                            >
+                                                {shop.subscriptionStatus === 'ACTIVE' ? <><Trash2 className="w-3 h-3" /> Suspender</> : <><Zap className="w-3 h-3" /> Ativar</>}
                                             </button>
                                         </div>
                                     </td>

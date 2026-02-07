@@ -32,6 +32,10 @@ router.get('/admin/updates', masterController.listUpdates);
 router.post('/admin/updates', masterController.createUpdate);
 router.delete('/admin/updates/:id', masterController.deleteUpdate);
 
+// Dashboard Stats & Actions
+router.get('/admin/stats', masterController.getDashboardStats);
+router.patch('/admin/barbershops/:id/toggle-status', masterController.toggleBarbershopStatus);
+
 
 // --- CONTENT ROUTES (For Barbers) ---
 router.use('/content', authMiddleware); // Any auth user (Barber/Admin/Master)

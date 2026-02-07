@@ -168,3 +168,64 @@ exports.handleKiwiWebhook = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+// --- DASHBOARD STATS ---
+
+const getPlanPrice = (planName) => {
+    const plans = {
+        'SOLO': 79.90,
+        'BASIC': 109.90,
+        'PRO': 164.50,
+        'ENTERPRISE': 219.90
+    };
+    return plans[planName] || 0;
+};
+
+exports.getDashboardStats = async (req, res) => {
+    try {
+        const [totalBarbershops, activeBarbershops, provisioningCount] = await Promise.all([
+            prisma.barbershop.count(),
+            prisma.barbershop.findMany({
+                where: { subscriptionStatus: 'ACTIVE' },
+                select: { saasPlan: true }
+            }),
+            prisma.barbershop.count({
+                where: { subscriptionStatus: { in: ['PENDING', 'TRIAL'] } }
+            })
+        ]);
+
+        const mrr = activeBarbershops.reduce((acc, shop) => acc + getPlanPrice(shop.saasPlan), 0);
+
+        // Mock Churn for now
+        const churnRate = 2.5;
+
+        res.json({
+            activeUnits: totalBarbershops,
+            mrr,
+            provisioning: provisioningCount,
+            churn: churnRate
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.toggleBarbershopStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const shop = await prisma.barbershop.findUnique({ where: { id } });
+
+        if (!shop) return res.status(404).json({ message: 'Barbershop not found' });
+
+        const newStatus = shop.subscriptionStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+
+        const updated = await prisma.barbershop.update({
+            where: { id },
+            data: { subscriptionStatus: newStatus }
+        });
+
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
