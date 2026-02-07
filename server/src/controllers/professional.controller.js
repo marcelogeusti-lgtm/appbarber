@@ -95,10 +95,14 @@ exports.createProfessional = async (req, res) => {
         // --- SAAS LIMIT CHECK START ---
         const barbershop = await prisma.barbershop.findUnique({
             where: { id: barbershopId },
-            select: { saasPlan: true }
+            select: { saasPlan: true, subscriptionStatus: true } // [FIX] Get Status
         });
 
         if (!barbershop) return res.status(404).json({ message: 'Barbearia não encontrada' });
+
+        // [FIX] TRIAL UNLIMITED ACCESS
+        // If in TRIAL, we bypass the maxBarbers check.
+        const isTrial = barbershop.subscriptionStatus === 'TRIAL';
 
         const userPlan = barbershop.saasPlan || 'BASIC';
         const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
@@ -114,14 +118,15 @@ exports.createProfessional = async (req, res) => {
 
         // Relaxed check: Only enforce limit if creating a NEW active barber
         // We defer specific checks, but general count applies.
-        if (!isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
+        // [FIX] Added !isTrial check
+        if (!isSuperAdmin && !isTrial && activeBarbersCount >= planConfig.maxBarbers) {
             // We verify if we are just updating an existing user who is ALREADY counted or adding a new one
             // Ideally we check after we know if it's a new PRO.
             // For safety, we keep the block but maybe we should allow it if the user being added is the OWNER (already exists).
             // Let's proceed and check later or assume limit enforcement is strict.
-            // return res.status(403).json({
-            //    message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade.`
-            // });
+            return res.status(403).json({
+                message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade.`
+            });
         }
         // --- SAAS LIMIT CHECK END ---
 
@@ -184,7 +189,8 @@ exports.createProfessional = async (req, res) => {
         // Re-check Limit if we are creating a NEW pro (targetUserId is null OR targetUserId exists but wasn't a PRO before)
         const isNewPro = !targetUserId || (existingUser && !existingUser.professionalProfile);
 
-        if (isNewPro && !isSuperAdmin && activeBarbersCount >= planConfig.maxBarbers) {
+        // [FIX] Added !isTrial check
+        if (isNewPro && !isSuperAdmin && !isTrial && activeBarbersCount >= planConfig.maxBarbers) {
             return res.status(403).json({
                 message: `Limite de barbeiros atingido para o plano ${planConfig.name} (${activeBarbersCount}/${planConfig.maxBarbers}). Faça upgrade.`
             });

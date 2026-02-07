@@ -84,13 +84,16 @@ exports.register = async (req, res) => {
                 return { user, barbershop, authUser };
             });
 
-            const token = generateToken(result.user, result.authUser);
-
-            // Return user with ownedBarbershops populated so frontend validation works immediately
-            const userWithShop = {
+            // [FIX] Ensure token has barbershopId by providing the relationship manually
+            const userForToken = {
                 ...result.user,
                 ownedBarbershops: [result.barbershop]
             };
+
+            const token = generateToken(userForToken, result.authUser);
+
+            // Return user with ownedBarbershops populated so frontend validation works immediately
+            const userWithShop = userForToken;
 
             return res.status(201).json({ token, user: userWithShop, barbershop: result.barbershop });
         }

@@ -47,8 +47,9 @@ exports.checkSubscription = async (req, res, next) => {
             });
         }
 
-        // Anexar plano ao request
+        // Anexar plano e status ao request
         req.user.saasPlan = barbershopData.saasPlan;
+        req.user.subscriptionStatus = barbershopData.subscriptionStatus; // [NEW] Para uso em checkFeature
 
         // REGRA B: Acesso bloqueado se não estiver ACTIVE ou TRIAL válido
         if (barbershopData.subscriptionStatus === 'ACTIVE') {
@@ -84,6 +85,11 @@ exports.checkFeature = (feature) => {
         try {
             // Bypass for Super Admin
             if (req.user && req.user.role === 'SUPER_ADMIN') return next();
+
+            // [NEW] Bypass for TRIAL users (Full Access during trial)
+            if (req.user && req.user.subscriptionStatus === 'TRIAL') {
+                return next();
+            }
 
             // Bypass for Clients (usually features are for admin usage, but if a client accesses a feature, assume allowed? No, features are SaaS features)
             // Actually clients don't use SaaS features directly, they use the service.
