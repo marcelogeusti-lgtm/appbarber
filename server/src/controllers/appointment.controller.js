@@ -78,6 +78,7 @@ exports.createAppointment = async (req, res) => {
 
         // Define 'service' variable for backward compatibility with rest of code that uses 'service'
         const service = primaryService;
+        const barbershopId = service.barbershopId;
 
         const pro = await prisma.user.findUnique({
             where: { id: professionalId },
