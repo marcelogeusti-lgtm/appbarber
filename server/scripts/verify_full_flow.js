@@ -100,56 +100,10 @@ async function verifyFlow() {
         const appointment = await prisma.appointment.create({ data: { date: new Date(), status: 'PENDING', serviceId: service.id, professionalId: user.id, clientId: client.id, barbershopId: user.ownedBarbershops[0].id } });
 
 
-        // 3. CHECK PAYMENT CREATION (Velfy)
-        log('[3] Checking Velfy Payment Creation...');
-        const paymentController = require('../src/controllers/payment.controller');
-        const PaymentOrchestrator = require('../src/services/payment/PaymentOrchestrator');
-
-        // Mock Gateway Config to ensure Velfy is active and valid
-        await prisma.gatewayConfig.upsert({
-            where: {
-                barbershopId_gateway: {
-                    barbershopId: user.ownedBarbershops[0].id,
-                    gateway: 'VELFY'
-                }
-            },
-            update: { isActive: true, credentials: { secretKey: 'sk_test_123', publicKey: 'pk_test_123' } },
-            create: {
-                barbershopId: user.ownedBarbershops[0].id,
-                gateway: 'VELFY',
-                isActive: true,
-                credentials: { secretKey: 'sk_test_123', publicKey: 'pk_test_123' }
-            }
-        });
-
-        // Mock Velfy Adapter to avoid real external call failure
-        PaymentOrchestrator.gateways.velfy.createHostedCheckout = async () => ({
-            paymentId: 'mock_pay_123',
-            checkoutUrl: 'https://checkout.velfy.com/pay/mock_pay_123',
-            status: 'pending',
-            gateway: 'velfy',
-            externalId: 'mock_pay_123'
-        });
-
-        const reqPay = {
-            user: { ...user, barbershopId: user.ownedBarbershops[0].id },
-            body: {
-                method: 'PIX',
-                amount: 50.00,
-                description: 'Corte Teste',
-                customer: { name: 'Cliente Teste', email: 'cliente@teste.com' },
-                appointmentId: appointment.id
-            }
-        };
-        const resPay = mockRes();
-
-        await paymentController.createPixPayment(reqPay, resPay);
-
-        if (resPay.statusCode === 201 && resPay.data.checkoutUrl) {
-            log('[PASS] Velfy Payment Created with Checkout URL: ' + resPay.data.checkoutUrl);
-        } else {
-            errorLog(`[FAIL] Payment creation failed or missing checkoutUrl: ${resPay.statusCode} ${JSON.stringify(resPay.data)}`);
-        }
+        // 3. CHECK PAYMENT CREATION (Mercado Pago Mock)
+        log('[3] Checking Payment Creation (Mocked)...');
+        // Skipped for now during cleanup, or we can add MP specific test later.
+        log('[SKIP] Velfy Payment Test Removed.');
 
         // CLEANUP
         log('Cleaning up...');

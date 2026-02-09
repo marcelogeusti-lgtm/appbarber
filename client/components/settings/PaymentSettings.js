@@ -6,7 +6,7 @@ import { CreditCard, CheckCircle, AlertTriangle, Lock, Shield, Zap, Globe, Coins
 export default function PaymentSettings() {
     const [configs, setConfigs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(null); // 'velfy' | 'stripe' | null
+    const [saving, setSaving] = useState(null); // 'mercadopago' | null
 
     useEffect(() => {
         fetchConfigs();
@@ -80,42 +80,6 @@ export default function PaymentSettings() {
             </header>
 
             <div className="grid grid-cols-1 gap-10">
-                {/* VELFY CONFIG */}
-                <GatewayCard
-                    title="Velfy (Pix Global)"
-                    description="Recebimento instantâneo via PIX com liquidação automática e QR Code dinâmico."
-                    gateway="velfy"
-                    config={getConfig('velfy')}
-                    onSave={handleSave}
-                    saving={saving === 'velfy'}
-                    icon={<div className="w-16 h-16 rounded-2xl bg-white p-3 border border-border shadow-xl group-hover:scale-110 transition-transform">
-                        <img src="/logos/velfy.png" alt="Velfy" className="w-full h-full object-contain" />
-                    </div>}
-                    helpText="Use as credenciais fornecidas pela equipe Velfy (Chave Pública e Chave Secreta) para ativar o recebimento automático via PIX API."
-                    fields={[
-                        { name: 'publicKey', label: 'Chave Pública da API', placeholder: 'pk_...' },
-                        { name: 'secretKey', label: 'Chave Secreta (Master)', type: 'password', placeholder: 'sk_...' }
-                    ]}
-                />
-
-                {/* STRIPE CONFIG */}
-                <GatewayCard
-                    title="Stripe Premium"
-                    description="Aceite cartões de crédito/débito internacionais e métodos locais com a maior taxa de conversão."
-                    gateway="stripe"
-                    config={getConfig('stripe')}
-                    onSave={handleSave}
-                    saving={saving === 'stripe'}
-                    icon={<div className="w-16 h-16 rounded-2xl bg-white p-3 border border-border shadow-xl group-hover:scale-110 transition-transform">
-                        <img src="/logos/stripe.png" alt="Stripe" className="w-full h-full object-contain" />
-                    </div>}
-                    helpText="Copie a 'Secret Key' e a 'Publishable Key' do seu Dashboard Stripe (Desenvolvedores > Chaves de API)."
-                    fields={[
-                        { name: 'publicKey', label: 'Publishable Key (pk_live_...)', placeholder: 'pk_live_...' },
-                        { name: 'secretKey', label: 'Secret Key (sk_live_...)', type: 'password', placeholder: 'sk_live_...' }
-                    ]}
-                />
-
                 {/* MERCADO PAGO CONFIG */}
                 <GatewayCard
                     title="Mercado Pago"

@@ -1,13 +1,9 @@
-const VelfyAdapter = require('./gateways/VelfyAdapter');
 const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter');
-const StripeAdapter = require('./gateways/StripeAdapter');
 
 class PaymentOrchestrator {
     constructor() {
         this.gateways = {
-            velfy: new VelfyAdapter(),
-            mercadopago: new MercadoPagoAdapter(),
-            stripe: new StripeAdapter()
+            mercadopago: new MercadoPagoAdapter()
         };
     }
 
@@ -15,28 +11,13 @@ class PaymentOrchestrator {
      * Determines which gateway to use based on requested method and shop config
      */
     async getActiveGateway(barbershopId) {
-        if (!barbershopId) return 'velfy';
-
-        try {
-            const { PrismaClient } = require('@prisma/client');
-            const prisma = new PrismaClient();
-
-            // Find the ONLY active gateway for this shop
-            const activeConfig = await prisma.gatewayConfig.findFirst({
-                where: { barbershopId, isActive: true }
-            });
-
-            return activeConfig ? activeConfig.gateway.toLowerCase() : 'velfy';
-        } catch (e) {
-            console.error(`[Orchestrator] Discovery Error: ${e.message}`);
-            return 'velfy';
-        }
+        return 'mercadopago';
     }
 
     async createPayment(params) {
         const { method, barbershopId, customer, amount, description, externalId } = params;
 
-        const gatewayToUse = params.gateway || await this.getActiveGateway(barbershopId);
+        const gatewayToUse = 'mercadopago';
         const adapter = this.gateways[gatewayToUse];
 
         if (!adapter) throw new Error(`Gateway '${gatewayToUse}' not supported.`);
@@ -45,7 +26,7 @@ class PaymentOrchestrator {
 
         // If paying with a saved card/token but no customerId, try to resolve it
         let customerId = params.customerId;
-        if (!customerId && params.clientId && gatewayToUse !== 'velfy') {
+        if (!customerId && params.clientId) {
             const { PrismaClient } = require('@prisma/client');
             const prisma = new PrismaClient();
             const gc = await prisma.gatewayCustomer.findUnique({
@@ -234,30 +215,6 @@ class PaymentOrchestrator {
                 isValid: true,
                 externalId,
                 status: response.status
-            };
-        } else if (gateway === 'velfy') {
-            // PixOne Webhook Structure
-            // { id, type: 'transaction', data: { object: { status, externalRef, ... } } }
-            const data = req.body.data?.object;
-            const statusMap = {
-                'paid': 'APPROVED',
-                'approved': 'APPROVED',
-                'pending': 'PENDING',
-                'cancelled': 'CANCELLED',
-                'refunded': 'REFUNDED'
-            };
-
-            const pixOneStatus = data?.status;
-            const mappedStatus = statusMap[pixOneStatus] || 'UNKNOWN';
-            const ref = data?.externalRef; // This is our internal Payment UUID if we passed it correctly
-
-            console.log(`[Orchestrator] PixOne Webhook for Ref ${ref}: ${pixOneStatus} -> ${mappedStatus}`);
-
-            return {
-                isValid: true,
-                externalId: ref, // Return the internal ID if possible, or we need to find by external
-                status: mappedStatus,
-                isInternalId: true // Signal that externalId returned here IS the internal UUID
             };
         }
 

@@ -1,0 +1,147 @@
+﻿Connecting DB...
+Barbershop: 94dad01c-504e-4f93-bcfe-5371d5a7ee50
+Service: 0f7fd72c-4b36-41c8-b6fb-d4283eef1838
+No BARBER found, trying any user linked...
+Pro: ff550352-540a-4fd4-a1a5-55cb7c61a54f
+Calling createAppointment...
+[Transaction] Starting for Client: mock-user-id, Pro: ff550352-540a-4fd4-a1a5-55cb7c61a54f, Date: 2026-02-10 10:00
+node : ------- 
+CRITICAL APPOINTMENT 
+ERROR -------
+No linha:1 caractere:1
++ node server/scripts/
+repro_appointment_erro
+r.js > full_log.txt 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (------- CR   
+ ITICA...T ERROR -    
+------:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+Message: 
+Invalid `tx.appointmen
+t.create()` 
+invocation in
+C:\Users\wanie\Downloa
+ds\MARCELO\EU\App Barb
+eiro\server\src\contro
+llers\appointment.cont
+roller.js:355:54
+
+  352 else if 
+(paymentMethod === 
+'ONLINE') method = 
+'ONLINE';
+  353 
+  354 // Create 
+Appointment
+ÔåÆ 355 const 
+appointment = await 
+tx.appointment.create(
+Foreign key 
+constraint violated: `
+Appointment_clientId_f
+key (index)`
+Stack: PrismaClientKno
+wnRequestError: 
+Invalid `tx.appointmen
+t.create()` 
+invocation in
+C:\Users\wanie\Downloa
+ds\MARCELO\EU\App Barb
+eiro\server\src\contro
+llers\appointment.cont
+roller.js:355:54
+
+  352 else if 
+(paymentMethod === 
+'ONLINE') method = 
+'ONLINE';
+  353 
+  354 // Create 
+Appointment
+ÔåÆ 355 const 
+appointment = await 
+tx.appointment.create(
+Foreign key 
+constraint violated: `
+Appointment_clientId_f
+key (index)`
+    at 
+$n.handleRequestError 
+(C:\Users\wanie\Downlo
+ads\MARCELO\EU\App Bar
+beiro\server\node_modu
+les\@prisma\client\run
+time\library.js:121:73
+15)
+    at $n.handleAndLog
+RequestError (C:\Users
+\wanie\Downloads\MARCE
+LO\EU\App Barbeiro\ser
+ver\node_modules\@pris
+ma\client\runtime\libr
+ary.js:121:6623)
+    at $n.request (C:\
+Users\wanie\Downloads\
+MARCELO\EU\App Barbeir
+o\server\node_modules\
+@prisma\client\runtime
+\library.js:121:6307)
+    at async l (C:\Use
+rs\wanie\Downloads\MAR
+CELO\EU\App Barbeiro\s
+erver\node_modules\@pr
+isma\client\runtime\li
+brary.js:130:9633)
+    at async prisma.$t
+ransaction.maxWait (C:
+\Users\wanie\Downloads
+\MARCELO\EU\App Barbei
+ro\server\src\controll
+ers\appointment.contro
+ller.js:355:33)
+    at async Proxy._tr
+ansactionWithCallback 
+(C:\Users\wanie\Downlo
+ads\MARCELO\EU\App Bar
+beiro\server\node_modu
+les\@prisma\client\run
+time\library.js:130:80
+00)
+    at async exports.c
+reateAppointment (C:\U
+sers\wanie\Downloads\M
+ARCELO\EU\App Barbeiro
+\server\src\controller
+s\appointment.controll
+er.js:348:24)
+    at async run (C:\U
+sers\wanie\Downloads\M
+ARCELO\EU\App Barbeiro
+\server\scripts\repro_
+appointment_error.js:7
+1:9)
+Prisma Code: P2003
+Prisma Meta: {
+  modelName: 
+'Appointment',
+  field_name: 'Appoint
+ment_clientId_fkey 
+(index)'
+}
+----------------------
+--------------------
+Response 500: {
+  "message": "Ocorreu um erro interno ao processar seu agendamento. Por favor, tente novamente ou contate o suporte."
+}
+WRITING ERROR LOG...
