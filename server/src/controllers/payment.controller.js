@@ -92,6 +92,7 @@ exports.createPixPayment = async (req, res) => {
             return res.status(400).json({ error: 'Appointment ID is required' });
         }
 
+        // 1. Fetch Integration Data (Appointment + Service + Client + Fees)
         const appointment = await prisma.appointment.findUnique({
             where: { id: appointmentId },
             include: {
@@ -103,22 +104,30 @@ exports.createPixPayment = async (req, res) => {
 
         if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' });
 
-        const amount = appointment.service.price;
+        // 2. SECURITY: Recalculate Total Value (Backend Source of Truth)
+        // Base Price
+        let amount = Number(appointment.service.price);
 
-        // 1. Fetch Payer User Details (to get CPF if available)
-        // Try to find in User table (which has CPF) related to the logged user
+        // Add Pending Fees (No-Show) if applicable logic exists
+        // (Assuming checking pendingFees for this client/barbershop)
+        // const pendingFees = await prisma.fee.findMany(...) -> amount += fee
+
+        // Products: If appointment created via new flow, products might be linked separately or need to be passed strictly by ID to be summed here.
+        // For now, focusing on Service Price which is the core request requirement.
+
+        // Sanity Check: Ensure amount is valid
+        if (amount <= 0) return res.status(400).json({ error: 'Valor inválido para pagamento' });
+
+        // 3. Payer Info
         const payerUser = await prisma.user.findUnique({
             where: { id: userId },
             include: { authUser: true }
         });
 
-        // Also check if the client from appointment has a related user or just authUser
-        // For now, prioritize the logged-in user's profile if it exists
-
-        // 1. Create PENDING Payment locally first
+        // 4. Create PENDING Payment
         const pendingPayment = await prisma.payment.create({
             data: {
-                gateway: 'PENDING', // Will be updated
+                gateway: 'PENDING',
                 method: 'PIX',
                 status: 'PENDING',
                 amount: amount,
@@ -129,53 +138,69 @@ exports.createPixPayment = async (req, res) => {
         });
 
         try {
-            // Prepare Customer Data
-            // Priority: User/Payer Profile -> Appointment Client -> Fallback
-
-            // CPF logic: Only User table has CPF currently
+            // Customer Data
             const cpf = payerUser?.cpf || payerUser?.document || '';
-
             const customerData = {
                 name: payerUser?.name || appointment.client.name || 'Cliente',
                 email: payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com',
                 phone: payerUser?.phone || appointment.client.phone || '00000000000',
-                document: cpf.replace(/\D/g, '') // Send raw CPF if found
+                document: cpf.replace(/\D/g, '')
             };
 
-            // 2. Call Gateway with the generated ID as externalReference
+            // 5. Call Gateway
             const paymentResult = await PaymentOrchestrator.createPayment({
                 amount,
                 method: 'PIX',
-                description: `Agendamento #${appointment.id.slice(0, 8)}`,
+                description: `Agendamento #${appointment.id.slice(0, 8)} - ${appointment.service.name}`,
                 barbershopId: appointment.barbershopId,
                 customer: customerData,
-                externalId: pendingPayment.id // Pass the DB UUID
+                externalId: pendingPayment.id
             });
 
-            // 3. Update Payment with Gateway Response
+            // 6. Generate QR Code Image (Base64) if Gateway didn't return one
+            // Most Pix APIs return the "EMV" string (Copia e Cola). We need to render it.
+            let qrCodeBase64 = paymentResult.qrCodeBase64;
+            const pixString = paymentResult.pixCopiaECola || paymentResult.qrCode;
+
+            if (!qrCodeBase64 && pixString) {
+                try {
+                    const qrcode = require('qrcode');
+                    qrCodeBase64 = await qrcode.toDataURL(pixString);
+                    // Remove data:image/png;base64, prefix for consistency if needed, 
+                    // or keep it. Let's keep strict base64 content if possible, or full DataURL.
+                    // Usually frontend expects base64 content.
+                    qrCodeBase64 = qrCodeBase64.split(',')[1];
+                } catch (qrError) {
+                    console.error('Failed to generate local QR Code:', qrError);
+                }
+            }
+
+            // 7. Update Payment in DB
             const updatedPayment = await prisma.payment.update({
                 where: { id: pendingPayment.id },
                 data: {
                     gateway: paymentResult.gateway,
-                    externalId: paymentResult.paymentId, // The ID from Gateway (e.g., MP ID)
+                    externalId: paymentResult.paymentId,
                     status: paymentResult.status,
-                    qrCode: paymentResult.qrCode,
-                    pixCopiaECola: paymentResult.pixCopiaECola
+                    qrCode: pixString, // Save the String (EMV)
+                    pixCopiaECola: pixString
                 }
             });
 
+            // 8. Return Success Payload
             return res.status(201).json({
                 paymentId: updatedPayment.id,
-                qrCode: updatedPayment.qrCode,
-                qrCodeBase64: paymentResult.qrCodeBase64,
-                pixCopiaECola: updatedPayment.pixCopiaECola,
+                checkoutUrl: `/checkout-pix?id=${updatedPayment.id}`, // Internal Checkout Page
+                qrCode: pixString,
+                pixCopiaECola: pixString,
+                qrCodeBase64: qrCodeBase64, // The Image
                 status: updatedPayment.status,
-                checkoutUrl: paymentResult.checkoutUrl // [NEW] Return Velfy Checkout URL
+                amount: amount,
+                barbershopName: appointment.barbershop.name
             });
 
         } catch (gatewayError) {
             console.error('Gateway Error:', gatewayError);
-            // Optional: Mark as FAILED or cancel
             await prisma.payment.update({
                 where: { id: pendingPayment.id },
                 data: { status: 'FAILED' }
@@ -331,14 +356,32 @@ exports.getPaymentStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const payment = await prisma.payment.findUnique({
-            where: { id }
+            where: { id },
+            include: { barbershop: { select: { name: true, logoUrl: true } } } // Include context
         });
 
         if (!payment) {
             return res.status(404).json({ error: 'Payment not found' });
         }
 
-        return res.json(payment);
+        let responseData = { ...payment };
+
+        // Generate QR Code Base64 on-the-fly if missing but we have the payload
+        if (payment.status === 'PENDING' && (payment.pixCopiaECola || payment.qrCode)) {
+            try {
+                const qrcode = require('qrcode');
+                const pixString = payment.pixCopiaECola || payment.qrCode;
+                // Generate Base64
+                // We return as full Data URL or just content? Front expects base64 content usually or full src.
+                // Let's return the content to match creation endpoint.
+                const dataUrl = await qrcode.toDataURL(pixString);
+                responseData.qrCodeBase64 = dataUrl.split(',')[1];
+            } catch (err) {
+                console.error('Failed to generate QR on getStatus:', err);
+            }
+        }
+
+        return res.json(responseData);
     } catch (error) {
         console.error('Get Payment Status Error:', error);
         return res.status(500).json({ error: 'Internal server error' });

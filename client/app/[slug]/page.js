@@ -292,6 +292,13 @@ export default function BarbershopPage() {
                         appointmentId,
                         method: paymentMethod
                     });
+
+                    // [NEW] Redirect to Dedicated Checkout Page
+                    if (paymentMethod === 'PIX' && payRes.data.checkoutUrl) {
+                        router.push(payRes.data.checkoutUrl);
+                        return; // Stop execution here
+                    }
+
                     setCheckoutData(payRes.data);
                     setStep(6);
                 } catch (payErr) {
