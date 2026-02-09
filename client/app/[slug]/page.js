@@ -294,8 +294,10 @@ export default function BarbershopPage() {
                     });
 
                     // [NEW] Redirect to Dedicated Checkout Page
-                    if (paymentMethod === 'PIX' && payRes.data.checkoutUrl) {
-                        router.push(payRes.data.checkoutUrl);
+                    // Robust Check: Use checkoutUrl OR construct it if paymentId exists
+                    if (paymentMethod === 'PIX' && (payRes.data.checkoutUrl || payRes.data.paymentId)) {
+                        const targetUrl = payRes.data.checkoutUrl || `/checkout-pix?id=${payRes.data.paymentId}`;
+                        router.push(targetUrl);
                         return; // Stop execution here
                     }
 

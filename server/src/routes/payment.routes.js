@@ -18,8 +18,8 @@ router.post('/cards', protect, paymentController.saveCard);
 // GET /api/payments/cards - List saved cards
 router.get('/cards', protect, paymentController.listCards);
 
-// GET /api/payments/:id - Checks payment status
-router.get('/:id', protect, paymentController.getPaymentStatus);
+// GET /api/payments/:id - Checks payment status (Public for Link access)
+router.get('/:id', paymentController.getPaymentStatus);
 
 // GET /api/payments/public-key - Get active gateway public key for a shop
 router.get('/public-key', paymentController.getPublicKey);
