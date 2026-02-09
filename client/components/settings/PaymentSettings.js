@@ -103,7 +103,8 @@ export default function PaymentSettings() {
                             ]
                         },
                         { name: 'publicKey', label: 'Public Key de Produção', placeholder: 'APP_USR-...' },
-                        { name: 'accessToken', label: 'Access Token Mestre', type: 'password', placeholder: 'APP_USR-...' }
+                        { name: 'accessToken', label: 'Access Token Mestre', type: 'password', placeholder: 'APP_USR-...' },
+                        { name: 'secretKey', label: 'Secret Key (Webhooks)', type: 'password', placeholder: 'Para validação de segurança...' }
                     ]}
                 />
             </div>
