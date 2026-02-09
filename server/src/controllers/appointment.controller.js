@@ -413,6 +413,7 @@ exports.createAppointment = async (req, res) => {
                     subtotal: totalVal,
                     total: totalVal,
                     paymentMethod: method,
+                    paymentStatus: (method === 'ONLINE' || method === 'SUBSCRIPTION') ? 'PAID' : 'PENDING',
                     items: {
                         create: [
                             ...servicesToBook.map(s => ({
@@ -507,8 +508,8 @@ exports.createAppointment = async (req, res) => {
 
         res.status(201).json({
             appointment_id: appointment.id,
-            status: paymentMethod === 'ONLINE' ? "pendente_pagamento" : "confirmado",
-            mensagem: paymentMethod === 'ONLINE' ? "Agendamento realizado, aguardando pagamento" : "Agendamento realizado com sucesso",
+            status: "confirmado",
+            mensagem: "Agendamento realizado com sucesso",
             order_id: order.id,
             appointment,
             order,

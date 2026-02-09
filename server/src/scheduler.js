@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const notificationController = require('./controllers/notification.controller');
 const communicationService = require('./services/communication/CommunicationService');
+const autoCloseJob = require('./services/jobs/autoCloseJob');
 
 // ... existing code ...
 
@@ -10,6 +11,11 @@ const initReminderScheduler = () => {
     console.log('[Scheduler] Appointment Reminder Service Started.');
     const { utcToZonedTime, zonedTimeToUtc } = require('date-fns-tz');
     const TIMEZONE = 'America/Sao_Paulo';
+
+    // Job de Baixa Automática (Roda a cada hora)
+    cron.schedule('0 * * * *', () => {
+        autoCloseJob();
+    });
 
     cron.schedule('* * * * *', async () => {
         try {

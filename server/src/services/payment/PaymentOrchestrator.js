@@ -187,38 +187,62 @@ class PaymentOrchestrator {
         const adapter = this.gateways[gateway];
         if (!adapter) throw new Error(`Webhook gateway '${gateway}' not supported.`);
 
-        // 1. Basic Validation
-        const isValid = await adapter.validateWebhook(req);
-        if (!isValid) return { isValid: false };
+        // 1. Extract External Resource ID (MP: data.id from query or body)
+        // MP Webhook sends data.id in query params often for validation manifest
+        // But for payload processing, we look at body.
+        let resourceId = req.query?.['data.id'] || req.body?.data?.id || req.body?.id;
 
-        // 2. Extract External ID (psp_reference_id)
-        // MP: req.body.data.id or req.body.id
-        const externalId = (req.body.data?.id || req.body.id)?.toString();
-        if (!externalId) return { isValid: true, status: 'ignore' };
+        if (!resourceId) {
+            // Some events might not have data.id (e.g. test events). 
+            // If we can't identify the resource, we can't find credentials (multitenant).
+            // Attempt basic validation if adapter supports it without credentials (unlikely for HMAC)
+            return { isValid: false, error: 'Missing resource ID' };
+        }
+        resourceId = resourceId.toString();
 
-        // 3. Status Mapping (Logic depends on Gateway)
+        // 2. Find Payment in DB to identify the Shop (and Credentials)
+        const paymentRecord = await this.getPaymentByExternalId(resourceId);
+
+        if (!paymentRecord) {
+            console.warn(`[Orchestrator] Webhook received for unknown resource: ${resourceId}`);
+            // Return 200 to gateway to stop retries if we really don't have it? 
+            // Or maybe it's a delayed creation. For now, valid=true/status=ignore effectively ignores it.
+            return { isValid: true, status: 'ignore', externalId: resourceId };
+        }
+
+        // 3. Get Credentials for the Shop
+        const credentials = await this.getGatewayConfig(paymentRecord.barbershopId, gatewayName.toUpperCase());
+        if (!credentials) {
+            console.error(`[Orchestrator] No credentials found for shop ${paymentRecord.barbershopId}`);
+            return { isValid: false, error: 'No credentials' };
+        }
+
+        // 4. Validate Webhook Signature (HMAC)
+        // Now passing credentials which contain secretKey
+        const isValid = await adapter.validateWebhook(req, credentials);
+        if (!isValid) {
+            console.error(`[Orchestrator] Invalid webhook signature for resource ${resourceId}`);
+            return { isValid: false, error: 'Invalid signature' };
+        }
+
+        // 5. Process Status (Logic depends on Gateway)
         if (gateway === 'mercadopago') {
-            // For MP, it's safer to fetch the payment status directly from their API
-            // after receiving a notification, as the body might be just an ID.
-            const paymentRecord = await this.getPaymentByExternalId(externalId);
-            if (!paymentRecord) return { isValid: true, status: 'not_found' };
-
-            const credentials = await this.getGatewayConfig(paymentRecord.barbershopId, 'MERCADOPAGO');
-
             // Use dedicated getPaymentStatus method
             const response = await adapter.getPaymentStatus({
-                externalId,
+                externalId: resourceId,
                 credentials
             });
 
             return {
                 isValid: true,
-                externalId,
-                status: response.status
+                externalId: resourceId,
+                status: response.status,
+                // Pass raw response if needed for more details
+                // raw: response.rawResponse 
             };
         }
 
-        return { isValid: true, externalId, status: 'unknown' };
+        return { isValid: true, externalId: resourceId, status: 'unknown' };
     }
 
     async getPaymentByExternalId(externalId) {

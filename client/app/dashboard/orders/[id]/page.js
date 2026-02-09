@@ -138,8 +138,8 @@ export default function OrderDetailsPage() {
 
             setShowPaymentModal(false);
             setSelectedMethod('');
-            setGeneratedPayment(null);
-            if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval);
+            // setGeneratedPayment(null); // Removed
+            // if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval); // Removed
 
         } catch (err) {
             console.error(err);
@@ -149,45 +149,8 @@ export default function OrderDetailsPage() {
         }
     };
 
-    const handleGeneratePix = async () => {
-        setProcessing(true);
-        try {
-            const finalValue = order.subtotal - (order.discount || 0);
-
-            const res = await api.post('/payments/create', {
-                method: 'PIX',
-                amount: finalValue,
-                orderId: id,
-                barbershopId: order.barbershopId,
-                description: `Comanda #${order.id.slice(0, 6)}`
-            });
-
-            setGeneratedPayment(res.data);
-
-            const interval = setInterval(() => checkPaymentStatus(res.data.paymentId), 3000);
-            setPaymentStatusCheckInterval(interval);
-
-        } catch (err) {
-            console.error(err);
-            alert('Erro ao gerar Pix: ' + (err.response?.data?.error || err.message));
-        } finally {
-            setProcessing(false);
-        }
-    };
-
-    const checkPaymentStatus = async (paymentId) => {
-        try {
-            const res = await api.get(`/payments/${paymentId}`);
-            if (res.data.status === 'paid' || res.data.status === 'PAID') {
-                if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval);
-                setPaymentStatusCheckInterval(null);
-                alert('Pagamento Pix Confirmado!');
-                await handleConfirmPayment(true);
-            }
-        } catch (err) {
-            console.error("Status Check Error", err);
-        }
-    };
+    // handleGeneratePix removed
+    // checkPaymentStatus removed
 
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -498,124 +461,48 @@ export default function OrderDetailsPage() {
                             ))}
                         </div>
 
-                        <div className="p-10 border-t border-border bg-muted/20">
-                            {/* Pix QR Code Display */}
-                            {selectedMethod === 'PIX' && generatedPayment && (
-                                <div className="mb-8 space-y-6 animate-in fade-in slide-in-from-top-6 duration-500">
-                                    {generatedPayment.checkoutUrl ? (
-                                        <div className="text-center space-y-4">
-                                            <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
-                                                <Globe className="w-10 h-10 text-emerald-500" />
-                                            </div>
-                                            <h2 className="text-2xl font-black text-white uppercase">Checkout Velfy</h2>
-                                            <p className="text-slate-400 text-xs px-6">Link de pagamento gerado com sucesso.</p>
-
-                                            <a
-                                                href={generatedPayment.checkoutUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-3 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
-                                            >
-                                                <ExternalLink className="w-4 h-4" />
-                                                Abrir Pagamento
-                                            </a>
-
-                                            <div className="flex gap-2 justify-center mt-2">
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(generatedPayment.checkoutUrl);
-                                                        alert('Link copiado!');
-                                                    }}
-                                                    className="text-[10px] text-slate-500 hover:text-white uppercase font-bold flex items-center gap-2"
-                                                >
-                                                    <CheckCircle className="w-3 h-3" /> Copiar Link
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="bg-white p-6 rounded-[2.5rem] w-fit mx-auto border-4 border-primary shadow-2xl shadow-primary/10">
-                                                {generatedPayment.qrCodeBase64 ? (
-                                                    <img src={`data:image/jpeg;base64,${generatedPayment.qrCodeBase64}`} className="w-56 h-56" alt="QR Code Pix" />
-                                                ) : (
-                                                    <div className="w-56 h-56 flex items-center justify-center bg-muted text-foreground font-black text-[10px] text-center p-6 break-all uppercase tracking-widest">
-                                                        QR Code no Copia e Cola
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] block text-center">Pix Copia e Cola</label>
-                                                <div className="flex gap-3">
-                                                    <input
-                                                        readOnly
-                                                        value={generatedPayment.pixCopiaECola || generatedPayment.qrCode}
-                                                        className="w-full bg-background border border-border rounded-xl p-4 text-[10px] text-muted-foreground font-mono truncate"
-                                                        onClick={(e) => e.target.select()}
-                                                    />
-                                                    <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(generatedPayment.pixCopiaECola || generatedPayment.qrCode);
-                                                            alert('✅ Código copiado!');
-                                                        }}
-                                                        className="bg-primary text-primary-foreground px-6 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
-                                                    >
-                                                        COPIAR
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                    <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl text-center">
-                                        <p className="text-primary text-[10px] font-black uppercase tracking-widest animate-pulse flex items-center justify-center gap-2">
-                                            <Zap className="w-3 h-3" /> Aguardando liquidação automática...
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex justify-between items-center mb-8 px-2">
-                                <span className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest italic">Valor Final</span>
-                                <span className="text-4xl font-black text-foreground uppercase tracking-tighter">{formatBRL(order.total)}</span>
-                            </div>
-
-                            {selectedMethod === 'PIX' && !generatedPayment ? (
-                                <div className="grid grid-cols-1 gap-4">
-                                    <button
-                                        onClick={handleGeneratePix}
-                                        disabled={processing}
-                                        className="w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95"
-                                    >
-                                        <Zap className="w-5 h-5" />
-                                        {processing ? 'GERANDO...' : 'PROCESSAR VIA PIX API'}
-                                    </button>
-                                    <button
-                                        onClick={() => handleConfirmPayment(false)}
-                                        disabled={processing}
-                                        className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition"
-                                    >
-                                        Já recebi manualmente no balcão
-                                    </button>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => handleConfirmPayment(false)}
-                                    disabled={processing || !selectedMethod}
-                                    className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 scale-100 active:scale-95 ${processing || !selectedMethod
-                                        ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed opacity-50'
-                                        : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20'
-                                        }`}
-                                >
-                                    {processing ? 'FINALIZANDO...' : 'CONFIRMAR RECEBIMENTO'}
-                                </button>
-                            )}
-
-                            <button
-                                onClick={() => setShowPaymentModal(false)}
-                                className="w-full mt-6 py-3 text-muted-foreground font-black text-[10px] uppercase tracking-widest hover:text-foreground transition-colors"
-                            >
-                                Voltar para a comanda
-                            </button>
+                        <div className="flex justify-between items-center mb-8 px-2">
+                            <span className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest italic">Valor Final</span>
+                            <span className="text-4xl font-black text-foreground uppercase tracking-tighter">{formatBRL(order.total)}</span>
                         </div>
+
+                        {/* Informativo sobre Método Selecionado */}
+                        {selectedMethod && (
+                            <div className="mb-6 p-4 bg-muted/30 rounded-2xl border border-border text-center">
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Método Selecionado</p>
+                                <p className="text-sm font-black text-primary uppercase">
+                                    {[
+                                        { id: 'PIX', label: 'Pix (Registro Manual)' },
+                                        { id: 'CASH', label: 'Dinheiro' },
+                                        { id: 'CREDIT_CARD', label: 'Cartão de Crédito' },
+                                        { id: 'DEBIT_CARD', label: 'Cartão de Débito' },
+                                    ].find(m => m.id === selectedMethod)?.label}
+                                </p>
+                                {selectedMethod === 'PIX' && (
+                                    <div className="mt-2 text-[10px] text-yellow-500 font-bold bg-yellow-500/10 p-2 rounded-lg border border-yellow-500/20">
+                                        ⚠️ Este sistema NÃO gera cobrança Pix. <br /> Receba na sua conta e apenas confirme aqui.
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => handleConfirmPayment(false)}
+                            disabled={processing || !selectedMethod}
+                            className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 scale-100 active:scale-95 ${processing || !selectedMethod
+                                ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed opacity-50'
+                                : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20'
+                                }`}
+                        >
+                            {processing ? 'PROCESSANDO...' : 'CONFIRMAR BAIXA MANUAL'}
+                        </button>
+
+                        <button
+                            onClick={() => setShowPaymentModal(false)}
+                            className="w-full mt-6 py-3 text-muted-foreground font-black text-[10px] uppercase tracking-widest hover:text-foreground transition-colors"
+                        >
+                            Voltar para a comanda
+                        </button>
                     </div>
                 </div>
             )}
