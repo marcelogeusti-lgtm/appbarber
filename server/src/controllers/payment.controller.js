@@ -490,9 +490,11 @@ exports.saveCard = async (req, res) => {
         const userId = req.user.id;
         const userRole = req.user.role; // 'CLIENT', 'ADMIN', 'BARBER'
 
-        if (!token || !barbershopId) {
-            return res.status(400).json({ error: 'Missing required data (token, barbershopId)' });
+        if (!token) {
+            return res.status(400).json({ error: 'Missing required data (token)' });
         }
+
+        // barbershopId is now OPTIONAL. If missing, it's a GLOBAL card.
 
         let client;
 
@@ -530,7 +532,7 @@ exports.saveCard = async (req, res) => {
         // 2. Call Orchestrator
         try {
             const savedCardData = await PaymentOrchestrator.saveCard({
-                barbershopId,
+                barbershopId: barbershopId || null, // Explicit null if undefined
                 client,
                 token
             });
@@ -545,7 +547,7 @@ exports.saveCard = async (req, res) => {
                     brand: savedCardData.brand,
                     expiryMonth: savedCardData.expiryMonth,
                     expiryYear: savedCardData.expiryYear,
-                    barbershopId: barbershopId, // Context
+                    barbershopId: barbershopId || null, // Global if null
                     isDefault: false
                 }
             });
@@ -585,8 +587,17 @@ exports.listCards = async (req, res) => {
         }
 
         // 2. Query Cards
-        const where = { clientId: client.id };
-        if (barbershopId) where.barbershopId = barbershopId;
+        // Show cards for this specific shop OR Global cards (barbershopId: null)
+        const where = {
+            clientId: client.id,
+            OR: [
+                { barbershopId: null }, // Global Cards
+            ]
+        };
+
+        if (barbershopId) {
+            where.OR.push({ barbershopId: barbershopId });
+        }
 
         const cards = await prisma.cardToken.findMany({
             where,
@@ -602,7 +613,8 @@ exports.listCards = async (req, res) => {
             brand: c.brand,
             last4: c.last4,
             expiry: `${c.expiryMonth}/${c.expiryYear}`,
-            barbershopName: c.barbershop?.name || 'Geral',
+            barbershopName: c.barbershop?.name || 'Carteira Global',
+            isGlobal: !c.barbershopId,
             barbershopId: c.barbershopId,
             isDefault: c.isDefault
         }));
@@ -656,24 +668,17 @@ exports.deleteCard = async (req, res) => {
 exports.getPublicKey = async (req, res) => {
     try {
         const { barbershopId } = req.query;
-        if (!barbershopId) return res.status(400).json({ error: 'Barbershop ID is required' });
+        // If no barbershopId, we return Platform Public Key
 
-        const activeConfig = await prisma.gatewayConfig.findFirst({
-            where: {
-                barbershopId,
-                isActive: true
-            }
-        });
+        // We can just ask Orchestrator. It handles null ID.
+        const publicKey = await PaymentOrchestrator.getPublicKey(barbershopId || null);
 
-        if (!activeConfig) {
-            return res.status(404).json({ error: 'Nenhum gateway ativo encontrado para este estabelecimento' });
+        if (!publicKey) {
+            return res.status(404).json({ error: 'Chave pública não encontrada' });
         }
 
-        const credentials = activeConfig.credentials || {};
-        const publicKey = credentials.publicKey || credentials.clientId;
-
         return res.json({
-            gateway: activeConfig.gateway,
+            gateway: 'MERCADOPAGO', // Default
             publicKey: publicKey
         });
 

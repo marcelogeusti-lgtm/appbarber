@@ -10,8 +10,10 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
     const [saveCard, setSaveCard] = useState(false);
 
     useEffect(() => {
-        if (!publicKey && barbershopId) {
-            api.get(`/payments/public-key?barbershopId=${barbershopId}`)
+        if (!publicKey) {
+            // If barbershopId is present, pass it. If not, pass empty (or nothing) to get Platform Key.
+            const query = barbershopId ? `?barbershopId=${barbershopId}` : '';
+            api.get(`/payments/public-key${query}`)
                 .then(res => setPublicKey(res.data.publicKey))
                 .catch(err => console.error("Failed to get public key", err));
         }
