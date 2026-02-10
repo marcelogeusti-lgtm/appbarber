@@ -184,13 +184,28 @@ export default function UpdateRolloutManager() {
                                                 </div>
                                             </div>
                                         )) : (
-                                            <div className="bg-muted/30 border border-dashed border-border px-6 py-3 rounded-xl max-w-md">
+                                            <div className="bg-muted/30 border border-dashed border-border px-6 py-3 rounded-xl max-w-md mb-2">
                                                 <p className="text-[10px] text-muted-foreground/50 font-black uppercase tracking-widest italic leading-none">Nenhuma unidade testando isoladamente.</p>
                                             </div>
                                         )}
 
-                                        {/* Add specific barbershop override (Simple ID input for now or select if list available) */}
-                                        {/* For MVP, we assume manual enablement via backend or future UI expansion */}
+                                        {!isGlobalActive && (
+                                            <button
+                                                onClick={() => {
+                                                    const userStr = localStorage.getItem('user');
+                                                    if (!userStr) return alert('Usuário não encontrado');
+                                                    const user = JSON.parse(userStr);
+                                                    const bId = user.barbershopId || user.barbershop?.id;
+                                                    if (!bId) return alert('ID da Barbearia não encontrado');
+                                                    // Create override (default to OFF effectively, but entry created, user can then toggle ON)
+                                                    // Actually better to toggle TRUE immediately for "Testing"
+                                                    toggleFlag(key, false, bId); // Pass false as current state, so it toggles to true
+                                                }}
+                                                className="bg-primary/10 border border-primary/20 text-primary px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary/20 transition flex items-center justify-center gap-2 max-w-md"
+                                            >
+                                                <Zap className="w-3 h-3" /> Testar na Minha Unidade (Master)
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
