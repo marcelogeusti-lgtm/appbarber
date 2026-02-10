@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 exports.createService = async (req, res) => {
     try {
-        const { name, description, price, duration, barbershopId, commissionType, commissionValue, overrides } = req.body;
+        const { name, description, price, duration, barbershopId, commissionType, commissionValue, overrides, isFeatured } = req.body;
 
         const effectiveBarbershopId = req.user.barbershopId || barbershopId;
 
@@ -18,7 +18,8 @@ exports.createService = async (req, res) => {
             duration: parseInt(duration),
             barbershopId: effectiveBarbershopId,
             commissionType: commissionType || 'PERCENTAGE',
-            commissionValue: commissionValue ? parseFloat(commissionValue) : 0
+            commissionValue: commissionValue ? parseFloat(commissionValue) : 0,
+            isFeatured: isFeatured || false
         };
 
         const service = await prisma.service.create({
@@ -62,7 +63,7 @@ exports.getServices = async (req, res) => {
 exports.updateService = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, duration, active, commissionType, commissionValue, overrides } = req.body;
+        const { name, description, price, duration, active, commissionType, commissionValue, overrides, isFeatured } = req.body;
 
         // Transaction to handle overrides update
         const service = await prisma.$transaction(async (tx) => {
@@ -76,7 +77,8 @@ exports.updateService = async (req, res) => {
                     duration: duration !== undefined ? parseInt(duration) : undefined,
                     active,
                     commissionType,
-                    commissionValue: commissionValue !== undefined ? parseFloat(commissionValue) : undefined
+                    commissionValue: commissionValue !== undefined ? parseFloat(commissionValue) : undefined,
+                    isFeatured: isFeatured !== undefined ? isFeatured : undefined
                 }
             });
 

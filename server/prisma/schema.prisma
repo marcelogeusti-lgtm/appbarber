@@ -106,6 +106,9 @@ model Client {
   
   // Payment Gateway Customers (For Reusability)
   gatewayCustomers GatewayCustomer[]
+  
+  reviews        Review[]
+  favorites      FavoriteBarbershop[]
 }
 
 model GatewayCustomer {
@@ -286,8 +289,13 @@ model Barbershop {
   pspProvider   String?  @map("psp_provider") // mercadopago, asaas, manual
   pspAccountId  String?  @map("psp_account_id")
 
+  
   featureFlags  FeatureFlag[]
   auditLogs     AuditLog[]
+  
+  loyaltyProgram LoyaltyProgram?
+  reviews        Review[]
+  favoritedBy    FavoriteBarbershop[]
 }
 
 model GatewayConfig {
@@ -412,6 +420,8 @@ model Service {
   
   commissionOverrides ProfessionalServiceCommission[]
   professionals       Professional[]
+  
+  isFeatured     Boolean   @default(false)
 }
 
 model Schedule {
@@ -462,6 +472,8 @@ model Appointment {
   payments     Payment[]
   clientSubscriptionId String?
   clientSubscription ClientSubscription? @relation(fields: [clientSubscriptionId], references: [id])
+
+  review         Review?
 
   @@index([professionalId])
   @@index([date])
@@ -797,6 +809,52 @@ model SubscriptionExternal {
   updatedAt       DateTime @updatedAt
 
   @@map("subscriptions_external")
+}
+
+model LoyaltyProgram {
+  id             String     @id @default(uuid())
+  barbershopId   String     @unique
+  barbershop     Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  active         Boolean    @default(false)
+  pointsPerReal  Float      @default(1) // How many points per currency unit
+  rewardDescription String?
+  minPointsToRedeem Int     @default(100)
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Review {
+  id             String      @id @default(uuid())
+  rating         Int         // 1-5
+  comment        String?     @db.Text
+  
+  appointmentId  String      @unique
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  
+  clientId       String
+  client         Client      @relation(fields: [clientId], references: [id])
+  
+  barbershopId   String
+  barbershop     Barbershop  @relation(fields: [barbershopId], references: [id])
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model FavoriteBarbershop {
+  id             String     @id @default(uuid())
+  
+  clientId       String
+  client         Client     @relation(fields: [clientId], references: [id])
+  
+  barbershopId   String
+  barbershop     Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  createdAt      DateTime   @default(now())
+  
+  @@unique([clientId, barbershopId])
 }
 
 model WebhookLog {

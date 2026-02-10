@@ -155,6 +155,54 @@ export default function ProductsPage() {
                                 className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground"
                             />
                         </div>
+
+                        {/* New Fields: Image & Featured */}
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Imagem do Produto (URL ou Upload)</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text" placeholder="URL da imagem (https://...)"
+                                    value={newProduct.imageUrl || ''}
+                                    onChange={e => setNewProduct({ ...newProduct, imageUrl: e.target.value })}
+                                    className="flex-1 p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground text-xs"
+                                />
+                                <label className="cursor-pointer bg-muted border border-border hover:bg-muted/80 text-muted-foreground px-4 py-4 rounded-xl flex items-center justify-center transition">
+                                    <span className="text-[10px] font-black uppercase">Upload</span>
+                                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            if (file.size > 500000) return alert('Imagem muito grande! Máx 500kb');
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                setNewProduct({ ...newProduct, imageUrl: reader.result });
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }} />
+                                </label>
+                            </div>
+                            {newProduct.imageUrl && (
+                                <div className="mt-2 h-20 w-20 rounded-xl bg-muted overflow-hidden border border-border relative group">
+                                    <img src={newProduct.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <button type="button" onClick={() => setNewProduct({ ...newProduct, imageUrl: '' })} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-3 h-3" /></button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-3 md:col-span-2 bg-muted/30 p-4 rounded-xl border border-border/50">
+                            <input
+                                type="checkbox"
+                                id="isFeatured"
+                                checked={newProduct.isFeatured || false}
+                                onChange={e => setNewProduct({ ...newProduct, isFeatured: e.target.checked })}
+                                className="w-5 h-5 rounded border-border bg-background text-primary accent-primary cursor-pointer"
+                            />
+                            <div>
+                                <label htmlFor="isFeatured" className="text-xs font-black text-foreground uppercase tracking-widest cursor-pointer select-none">Destaque / Sugestão</label>
+                                <p className="text-[10px] text-muted-foreground font-medium">Aparecerá no topo da lista de agendamento</p>
+                            </div>
+                        </div>
+
                     </div>
                     {error && <p className="mt-4 text-xs font-bold text-destructive uppercase">{error}</p>}
                     <button type="submit" className="mt-6 w-full bg-secondary text-secondary-foreground py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition">

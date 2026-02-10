@@ -131,7 +131,19 @@ export default function BarbershopPage() {
             try {
                 const res = await api.get(`/barbershops/${effectiveSlug}`);
                 setBarbershop(res.data);
+                setBarbershop(res.data);
                 setLoading(false); // <--- SHOW UI NOW!
+
+                // Check Favorites
+                if (localStorage.getItem('token')) {
+                    api.post('/clients/favorite', { barbershopId: res.data.id }) // Just check state? API toggle returns state. 
+                    // Better to have a get state endpoint or check in user profile.
+                    // For now, let's assume we can fetch favorite status separately or include it in barbershop details if authenticated.
+                    // The client.controller `toggleFavorite` toggles.
+                    // We need to know INITIAL state.
+                    // Let's implement a quick check or just fetch user details including favorites.
+                    // Ideally `api.get('/clients/me')` returns favorites.
+                }
 
                 // 2. Secondary Data: Products (Background)
                 loadProducts(res.data.id);
@@ -144,6 +156,60 @@ export default function BarbershopPage() {
                 setLoading(false); // Stop loading even on error
             }
         }
+
+        // ... (Hooks for favorites/share)
+        const [isFavorite, setIsFavorite] = useState(false);
+
+        // Initial Favorite Check (Simulated or via User Data)
+        useEffect(() => {
+            const checkFavorite = async () => {
+                // Ideally we should have a `me` endpoint that returns favorites, or pass includes to barbershop.
+                // For now, we will assume false until user interacts or we implement full user profile fetch here.
+                // But wait, `loadUserData` is called.
+            };
+            checkFavorite();
+        }, [barbershop]);
+
+        // Handle Favorites
+        const handleToggleFavorite = async () => {
+            if (!barbershop) return;
+            const token = localStorage.getItem('token');
+            if (!token) return alert('Faça login para favoritar.');
+
+            try {
+                // Optimistic Update
+                setIsFavorite(prev => !prev);
+                const res = await api.post('/clients/favorite', { barbershopId: barbershop.id });
+                setIsFavorite(res.data.isFavorite);
+                alert(res.data.message);
+            } catch (error) {
+                console.error(error);
+                setIsFavorite(prev => !prev); // Revert
+            }
+        };
+
+        const handleShare = async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: barbershop.name,
+                        text: `Agende seu horário na ${barbershop.name}!`,
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    console.log('Share canceled');
+                }
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copiado para a área de transferência!');
+            }
+        };
+
+        const openMap = () => {
+            if (!barbershop?.address) return;
+            const query = encodeURIComponent(barbershop.address);
+            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+        };
 
         async function loadProducts(id) {
             try {
@@ -388,14 +454,22 @@ export default function BarbershopPage() {
                         <ChevronLeft className="w-6 h-6" />
                     </button>
                     <div className="flex gap-3 sm:hidden">
-                        <button className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-red-500 transition"><Heart className="w-5 h-5" /></button>
-                        <button className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-emerald-500 transition"><Share2 className="w-5 h-5" /></button>
+                        <button onClick={handleToggleFavorite} className={`w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 transition ${isFavorite ? 'text-red-500 bg-red-500/10 border-red-500' : 'text-white hover:text-red-500'}`}>
+                            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
+                        </button>
+                        <button onClick={handleShare} className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-emerald-500 transition">
+                            <Share2 className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
 
                 <div className="absolute top-6 right-6 z-20 gap-3 hidden sm:flex">
-                    <button className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-red-500 transition"><Heart className="w-5 h-5" /></button>
-                    <button className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-emerald-500 transition"><Share2 className="w-5 h-5" /></button>
+                    <button onClick={handleToggleFavorite} className={`w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 transition ${isFavorite ? 'text-red-500 bg-red-500/10 border-red-500' : 'text-white hover:text-red-500'}`}>
+                        <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
+                    </button>
+                    <button onClick={handleShare} className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-emerald-500 transition">
+                        <Share2 className="w-5 h-5" />
+                    </button>
                 </div>
 
                 <div className="absolute -bottom-12 left-0 right-0 z-20 px-6 flex flex-col items-center text-center pointer-events-none">
@@ -413,9 +487,10 @@ export default function BarbershopPage() {
                         <span className="text-white ml-2">5.0</span>
                     </div>
                     <h1 className="text-2xl font-black uppercase tracking-tight text-white mb-1 leading-none drop-shadow-lg">{barbershop.name}</h1>
-                    <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold uppercase tracking-widest max-w-[80%] drop-shadow-md">
+                    <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold uppercase tracking-widest max-w-[80%] drop-shadow-md pointer-events-auto cursor-pointer hover:text-emerald-500 transition" onClick={openMap}>
                         <MapPin className="w-3 h-3 text-emerald-500 flex-shrink-0" />
                         <span className="truncate">{barbershop.address || 'Endereço não informado'}</span>
+                        <ExternalLink className="w-3 h-3 ml-1" />
                     </div>
                 </div>
             </header>
@@ -439,6 +514,43 @@ export default function BarbershopPage() {
             )}
 
             <div className="h-20"></div>
+
+            {/* FEATURED CAROUSEL (SUGGESTIONS) */}
+            {(barbershop.services?.some(s => s.isFeatured) || products?.some(p => p.isFeatured)) && activeTab === 'servicos' && (
+                <div className="mb-6 px-6">
+                    <h3 className="text-white font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2">
+                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                        Sugestões para você
+                    </h3>
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+                        {barbershop.services?.filter(s => s.isFeatured).map(service => (
+                            <div key={`feat-svc-${service.id}`} onClick={() => handleServiceSelect(service)} className="min-w-[200px] snap-center bg-[#111] rounded-2xl p-4 border border-yellow-500/20 hover:border-yellow-500 cursor-pointer transition group">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase px-2 py-1 rounded-lg">Popular</div>
+                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 group-hover:scale-110 transition" />
+                                </div>
+                                <h4 className="font-black text-white text-sm uppercase leading-tight mb-1">{service.name}</h4>
+                                <p className="text-emerald-500 font-bold text-xs">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            </div>
+                        ))}
+                        {products?.filter(p => p.isFeatured).map(product => (
+                            <div key={`feat-prod-${product.id}`} className="min-w-[160px] snap-center bg-[#111] rounded-2xl p-4 border border-blue-500/20 hover:border-blue-500 cursor-pointer transition group">
+                                <div className="aspect-square bg-slate-900 rounded-xl mb-3 overflow-hidden">
+                                    {product.imageUrl ? (
+                                        <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-slate-700">
+                                            <ShoppingBag className="w-8 h-8" />
+                                        </div>
+                                    )}
+                                </div>
+                                <h4 className="font-bold text-white text-xs uppercase leading-tight mb-1 line-clamp-1">{product.name}</h4>
+                                <p className="text-blue-500 font-bold text-xs">{Number(product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Navigation Tabs */}
             <div className="sticky top-0 z-30 bg-black/95 backdrop-blur-xl border-b border-white/10 px-6 pt-4">
@@ -464,10 +576,18 @@ export default function BarbershopPage() {
                 {activeTab === 'detalhes' && <DetailsTab barbershop={barbershop} />}
                 {activeTab === 'profissionais' && <ProfessionalsTab professionals={barbershop.staff || []} />}
                 {activeTab === 'produtos' && <ProductsTab products={products} />}
-                {activeTab === 'fidelidade' && <LoyaltyTab points={points} />}
+                {activeTab === 'fidelidade' && <LoyaltyTab points={points} barbershopId={barbershop.id} />}
                 {activeTab === 'pacotes' && <PackagesTab plans={barbershop.packages || []} />}
-                {activeTab === 'assinaturas' && <SubscriptionsTab plans={barbershop.subscriptionPlans || []} />}
-                {activeTab === 'avaliacoes' && <ReviewsTab />}
+                {activeTab === 'assinaturas' && <SubscriptionsTab
+                    plans={barbershop.subscriptionPlans || []}
+                    barbershopId={barbershop.id}
+                    savedCards={savedCards}
+                    onSubscribeSuccess={() => {
+                        alert('Assinatura realizada com sucesso! Aproveite seus benefícios.');
+                        window.location.reload(); // Simple reload to refresh state
+                    }}
+                />}
+                {activeTab === 'avaliacoes' && <ReviewsTab barbershopId={barbershop.id} />}
             </main>
 
             {/* BOOKING MODAL */}

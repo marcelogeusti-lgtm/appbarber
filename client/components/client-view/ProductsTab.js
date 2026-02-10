@@ -1,7 +1,9 @@
 'use client';
-import { ShoppingBag } from 'lucide-react';
+import { useState } from 'react';
+import { ShoppingBag, X } from 'lucide-react';
 
 export default function ProductsTab({ products }) {
+    const [selectedProduct, setSelectedProduct] = useState(null);
     const formatCurrency = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     if (!products || products.length === 0) {
@@ -13,16 +15,48 @@ export default function ProductsTab({ products }) {
     }
 
     return (
-        <div className="grid grid-cols-2 gap-4 pb-24">
-            {products.map(product => (
-                <div key={product.id} className="bg-[#111] p-4 rounded-3xl border border-white/5 hover:border-emerald-500/50 transition-all group">
-                    <div className="aspect-square bg-[#1e293b] rounded-2xl mb-3 flex items-center justify-center text-slate-600 group-hover:text-emerald-500 transition">
-                        <ShoppingBag className="w-8 h-8" />
+        <>
+            <div className="grid grid-cols-2 gap-4 pb-24">
+                {products.map(product => (
+                    <div key={product.id} onClick={() => setSelectedProduct(product)} className="bg-[#111] p-4 rounded-3xl border border-white/5 hover:border-emerald-500/50 transition-all group cursor-pointer">
+                        <div className="aspect-square bg-[#1e293b] rounded-2xl mb-3 flex items-center justify-center text-slate-600 group-hover:text-emerald-500 transition overflow-hidden">
+                            {product.imageUrl ? (
+                                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <ShoppingBag className="w-8 h-8" />
+                            )}
+                        </div>
+                        <h3 className="font-bold text-white text-xs uppercase tracking-tight line-clamp-1">{product.name}</h3>
+                        <p className="text-emerald-500 font-black text-sm mt-1">{formatCurrency(product.price)}</p>
                     </div>
-                    <h3 className="font-bold text-white text-xs uppercase tracking-tight line-clamp-1">{product.name}</h3>
-                    <p className="text-emerald-500 font-black text-sm mt-1">{formatCurrency(product.price)}</p>
+                ))}
+            </div>
+
+            {/* Product Details Modal */}
+            {selectedProduct && (
+                <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in">
+                    <div className="bg-[#111] w-full max-w-sm rounded-[2rem] border border-slate-800 p-6 relative shadow-2xl animate-in zoom-in-95">
+                        <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition">
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="aspect-square bg-slate-900 rounded-2xl mb-6 overflow-hidden flex items-center justify-center">
+                            {selectedProduct.imageUrl ? (
+                                <img src={selectedProduct.imageUrl} alt={selectedProduct.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <ShoppingBag className="w-16 h-16 text-slate-700" />
+                            )}
+                        </div>
+
+                        <h2 className="text-2xl font-black text-white uppercase leading-none mb-2">{selectedProduct.name}</h2>
+                        <p className="text-emerald-500 font-black text-xl mb-4">{formatCurrency(selectedProduct.price)}</p>
+
+                        <div className="bg-slate-900/50 p-4 rounded-xl mb-6 max-h-32 overflow-y-auto">
+                            <p className="text-slate-400 text-sm">{selectedProduct.description || 'Sem descrição.'}</p>
+                        </div>
+                    </div>
                 </div>
-            ))}
-        </div>
+            )}
+        </>
     );
 }

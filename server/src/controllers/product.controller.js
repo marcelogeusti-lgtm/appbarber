@@ -14,6 +14,8 @@ exports.createProduct = async (req, res) => {
                 costPrice: costPrice ? parseFloat(costPrice) : null,
                 stock: parseInt(stock),
                 active: active !== undefined ? active : true,
+                imageUrl,
+                isFeatured: isFeatured || false,
                 barbershopId
             }
         });
@@ -53,7 +55,7 @@ exports.getProducts = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, costPrice, stock, active } = req.body;
+        const { name, description, price, costPrice, stock, active, imageUrl, isFeatured } = req.body;
 
         const product = await prisma.product.update({
             where: { id },
@@ -63,7 +65,9 @@ exports.updateProduct = async (req, res) => {
                 price: parseFloat(price),
                 costPrice: costPrice ? parseFloat(costPrice) : null,
                 stock: parseInt(stock),
-                active
+                active,
+                imageUrl,
+                isFeatured: isFeatured !== undefined ? isFeatured : undefined
             }
         });
 

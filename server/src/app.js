@@ -61,6 +61,9 @@ app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
 app.use('/api/feature-flags', require('./routes/featureFlag.routes'));
 app.use('/api/rollout', require('./routes/rollout.routes'));
+app.use('/api/rollout', require('./routes/rollout.routes'));
+app.use('/api/loyalty', require('./routes/loyalty.routes'));
+app.use('/api/reviews', require('./routes/review.routes'));
 // app.use('/api/audit-logs', require('./routes/auditLog.routes')); // Future
 
 // Initialize Notification Service (Listeners)

@@ -58,6 +58,7 @@ export default function ServicesPage() {
                 description: formData.description.trim(),
                 commissionType: formData.commissionType,
                 commissionValue: formData.commissionValue ? parseFloat(formData.commissionValue) : 0,
+                isFeatured: formData.isFeatured,
                 overrides: formData.overrides,
                 barbershopId
             };
@@ -68,7 +69,7 @@ export default function ServicesPage() {
                 await api.post('/services', payload);
             }
 
-            setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] });
+            setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', isFeatured: false, overrides: [] });
             setIsAdding(false);
             setEditingId(null);
 
@@ -94,6 +95,7 @@ export default function ServicesPage() {
             description: service.description || '',
             commissionType: service.commissionType || 'PERCENTAGE',
             commissionValue: service.commissionValue || '',
+            isFeatured: service.isFeatured || false,
             overrides
         });
         setEditingId(service.id);
@@ -203,6 +205,21 @@ export default function ServicesPage() {
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                             />
+                        </div>
+
+                        {/* Featured Toggle */}
+                        <div className="flex items-center gap-3 md:col-span-2 bg-muted/30 p-4 rounded-xl border border-border/50">
+                            <input
+                                type="checkbox"
+                                id="isFeaturedSvc"
+                                checked={formData.isFeatured || false}
+                                onChange={e => setFormData({ ...formData, isFeatured: e.target.checked })}
+                                className="w-5 h-5 rounded border-border bg-background text-primary accent-primary cursor-pointer"
+                            />
+                            <div>
+                                <label htmlFor="isFeaturedSvc" className="text-xs font-black text-foreground uppercase tracking-widest cursor-pointer select-none">Destaque / Sugestão</label>
+                                <p className="text-[10px] text-muted-foreground font-medium">Aparecerá como sugestão popular no agendamento</p>
+                            </div>
                         </div>
 
                         {/* Commission Section */}

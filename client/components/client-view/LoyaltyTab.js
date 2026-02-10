@@ -1,10 +1,47 @@
 'use client';
-import { Gift } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Gift, Info } from 'lucide-react';
+import api from '../../lib/clientApi';
+import { useParams } from 'next/navigation';
 
 export default function LoyaltyTab({ points = 0 }) {
+    const params = useParams();
+    const [program, setProgram] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const barbershopSlug = params.slug ? decodeURIComponent(params.slug) : null;
+    // We need barbershop ID. The parent passes points, but maybe not ID.
+    // However, usually we can get it from context or props.
+    // The Page keeps barbershop state. Ideally pass it as prop.
+    // But since `BarbershopPage` passes `points`, we might need to update the parent to pass `barbershopId` or fetch here using slug?
+    // Let's assume `BarbershopPage` has the ID and we can pass it.
+    // BUT the component signature in `page.js` is `<LoyaltyTab points={points} />`.
+    // I should update `page.js` to pass `barbershopId` too.
+    // Or I can fetch using slug if I have a endpoint for that, but `getLoyaltySettings` uses ID.
+    // I will use `params` to get slug, then I need to resolve ID?
+    // Actually `BarbershopPage` has the ID. I should update `BarbershopPage` to pass `barbershopId`.
+    // For now, I'll update this component to ACCEPT `barbershopId`.
+
+    return (
+        <LoyaltyContent points={points} />
+    );
+}
+
+function LoyaltyContent({ points }) {
+    // To avoid changing props in `page.js` right now in a complex way,
+    // I will try to fetch using the slug if I can, OR just update `page.js` first.
+    // Actually, `page.js` already has `activeTab === 'fidelidade' && <LoyaltyTab points={points} />`.
+    // I'll update `page.js` to pass `barbershopId={barbershop.id}` in the NEXT step.
+    // Here I will prepare to receive it.
+    // But wait, I cannot change `page.js` easily inside this tool call.
+    // I'll assume `barbershopId` is passed in props.
+
+    // Check `LoyaltyTab` usage in `page.js`:
+    // It uses `dynamic`.
+
     return (
         <div className="space-y-6 pb-24">
-            {/* Points Balance Card */}
+            {/* Placeholder for now until connected */}
             <div className="bg-gradient-to-br from-emerald-900 to-black p-6 rounded-3xl border border-emerald-500/30 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-3xl rounded-full"></div>
                 <div className="relative z-10 text-center">
@@ -16,31 +53,9 @@ export default function LoyaltyTab({ points = 0 }) {
                 </div>
             </div>
 
-            {/* Rewards List */}
-            <div className="space-y-4">
-                <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Prêmios Disponíveis</h3>
-                {[
-                    { name: 'Corte de Cabelo', pts: 100 },
-                    { name: 'Barba Completa', pts: 60 },
-                    { name: 'Hidratação', pts: 40 }
-                ].map((reward, i) => {
-                    const canAfford = points >= reward.pts;
-                    return (
-                        <div key={i} className={`bg-[#111] p-4 rounded-2xl border flex items-center gap-4 transition-all ${canAfford ? 'border-emerald-500/50' : 'border-white/5 opacity-50'}`}>
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${canAfford ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
-                                <Gift className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h4 className={`font-bold text-sm uppercase ${canAfford ? 'text-white' : 'text-slate-400'}`}>{reward.name}</h4>
-                                <p className={`text-[10px] font-bold uppercase tracking-widest ${canAfford ? 'text-emerald-500' : 'text-emerald-900'}`}>Requer {reward.pts} pontos</p>
-                            </div>
-                            {canAfford && (
-                                <button className="ml-auto bg-emerald-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase">Resgatar</button>
-                            )}
-                        </div>
-                    );
-                })}
+            <div className="text-center text-slate-500 text-xs py-8">
+                Carregando regras de fidelidade...
             </div>
         </div>
-    );
+    )
 }

@@ -330,3 +330,35 @@ exports.deleteClient = async (req, res) => {
         res.status(500).json({ message: 'Erro ao remover cliente' });
     }
 };
+
+exports.toggleFavorite = async (req, res) => {
+    try {
+        const clientId = req.user.id;
+        const { barbershopId } = req.body;
+
+        if (!clientId) return res.status(401).json({ message: 'Unauthorized' });
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const existing = await prisma.favoriteBarbershop.findUnique({
+            where: {
+                clientId_barbershopId: { clientId, barbershopId }
+            }
+        });
+
+        if (existing) {
+            await prisma.favoriteBarbershop.delete({
+                where: { id: existing.id }
+            });
+            return res.json({ message: 'Removido dos favoritos', isFavorite: false });
+        } else {
+            await prisma.favoriteBarbershop.create({
+                data: { clientId, barbershopId }
+            });
+            return res.json({ message: 'Adicionado aos favoritos', isFavorite: true });
+        }
+    } catch (error) {
+        console.error('Toggle Favorite Error:', error);
+        res.status(500).json({ message: 'Error toggling favorite' });
+    }
+};
+
