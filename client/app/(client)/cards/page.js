@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreditCard, ChevronLeft, Plus, Trash2, X } from 'lucide-react';
+import { CreditCard, ChevronLeft, Plus, Trash2, X, Store } from 'lucide-react';
 import api from '../../../lib/clientApi';
 import CardForm from '../../../components/payment/CardForm';
 
@@ -15,8 +15,23 @@ export default function CardsPage() {
 
     useEffect(() => {
         fetchCards();
+        // 1. Try last visited
         const storedId = localStorage.getItem('lastBarbershopId');
-        if (storedId) setBarbershopId(storedId);
+        if (storedId) {
+            setBarbershopId(storedId);
+        } else {
+            // 2. Try from user object/session
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    // If user is effectively linked to a shop (e.g. explicit client relation)
+                    if (user.preferredBarbershopId) setBarbershopId(user.preferredBarbershopId);
+                }
+            } catch (e) {
+                console.error("Error parsing user", e);
+            }
+        }
     }, []);
 
     const fetchCards = async () => {
@@ -29,7 +44,16 @@ export default function CardsPage() {
             setLoading(false);
         }
     };
-    // ... handleDelete (unchanged)
+
+    const handleDelete = async (id) => {
+        if (!confirm('Deseja remover este cartão?')) return;
+        try {
+            await api.delete(`/payments/cards/${id}`);
+            fetchCards();
+        } catch (err) {
+            alert('Erro ao remover cartão');
+        }
+    };
 
     const handleAddCard = async (cardData) => {
         if (!barbershopId) {
@@ -50,7 +74,7 @@ export default function CardsPage() {
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24">
-            {/* Header ... */}
+            {/* Header */}
             <div className="flex items-center gap-4 mb-8">
                 <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-emerald-500/20 transition">
                     <ChevronLeft className="w-5 h-5 text-white" />
@@ -59,7 +83,6 @@ export default function CardsPage() {
             </div>
 
             {loading ? (
-                // ... loading skeletons
                 <div className="space-y-4">
                     {[1, 2].map(i => <div key={i} className="h-40 bg-slate-900/50 rounded-2xl animate-pulse"></div>)}
                 </div>
@@ -69,21 +92,32 @@ export default function CardsPage() {
                     <button
                         onClick={() => {
                             if (!barbershopId) {
-                                alert('Você precisa acessar uma barbearia antes de adicionar um cartão.');
+                                // Instead of alert, show modal with specific state or navigate
+                                // For now, keep as a soft "block" but with UI feedback below
+                                setIsAddModalOpen(true); // Open modal anyway to show the "Select Shop" message nicely
                                 return;
                             }
                             setIsAddModalOpen(true);
                         }}
                         className="w-full bg-[#111111] border border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition group"
                     >
-                        {/* Icon & Text */}
                         <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition">
                             <Plus className="w-6 h-6 text-slate-400 group-hover:text-white" />
                         </div>
                         <span className="text-sm font-black text-slate-500 uppercase tracking-widest group-hover:text-emerald-500">Adicionar novo cartão</span>
                     </button>
 
-                    {/* Card List ... */}
+                    {!barbershopId && (
+                        <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl flex gap-3 mb-4">
+                            <Store className="w-5 h-5 text-yellow-500 shrink-0" />
+                            <p className="text-xs text-yellow-200/80 leading-relaxed">
+                                Para adicionar um cartão, você precisa estar vinculado a uma barbearia (ter visitado ou agendado recentemente).
+                                Isso é necessário para configurar seu pagamento com segurança na gateway correta.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Card List */}
                     {cards.length === 0 && !loading && (
                         <p className="text-center text-slate-600 text-xs py-10">Você ainda não possui cartões salvos.</p>
                     )}
@@ -141,9 +175,24 @@ export default function CardsPage() {
                                 onCancel={() => setIsAddModalOpen(false)}
                             />
                         ) : (
-                            <div className="text-center py-10">
-                                <p className="text-slate-400">Erro: Barbearia não identificada.</p>
-                                <button onClick={() => setIsAddModalOpen(false)} className="mt-4 text-emerald-500 text-sm">Voltar</button>
+                            <div className="text-center py-10 flex flex-col items-center gap-6">
+                                <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center">
+                                    <Store className="w-10 h-10 text-slate-500" />
+                                </div>
+                                <div>
+                                    <p className="text-white font-bold mb-2">Nenhuma Barbearia Selecionada</p>
+                                    <p className="text-slate-400 text-sm leading-relaxed max-w-[280px] mx-auto">
+                                        Para adicionar um cartão, precisamos saber em qual barbearia você pretende usá-lo, pois cada uma possui seu processador de pagamentos.
+                                    </p>
+                                </div>
+                                <div className="flex gap-4 w-full">
+                                    <button
+                                        onClick={() => router.push('/search')}
+                                        className="flex-1 bg-emerald-500 text-white p-4 rounded-xl font-bold hover:bg-emerald-600 transition"
+                                    >
+                                        Encontrar Barbearia
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
