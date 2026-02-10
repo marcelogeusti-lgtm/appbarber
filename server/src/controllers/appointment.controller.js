@@ -369,16 +369,46 @@ exports.createAppointment = async (req, res) => {
 
             // --- PACKAGE / SUBSCRIPTION USAGE ---
             if (method === 'SUBSCRIPTION') {
-                if (!clientId) throw new Error('Cliente não identificado para uso de pacote.');
-                const packageController = require('../controllers/package.controller');
-                const usedPackage = await packageController.checkAndUsePackage(clientId, serviceId, service.barbershopId);
-                if (!usedPackage) throw new Error('Você não possui créditos ativos neste pacote para este serviço.');
+                if (!clientId) throw new Error('Cliente não identificado para uso de assinatura.');
 
-                await tx.packageUsage.create({
+                // Fetch Active Subscription for this Barbershop
+                // We look for any active subscription from this client in this shop
+                const activeSub = await tx.clientSubscription.findFirst({
+                    where: {
+                        clientId: clientId,
+                        plan: { barbershopId: service.barbershopId },
+                        status: 'ACTIVE',
+                        endDate: { gte: new Date() }
+                    },
+                    include: { plan: true },
+                    orderBy: { endDate: 'desc' } // Get the one ending latest if multiple
+                });
+
+                if (!activeSub) {
+                    throw new Error('Você não possui uma assinatura ativa nesta barbearia.');
+                }
+
+                // Check Cuts
+                if (activeSub.remainingCuts <= 0) {
+                    throw new Error('Você atingiu o limite de cortes do seu plano atual.');
+                }
+
+                // Update Subscription (Decrement Cuts)
+                await tx.clientSubscription.update({
+                    where: { id: activeSub.id },
                     data: {
-                        clientPackageId: usedPackage.id,
-                        appointmentId: appointment.id
+                        remainingCuts: { decrement: 1 }
                     }
+                });
+
+                // Link Appointment to Subscription
+                // We need to add `clientSubscriptionId` to Appointment if not already in data
+                // The update to Appointment is tricky inside transaction after creation if we didn't pass it.
+                // Actually, we can update the appointment instance or just rely on the side-effect.
+                // Better: Update the appointment we just created to link it.
+                await tx.appointment.update({
+                    where: { id: appointment.id },
+                    data: { clientSubscriptionId: activeSub.id }
                 });
             }
 

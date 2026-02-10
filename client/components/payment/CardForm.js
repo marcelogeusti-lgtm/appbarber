@@ -4,10 +4,10 @@ import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
 import { CreditCard, Lock, AlertCircle } from 'lucide-react';
 import api from '../../lib/clientApi';
 
-export default function CardForm({ publicKey: initialKey, amount, description, onSubmit, onCancel, barbershopId }) {
+export default function CardForm({ publicKey: initialKey, amount, description, onSubmit, onCancel, barbershopId, forceSave }) {
     const [ready, setReady] = useState(false);
     const [publicKey, setPublicKey] = useState(initialKey);
-    const [saveCard, setSaveCard] = useState(false);
+    const [saveCard, setSaveCard] = useState(forceSave || false); // Default to true if forceSave
 
     useEffect(() => {
         if (!publicKey) {
@@ -27,7 +27,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
     }, [publicKey]);
 
     if (!publicKey) {
-        return <div className="p-4 text-center text-slate-500 animate-pulse text-xs">Carregando gateway de pagamento...</div>;
+        return <div className="p-4 flex justify-center"><div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div></div>;
     }
 
     const customization = {
@@ -83,21 +83,24 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
                                 onReady={() => console.log('Brick Ready')}
                                 onError={(error) => console.error('Brick Error:', error)}
                             />
-                            {/* Save Card Checkbox - Placed below brick but inside container */}
-                            <div className="px-4 pb-4 pt-2 flex items-center gap-3">
-                                <div
-                                    onClick={() => setSaveCard(!saveCard)}
-                                    className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition ${saveCard ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-900 border-slate-700'}`}
-                                >
-                                    {saveCard && <span className="text-white text-xs font-bold">✓</span>}
+                            {/* Save Card Checkbox - ONLY show if NOT forced */}
+                            {!forceSave && (
+                                <div className="px-4 pb-4 pt-2 flex items-center gap-3">
+                                    <div
+                                        onClick={() => setSaveCard(!saveCard)}
+                                        className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition ${saveCard ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-900 border-slate-700'}`}
+                                    >
+                                        {saveCard && <span className="text-white text-xs font-bold">✓</span>}
+                                    </div>
+                                    <span onClick={() => setSaveCard(!saveCard)} className="text-xs text-slate-400 cursor-pointer select-none">
+                                        Salvar cartão para agilizar próximos agendamentos
+                                    </span>
                                 </div>
-                                <span onClick={() => setSaveCard(!saveCard)} className="text-xs text-slate-400 cursor-pointer select-none">
-                                    Salvar cartão para agilizar próximos agendamentos
-                                </span>
-                            </div>
+                            )}
                         </>
                     )}
                 </div>
+
             </div>
 
             <p className="text-center text-[10px] text-slate-600 mt-4 flex items-center justify-center gap-1">

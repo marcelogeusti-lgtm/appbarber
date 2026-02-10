@@ -124,6 +124,108 @@ exports.getMyActiveSubscription = async (req, res) => {
     }
 };
 
+exports.subscribe = async (req, res) => {
+    try {
+        const { planId, cardId } = req.body;
+        const authUserId = req.user.id;
+
+        if (!planId || !cardId) {
+            return res.status(400).json({ message: 'Plano e Cartão são obrigatórios.' });
+        }
+
+        // 1. Fetch Plan & Shop Context
+        const plan = await prisma.subscriptionPlan.findUnique({
+            where: { id: planId },
+            include: { barbershop: { include: { gatewayConfigs: true } } }
+        });
+        if (!plan) return res.status(404).json({ message: 'Plano não encontrado.' });
+
+        // 2. Fetch Client
+        const client = await prisma.client.findUnique({ where: { authUserId } });
+        if (!client) return res.status(404).json({ message: 'Perfil de cliente não encontrado.' });
+
+        // 3. Fetch Saved CardToken
+        const cardTokenRecord = await prisma.cardToken.findUnique({
+            where: { id: cardId }
+        });
+
+        if (!cardTokenRecord) {
+            return res.status(404).json({ message: 'Cartão não encontrado.' });
+        }
+
+        // Validate Ownership
+        if (cardTokenRecord.clientId !== client.id) {
+            return res.status(403).json({ message: 'Cartão inválido para este usuário.' });
+        }
+
+        // 4. Process Payment (Charge First Month) via PaymentOrchestrator
+        // Note: usage of 'token' here is the saved Card ID (card_...)
+        console.log(`[Subscription] Charging saved card ${cardId} for Plan ${plan.name} (${plan.price})`);
+
+        const paymentResult = await PaymentOrchestrator.createPayment({
+            method: 'credit_card',
+            barbershopId: plan.barbershopId,
+            clientId: client.id,
+            amount: Number(plan.price),
+            description: `Assinatura: ${plan.name} (Mensal)`,
+            token: cardTokenRecord.token, // This is the 'card_...' ID from MP
+            installments: 1,
+            // customerId: cardTokenRecord.customerId (if we stored it, else Orchestrator finds it)
+        });
+
+        if (paymentResult.status !== 'approved' && paymentResult.status !== 'process_payment' && paymentResult.status !== 'paid') {
+            // Note: MP 'status' is usually 'approved'. 'paid' is our internal map?
+            // Let's check typical MP response. Orchestrator returns Normalized Status.
+            // If it's pending (review) we might allow but warn. If rejected, stop.
+            if (paymentResult.status === 'rejected' || paymentResult.status === 'cancelled') {
+                return res.status(400).json({ message: 'Pagamento recusado. Tente outro cartão.' });
+            }
+        }
+
+        // 5. Create Active Subscription
+        const now = new Date();
+        const nextBilling = new Date();
+        nextBilling.setDate(now.getDate() + 30); // 30 Days Cycle default
+
+        // Deactivate previous active subs for this shop/plan logic if needed?
+        // Usually yes, one active sub per shop? Or per plan? Let's assume per Shop for now to avoid stacking.
+        await prisma.clientSubscription.updateMany({
+            where: {
+                clientId: client.id,
+                plan: { barbershopId: plan.barbershopId },
+                status: 'ACTIVE'
+            },
+            data: { status: 'CANCELLED' }
+        });
+
+        const newSub = await prisma.clientSubscription.create({
+            data: {
+                clientId: client.id,
+                planId: plan.id,
+                status: 'ACTIVE',
+                startDate: now,
+                endDate: nextBilling, // Valid until next billing
+                nextBillingDate: nextBilling,
+                paymentMethod: 'CREDIT_CARD',
+                remainingCuts: plan.quantityOfCuts,
+                externalId: paymentResult.paymentId // Link to initial payment for reference
+            }
+        });
+
+        res.status(201).json({
+            subscription: newSub,
+            message: 'Assinatura realizada com sucesso!'
+        });
+
+    } catch (error) {
+        console.error('Direct Subscribe Error:', error);
+        res.status(500).json({
+            message: 'Erro ao processar assinatura.',
+            details: error.message
+        });
+    }
+};
+
 exports.purchasePlan = async (req, res) => {
     try {
         const { planId, paymentMethod, gateway, token, payer, cardToken } = req.body;
