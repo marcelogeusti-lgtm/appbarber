@@ -6,6 +6,9 @@ const { protect } = require('../middlewares/auth.middleware'); // Ensure auth
 // POST /api/payments/create - Initiates a payment
 router.post('/create', protect, paymentController.createPayment);
 
+// POST /api/payments/process-brick - Handler for Mercado Pago Bricks
+router.post('/process-brick', protect, paymentController.createBrickPayment);
+
 // POST /api/payments/pix - Initiates a Pix payment for an appointment
 router.post('/pix', protect, paymentController.createPixPayment);
 

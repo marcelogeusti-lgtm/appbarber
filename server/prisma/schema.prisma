@@ -598,6 +598,8 @@ model SubscriptionPlan {
   barbershopId  String
   barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
   
+  externalId    String?   @map("external_id") // ID do plano no Gateway (MP)
+
   clientSubscriptions ClientSubscription[]
   services            Service[] // Services included/applicable
   

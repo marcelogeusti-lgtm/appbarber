@@ -82,6 +82,27 @@ exports.handleWebhook = async (req, res) => {
                 });
                 console.log(`[Webhook] Successfully processed payment ${result.externalId}`);
             }
+        } else if (result.isValid && result.isSubscription && result.externalId) {
+            // Tratamento Específico para Assinatura (Mudanla de Status via Preapproval)
+            const subscription = await prisma.clientSubscription.findFirst({
+                where: { externalId: result.externalId }
+            });
+
+            if (subscription) {
+                let newStatus = result.status; // ACTIVE, OVERDUE, CANCELLED, PENDING
+
+                // Mapeamento simples para garantir enum
+                const validStatuses = ['PENDING', 'ACTIVE', 'OVERDUE', 'CANCELLED', 'INACTIVE'];
+                if (!validStatuses.includes(newStatus)) newStatus = 'PENDING';
+
+                if (subscription.status !== newStatus) {
+                    await prisma.clientSubscription.update({
+                        where: { id: subscription.id },
+                        data: { status: newStatus }
+                    });
+                    console.log(`[Webhook] Atualizado status da assinatura ${subscription.id} para ${newStatus}`);
+                }
+            }
         }
 
         // 4. Update Log status

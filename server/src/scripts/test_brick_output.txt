@@ -1,0 +1,22 @@
+--- Iniciando Teste de Integração Payment Brick ---
+✅ Encontrada barbearia com credenciais: Corte conexão barbearia escola
+   Credential Keys: publicKey, accessToken
+   AccessToken Present? true
+Usando Barbearia: Corte conexão barbearia escola (ID: 25ab7f17-873c-44f8-80b0-b57fac84e193)
+MP_ACCESS_TOKEN Presente no ENV? NÃO
+Usando Usuário: Rafael Fonseca (ID: 53c2bcdc-97e4-4615-91f2-7b5984599439)
+Testando getGatewayConfig diretamente...
+Verify Creds Keys: publicKey, accessToken
+Verify AccessToken: TEST-...
+Agendamento criado: db7e36af-24ba-4000-9d45-9c675cbce438
+Executando createBrickPayment...
+Status Code: 500
+Response Data: {
+  "error": "Failed to process brick payment",
+  "details": "Erro Mercado Pago (Orders): authorization value not present"
+}
+❌ FALHA: Status code inesperado.
+✅ Pagamento encontrado no banco: b0ceb161-b7d5-42f7-9e5c-1a6fe6a7a52c
+   Status: PENDING
+   Gateway: PENDING
+   External ID: null

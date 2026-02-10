@@ -110,7 +110,11 @@ class PaymentOrchestrator {
             qrCodeBase64: result.qrCodeBase64 || null,
             pixCopiaECola: result.pixCopiaECola || result.qrCode || null,
             clientSecret: result.clientSecret || null,
-            checkoutUrl: result.checkoutUrl || null
+            pixCopiaECola: result.pixCopiaECola || result.qrCode || null,
+            clientSecret: result.clientSecret || null,
+            checkoutUrl: result.checkoutUrl || null,
+            ticketUrl: result.ticketUrl || result.external_resource_url || null, // For boleto
+            statusDetail: result.status_detail || null
         };
     }
 
@@ -227,19 +231,40 @@ class PaymentOrchestrator {
 
         // 5. Process Status (Logic depends on Gateway)
         if (gateway === 'mercadopago') {
-            // Use dedicated getPaymentStatus method
-            const response = await adapter.getPaymentStatus({
-                externalId: resourceId,
-                credentials
-            });
+            // Check specific event types first
+            if (req.body?.type === 'subscription_preapproval') {
+                // Webhook de Assinatura
+                const response = await adapter.getSubscriptionStatus({
+                    externalId: resourceId,
+                    credentials
+                });
 
-            return {
-                isValid: true,
-                externalId: resourceId,
-                status: response.status,
-                // Pass raw response if needed for more details
-                // raw: response.rawResponse 
-            };
+                return {
+                    isValid: true,
+                    externalId: resourceId,
+                    status: response.status,
+                    isSubscription: true
+                };
+            }
+
+            // Default: Payment Status
+            try {
+                const response = await adapter.getPaymentStatus({
+                    externalId: resourceId,
+                    credentials
+                });
+
+                return {
+                    isValid: true,
+                    externalId: resourceId,
+                    status: response.status,
+                };
+            } catch (err) {
+                // Fallback or ignore if it's strictly a payment endpoint and failed?
+                // Some MP events like 'mp-connect-test' might fail.
+                console.warn(`[Orchestrator] Payment status check failed for ${resourceId}: ${err.message}`);
+                return { isValid: true, externalId: resourceId, status: 'unknown', error: err.message };
+            }
         }
 
         return { isValid: true, externalId: resourceId, status: 'unknown' };
@@ -248,9 +273,33 @@ class PaymentOrchestrator {
     async getPaymentByExternalId(externalId) {
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
-        return await prisma.payment.findFirst({
+
+        // Tenta encontrar Pagamento
+        const payment = await prisma.payment.findFirst({
             where: { externalId }
         });
+        if (payment) return payment;
+
+        // Se não achar pagamento, tenta Assinatura (para webhook de assinatura)
+        // O resourceId do webhook de assinatura é o preapproval_id
+        const subscription = await prisma.clientSubscription.findFirst({
+            where: { externalId },
+            include: {  // Precisa achar o barbershop para pegar credenciais
+                plan: { include: { barbershop: true } }
+            }
+        });
+
+        if (subscription) {
+            // Retorna um objeto "fake" compatível com a estrutura esperada (tem barbershopId)
+            return {
+                id: subscription.id,
+                barbershopId: subscription.plan.barbershopId,
+                externalId: subscription.externalId,
+                type: 'SUBSCRIPTION'
+            };
+        }
+
+        return null;
     }
 
     async getGatewayConfig(barbershopId, gatewayName) {

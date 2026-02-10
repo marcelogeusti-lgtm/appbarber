@@ -126,10 +126,12 @@ exports.getMyActiveSubscription = async (req, res) => {
 
 exports.purchasePlan = async (req, res) => {
     try {
-        const { planId, paymentMethod, gateway } = req.body;
+        const { planId, paymentMethod, gateway, token, payer, cardToken } = req.body; // cardToken vem do CardForm
         const authUserId = req.user.id;
 
-        const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
+        const effectiveCardToken = token || cardToken; // Fallback
+
+        const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId }, include: { barbershop: { include: { gatewayConfigs: true } } } });
         if (!plan) return res.status(404).json({ message: 'Plano não encontrado.' });
 
         let client = await prisma.client.findUnique({ where: { authUserId } });
@@ -151,7 +153,47 @@ exports.purchasePlan = async (req, res) => {
             });
         }
 
-        // 1. Create a "PENDING" subscription record immediately
+        // Get Credentials
+        const gatewayType = gateway || 'mercadopago'; // Default to MP for subs
+        if (gatewayType !== 'mercadopago') {
+            return res.status(400).json({ message: 'Assinaturas automáticas suportadas apenas no Mercado Pago.' });
+        }
+
+        const credentials = plan.barbershop.gatewayConfigs?.find(c => c.gateway.toLowerCase() === 'mercadopago')?.credentials;
+        const adapter = PaymentOrchestrator.getAdapter('mercadopago');
+
+        // 1. Ensure Plan exists in MP
+        let mpPlanId = plan.externalId;
+        if (!mpPlanId) {
+            console.log(`[Subscription] Plan ${plan.name} has no external ID. Creating in MP...`);
+            const mpPlan = await adapter.createSubscriptionPlan({ plan, credentials });
+            mpPlanId = mpPlan.id;
+
+            // Update local plan
+            await prisma.subscriptionPlan.update({
+                where: { id: plan.id },
+                data: { externalId: mpPlanId.toString() }
+            });
+        }
+
+        // 2. Create Subscription in MP
+        if (!effectiveCardToken) {
+            return res.status(400).json({ message: 'Token do cartão é obrigatório para assinar.' });
+        }
+
+        const mpSub = await adapter.createSubscription({
+            planId: mpPlanId,
+            cardToken: effectiveCardToken,
+            payerEmail: req.user.email,
+            externalReference: authUserId, // Track user
+            credentials
+        });
+
+        if (mpSub.status !== 'authorized') {
+            throw new Error(`Assinatura não autorizada. Status: ${mpSub.status}`);
+        }
+
+        // 3. Create Subscription Record
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + plan.validityDays);
 
@@ -159,56 +201,25 @@ exports.purchasePlan = async (req, res) => {
             data: {
                 clientId: client.id,
                 planId: plan.id,
-                status: 'PENDING',
+                status: 'ACTIVE', // Assumes authorized immediately
                 startDate: new Date(),
                 endDate: endDate,
-                paymentMethod: paymentMethod || 'PIX',
-                remainingCuts: plan.quantityOfCuts
+                paymentMethod: 'CREDIT_CARD', // Subscriptions are card-based
+                remainingCuts: plan.quantityOfCuts,
+                externalId: mpSub.subscriptionId.toString()
             }
         });
 
-        // 2. Process Initial Payment via Orchestrator
-        try {
-            const paymentResult = await PaymentOrchestrator.createPayment({
-                amount: Number(plan.price),
-                method: paymentMethod || 'PIX',
-                description: `Assinatura: ${plan.name}`,
-                gateway: gateway || 'velify', // Default
-                barbershopId: plan.barbershopId,
-                customer: {
-                    name: client.name,
-                    email: req.user.email,
-                    phone: client.phone
-                }
-            });
+        // 4. Record Initial Payment (Optional, or wait for webhook)
+        // MP Create Subscription might NOT charge immediately (depends on start_date), 
+        // but usually does. For reconciliation, better to wait for webhook 'subscription_authorized_payment'.
+        // However, user expects feedback.
 
-            // 3. Link Payment to Subscription
-            await prisma.payment.create({
-                data: {
-                    gateway: paymentResult.gateway,
-                    method: paymentMethod || 'PIX',
-                    externalId: paymentResult.externalId,
-                    status: 'pending',
-                    amount: plan.price,
-                    userId: authUserId,
-                    clientSubscriptionId: clientSub.id
-                }
-            });
-
-            res.status(201).json({
-                subscriptionId: clientSub.id,
-                payment: {
-                    qrCode: paymentResult.qrCode,
-                    qrCodeBase64: paymentResult.qrCodeBase64,
-                    clientSecret: paymentResult.clientSecret, // For Stripe
-                    externalId: paymentResult.externalId
-                }
-            });
-        } catch (payErr) {
-            // Rollback sub if payment fails to initiate
-            await prisma.clientSubscription.delete({ where: { id: clientSub.id } });
-            throw payErr;
-        }
+        res.status(201).json({
+            subscriptionId: clientSub.id,
+            status: 'ACTIVE',
+            message: 'Assinatura realizada com sucesso!'
+        });
 
     } catch (error) {
         console.error('Purchase Plan Error:', error);

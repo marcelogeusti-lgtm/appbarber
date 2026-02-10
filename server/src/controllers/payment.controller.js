@@ -55,7 +55,8 @@ exports.createPayment = async (req, res) => {
                     externalId: paymentResult.paymentId,
                     status: paymentResult.status,
                     qrCode: paymentResult.qrCode,
-                    pixCopiaECola: paymentResult.pixCopiaECola
+                    pixCopiaECola: paymentResult.pixCopiaECola,
+                    ticketUrl: paymentResult.ticketUrl // Add ticketUrl support
                 }
             });
 
@@ -64,6 +65,7 @@ exports.createPayment = async (req, res) => {
                 qrCode: updatedPayment.qrCode,
                 qrCodeBase64: paymentResult.qrCodeBase64, // Pass ephemeral base64
                 pixCopiaECola: updatedPayment.pixCopiaECola,
+                ticketUrl: paymentResult.ticketUrl,
                 status: updatedPayment.status,
                 externalId: updatedPayment.externalId
             });
@@ -349,6 +351,100 @@ exports.createCardPayment = async (req, res) => {
     } catch (error) {
         console.error('Create Card Payment Error:', error);
         return res.status(500).json({ error: 'Erro interno ao processar cartão' });
+    }
+};
+
+exports.createBrickPayment = async (req, res) => {
+    try {
+        // Payload from Brick
+        const {
+            transaction_amount,
+            description,
+            payment_method_id,
+            payer,
+            token,
+            installments,
+            issuer_id,
+            barbershopId,
+            appointmentId // Optional context
+        } = req.body;
+
+        const userId = req.user.id;
+
+        if (!transaction_amount || !payment_method_id) {
+            return res.status(400).json({ error: 'Missing required data' });
+        }
+
+        // 1. Create Pending Payment in DB (if applicable)
+        // If we have appointmentId, link it. If subscription, logic differs.
+        let pendingPayment;
+        if (appointmentId) {
+            pendingPayment = await prisma.payment.create({
+                data: {
+                    gateway: 'PENDING',
+                    method: payment_method_id,
+                    status: 'PENDING',
+                    amount: transaction_amount,
+                    userId,
+                    appointmentId,
+                    barbershopId
+                }
+            });
+        }
+
+        // 2. Call Orchestrator
+        // Map Brick payload to Orchestrator 'createPayment' params
+        const paymentResult = await PaymentOrchestrator.createPayment({
+            amount: transaction_amount,
+            method: payment_method_id, // e.g. 'master', 'pix', 'bolbradesco'
+            description: description || 'Payment via Brick',
+            barbershopId,
+            externalId: pendingPayment?.id, // Optional linkage
+
+            // Card specific
+            token,
+            installments,
+            issuerId: issuer_id,
+            paymentMethodId: payment_method_id,
+
+            // Payer
+            payer, // Pass mostly raw payer object from Brick
+            customer: {
+                email: payer.email,
+                name: payer.first_name ? `${payer.first_name} ${payer.last_name || ''}` : undefined
+            }
+        });
+
+        // 3. Update DB if created
+        if (pendingPayment) {
+            await prisma.payment.update({
+                where: { id: pendingPayment.id },
+                data: {
+                    gateway: paymentResult.gateway,
+                    externalId: paymentResult.paymentId,
+                    status: paymentResult.status,
+                    qrCode: paymentResult.qrCode,
+                    pixCopiaECola: paymentResult.pixCopiaECola,
+                    ticketUrl: paymentResult.ticketUrl
+                }
+            });
+        }
+
+        return res.status(201).json({
+            id: paymentResult.paymentId,
+            status: paymentResult.status,
+            status_detail: paymentResult.statusDetail, // Useful for frontend messages
+            qr_code_base64: paymentResult.qrCodeBase64,
+            qr_code: paymentResult.pixCopiaECola,
+            ticket_url: paymentResult.ticketUrl
+        });
+
+    } catch (error) {
+        console.error('Create Brick Payment Error:', error);
+        return res.status(500).json({
+            error: 'Failed to process brick payment',
+            details: error.message
+        });
     }
 };
 

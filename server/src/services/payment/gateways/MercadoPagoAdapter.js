@@ -168,12 +168,69 @@ class MercadoPagoAdapter extends GatewayAdapter {
         }
     }
 
-    async createSubscription({ plan, customer, credentials }) {
-        // MP Subscriptions logic
-        return {
-            subscriptionId: `sub_mp_${Date.now()}`,
-            status: 'pending'
-        };
+    async createSubscriptionPlan({ plan, credentials }) {
+        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+
+        try {
+            const payload = {
+                reason: plan.name,
+                auto_recurring: {
+                    frequency: plan.validityDays >= 365 ? 1 : plan.validityDays >= 30 ? 1 : plan.validityDays,
+                    frequency_type: plan.validityDays >= 365 ? 'months' : plan.validityDays >= 30 ? 'months' : 'days', // Ajuste básico, ideal é configurar isso no plano
+                    transaction_amount: parseFloat(plan.price),
+                    currency_id: 'BRL'
+                },
+                back_url: 'https://seusite.com/sucesso', // Placeholder
+                external_reference: plan.id
+            };
+
+            // Ajuste fino para mensal (30 dias) -> 1 month
+            if (plan.validityDays === 30) {
+                payload.auto_recurring.frequency = 1;
+                payload.auto_recurring.frequency_type = 'months';
+            }
+
+            const response = await axios.post(`${this.apiUrl}/preapproval_plan`, payload, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            return {
+                id: response.data.id,
+                init_point: response.data.init_point
+            };
+        } catch (err) {
+            console.error('[MP] Create Plan Error:', err.response?.data || err.message);
+            throw new Error(`Erro ao criar plano no MP: ${err.response?.data?.message || err.message}`);
+        }
+    }
+
+    async createSubscription({ planId, cardToken, payerEmail, externalReference, credentials }) {
+        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+
+        try {
+            const payload = {
+                preapproval_plan_id: planId,
+                card_token_id: cardToken,
+                payer_email: payerEmail,
+                external_reference: externalReference,
+                status: 'authorized' // Auto-approve
+            };
+
+            const response = await axios.post(`${this.apiUrl}/preapproval`, payload, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            return {
+                subscriptionId: response.data.id,
+                status: response.data.status, // authorized, paused, cancelled
+                payerId: response.data.payer_id
+            };
+        } catch (err) {
+            console.error('[MP] Create Subscription Error:', err.response?.data || err.message);
+            throw new Error(`Erro ao assinar no MP: ${err.response?.data?.message || err.message}`);
+        }
     }
 
     async getPaymentStatus({ externalId, credentials }) {
@@ -229,6 +286,38 @@ class MercadoPagoAdapter extends GatewayAdapter {
         } catch (err) {
             console.error('[MP] Get Status Error:', err.response?.data || err.message);
             throw new Error(`Erro ao buscar status no Mercado Pago: ${err.message}`);
+        }
+    }
+
+    async getSubscriptionStatus({ externalId, credentials }) {
+        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+
+        // O 'externalId' aqui é o 'preapproval_id' do Mercado Pago
+        try {
+            const response = await axios.get(`${this.apiUrl}/preapproval/${externalId}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            const data = response.data;
+            const mpStatus = data.status; // authorized, paused, cancelled
+
+            // Mapear status do MP para o nosso sistema
+            let status = 'PENDING';
+            if (mpStatus === 'authorized') status = 'ACTIVE';
+            else if (mpStatus === 'paused') status = 'OVERDUE'; // Ou SUSPENDED, dependendo do enum
+            else if (mpStatus === 'cancelled') status = 'CANCELLED';
+            else if (mpStatus === 'pending') status = 'PENDING';
+
+            return {
+                externalId: data.id,
+                status: status,
+                rawResponse: data
+            };
+
+        } catch (err) {
+            console.error('[MP] Get Subscription Status Error:', err.response?.data || err.message);
+            throw new Error(`Erro ao buscar status da assinatura no Mercado Pago: ${err.message}`);
         }
     }
 

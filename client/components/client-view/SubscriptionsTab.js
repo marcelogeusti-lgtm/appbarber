@@ -1,27 +1,40 @@
 'use client';
 import { Crown, Check } from 'lucide-react';
-import api from '../../lib/api';
+import api from '../../lib/clientApi';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import CardForm from '../payment/CardForm';
 
-export default function SubscriptionsTab({ plans = [] }) {
+export default function SubscriptionsTab({ plans = [], barbershopId }) {
     const router = useRouter();
     const [loading, setLoading] = useState(null);
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [showCardModal, setShowCardModal] = useState(false);
+
     const formatCurrency = (val) => {
         const num = Number(val);
         return !isNaN(num) ? num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
     };
 
-    const handlePurchase = async (plan) => {
-        if (!confirm(`Deseja assinar o plano "${plan.name}" por ${formatCurrency(plan.price)}?`)) return;
+    const handleSubscribeClick = (plan) => {
+        setSelectedPlan(plan);
+        setShowCardModal(true);
+    };
 
-        setLoading(plan.id);
+    const handleCardSubmit = async (cardData) => {
+        if (!selectedPlan) return;
+        setLoading(selectedPlan.id);
+
         try {
+            // cardData contains token, issuerId, paymentMethodId, payer
             await api.post('/subscriptions/purchase', {
-                planId: plan.id,
-                paymentMethod: 'ONLINE' // Placeholder
+                planId: selectedPlan.id,
+                paymentMethod: 'CREDIT_CARD',
+                gateway: 'mercadopago',
+                ...cardData
             });
-            alert('Assinatura realizada com sucesso!');
+            alert('Assinatura realizada com sucesso! Bem-vindo ao clube.');
+            setShowCardModal(false);
             router.refresh();
         } catch (error) {
             console.error(error);
@@ -32,7 +45,31 @@ export default function SubscriptionsTab({ plans = [] }) {
     };
 
     return (
-        <div className="space-y-6 pb-24">
+        <div className="space-y-6 pb-24 relative">
+            {/* Modal de Pagamento */}
+            {showCardModal && selectedPlan && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="w-full max-w-md bg-[#111827] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative">
+                        {/* Header do Modal */}
+                        <div className="bg-slate-900/50 p-4 border-b border-slate-800 text-center">
+                            <h3 className="font-bold text-lg text-emerald-500">Assinar {selectedPlan.name}</h3>
+                            <p className="text-sm text-slate-400">{formatCurrency(selectedPlan.price)} / mês</p>
+                        </div>
+
+                        {/* Form */}
+                        <div className="p-4">
+                            <CardForm
+                                amount={selectedPlan.price}
+                                description={`Assinatura ${selectedPlan.name}`}
+                                barbershopId={barbershopId || selectedPlan.barbershopId}
+                                onSubmit={handleCardSubmit}
+                                onCancel={() => setShowCardModal(false)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {plans.length > 0 ? (
                 plans.map((plan) => (
                     <div key={plan.id} className="bg-gradient-to-b from-[#1e293b] to-[#111] p-1 rounded-[2.5rem] border border-emerald-500/30">
@@ -71,11 +108,11 @@ export default function SubscriptionsTab({ plans = [] }) {
                                     <p className="text-2xl font-black text-white">{formatCurrency(plan.price)}</p>
                                 </div>
                                 <button
-                                    onClick={() => handlePurchase(plan)}
+                                    onClick={() => handleSubscribeClick(plan)}
                                     disabled={loading === plan.id}
                                     className={`bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20 ${loading === plan.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    {loading === plan.id ? 'Processando...' : 'Assinar Agora'}
+                                    {loading === plan.id ? 'Carregando...' : 'Assinar Agora'}
                                 </button>
                             </div>
                         </div>
