@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
-import { Handshake, CheckCircle, AlertTriangle, Lock, Shield, Zap, Globe, Coins } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertTriangle, Lock, Shield, Zap, Globe, Coins } from 'lucide-react';
 
 export default function PaymentSettings() {
     const [configs, setConfigs] = useState([]);
@@ -65,7 +65,7 @@ export default function PaymentSettings() {
                 <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 blur-[120px] -mr-40 -mt-40" />
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="w-16 h-16 bg-primary/10 rounded-[1.8rem] border border-primary/20 flex items-center justify-center text-3xl shadow-inner">
-                        <Handshake className="w-8 h-8 text-primary" />
+                        <CreditCard className="w-8 h-8 text-primary" />
                     </div>
                     <div>
                         <h2 className="text-4xl font-black uppercase tracking-tighter text-foreground">Canais de Recebimento</h2>
@@ -88,8 +88,8 @@ export default function PaymentSettings() {
                     config={getConfig('mercadopago')}
                     onSave={handleSave}
                     saving={saving === 'mercadopago'}
-                    icon={<div className="w-16 h-16 rounded-2xl bg-[#009EE3] p-3 border border-border shadow-xl group-hover:scale-110 transition-transform">
-                        <img src="/logos/mercadopago.png" alt="Mercado Pago" className="w-full h-full object-contain brightness-0 invert" />
+                    icon={<div className="w-16 h-16 rounded-2xl bg-white p-2 border border-border shadow-xl group-hover:scale-110 transition-transform flex items-center justify-center">
+                        <img src="/logos/mercadopago.png" alt="Mercado Pago" className="w-full h-full object-contain" />
                     </div>}
                     helpText="Acesse suas credenciais de Produção no painel do Mercado Pago Developers."
                     fields={[
