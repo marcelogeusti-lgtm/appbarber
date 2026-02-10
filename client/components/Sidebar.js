@@ -7,7 +7,7 @@ import {
     ShoppingBag, Receipt, DollarSign, PieChart, Wallet,
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, ScrollText, MessageSquare,
-    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield
+    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Handshake
 } from 'lucide-react';
 
 export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
@@ -150,7 +150,7 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                         <MenuItem href="/dashboard/finance/dashboard" icon={PieChart} label="Dashboard" />
                         <MenuItem href="/dashboard/finance" icon={Wallet} label="Movimentações" />
                         <MenuItem href="/dashboard/reports/commissions" icon={DollarSign} label="Comissões" />
-                        <MenuItem href="/dashboard/finance/integrations" icon={CreditCard} label="Integrações" />
+                        <MenuItem href="/dashboard/finance/integrations" icon={Handshake} label="Integrações" />
                     </MenuGroup>
 
                     <div className="h-px bg-border mx-2 my-2"></div>
