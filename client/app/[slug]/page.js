@@ -10,7 +10,6 @@ import {
 import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
 import CardForm from '../../components/payment/CardForm';
-import BannerCarousel from '../../components/client-view/BannerCarousel';
 
 // Dynamic Sub-components (Lazy Loaded)
 const ServicesTab = dynamic(() => import('../../components/client-view/ServicesTab'), {
@@ -1123,6 +1122,75 @@ export default function BarbershopPage() {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function BannerCarousel({ images }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+
+    // Auto-slide
+    useEffect(() => {
+        if (!images || images.length <= 1) return;
+        const interval = setInterval(() => {
+            setCurrentIndex(prev => (prev + 1) % images.length);
+        }, 5000); // 5s slide
+        return () => clearInterval(interval);
+    }, [images]);
+
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            setCurrentIndex(prev => (prev + 1) % images.length);
+        } else if (isRightSwipe) {
+            setCurrentIndex(prev => (prev - 1 + images.length) % images.length);
+        }
+    };
+
+    if (!images || images.length === 0) return null;
+
+    return (
+        <div
+            className="absolute inset-0 z-0 bg-black"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+        >
+            {images.map((img, idx) => (
+                <div
+                    key={idx}
+                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-60' : 'opacity-0'}`}
+                >
+                    <img src={img} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
+                </div>
+            ))}
+
+            {/* Indicators */}
+            {images.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                    {images.map((_, idx) => (
+                        <div
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/30'}`}
+                        />
+                    ))}
                 </div>
             )}
         </div>
