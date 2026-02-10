@@ -74,7 +74,7 @@ export default function BarbershopPage() {
     const [selectedService, setSelectedService] = useState(null);
     const [selectedProfessional, setSelectedProfessional] = useState(null);
     const [selectedProducts, setSelectedProducts] = useState([]);
-    const [paymentType, setPaymentType] = useState('local'); // 'local' | 'online'
+    const [paymentType, setPaymentType] = useState('local'); // Default to local, user can switch if enabled
     const [paymentMethod, setPaymentMethod] = useState('PIX'); // 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD'
     const [checkoutData, setCheckoutData] = useState(null);
 
@@ -860,18 +860,20 @@ export default function BarbershopPage() {
                                                         {paymentType === 'local' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
                                                     </div>
 
-                                                    {/* ALWAYS SHOW ONLINE OPTION (User Request) */}
-                                                    <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
-                                                                <Zap className="w-4 h-4" />
+                                                    {/* ONLINE OPTION CONDITIONAL */}
+                                                    {barbershop.online_payment_enabled && (
+                                                        <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                    <Zap className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className={`font-bold text-xs uppercase ${paymentType === 'online' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar Online</p>
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <p className={`font-bold text-xs uppercase ${paymentType === 'online' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar Online</p>
-                                                            </div>
+                                                            {paymentType === 'online' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
                                                         </div>
-                                                        {paymentType === 'online' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
-                                                    </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Online Methods Sub-selection */}
@@ -912,12 +914,7 @@ export default function BarbershopPage() {
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        {!barbershop.online_payment_enabled && (
-                                                            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
-                                                                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                                                                <p className="text-[10px] font-bold text-amber-200 uppercase leading-tight">Pagamentos online temporariamente indisponíveis para este estabelecimento.</p>
-                                                            </div>
-                                                        )}
+
                                                     </div>
                                                 )}
                                             </div>

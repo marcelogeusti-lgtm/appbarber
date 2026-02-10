@@ -488,76 +488,100 @@ exports.saveCard = async (req, res) => {
     try {
         const { token, barbershopId } = req.body;
         const userId = req.user.id;
+        const userRole = req.user.role; // 'CLIENT', 'ADMIN', 'BARBER'
 
         if (!token || !barbershopId) {
             return res.status(400).json({ error: 'Missing required data (token, barbershopId)' });
         }
 
-        // Find/Create Client associated with User
-        // Ideally we should have a reliable link. For now using AuthUser link.
-        let client = await prisma.client.findFirst({
-            where: { authUserId: req.user.authUserId }
-        });
+        let client;
 
-        if (!client) {
-            // Should create? Yes, user is logged in.
-            // But we need phone/name?
-            const userProfile = await prisma.user.findUnique({ where: { id: userId }, include: { authUser: true } });
-            if (!userProfile) return res.status(404).json({ error: 'User profile not found' });
-
-            // Try updating client
-            client = await prisma.client.create({
-                data: {
-                    name: userProfile.name,
-                    phone: userProfile.phone,
-                    authUserId: userProfile.authUserId || undefined, // If linked
-                    // default active
-                }
+        // 1. Resolve Client Profile based on Role
+        if (userRole === 'CLIENT') {
+            client = await prisma.client.findUnique({ where: { id: userId } });
+            if (!client) return res.status(404).json({ error: 'Perfil de cliente não encontrado.' });
+        } else {
+            // It's a Pro (Admin/Barber) acting as a client
+            // Try link via AuthUser
+            client = await prisma.client.findFirst({
+                where: { authUserId: req.user.authUserId }
             });
+
+            // If Pro doesn't have a Client profile yet, create one
+            if (!client) {
+                const userProfile = await prisma.user.findUnique({
+                    where: { id: userId },
+                    include: { authUser: true }
+                });
+
+                if (!userProfile) return res.status(404).json({ error: 'Perfil de usuário não encontrado.' });
+
+                client = await prisma.client.create({
+                    data: {
+                        name: userProfile.name,
+                        phone: userProfile.phone,
+                        authUserId: userProfile.authUserId || undefined,
+                        theme: 'dark'
+                    }
+                });
+            }
         }
 
-        // 1. Call Orchestrator
-        const savedCardData = await PaymentOrchestrator.saveCard({
-            barbershopId,
-            client,
-            token
-        });
+        // 2. Call Orchestrator
+        try {
+            const savedCardData = await PaymentOrchestrator.saveCard({
+                barbershopId,
+                client,
+                token
+            });
 
-        // 2. Save CardToken in DB
-        const cardToken = await prisma.cardToken.create({
-            data: {
-                clientId: client.id,
-                gateway: savedCardData.gateway.toUpperCase(),
-                token: savedCardData.token, // MP Card ID
-                last4: savedCardData.last4,
-                brand: savedCardData.brand,
-                expiryMonth: savedCardData.expiryMonth,
-                expiryYear: savedCardData.expiryYear,
-                barbershopId: barbershopId, // Context
-                isDefault: false // Logic for default?
-            }
-        });
+            // 3. Save CardToken in DB
+            const cardToken = await prisma.cardToken.create({
+                data: {
+                    clientId: client.id,
+                    gateway: savedCardData.gateway.toUpperCase(),
+                    token: savedCardData.token, // MP Card ID
+                    last4: savedCardData.last4,
+                    brand: savedCardData.brand,
+                    expiryMonth: savedCardData.expiryMonth,
+                    expiryYear: savedCardData.expiryYear,
+                    barbershopId: barbershopId, // Context
+                    isDefault: false
+                }
+            });
 
-        return res.status(201).json(cardToken);
+            return res.status(201).json(cardToken);
+        } catch (orchestratorError) {
+            // Handle "Card already saved" or other MP errors gracefully?
+            console.error('Orchestrator Save Error:', orchestratorError);
+            return res.status(400).json({ error: orchestratorError.message || 'Falha ao salvar no gateway.' });
+        }
 
     } catch (error) {
         console.error('Save Card Controller Error:', error);
-        return res.status(500).json({ error: 'Falha ao salvar cartão: ' + error.message });
+        return res.status(500).json({ error: 'Falha interna ao salvar cartão: ' + error.message });
     }
 };
 
 exports.listCards = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { barbershopId } = req.query; // Optional filter
+        const userRole = req.user.role;
+        const { barbershopId } = req.query;
 
         // 1. Resolve Client
-        const client = await prisma.client.findFirst({
-            where: { authUserId: req.user.authUserId }
-        });
+        let client;
+        if (userRole === 'CLIENT') {
+            client = await prisma.client.findUnique({ where: { id: userId } });
+        } else {
+            // Pro
+            client = await prisma.client.findFirst({
+                where: { authUserId: req.user.authUserId }
+            });
+        }
 
         if (!client) {
-            return res.json([]); // No cards possible if no client profile
+            return res.json([]); // No profile = no cards
         }
 
         // 2. Query Cards
@@ -572,12 +596,12 @@ exports.listCards = async (req, res) => {
             orderBy: { createdAt: 'desc' }
         });
 
-        // 3. Transform for frontend (mask sensitive just in case, though DB already masked)
+        // 3. Transform
         const sanitized = cards.map(c => ({
             id: c.id,
             brand: c.brand,
             last4: c.last4,
-            expiry: `${c.expiryMonth}/${c.expiryYear}`, // format
+            expiry: `${c.expiryMonth}/${c.expiryYear}`,
             barbershopName: c.barbershop?.name || 'Geral',
             barbershopId: c.barbershopId,
             isDefault: c.isDefault
@@ -594,13 +618,20 @@ exports.listCards = async (req, res) => {
 exports.deleteCard = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.role;
 
         // 1. Resolve Client
-        const client = await prisma.client.findFirst({
-            where: { authUserId: req.user.authUserId }
-        });
+        let client;
+        if (userRole === 'CLIENT') {
+            client = await prisma.client.findUnique({ where: { id: userId } });
+        } else {
+            client = await prisma.client.findFirst({
+                where: { authUserId: req.user.authUserId }
+            });
+        }
 
-        if (!client) return res.status(404).json({ error: 'Cliente não encontrado' });
+        if (!client) return res.status(404).json({ error: 'Perfil de cliente não encontrado' });
 
         // 2. Delete Card (Ensure it belongs to this client)
         const result = await prisma.cardToken.deleteMany({
