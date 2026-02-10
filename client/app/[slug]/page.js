@@ -123,123 +123,113 @@ export default function BarbershopPage() {
     const [waitlistNote, setWaitlistNote] = useState('');
     const [waitlistLoading, setWaitlistLoading] = useState(false);
 
+    // Favorites & Data Fetching
+    const [isFavorite, setIsFavorite] = useState(false);
+
+    async function checkFavoriteStatus(id) {
+        try {
+            if (!localStorage.getItem('token')) return;
+            const res = await api.get('/clients/favorites');
+            if (res.data && Array.isArray(res.data)) {
+                const isFav = res.data.some(f => f.barbershopId === id || f.id === id);
+                setIsFavorite(isFav);
+            }
+        } catch (err) {
+            console.error("Error checking favorite status", err);
+        }
+    }
+
+    const handleToggleFavorite = async () => {
+        if (!barbershop) return;
+        const token = localStorage.getItem('token');
+        if (!token) return alert('Faça login para favoritar.');
+
+        try {
+            setIsFavorite(prev => !prev);
+            const res = await api.post('/clients/favorite', { barbershopId: barbershop.id });
+            setIsFavorite(res.data.isFavorite);
+            alert(res.data.message);
+        } catch (error) {
+            console.error(error);
+            setIsFavorite(prev => !prev); // Revert
+        }
+    };
+
+    const handleShare = async () => {
+        if (!barbershop) return;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: barbershop.name,
+                    text: `Agende seu horário na ${barbershop.name}!`,
+                    url: window.location.href
+                });
+            } catch (err) {
+                console.log('Share canceled');
+            }
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copiado para a área de transferência!');
+        }
+    };
+
+    const openMap = () => {
+        if (!barbershop?.address) return;
+        const query = encodeURIComponent(barbershop.address);
+        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    };
+
+    async function loadProducts(id) {
+        try {
+            const prodRes = await api.get(`/products?barbershopId=${id}`);
+            setProducts(prodRes.data);
+        } catch (e) {
+            console.error('Error loading products', e);
+        }
+    }
+
+    async function loadUserData(barbershopId) {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            setFormData(prev => ({
+                ...prev,
+                name: user.name || prev.name,
+                phone: user.phone || prev.phone,
+                email: user.email || prev.email
+            }));
+
+            // Parallel fetches for user specific info
+            Promise.allSettled([
+                api.get('/subscription/my-active').then(res => setMySubscription(res.data || null)),
+                api.get(`/appointments/pending-fees?barbershopId=${barbershopId}`).then(res => setPendingFees(res.data || [])).catch(() => { }), // Silent fail if not implemented
+                api.get('/appointments/me').then(res => {
+                    const completed = res.data.filter(a => a.status === 'COMPLETED').length;
+                    setPoints(completed * 10);
+                }).catch(() => { })
+            ]).catch(console.error);
+        }
+    }
+
     useEffect(() => {
         if (!effectiveSlug) return;
 
-        // 1. Critical Data: Barbershop Info (Header + Services + Staff)
         async function loadBarbershop() {
             try {
                 const res = await api.get(`/barbershops/${effectiveSlug}`);
                 setBarbershop(res.data);
-                setBarbershop(res.data);
-                setLoading(false); // <--- SHOW UI NOW!
+                setLoading(false);
 
-                // Check Favorites Status
+                // Initial Data Loads
                 if (localStorage.getItem('token')) {
-                    // Try to fetch favorite status if endpoint exists, otherwise default to false
-                    // or assume user data will populate it.
-                    // DO NOT toggle on load.
                     checkFavoriteStatus(res.data.id);
                 }
-
-                // 2. Secondary Data: Products (Background)
                 loadProducts(res.data.id);
-
-                // 3. User Data (Background)
                 loadUserData(res.data.id);
 
             } catch (err) {
                 console.error(err);
-                setLoading(false); // Stop loading even on error
-            }
-        }
-
-        // ... (Hooks for favorites/share)
-        const [isFavorite, setIsFavorite] = useState(false);
-
-        // Initial Favorite Check (Simulated or via User Data)
-        async function checkFavoriteStatus(id) {
-            try {
-                // If we don't have a specific 'check' endpoint, we might rely on user profile or list of favorites.
-                // Assuming GET /clients/favorites returns IDs
-                const res = await api.get('/clients/favorites'); // Need to ensure this endpoint exists or create it
-                if (res.data && Array.isArray(res.data)) {
-                    const isFav = res.data.some(f => f.barbershopId === id || f.id === id); // Adjust based on response structure
-                    setIsFavorite(isFav);
-                }
-            } catch (err) {
-                // Silent fail
-            }
-        }
-
-        // Handle Favorites
-        const handleToggleFavorite = async () => {
-            if (!barbershop) return;
-            const token = localStorage.getItem('token');
-            if (!token) return alert('Faça login para favoritar.');
-
-            try {
-                // Optimistic Update
-                setIsFavorite(prev => !prev);
-                const res = await api.post('/clients/favorite', { barbershopId: barbershop.id });
-                setIsFavorite(res.data.isFavorite);
-                alert(res.data.message);
-            } catch (error) {
-                console.error(error);
-                setIsFavorite(prev => !prev); // Revert
-            }
-        };
-
-        const handleShare = async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: barbershop.name,
-                        text: `Agende seu horário na ${barbershop.name}!`,
-                        url: window.location.href
-                    });
-                } catch (err) {
-                    console.log('Share canceled');
-                }
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert('Link copiado para a área de transferência!');
-            }
-        };
-
-        const openMap = () => {
-            if (!barbershop?.address) return;
-            const query = encodeURIComponent(barbershop.address);
-            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-        };
-
-        async function loadProducts(id) {
-            try {
-                const prodRes = await api.get(`/products?barbershopId=${id}`);
-                setProducts(prodRes.data);
-            } catch (e) { console.error('Error loading products', e); }
-        }
-
-        async function loadUserData(barbershopId) {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                setFormData(prev => ({
-                    ...prev,
-                    name: user.name || prev.name,
-                    phone: user.phone || prev.phone,
-                    email: user.email || prev.email
-                }));
-
-                // Parallel fetches for user specific info
-                Promise.allSettled([
-                    api.get('/subscription/my-active').then(res => setMySubscription(res.data || null)),
-                    api.get(`/appointments/pending-fees?barbershopId=${barbershopId}`).then(res => setPendingFees(res.data || [])),
-                    api.get('/appointments/me').then(res => {
-                        const completed = res.data.filter(a => a.status === 'COMPLETED').length;
-                        setPoints(completed * 10);
-                    })
-                ]).catch(console.error);
+                setLoading(false);
             }
         }
 
@@ -247,7 +237,12 @@ export default function BarbershopPage() {
 
         const saved = localStorage.getItem('guestData');
         if (saved) {
-            setFormData(prev => ({ ...prev, ...JSON.parse(saved) }));
+            try {
+                const parsed = JSON.parse(saved);
+                setFormData(prev => ({ ...prev, ...parsed }));
+            } catch (e) {
+                console.error("Error parsing guestData", e);
+            }
         }
     }, [effectiveSlug]);
 
