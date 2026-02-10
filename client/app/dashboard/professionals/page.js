@@ -2,13 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
-import { Plus, Trash2, Edit2, X, User, Phone, Mail, Award, Scissors } from 'lucide-react';
+import ProfessionalModal from '../../../components/ProfessionalModal';
+import { Plus, Trash2, Edit2, User, Phone, Mail, Award, Scissors, Clock, Calendar } from 'lucide-react';
 
 export default function ProfessionalsPage() {
     const queryClient = useQueryClient();
-    const [isAdding, setIsAdding] = useState(false);
-    const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({ name: '', email: '', phone: '', specialty: '', bio: '' });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedProfessional, setSelectedProfessional] = useState(null);
     const [user, setUser] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
 
@@ -26,60 +26,35 @@ export default function ProfessionalsPage() {
     const { data: professionals = [], isLoading: loadingPros } = useQuery({
         queryKey: ['professionals', barbershopId],
         queryFn: async () => {
+            if (!barbershopId) return [];
             const res = await api.get(`/professionals?barbershopId=${barbershopId}`);
             return Array.isArray(res.data) ? res.data : [];
         },
         enabled: !!barbershopId,
     });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (!barbershopId) {
-                alert('Barbearia não encontrada.');
-                return;
-            }
-
-            const payload = { ...formData, barbershopId };
-
-            if (editingId) {
-                await api.put(`/professionals/${editingId}`, payload);
-            } else {
-                await api.post('/professionals', payload);
-            }
-
-            setFormData({ name: '', email: '', phone: '', specialty: '', bio: '' });
-            setIsAdding(false);
-            setEditingId(null);
-            queryClient.invalidateQueries(['professionals', barbershopId]);
-        } catch (err) {
-            alert('Erro ao salvar profissional');
-        }
+    const handleEdit = (pro) => {
+        setSelectedProfessional(pro);
+        setIsModalOpen(true);
     };
 
-    const handleEdit = (pro) => {
-        setFormData({
-            name: pro.name || pro.user?.name || '',
-            email: pro.email || pro.user?.email || '',
-            phone: pro.phone || pro.user?.phone || '',
-            specialty: pro.specialty || '',
-            bio: pro.bio || ''
-        });
-        setEditingId(pro.id);
-        setIsAdding(true);
+    const handleAdd = () => {
+        setSelectedProfessional(null);
+        setIsModalOpen(true);
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Tem certeza que deseja excluir esse profissional?')) return;
+        if (!confirm('Tem certeza que deseja excluir esse profissional? Esta ação removerá todos os agendamentos futuros e dados vinculados.')) return;
         try {
             await api.delete(`/professionals/${id}`);
             queryClient.invalidateQueries(['professionals', barbershopId]);
+            alert('Profissional removido com sucesso.');
         } catch (err) {
-            alert('Erro ao excluir profissional');
+            alert('Erro ao excluir profissional: ' + (err.response?.data?.message || err.message));
         }
     };
 
-    if (loadingPros) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Carregando profissionais...</div>;
+    if (loadingPros) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Carregando equipe...</div>;
 
     return (
         <div className="space-y-8 pb-20">
@@ -90,94 +65,29 @@ export default function ProfessionalsPage() {
                     </div>
                     <div>
                         <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Equipe de Profissionais</h1>
-                        <p className="text-muted-foreground text-sm font-medium italic">Gerencie os profissionais que realizam atendimentos no seu estabelecimento.</p>
+                        <p className="text-muted-foreground text-sm font-medium italic">Gerencie horários, comissões e dados dos profissionais.</p>
                     </div>
                 </div>
-                {!isAdding && (
-                    <button
-                        onClick={() => setIsAdding(true)}
-                        className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition active:scale-95"
-                    >
-                        <Plus className="w-4 h-4" /> Novo Profissional
-                    </button>
-                )}
+                <button
+                    onClick={handleAdd}
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition active:scale-95"
+                >
+                    <Plus className="w-4 h-4" /> Novo Profissional
+                </button>
             </header>
-
-            {isAdding && (
-                <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl animate-in fade-in slide-in-from-top-4">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-black uppercase tracking-widest text-foreground">
-                            {editingId ? 'Editar Perfil' : 'Novo Integrante'}
-                        </h2>
-                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', email: '', phone: '', specialty: '', bio: '' }); }} className="text-muted-foreground hover:text-destructive transition-colors">
-                            <X className="w-6 h-6" />
-                        </button>
-                    </div>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nome Completo</label>
-                            <input
-                                placeholder="Ex: Marcelo Geusti"
-                                value={formData.name}
-                                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">E-mail de Acesso</label>
-                            <input
-                                type="email"
-                                placeholder="email@exemplo.com"
-                                value={formData.email}
-                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Celular / WhatsApp</label>
-                            <input
-                                placeholder="(00) 00000-0000"
-                                value={formData.phone}
-                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Especialidade Principal</label>
-                            <input
-                                placeholder="Ex: Barbeiro Master / Colorista"
-                                value={formData.specialty}
-                                onChange={e => setFormData({ ...formData, specialty: e.target.value })}
-                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner"
-                            />
-                        </div>
-                        <div className="md:col-span-2 space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Bio / Descrição (Opcional)</label>
-                            <textarea
-                                placeholder="Conte um pouco sobre a experiência..."
-                                value={formData.bio}
-                                onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                                className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition shadow-inner min-h-[120px]"
-                            />
-                        </div>
-                        <div className="md:col-span-2 pt-4">
-                            <button type="submit" className="w-full bg-primary text-primary-foreground p-5 rounded-2xl font-black uppercase tracking-[0.2em] transition hover:bg-primary/90 shadow-2xl shadow-primary/20 active:scale-95">
-                                {editingId ? 'ATUALIZAR PROFISSIONAL' : 'CADASTRAR NA EQUIPE'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {professionals.map(pro => (
                     <div key={pro.id} className="bg-card p-10 rounded-[2.5rem] border border-border hover:border-primary/50 transition-all group relative flex flex-col items-center text-center shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                        <div className="absolute top-6 right-6 flex gap-2">
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${pro.active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                {pro.active ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </div>
+
                         <div className="w-24 h-24 rounded-[2rem] bg-muted mb-6 flex items-center justify-center border-4 border-background shadow-inner relative group-hover:scale-105 transition-transform duration-500 overflow-hidden">
-                            {pro.user?.avatarUrl ? (
-                                <img src={pro.user.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
+                            {pro.user?.avatarUrl || pro.avatarUrl ? (
+                                <img src={pro.user?.avatarUrl || pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
                             ) : <User className="w-10 h-10 text-primary" />}
                         </div>
 
@@ -186,7 +96,7 @@ export default function ProfessionalsPage() {
                                 {pro.name || pro.user?.name}
                             </h3>
                             <p className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest mt-2 border border-primary/20 inline-block">
-                                {pro.specialty || 'Profissional'}
+                                {pro.professionalProfile?.position || pro.position || 'Profissional'}
                             </p>
                         </div>
 
@@ -199,6 +109,10 @@ export default function ProfessionalsPage() {
                                 <Mail className="w-4 h-4 text-primary" />
                                 <span className="truncate max-w-[200px]">{pro.email || pro.user?.email || 'N/A'}</span>
                             </div>
+                            <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground justify-center">
+                                <Calendar className="w-4 h-4 text-primary" />
+                                <span>{pro.professionalProfile?.schedules?.filter(s => !s.isOff).length || 0} dias de trabalho</span>
+                            </div>
                         </div>
 
                         <div className="flex gap-4 w-full mt-auto">
@@ -206,7 +120,7 @@ export default function ProfessionalsPage() {
                                 onClick={() => handleEdit(pro)}
                                 className="flex-1 bg-muted border border-border p-4 rounded-2xl flex justify-center items-center text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all font-black text-[10px] uppercase tracking-widest"
                             >
-                                <Edit2 className="w-4 h-4 mr-2" /> Editar
+                                <Edit2 className="w-4 h-4 mr-2" /> Editar Completo
                             </button>
                             <button
                                 onClick={() => handleDelete(pro.id)}
@@ -219,14 +133,23 @@ export default function ProfessionalsPage() {
                 ))}
             </div>
 
-            {professionals.length === 0 && !isAdding && (
+            {professionals.length === 0 && (
                 <div className="text-center py-32 bg-card rounded-[3rem] border-2 border-dashed border-border shadow-inner">
                     <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6 text-muted-foreground/30">
                         <Award className="w-10 h-10" />
                     </div>
-                    <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest italic">Nenhum profissional na equipe ainda.</p>
+                    <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest italic">Nenhum profissional encontrado.</p>
                 </div>
             )}
+
+            <ProfessionalModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                professional={selectedProfessional}
+                onSuccess={() => {
+                    queryClient.invalidateQueries(['professionals', barbershopId]);
+                }}
+            />
         </div>
     );
 }
