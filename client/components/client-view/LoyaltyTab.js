@@ -29,7 +29,8 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
         );
     }
 
-    const progress = Math.min((points / program.minPointsToRedeem) * 100, 100);
+    const target = program.minPointsToRedeem > 0 ? program.minPointsToRedeem : 1;
+    const progress = Math.min((points / target) * 100, 100);
 
     return (
         <div className="space-y-6 pb-24">

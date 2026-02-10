@@ -362,3 +362,19 @@ exports.toggleFavorite = async (req, res) => {
     }
 };
 
+exports.getFavorites = async (req, res) => {
+    try {
+        const clientId = req.user.id;
+        if (!clientId) return res.status(401).json({ message: 'Unauthorized' });
+
+        const favorites = await prisma.favoriteBarbershop.findMany({
+            where: { clientId }
+        });
+
+        res.json(favorites);
+    } catch (error) {
+        console.error('Get Favorites Error:', error);
+        res.status(500).json({ message: 'Error fetching favorites' });
+    }
+};
+

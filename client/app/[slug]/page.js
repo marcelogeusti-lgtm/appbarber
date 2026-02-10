@@ -134,15 +134,12 @@ export default function BarbershopPage() {
                 setBarbershop(res.data);
                 setLoading(false); // <--- SHOW UI NOW!
 
-                // Check Favorites
+                // Check Favorites Status
                 if (localStorage.getItem('token')) {
-                    api.post('/clients/favorite', { barbershopId: res.data.id }) // Just check state? API toggle returns state. 
-                    // Better to have a get state endpoint or check in user profile.
-                    // For now, let's assume we can fetch favorite status separately or include it in barbershop details if authenticated.
-                    // The client.controller `toggleFavorite` toggles.
-                    // We need to know INITIAL state.
-                    // Let's implement a quick check or just fetch user details including favorites.
-                    // Ideally `api.get('/clients/me')` returns favorites.
+                    // Try to fetch favorite status if endpoint exists, otherwise default to false
+                    // or assume user data will populate it.
+                    // DO NOT toggle on load.
+                    checkFavoriteStatus(res.data.id);
                 }
 
                 // 2. Secondary Data: Products (Background)
@@ -161,14 +158,19 @@ export default function BarbershopPage() {
         const [isFavorite, setIsFavorite] = useState(false);
 
         // Initial Favorite Check (Simulated or via User Data)
-        useEffect(() => {
-            const checkFavorite = async () => {
-                // Ideally we should have a `me` endpoint that returns favorites, or pass includes to barbershop.
-                // For now, we will assume false until user interacts or we implement full user profile fetch here.
-                // But wait, `loadUserData` is called.
-            };
-            checkFavorite();
-        }, [barbershop]);
+        async function checkFavoriteStatus(id) {
+            try {
+                // If we don't have a specific 'check' endpoint, we might rely on user profile or list of favorites.
+                // Assuming GET /clients/favorites returns IDs
+                const res = await api.get('/clients/favorites'); // Need to ensure this endpoint exists or create it
+                if (res.data && Array.isArray(res.data)) {
+                    const isFav = res.data.some(f => f.barbershopId === id || f.id === id); // Adjust based on response structure
+                    setIsFavorite(isFav);
+                }
+            } catch (err) {
+                // Silent fail
+            }
+        }
 
         // Handle Favorites
         const handleToggleFavorite = async () => {

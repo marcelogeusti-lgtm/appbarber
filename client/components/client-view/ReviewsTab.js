@@ -70,7 +70,7 @@ export default function ReviewsTab({ barbershopId }) {
             </div>
 
             {/* Reviews List */}
-            {reviews.length === 0 ? (
+            {!Array.isArray(reviews) || reviews.length === 0 ? (
                 <div className="text-center py-10 opacity-50">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 text-slate-700" />
                     <p className="text-sm font-bold uppercase tracking-widest">Seja o primeiro a avaliar!</p>
