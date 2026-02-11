@@ -782,6 +782,26 @@ exports.updateAppointmentStatus = async (req, res) => {
 
         // Trigger n8n on cancellation to notify waitlist
         if (status === 'CANCELLED') {
+            // 1. Notify Professional (Interior)
+            try {
+                const appToNotify = await prisma.appointment.findUnique({
+                    where: { id },
+                    include: { client: true, service: true }
+                });
+
+                if (appToNotify && appToNotify.professionalId) {
+                    await notificationController.createNotification({
+                        userId: appToNotify.professionalId,
+                        title: 'Agendamento Cancelado',
+                        message: `O agendamento de ${appToNotify.client?.name || 'Cliente'} para ${format(new Date(appToNotify.date), 'HH:mm')} foi cancelado. O horário está liberado.`,
+                        type: 'cancellation',
+                        appointmentId: appToNotify.id
+                    });
+                }
+            } catch (notifyErr) {
+                console.error('Error notifying professional of cancellation:', notifyErr);
+            }
+
             const barbershop = await prisma.barbershop.findUnique({ where: { id: appointment.barbershopId } });
             const webhookUrl = barbershop?.webhookUrl;
 
@@ -851,24 +871,5 @@ exports.getPendingFees = async (req, res) => {
         res.json(fees);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching fees' });
-    }
-};
-
-exports.getUnreviewedAppointments = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const apps = await prisma.appointment.findMany({
-            where: {
-                clientId: userId,
-                status: 'COMPLETED',
-                review: null // Not reviewed yet
-            },
-            include: { professional: true, service: true },
-            orderBy: { date: 'desc' },
-            take: 1 // Just one at a time
-        });
-        res.json(apps);
-    } catch (error) {
-        res.status(500).json({ message: 'Error' });
     }
 };

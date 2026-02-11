@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
-import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle, XCircle } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import SqueezeInModal from '../../../components/SqueezeInModal';
@@ -298,7 +298,7 @@ export default function SchedulePage() {
                 </div>
             </header>
 
-            {/* Tabs Navigation (Only for Day View & Specific Pro preferably, but valid generally) */}
+            {/* Tabs Navigation */}
             <div className="flex items-center gap-4 border-b border-border/50 pb-1 overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('appointments')}
@@ -324,8 +324,6 @@ export default function SchedulePage() {
             <div className="bg-card rounded-[2.5rem] border border-border shadow-2xl overflow-hidden min-h-[600px]">
                 {activeTab === 'appointments' && (
                     <>
-
-
                         {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} />}
                         {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                         {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
@@ -350,8 +348,6 @@ export default function SchedulePage() {
                 barbershopId={barbershopId}
                 onConfirm={handleSqueezeInConfirm}
             />
-
-
 
             <DayDetailsModal
                 isOpen={!!dayDetailsDate}
@@ -486,70 +482,102 @@ function WaitlistView({ waitlist, professionals }) {
 
 function DayView({ appointments, professionals, selectedPro, onEdit }) {
     if (appointments.length === 0) return <EmptyState />;
+
+    // Sort logic here? 
+    // If not sorted, let's sort
+    const sortedApps = [...appointments].sort((a, b) => new Date(a.date) - new Date(b.date));
+
     return (
         <div className="divide-y divide-border/50">
-            {appointments.sort((a, b) => new Date(a.date) - new Date(b.date)).map(app => (
-                <div key={app.id} className="p-8 hover:bg-primary/5 transition flex flex-col md:flex-row items-start md:items-center gap-8 group">
-                    <div className="text-center md:border-r border-border pr-8 min-w-[120px]">
-                        <p className="text-3xl font-black text-foreground leading-none tracking-tighter">
-                            {format(new Date(app.date), 'HH:mm')}
-                        </p>
-                        <p className="text-[10px] text-primary font-black uppercase mt-2 tracking-widest border border-primary/20 px-2 py-0.5 rounded">Confirmado</p>
-                    </div>
+            {sortedApps.map(app => {
+                const isCancelled = app.status === 'CANCELLED' || app.status === 'NO_SHOW';
+                const statusColor = isCancelled ? 'text-red-500 border-red-500/20' : 'text-primary border-primary/20';
+                const statusText = app.status === 'CANCELLED' ? 'Cancelado' :
+                    app.status === 'NO_SHOW' ? 'Não Compareceu' :
+                        app.status === 'COMPLETED' ? 'Concluído' : 'Confirmado';
 
-                    <div className="flex-1 space-y-3 cursor-pointer" onClick={() => onEdit && onEdit(app)}>
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-background rounded-2xl border border-border flex items-center justify-center text-muted-foreground font-black group-hover:scale-110 transition-transform">
-                                {app.client?.name.charAt(0)}
-                            </div>
-                            <div>
-                                <h4 className="font-black text-lg uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">{app.client?.name}</h4>
-                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-700"></div> {app.client?.phone}
-                                </p>
-                            </div>
+                return (
+                    <div key={app.id} className={`p-8 transition flex flex-col md:flex-row items-start md:items-center gap-8 group ${isCancelled ? 'bg-red-500/5 hover:bg-red-500/10 opacity-70 hover:opacity-100' : 'hover:bg-primary/5'}`}>
+                        <div className="text-center md:border-r border-border pr-8 min-w-[120px]">
+                            <p className={`text-3xl font-black leading-none tracking-tighter ${isCancelled ? 'text-red-500 line-through decoration-2 decoration-red-500' : 'text-foreground'}`}>
+                                {format(new Date(app.date), 'HH:mm')}
+                            </p>
+                            <p className={`text-[10px] font-black uppercase mt-2 tracking-widest border px-2 py-0.5 rounded ${statusColor}`}>
+                                {statusText}
+                            </p>
                         </div>
-                        <div className="flex flex-wrap gap-4">
-                            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-background px-4 py-2 rounded-xl border border-border group-hover:border-primary/30 transition-colors">
-                                <Scissors className="w-3.5 h-3.5 text-primary" /> {app.service?.name}
-                            </span>
-                            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-background/50 px-4 py-2 rounded-xl border border-border">
-                                <User className="w-3.5 h-3.5 text-slate-600" /> {app.summaryProName || professionals.find(p => p.id === app.professionalId)?.name}
-                            </span>
-                            {app.isSqueezeIn && (
-                                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
-                                    Encaixe
+
+                        <div className="flex-1 space-y-3 cursor-pointer" onClick={() => onEdit && onEdit(app)}>
+                            <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-2xl border border-border flex items-center justify-center font-black group-hover:scale-110 transition-transform ${isCancelled ? 'bg-red-500/10 text-red-500' : 'bg-background text-muted-foreground'}`}>
+                                    {app.client?.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <h4 className={`font-black text-lg uppercase tracking-tight transition-colors ${isCancelled ? 'text-red-400' : 'text-foreground group-hover:text-primary'}`}>{app.client?.name}</h4>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-700"></div> {app.client?.phone}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-4">
+                                <span className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border transition-colors ${isCancelled ? 'bg-red-500/5 border-red-500/20 text-red-400' : 'text-muted-foreground bg-background border-border group-hover:border-primary/30'}`}>
+                                    <Scissors className={`w-3.5 h-3.5 ${isCancelled ? 'text-red-500' : 'text-primary'}`} /> {app.service?.name}
                                 </span>
-                            )}
+                                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-background/50 px-4 py-2 rounded-xl border border-border">
+                                    <User className="w-3.5 h-3.5 text-slate-600" /> {app.summaryProName || professionals.find(p => p.id === app.professionalId)?.name}
+                                </span>
+                                {app.isSqueezeIn && (
+                                    <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
+                                        Encaixe
+                                    </span>
+                                )}
+                                {isCancelled && (
+                                    <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
+                                        Horário Liberado
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex gap-2 w-full md:w-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                        <a
-                            href={`https://wa.me/55${app.client?.phone?.replace(/\D/g, '')}?text=Olá ${app.client?.name}! Confirmamos seu horário às ${format(new Date(app.date), 'HH:mm')} na Corte %26 Conexão.`}
-                            target="_blank"
-                            className="flex-1 md:flex-none bg-primary text-primary-foreground px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 text-center"
-                        >
-                            WhatsApp
-                        </a>
-                        <button
-                            onClick={async () => {
-                                if (confirm('Deseja realmente cancelar este agendamento?')) {
-                                    try {
-                                        await api.patch(`/appointments/${app.id}/status`, { status: 'CANCELLED' });
-                                        window.location.reload();
-                                    } catch (err) {
-                                        alert('Erro ao cancelar agendamento');
-                                    }
-                                }
-                            }}
-                            className="flex-1 md:flex-none bg-card text-destructive border border-border px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive hover:text-destructive-foreground transition text-center"
-                        >
-                            Excluir
-                        </button>
+                        {!isCancelled && (
+                            <div className="flex gap-2 w-full md:w-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                <a
+                                    href={`https://wa.me/55${app.client?.phone?.replace(/\D/g, '')}?text=Olá ${app.client?.name}! Confirmamos seu horário às ${format(new Date(app.date), 'HH:mm')} na Corte %26 Conexão.`}
+                                    target="_blank"
+                                    className="flex-1 md:flex-none bg-primary text-primary-foreground px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 text-center"
+                                >
+                                    WhatsApp
+                                </a>
+                                <button
+                                    onClick={async () => {
+                                        if (confirm('Deseja realmente cancelar este agendamento?')) {
+                                            try {
+                                                await api.patch(`/appointments/${app.id}/status`, { status: 'CANCELLED' });
+                                                window.location.reload();
+                                            } catch (err) {
+                                                alert('Erro ao cancelar agendamento');
+                                            }
+                                        }
+                                    }}
+                                    className="flex-1 md:flex-none bg-card text-destructive border border-border px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive hover:text-destructive-foreground transition text-center"
+                                >
+                                    Excluir
+                                </button>
+                            </div>
+                        )}
+                        {isCancelled && (
+                            <div className="flex gap-2 w-full md:w-auto opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                    onClick={() => onEdit && onEdit(app)} // Opens edit modal to allow restoring nicely if needed
+                                    className="flex-1 md:flex-none bg-card text-muted-foreground border border-border px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-foreground transition text-center"
+                                >
+                                    Detalhes
+                                </button>
+                            </div>
+                        )}
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
@@ -577,24 +605,28 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                             </p>
                         </div>
                         <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[600px] scrollbar-hide py-4">
-                            {dayApps.sort((a, b) => new Date(a.date) - new Date(b.date)).map(app => (
-                                <div
-                                    key={app.id}
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevent opening DayDetailsModal
-                                        onEdit && onEdit(app);
-                                    }}
-                                    className="p-4 bg-background rounded-2xl border border-border shadow-sm hover:border-primary/40 transition-all group group hover:bg-card cursor-pointer"
-                                >
-                                    <p className="font-black text-[11px] text-foreground leading-none tracking-widest">{format(new Date(app.date), 'HH:mm')}</p>
-                                    <p className="text-[10px] font-bold text-muted-foreground mt-2 truncate group-hover:text-foreground transition-colors uppercase">{app.client?.name}</p>
-                                    <div className="flex items-center gap-1.5 mt-2">
-                                        <div className="w-1 h-1 rounded-full bg-primary"></div>
-                                        <p className="text-[9px] text-primary font-black uppercase truncate tracking-tighter">{app.service?.name}</p>
-                                    </div>
-                                    {app.isSqueezeIn && <div className="mt-1 text-[8px] text-orange-500 uppercase font-black">Encaixe</div>}
-                                </div>
-                            ))}
+                            {dayApps.sort((a, b) => new Date(a.date) - new Date(b.date)).map(app => {
+                                const isCancelled = app.status === 'CANCELLED' || app.status === 'NO_SHOW';
+                                return (
+                                    (
+                                        <div
+                                            key={app.id}
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent opening DayDetailsModal
+                                                onEdit && onEdit(app);
+                                            }}
+                                            className={`p-4 rounded-2xl border shadow-sm transition-all group group hover:bg-card cursor-pointer ${isCancelled ? 'bg-red-500/5 border-red-500/20 opacity-70' : 'bg-background border-border hover:border-primary/40'}`}
+                                        >
+                                            <p className={`font-black text-[11px] leading-none tracking-widest ${isCancelled ? 'text-red-500 line-through' : 'text-foreground'}`}>{format(new Date(app.date), 'HH:mm')}</p>
+                                            <p className="text-[10px] font-bold text-muted-foreground mt-2 truncate group-hover:text-foreground transition-colors uppercase">{app.client?.name}</p>
+                                            <div className="flex items-center gap-1.5 mt-2">
+                                                <div className={`w-1 h-1 rounded-full ${isCancelled ? 'bg-red-500' : 'bg-primary'}`}></div>
+                                                <p className="text-[9px] text-primary font-black uppercase truncate tracking-tighter">{app.service?.name}</p>
+                                            </div>
+                                            {app.isSqueezeIn && <div className="mt-1 text-[8px] text-orange-500 uppercase font-black">Encaixe</div>}
+                                        </div>
+                                    ))
+                            })}
                             {dayApps.length === 0 && (
                                 <div className="h-full flex items-center justify-center opacity-10">
                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] -rotate-90 text-muted-foreground">Disponível</p>
@@ -642,18 +674,21 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
                             )}
                         </div>
                         <div className="space-y-1.5">
-                            {dayApps.slice(0, 3).map(app => (
-                                <div
-                                    key={app.id}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onEdit && onEdit(app);
-                                    }}
-                                    className="text-[8px] bg-background px-2 py-1.5 rounded-lg font-black text-muted-foreground truncate border border-border group-hover:border-primary/30 hover:border-primary transition-colors cursor-pointer"
-                                >
-                                    <span className="text-primary font-mono">{format(new Date(app.date), 'HH:mm')}</span> {app.client?.name}
-                                </div>
-                            ))}
+                            {dayApps.slice(0, 3).map(app => {
+                                const isCancelled = app.status === 'CANCELLED' || app.status === 'NO_SHOW';
+                                return (
+                                    <div
+                                        key={app.id}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEdit && onEdit(app);
+                                        }}
+                                        className={`text-[8px] bg-background px-2 py-1.5 rounded-lg font-black text-muted-foreground truncate border group-hover:border-primary/30 hover:border-primary transition-colors cursor-pointer ${isCancelled ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'border-border'}`}
+                                    >
+                                        <span className={`font-mono ${isCancelled ? 'line-through text-red-500' : 'text-primary'}`}>{format(new Date(app.date), 'HH:mm')}</span> {app.client?.name}
+                                    </div>
+                                )
+                            })}
                             {dayApps.length > 3 && (
                                 <p className="text-[9px] font-black text-muted-foreground text-center uppercase tracking-widest mt-2">+ {dayApps.length - 3} Horários</p>
                             )}
