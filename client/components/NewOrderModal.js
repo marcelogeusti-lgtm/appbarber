@@ -26,17 +26,20 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
     // State for multiple services
     const [selectedServiceIds, setSelectedServiceIds] = useState([]);
 
+    const getBarbershopId = () => user?.barbershop?.id || user?.workedBarbershop?.id || user?.ownedBarbershops?.[0]?.id;
+
     useEffect(() => {
-        if (isOpen && user?.barbershop?.id) {
-            fetchData();
+        const shopId = getBarbershopId();
+        if (isOpen && shopId) {
+            fetchData(shopId);
         }
     }, [isOpen, user]);
 
-    const fetchData = async () => {
+    const fetchData = async (shopId) => {
         try {
             const [prosRes, servRes] = await Promise.all([
-                api.get(`/professionals?barbershopId=${user.barbershop.id}`),
-                api.get(`/services?barbershopId=${user.barbershop.id}&active=true`)
+                api.get(`/professionals?barbershopId=${shopId}`),
+                api.get(`/services?barbershopId=${shopId}&active=true`)
             ]);
             setProfessionals(prosRes.data);
             setServices(servRes.data);
@@ -55,6 +58,9 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
         e.preventDefault();
         if (selectedServiceIds.length === 0) return alert('Selecione ao menos um serviço');
 
+        const shopId = getBarbershopId();
+        if (!shopId) return alert('Erro: Barbearia não identificada.');
+
         setLoading(true);
         try {
             const res = await api.post('/orders', {
@@ -63,7 +69,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                 professionalId: formData.professionalId,
                 serviceIds: selectedServiceIds,
                 isManual: true,
-                barbershopId: user.barbershop.id
+                barbershopId: shopId
             });
 
             // Success

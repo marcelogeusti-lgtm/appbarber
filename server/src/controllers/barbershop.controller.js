@@ -327,3 +327,76 @@ exports.updateSaasPlan = async (req, res) => {
         res.status(500).json({ message: 'Server error updating plan' });
     }
 };
+exports.toggleFavorite = async (req, res) => {
+    try {
+        const { id } = req.params; // Barbershop ID
+        const authUserId = req.user.id;
+
+        const client = await prisma.client.findUnique({ where: { authUserId } });
+        if (!client) return res.status(404).json({ message: 'Perfil de cliente não encontrado.' });
+
+        const existing = await prisma.favoriteBarbershop.findUnique({
+            where: {
+                clientId_barbershopId: {
+                    clientId: client.id,
+                    barbershopId: id
+                }
+            }
+        });
+
+        if (existing) {
+            await prisma.favoriteBarbershop.delete({ where: { id: existing.id } });
+            return res.json({ favorited: false, message: 'Removido dos favoritos.' });
+        } else {
+            await prisma.favoriteBarbershop.create({
+                data: {
+                    clientId: client.id,
+                    barbershopId: id
+                }
+            });
+            return res.json({ favorited: true, message: 'Adicionado aos favoritos!' });
+        }
+    } catch (error) {
+        console.error('Toggle Favorite Error:', error);
+        res.status(500).json({ message: 'Erro ao processar favorito.' });
+    }
+};
+
+exports.checkFavoriteStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!req.user) return res.json({ favorited: false });
+
+        const client = await prisma.client.findUnique({ where: { authUserId: req.user.id } });
+        if (!client) return res.json({ favorited: false });
+
+        const favorite = await prisma.favoriteBarbershop.findUnique({
+            where: {
+                clientId_barbershopId: {
+                    clientId: client.id,
+                    barbershopId: id
+                }
+            }
+        });
+
+        res.json({ favorited: !!favorite });
+    } catch (error) {
+        res.json({ favorited: false });
+    }
+};
+
+exports.getMyFavorites = async (req, res) => {
+    try {
+        const client = await prisma.client.findUnique({ where: { authUserId: req.user.id } });
+        if (!client) return res.json([]);
+
+        const favs = await prisma.favoriteBarbershop.findMany({
+            where: { clientId: client.id },
+            include: { barbershop: true }
+        });
+
+        res.json(favs.map(f => f.barbershop));
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao buscar favoritos.' });
+    }
+};

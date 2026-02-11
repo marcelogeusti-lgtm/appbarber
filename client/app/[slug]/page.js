@@ -129,11 +129,8 @@ export default function BarbershopPage() {
     async function checkFavoriteStatus(id) {
         try {
             if (!localStorage.getItem('token')) return;
-            const res = await api.get('/clients/favorites');
-            if (res.data && Array.isArray(res.data)) {
-                const isFav = res.data.some(f => f.barbershopId === id || f.id === id);
-                setIsFavorite(isFav);
-            }
+            const res = await api.get(`/barbershops/${id}/favorite-status`);
+            setIsFavorite(res.data.favorited);
         } catch (err) {
             console.error("Error checking favorite status", err);
         }
@@ -145,13 +142,12 @@ export default function BarbershopPage() {
         if (!token) return alert('Faça login para favoritar.');
 
         try {
-            setIsFavorite(prev => !prev);
-            const res = await api.post('/clients/favorite', { barbershopId: barbershop.id });
-            setIsFavorite(res.data.isFavorite);
-            alert(res.data.message);
+            const res = await api.post(`/barbershops/${barbershop.id}/favorite`);
+            setIsFavorite(res.data.favorited);
+            // toast.success(res.data.message); // If toast is available
         } catch (error) {
             console.error(error);
-            setIsFavorite(prev => !prev); // Revert
+            alert('Erro ao processar favorito.');
         }
     };
 
@@ -581,7 +577,7 @@ export default function BarbershopPage() {
                     savedCards={savedCards}
                     onSubscribeSuccess={() => {
                         alert('Assinatura realizada com sucesso! Aproveite seus benefícios.');
-                        window.location.reload(); // Simple reload to refresh state
+                        loadUserData(barbershop.id);
                     }}
                 />}
                 {activeTab === 'avaliacoes' && <ReviewsTab barbershopId={barbershop.id} />}
@@ -825,15 +821,31 @@ export default function BarbershopPage() {
                                                 <p className="text-slate-500 text-xs">Aproveite para garantir seus produtos favoritos</p>
                                             </div>
                                             <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto pr-1">
-                                                {products.map(p => {
+                                                {products.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0)).map(p => {
                                                     const isSel = selectedProducts.find(sp => sp.id === p.id);
                                                     return (
                                                         <div key={p.id} onClick={() => handleProductToggle(p)} className={`p-3 rounded-2xl border flex items-center gap-4 cursor-pointer transition ${isSel ? 'bg-emerald-500/10 border-emerald-500' : 'bg-slate-900 border-slate-800'}`}>
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSel ? 'bg-emerald-500' : 'bg-slate-800'}`}><ShoppingBag className="w-4 h-4" /></div>
+                                                            <div className={`w-12 h-12 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center shrink-0 ${isSel ? 'bg-emerald-500/20' : 'bg-slate-800'}`}>
+                                                                {p.imageUrl ? (
+                                                                    <img src={p.imageUrl} className="w-full h-full object-cover" alt={p.name} />
+                                                                ) : (
+                                                                    <ShoppingBag className="w-5 h-5 text-slate-500" />
+                                                                )}
+                                                            </div>
                                                             <div className="flex-1">
-                                                                <p className="font-bold text-white text-xs uppercase">{p.name}</p>
+                                                                <div className="flex items-center gap-2 mb-0.5">
+                                                                    <p className="font-bold text-white text-xs uppercase">{p.name}</p>
+                                                                    {p.isFeatured && (
+                                                                        <span className="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Sugestão</span>
+                                                                    )}
+                                                                </div>
                                                                 <p className="text-emerald-500 font-bold text-xs">{formatCurrency(p.price)}</p>
                                                             </div>
+                                                            {isSel && (
+                                                                <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center animate-in zoom-in">
+                                                                    <Check className="w-3 h-3 text-white" />
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}

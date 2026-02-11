@@ -11,28 +11,7 @@ exports.getFinancialDashboard = async (req, res) => {
         const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1)); // Primeiro dia do mês
         const end = endDate ? new Date(endDate) : new Date(); // Hoje
 
-        // Buscar Comandas (Orders) Fechadas/Pagas no período
-        const orders = await prisma.order.findMany({
-            where: {
-                barbershopId,
-                status: { in: ['CLOSED', 'PAID'] }, // Apenas pagas
-                updatedAt: { // Considerar a data de fechamento/pagamento
-                    gte: startOfDay(start),
-                    lte: endOfDay(end)
-                }
-            },
-            include: {
-                items: {
-                    include: {
-                        service: true,
-                        product: true
-                    }
-                },
-                client: { select: { id: true, name: true } }
-            }
-        });
-
-        // Buscar transações (despesas e outras receitas manuais não atreladas a orders)
+        // 1. Single Source of Truth for Finance: TRANSACTIONS
         const transactions = await prisma.transaction.findMany({
             where: {
                 barbershopId,
@@ -40,25 +19,54 @@ exports.getFinancialDashboard = async (req, res) => {
                     gte: startOfDay(start),
                     lte: endOfDay(end)
                 }
-            }
+            },
+            orderBy: { date: 'asc' }
         });
 
-        // Calcular faturamento por dia (para o gráfico)
+        // 2. Operational Metrics (Clients, etc.) - Can still use Orders but only for counts
+        const orders = await prisma.order.findMany({
+            where: {
+                barbershopId,
+                status: { in: ['CLOSED', 'PAID'] },
+                updatedAt: {
+                    gte: startOfDay(start),
+                    lte: endOfDay(end)
+                }
+            },
+            select: { clientId: true, updatedAt: true } // Performance optimization
+        });
+
+        // --- CALCULATIONS based on TRANSACTIONS ---
+
+        // Revenue (Entradas)
+        const totalRevenue = transactions
+            .filter(t => t.type === 'INCOME')
+            .reduce((sum, t) => sum + Number(t.amount), 0);
+
+        // Expenses (Saídas)
+        const totalExpenses = transactions
+            .filter(t => t.type === 'EXPENSE')
+            .reduce((sum, t) => sum + Number(t.amount), 0);
+
+        // Balance (Saldo)
+        const balance = totalRevenue - totalExpenses;
+
+        // Graph Data: Revenue by Day
         const daysInterval = eachDayOfInterval({ start, end });
         const revenueByDay = daysInterval.map(day => {
             const dayStr = format(day, 'dd/MM');
-            const dayOrders = orders.filter(order =>
-                format(new Date(order.updatedAt), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+            // Filter transactions for this day
+            const dayTransactions = transactions.filter(t =>
+                t.type === 'INCOME' &&
+                format(new Date(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
             );
-            const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+            const dayRevenue = dayTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
             return { date: dayStr, value: dayRevenue };
         });
 
-        // KPIs
-        const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-        const totalClients = new Set(orders.map(order => order.clientId)).size;
-        // Evitar divisão por zero se daysInterval for vazio (embora improvável com a lógica atual)
-        const avgClientsPerDay = daysInterval.length > 0 ? (orders.length / daysInterval.length).toFixed(1) : 0;
+        // --- OPERATIONAL METRICS ---
+        const totalClients = new Set(orders.map(o => o.clientId)).size;
+        const avgClientsPerDay = daysInterval.length > 0 ? (totalClients / daysInterval.length).toFixed(1) : 0;
 
         // Comandas em aberto (Status OPEN)
         const openOrders = await prisma.order.findMany({
@@ -66,60 +74,40 @@ exports.getFinancialDashboard = async (req, res) => {
                 barbershopId,
                 status: 'OPEN',
             },
-            include: {
-                items: true
-            }
+            select: { total: true }
         });
 
         const totalOpenCommands = openOrders.reduce((sum, order) => sum + (order.total || 0), 0);
 
-        // Despesas
-        const totalExpenses = transactions
-            .filter(t => t.type === 'EXPENSE')
-            .reduce((sum, t) => sum + Number(t.amount), 0);
-
-        // Saldo
-        const totalReceived = totalRevenue;
-        const balance = totalReceived - totalExpenses;
-
-        // Valores a receber (Agendamentos futuros CONFIRMADOS que ainda NÃO têm comanda ou comanda OPEN)
+        // Valores a receber (Agendamentos futuros)
         const futureAppointments = await prisma.appointment.findMany({
             where: {
                 barbershopId,
                 status: 'CONFIRMED',
                 date: { gte: new Date() },
-                order: null // Apenas os que não geraram comanda ainda
+                order: null
             },
             include: { service: true }
         });
 
         const futureRevenue = futureAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
-
-        // Total a receber = Comandas Abertas + Agendamentos Futuros (sem comanda)
         const toReceive = totalOpenCommands + futureRevenue;
 
-        // Dividir valores a receber por método de pagamento (simulado/estimado ou baseado no histórico)
-        const toReceiveCash = toReceive * 0.4; // 40% dinheiro
-        const toReceiveCard = toReceive * 0.35; // 35% cartão
-        const toReceivePix = toReceive * 0.25; // 25% pix
+        // Estimativas
+        const toReceiveCash = toReceive * 0.4;
+        const toReceiveCard = toReceive * 0.35;
+        const toReceivePix = toReceive * 0.25;
 
         res.json({
-            // Gráfico
             revenueByDay,
-
-            // KPIs
             totalRevenue,
             totalClients,
             avgClientsPerDay,
-            openCommands: openOrders.length, // Quantidade de comandas abertas
-            totalOpenCommands, // Valor monetário
-
-            // Saldo
+            openCommands: openOrders.length,
+            totalOpenCommands,
             balance,
-            totalReceived,
+            totalReceived: totalRevenue, // Explicit naming
             totalExpenses,
-
-            // A receber
             toReceive,
             toReceiveCash,
             toReceiveCard,
@@ -157,7 +145,7 @@ exports.getFinancialStats = async (req, res) => {
                             product: true
                         }
                     },
-                    professional: { select: { id: true, name: true } },
+                    professional: { select: { id: true, name: true, commissionPercent: true } },
                     client: true
                 }
             }),
@@ -172,11 +160,13 @@ exports.getFinancialStats = async (req, res) => {
             })
         ]);
 
-        // Receita Bruta (Vem das Orders)
-        const totalGrossRevenue = orders.reduce((acc, curr) => acc + (curr.total || 0), 0);
+        // Receita Bruta (Vem das Orders para detalhamento, mas Total deve bater com Transactions)
+        // Adjust logic: Use Transactions for totals, Orders for breakdown
+        const totalGrossRevenue = transactions.filter(t => t.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0);
+        const salesRevenue = orders.reduce((acc, curr) => acc + (curr.total || 0), 0); // Might differ if manual transactions exist
 
-        // Outras Receitas (Transactions do tipo INCOME)
-        const otherIncome = transactions.filter(t => t.type === 'INCOME').reduce((acc, curr) => acc + Number(curr.amount), 0);
+        // Outras Receitas (Transactions do tipo INCOME que NÃO têm OrderId)
+        const otherIncome = transactions.filter(t => t.type === 'INCOME' && !t.orderId).reduce((acc, curr) => acc + Number(curr.amount), 0);
 
         // Despesas (Transactions do tipo EXPENSE)
         const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((acc, curr) => acc + Number(curr.amount), 0);
@@ -192,7 +182,11 @@ exports.getFinancialStats = async (req, res) => {
             });
         });
 
-        // Comissões (Estimativa: 50% apenas sobre SERVIÇOS)
+        // Comissões (Calculadas ou lidas da tabela Commission - se já existirem)
+        // Para consistência com o que acabamos de implementar, ideal seria ler da tabela Commission.
+        // Mas como acabamos de criar a tabela, dados antigos não estarão lá. Manter estimativa para dados antigos?
+        // Vamos tentar ler commissions reais se possível, mas por enquanto manter lógica de cálculo para garantir display.
+
         const commissions = {};
 
         orders.forEach(order => {
@@ -202,7 +196,8 @@ exports.getFinancialStats = async (req, res) => {
                 .filter(i => i.type === 'SERVICE')
                 .reduce((sum, i) => sum + i.total, 0);
 
-            const commissionValue = orderServiceTotal * 0.5; // 50%
+            const proPercent = order.professional?.commissionPercent || 50;
+            const commissionValue = (orderServiceTotal * proPercent) / 100;
 
             commissions[proName] = (commissions[proName] || 0) + commissionValue;
         });
@@ -210,11 +205,11 @@ exports.getFinancialStats = async (req, res) => {
         const totalCommissions = Object.values(commissions).reduce((acc, curr) => acc + curr, 0);
 
         // Lucro Líquido
-        const netProfit = (totalGrossRevenue + otherIncome) - totalCommissions - totalExpenses;
+        const netProfit = (totalGrossRevenue) - totalCommissions - totalExpenses;
 
         res.json({
-            totalRevenue: totalGrossRevenue + otherIncome, // Soma tudo
-            salesRevenue: totalGrossRevenue, // Apenas vendas (orders)
+            totalRevenue: totalGrossRevenue,
+            salesRevenue: salesRevenue,
             serviceRevenue,
             productRevenue,
             otherIncome,
@@ -230,6 +225,7 @@ exports.getFinancialStats = async (req, res) => {
         res.status(500).json({ message: 'Server error loading stats.' });
     }
 };
+
 // --- Cash Shift (Caixa) Management ---
 
 exports.getCurrentShift = async (req, res) => {

@@ -8,47 +8,38 @@ export default function ReviewsTab({ barbershopId }) {
     const [loading, setLoading] = useState(true);
     const [average, setAverage] = useState(5.0);
 
-    // Create Review State
-    const [isWriting, setIsWriting] = useState(false);
-    const [rating, setRating] = useState(5);
-    const [comment, setComment] = useState('');
-    const [appointmentId, setAppointmentId] = useState(''); // Need to select appointment?
-    // Reviewing usually happens linked to an appointment.
-    // For now, let's list reviews. Creation might need a specific flow (e.g. from "My Appointments").
-    // User requested "Sistema de Avaliação Real".
-    // I can list here. Creation might be complex without selecting an appointment.
-    // But I can perhaps check if user has unreviewed appointments?
-    // Or just let them write and backend validates "last unreviewed appointment"?
-    // The backend `createReview` requires `appointmentId`.
-    // So usually user clicks "Avaliar" on their appointment history.
-    // Here we mainly LIST.
+    const [unreviewed, setUnreviewed] = useState([]);
 
     useEffect(() => {
-        if (barbershopId) {
-            api.get(`/reviews?barbershopId=${barbershopId}`)
-                .then(res => {
-                    setReviews(res.data);
-                    if (res.data.length > 0) {
-                        const sum = res.data.reduce((acc, r) => acc + r.rating, 0);
-                        setAverage((sum / res.data.length).toFixed(1));
-                    }
-                })
-                .catch(err => console.error("Error fetching reviews", err))
-                .finally(() => setLoading(false));
+        if (barbershopId && localStorage.getItem('token')) {
+            // Fetch unreviewed appointments to allow the user to write a review
+            api.get(`/appointments/unreviewed?barbershopId=${barbershopId}`)
+                .then(res => setUnreviewed(res.data))
+                .catch(err => console.error("Error fetching unreviewed apps", err));
         }
     }, [barbershopId]);
 
-    const formatTime = (dateStr) => {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-        if (diffDays === 0) return 'Hoje';
-        if (diffDays === 1) return 'Ontem';
-        if (diffDays < 7) return `Há ${diffDays} dias`;
-        return date.toLocaleDateString('pt-BR');
+    const handleSubmitReview = async () => {
+        if (!comment && rating === 0) return;
+        setLoading(true);
+        try {
+            await api.post('/reviews', {
+                appointmentId: unreviewed[0].id,
+                rating,
+                comment
+            });
+            toast.success('Avaliação enviada com sucesso!');
+            setIsWriting(false);
+            // Refresh reviews
+            const res = await api.get(`/reviews?barbershopId=${barbershopId}`);
+            setReviews(res.data);
+            setUnreviewed(prev => prev.slice(1));
+        } catch (error) {
+            toast.error('Erro ao enviar avaliação.');
+        } finally {
+            setLoading(false);
+        }
     };
-
-    if (loading) return <div className="text-center py-10 text-slate-500 text-xs uppercase tracking-widest animate-pulse">Carregando avaliações...</div>;
 
     return (
         <div className="space-y-6 pb-24">
@@ -61,13 +52,40 @@ export default function ReviewsTab({ barbershopId }) {
                     </div>
                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Baseado em {reviews.length} avaliações</p>
                 </div>
-                {/* 
-                <button className="bg-white text-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition">
-                    Avaliar
-                </button>
-                */}
-                {/* Note: Evaluation should ideally be triggered from "Meus Agendamentos" to link to Appointment */}
+
+                {unreviewed.length > 0 && !isWriting && (
+                    <button
+                        onClick={() => setIsWriting(true)}
+                        className="bg-emerald-500 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
+                    >
+                        Avaliar Última Visita
+                    </button>
+                )}
             </div>
+
+            {/* Writing Form */}
+            {isWriting && unreviewed.length > 0 && (
+                <div className="bg-[#0b0f19] p-6 rounded-[2rem] border border-emerald-500/30 animate-in slide-in-from-top-4">
+                    <h4 className="text-white font-black text-xs uppercase tracking-widest mb-4">Sua avaliação para {unreviewed[0].service?.name}</h4>
+                    <div className="flex gap-2 mb-6 justify-center">
+                        {[1, 2, 3, 4, 5].map(s => (
+                            <button key={s} onClick={() => setRating(s)} className="p-1">
+                                <Star className={`w-8 h-8 ${s <= rating ? 'fill-yellow-500 text-yellow-500' : 'text-slate-700'}`} />
+                            </button>
+                        ))}
+                    </div>
+                    <textarea
+                        value={comment}
+                        onChange={e => setComment(e.target.value)}
+                        placeholder="Como foi sua experiência? (Opcional)"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white text-sm outline-none focus:border-emerald-500 transition h-24 mb-4 resize-none"
+                    />
+                    <div className="flex gap-3">
+                        <button onClick={handleSubmitReview} className="flex-1 bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition">Enviar Avaliação</button>
+                        <button onClick={() => setIsWriting(false)} className="px-6 py-4 rounded-xl font-black text-[10px] uppercase text-slate-500 hover:text-white transition">Cancelar</button>
+                    </div>
+                </div>
+            )}
 
             {/* Reviews List */}
             {!Array.isArray(reviews) || reviews.length === 0 ? (

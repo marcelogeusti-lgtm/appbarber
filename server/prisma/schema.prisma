@@ -488,8 +488,10 @@ model Product {
   description String?
   price       Decimal  @db.Decimal(10, 2)
   costPrice   Decimal? @db.Decimal(10, 2)
+  imageUrl    String?
   stock       Int      @default(0)
   active      Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
   
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
@@ -525,6 +527,8 @@ model Transaction {
   
   cashShiftId   String?
   cashShift     CashShift?   @relation(fields: [cashShiftId], references: [id])
+
+  commissions   Commission[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -658,6 +662,9 @@ model Commission {
   appointmentId   String?
   appointment     Appointment? @relation(fields: [appointmentId], references: [id])
   
+  transactionId   String?
+  transaction     Transaction? @relation(fields: [transactionId], references: [id])
+
   type            CommissionType
   description     String?
   amount          Float

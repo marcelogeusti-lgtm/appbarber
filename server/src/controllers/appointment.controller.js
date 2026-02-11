@@ -630,6 +630,20 @@ exports.updateAppointmentStatus = async (req, res) => {
         const { id } = req.params;
         const { status } = req.body; // CONFIRMED, COMPLETED, CANCELLED
 
+        // 1. Fetch current appointment Check Security
+        const curApp = await prisma.appointment.findUnique({ where: { id } });
+        if (!curApp) return res.status(404).json({ message: 'Agendamento não encontrado' });
+
+        // 2. Client Cancellation Logic
+        if (req.user.role === 'CLIENT') {
+            if (curApp.clientId !== req.user.id) {
+                return res.status(403).json({ message: 'Você não tem permissão para alterar este agendamento.' });
+            }
+            if (status !== 'CANCELLED') {
+                return res.status(400).json({ message: 'Clientes só podem cancelar agendamentos.' });
+            }
+        }
+
         const appointment = await prisma.appointment.update({
             where: { id: id },
             data: { status: status },
@@ -743,6 +757,24 @@ exports.updateAppointmentStatus = async (req, res) => {
                         }
                     });
                 }
+
+                // --- LOYALTY POINTS INCREMENT ---
+                const loyaltyProgram = await prisma.loyaltyProgram.findUnique({
+                    where: { barbershopId: appointment.barbershopId }
+                });
+
+                if (loyaltyProgram && loyaltyProgram.active && appointment.clientId) {
+                    const pointsToGain = Math.floor(Number(service.price) * (loyaltyProgram.pointsPerReal || 0));
+                    if (pointsToGain > 0) {
+                        await prisma.client.update({
+                            where: { id: appointment.clientId },
+                            data: {
+                                points: { increment: pointsToGain }
+                            }
+                        });
+                        console.log(`[Loyalty] Client ${appointment.clientId} gained ${pointsToGain} points.`);
+                    }
+                }
             } catch (err) {
                 console.error('Error calculating commission:', err);
             }
@@ -780,26 +812,23 @@ exports.updateAppointmentStatus = async (req, res) => {
             if (barbershop && barbershop.noShowEnabled) {
                 const servicePrice = Number(appointment.service.price);
                 const percent = barbershop.noShowPercent || 0;
-                const feeValue = servicePrice * (percent / 100);
+                let fee = 0;
 
-                // Create NoShowRecord if not exists for this appointment
-                const existingRecord = await prisma.noShowRecord.findUnique({
-                    where: { appointmentId: appointment.id }
-                });
+                if (percent > 0) {
+                    fee = servicePrice * (percent / 100);
+                }
 
-                if (!existingRecord && feeValue > 0) {
+                if (fee > 0) {
+                    // Create pending no-show record
                     await prisma.noShowRecord.create({
                         data: {
                             clientId: appointment.clientId,
                             appointmentId: appointment.id,
                             barbershopId: appointment.barbershopId,
-                            percentage: percent,
-                            baseValue: servicePrice,
-                            feeValue: feeValue,
+                            feeValue: fee,
                             status: 'PENDING'
                         }
                     });
-                    console.log(`No-Show Fee Recorded: Client ${appointment.clientId}, Fee RS ${feeValue}`);
                 }
             }
         }
@@ -813,20 +842,33 @@ exports.updateAppointmentStatus = async (req, res) => {
 
 exports.getPendingFees = async (req, res) => {
     try {
-        const { barbershopId } = req.query;
-        const userId = req.user.id;
-
         const fees = await prisma.noShowRecord.findMany({
             where: {
-                clientId: userId,
-                barbershopId: barbershopId,
+                clientId: req.user.id,
                 status: 'PENDING'
             }
         });
-
         res.json(fees);
     } catch (error) {
-        console.error(error);
         res.status(500).json({ message: 'Error fetching fees' });
+    }
+};
+
+exports.getUnreviewedAppointments = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const apps = await prisma.appointment.findMany({
+            where: {
+                clientId: userId,
+                status: 'COMPLETED',
+                review: null // Not reviewed yet
+            },
+            include: { professional: true, service: true },
+            orderBy: { date: 'desc' },
+            take: 1 // Just one at a time
+        });
+        res.json(apps);
+    } catch (error) {
+        res.status(500).json({ message: 'Error' });
     }
 };

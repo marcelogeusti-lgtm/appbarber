@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
+const { resetMonthlySubscriptions } = require('../workers/worker.subscription');
 
 // --- Barber/Shop Admin Actions ---
 
@@ -403,5 +404,13 @@ exports.assignPlanToClient = async (req, res) => {
     } catch (error) {
         console.error('Assign Plan Error:', error);
         res.status(500).json({ message: 'Erro ao atribuir plano.' });
+    }
+};
+exports.triggerReset = async (req, res) => {
+    try {
+        await resetMonthlySubscriptions();
+        res.json({ message: 'Processo de reset iniciado com sucesso.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao disparar reset.', error: error.message });
     }
 };

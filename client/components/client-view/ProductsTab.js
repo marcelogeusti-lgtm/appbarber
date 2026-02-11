@@ -16,18 +16,28 @@ export default function ProductsTab({ products }) {
 
     return (
         <>
-            <div className="grid grid-cols-2 gap-4 pb-24">
+            <div className="grid grid-cols-1 gap-3 pb-24">
                 {products.map(product => (
-                    <div key={product.id} onClick={() => setSelectedProduct(product)} className="bg-[#111] p-4 rounded-3xl border border-white/5 hover:border-emerald-500/50 transition-all group cursor-pointer">
-                        <div className="aspect-square bg-[#1e293b] rounded-2xl mb-3 flex items-center justify-center text-slate-600 group-hover:text-emerald-500 transition overflow-hidden">
+                    <div
+                        key={product.id}
+                        onClick={() => setSelectedProduct(product)}
+                        className="bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all group cursor-pointer flex items-center gap-4"
+                    >
+                        <div className="w-16 h-16 bg-[#1e293b] rounded-xl flex items-center justify-center text-slate-600 group-hover:text-emerald-500 transition overflow-hidden shrink-0">
                             {product.imageUrl ? (
                                 <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                             ) : (
-                                <ShoppingBag className="w-8 h-8" />
+                                <ShoppingBag className="w-6 h-6" />
                             )}
                         </div>
-                        <h3 className="font-bold text-white text-xs uppercase tracking-tight line-clamp-1">{product.name}</h3>
-                        <p className="text-emerald-500 font-black text-sm mt-1">{formatCurrency(product.price)}</p>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-white text-sm uppercase tracking-tight truncate">{product.name}</h3>
+                            <p className="text-slate-500 text-xs line-clamp-1">{product.description || 'Clique para ver detalhes'}</p>
+                            <p className="text-emerald-500 font-black text-sm mt-1">{formatCurrency(product.price)}</p>
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition">
+                            <ShoppingBag className="w-4 h-4" />
+                        </div>
                     </div>
                 ))}
             </div>

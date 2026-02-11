@@ -11,20 +11,24 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
 
     const [loading, setLoading] = useState(false);
 
+    const getBarbershopId = () => user?.barbershop?.id || user?.workedBarbershop?.id || user?.ownedBarbershops?.[0]?.id;
+
     // Fetch stats whenever the panel is opened
     useEffect(() => {
-        if (isOpen && user?.barbershop?.id) {
-            fetchStats();
+        const shopId = getBarbershopId();
+        if (isOpen && shopId) {
+            fetchStats(shopId);
         }
     }, [isOpen, user]);
 
-    const fetchStats = async () => {
+    const fetchStats = async (shopId) => {
+        if (!shopId) return;
         setLoading(true);
         try {
             const today = new Date().toISOString().split('T')[0];
             const [statsRes, transRes] = await Promise.all([
-                api.get(`/dashboard/finance/dashboard?barbershopId=${user.barbershop.id}&startDate=${today}&endDate=${today}`),
-                api.get(`/transactions?barbershopId=${user.barbershop.id}&startDate=${today}&endDate=${today}`)
+                api.get(`/dashboard/finance/dashboard?barbershopId=${shopId}&startDate=${today}&endDate=${today}`),
+                api.get(`/transactions?barbershopId=${shopId}&startDate=${today}&endDate=${today}`)
             ]);
             setStats(statsRes.data);
             setTransactions(transRes.data);
@@ -95,7 +99,7 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
                                 )}
                             </div>
                             <button
-                                onClick={fetchStats}
+                                onClick={() => fetchStats(getBarbershopId())}
                                 className={`p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all ${loading ? 'animate-spin' : ''}`}
                             >
                                 <RefreshCw className="w-4 h-4" />

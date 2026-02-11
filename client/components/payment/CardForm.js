@@ -73,8 +73,13 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
                     <Lock className="w-3 h-3 text-slate-500" />
                 </div>
 
-                <div className="p-2">
-                    {ready && (
+                <div className="p-2 min-h-[300px] flex flex-col justify-center">
+                    {!ready ? (
+                        <div className="flex flex-col items-center justify-center py-12 gap-4">
+                            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Iniciando ambiente seguro...</p>
+                        </div>
+                    ) : (
                         <>
                             <CardPayment
                                 initialization={{ amount: Number(amount) }}
@@ -104,7 +109,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
             </div>
 
             <p className="text-center text-[10px] text-slate-600 mt-4 flex items-center justify-center gap-1">
-                <Lock className="w-3 h-3" /> Seus dados são criptografados pelo Mercado Pago
+                <Lock className="w-3 h-3" /> Seus dados são processados com criptografia de ponta
             </p>
 
             {onCancel && (

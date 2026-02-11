@@ -294,7 +294,11 @@ exports.closeOrder = async (req, res) => {
 
         const order = await prisma.order.findUnique({
             where: { id },
-            include: { items: true }
+            include: {
+                items: { include: { service: true } },
+                professional: true,
+                client: true
+            }
         });
         if (!order) return res.status(404).json({ message: 'Comanda não encontrada.' });
         if (order.status === 'PAID' || order.status === 'CLOSED') {
@@ -302,11 +306,13 @@ exports.closeOrder = async (req, res) => {
         }
 
         // 1. Verify open shift
+        // First try strict match by barbershopId
         const openShift = await prisma.cashShift.findFirst({
             where: { barbershopId: order.barbershopId, status: 'OPEN' }
         });
 
         if (!openShift) {
+            console.error(`[CloseOrder] No Open Shift found for Barbershop: ${order.barbershopId}. User ID: ${req.user.id}`);
             return res.status(400).json({
                 message: 'Não há caixa aberto. Abra o caixa antes de finalizar a comanda.'
             });
@@ -330,9 +336,9 @@ exports.closeOrder = async (req, res) => {
             });
 
             // 3. Create Transaction (Caixa Entry)
-            await tx.transaction.create({
+            const transaction = await tx.transaction.create({
                 data: {
-                    description: `Venda - Comanda ${order.id.substring(0, 8)}`,
+                    description: `Venda - Comanda #${order.id.substring(0, 8)} ${order.client ? '- ' + order.client.name : ''}`,
                     amount: finalTotal,
                     type: 'INCOME',
                     category: 'Comanda',
@@ -351,7 +357,37 @@ exports.closeOrder = async (req, res) => {
                 }
             });
 
-            // 5. Update Appointment status if exists
+            // 5. Generate Commissions (Strict Flow: Transaction -> Commission)
+            // Calculate commission base (Services only?)
+            const serviceTotal = order.items
+                .filter(item => item.type === 'SERVICE')
+                .reduce((acc, item) => acc + item.total, 0);
+
+            if (serviceTotal > 0 && order.professionalId) {
+                // Determine commission percentage (Professional Default or 50% fallback)
+                let proPercent = 50;
+                if (order.professional && order.professional.commissionPercent !== null) {
+                    proPercent = order.professional.commissionPercent;
+                }
+
+                const commissionValue = (serviceTotal * proPercent) / 100;
+
+                await tx.commission.create({
+                    data: {
+                        barberId: order.professionalId,
+                        barbershopId: order.barbershopId,
+                        transactionId: transaction.id, // Linked to source transaction
+                        appointmentId: order.appointmentId,
+                        type: 'SERVICE',
+                        description: `Comissão Comanda #${order.id.substring(0, 8)}`,
+                        amount: commissionValue,
+                        percentage: proPercent,
+                        status: 'PENDING'
+                    }
+                });
+            }
+
+            // 6. Update Appointment status if exists
             if (order.appointmentId) {
                 await tx.appointment.update({
                     where: { id: order.appointmentId },
@@ -363,7 +399,7 @@ exports.closeOrder = async (req, res) => {
                 });
             }
 
-            return updatedOrder;
+            return { order: updatedOrder, transaction };
         });
 
         res.json(result);
