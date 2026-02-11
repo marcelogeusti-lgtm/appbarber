@@ -5,7 +5,7 @@ import api from '../../../../lib/api';
 import {
     Receipt, User, Calendar, Clock, Plus, Trash2,
     CreditCard, CheckCircle, AlertCircle, Scissors, Package, Percent, X,
-    Zap, DollarSign, Globe
+    Zap, DollarSign, Globe, Loader2
 } from 'lucide-react';
 
 export default function OrderDetailsPage() {
@@ -24,8 +24,6 @@ export default function OrderDetailsPage() {
     const [discountValue, setDiscountValue] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState('');
     const [processing, setProcessing] = useState(false);
-    const [generatedPayment, setGeneratedPayment] = useState(null); // Stores QR Code data
-    const [paymentStatusCheckInterval, setPaymentStatusCheckInterval] = useState(null);
 
     useEffect(() => {
         if (id) {
@@ -116,12 +114,6 @@ export default function OrderDetailsPage() {
         setShowPaymentModal(true);
     };
 
-    useEffect(() => {
-        return () => {
-            if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval);
-        };
-    }, [paymentStatusCheckInterval]);
-
     const handleConfirmPayment = async (isAutomatic = false) => {
         if (!selectedMethod && !isAutomatic) {
             alert('Selecione uma forma de pagamento.');
@@ -134,23 +126,22 @@ export default function OrderDetailsPage() {
                 paymentMethod: isAutomatic ? 'PIX' : selectedMethod,
                 discount: order.discount || 0
             });
-            fetchOrder();
+
+            // Refresh order
+            await fetchOrder();
 
             setShowPaymentModal(false);
             setSelectedMethod('');
-            // setGeneratedPayment(null); // Removed
-            // if (paymentStatusCheckInterval) clearInterval(paymentStatusCheckInterval); // Removed
+            alert('✅ Comanda finalizada com sucesso!');
 
         } catch (err) {
             console.error(err);
-            alert('Erro ao processar pagamento.');
+            const msg = err.response?.data?.message || 'Erro ao processar pagamento.';
+            alert(`❌ Erro: ${msg}`);
         } finally {
             setProcessing(false);
         }
     };
-
-    // handleGeneratePix removed
-    // checkPaymentStatus removed
 
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -162,23 +153,23 @@ export default function OrderDetailsPage() {
     return (
         <div className="max-w-5xl mx-auto space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-xl relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-6 md:p-8 rounded-[2.5rem] border border-border shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32" />
-                <div className="flex items-center gap-6 relative z-10">
+                <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
                     <div className={`p-4 rounded-3xl border shadow-inner ${isClosed ? 'bg-primary/10 text-primary border-primary/20' : 'bg-secondary/10 text-secondary border-secondary/20'}`}>
-                        <Receipt className="w-10 h-10" />
+                        <Receipt className="w-8 h-8 md:w-10 md:h-10" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Comanda #{order.id.slice(0, 6)}</h1>
-                            <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${isClosed
+                            <h1 className="text-xl md:text-3xl font-black uppercase tracking-tighter text-foreground">Comanda #{order.id.slice(0, 6)}</h1>
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${isClosed
                                 ? 'bg-primary/10 border-primary/30 text-primary'
                                 : 'bg-secondary/10 border-secondary/30 text-secondary-foreground'
                                 }`}>
                                 {isClosed ? 'Finalizada' : 'Aberta'}
                             </span>
                         </div>
-                        <div className="flex items-center gap-4 text-muted-foreground text-sm font-bold uppercase tracking-widest italic">
+                        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-muted-foreground text-sm font-bold uppercase tracking-widest italic">
                             <span className="flex items-center gap-2"><User className="w-4 h-4 text-primary" /> {order.client?.name || order.guestName || 'Venda Avulsa'}</span>
                             <span className="flex items-center gap-2 text-[10px]"><Calendar className="w-4 h-4" /> {new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
                         </div>
@@ -188,7 +179,7 @@ export default function OrderDetailsPage() {
                 {!isClosed && (
                     <button
                         onClick={handleOpenPayment}
-                        className="relative z-10 bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center gap-3"
+                        className="w-full md:w-auto relative z-10 bg-primary text-primary-foreground px-8 py-4 md:px-10 md:py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center justify-center gap-3"
                     >
                         <CheckCircle className="w-6 h-6" /> Finalizar Conta
                     </button>
@@ -199,34 +190,34 @@ export default function OrderDetailsPage() {
                 {/* Items List */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-card rounded-[2.5rem] border border-border overflow-hidden shadow-sm">
-                        <div className="p-8 border-b border-border bg-muted/20 flex justify-between items-center">
+                        <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
                             <h3 className="text-foreground font-black uppercase text-sm tracking-widest flex items-center gap-3">
                                 <Receipt className="w-5 h-5 text-primary" /> Itens do Pedido
                             </h3>
                         </div>
-                        <div className="p-8 space-y-4">
+                        <div className="p-6 md:p-8 space-y-4">
                             {order.items?.map(item => (
-                                <div key={item.id} className="flex items-center justify-between p-6 bg-background rounded-3xl border border-border group hover:border-primary/30 transition-all">
+                                <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-6 bg-background rounded-3xl border border-border group hover:border-primary/30 transition-all gap-4">
                                     <div className="flex items-center gap-5">
-                                        <div className="p-4 bg-muted rounded-2xl text-muted-foreground border border-border group-hover:text-primary transition-colors">
-                                            {item.type === 'SERVICE' ? <Scissors className="w-6 h-6" /> : <Package className="w-6 h-6" />}
+                                        <div className="p-3 md:p-4 bg-muted rounded-2xl text-muted-foreground border border-border group-hover:text-primary transition-colors">
+                                            {item.type === 'SERVICE' ? <Scissors className="w-5 h-5 md:w-6 md:h-6" /> : <Package className="w-5 h-5 md:w-6 md:h-6" />}
                                         </div>
                                         <div>
-                                            <p className="text-foreground font-black uppercase text-sm tracking-tight">{item.service?.name || item.product?.name || 'Item desconhecido'}</p>
+                                            <p className="text-foreground font-black uppercase text-xs md:text-sm tracking-tight">{item.service?.name || item.product?.name || 'Item desconhecido'}</p>
                                             <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em] mt-1">{item.type === 'SERVICE' ? 'Serviço' : 'Produto'}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-8">
+                                    <div className="flex items-center justify-between md:justify-end gap-8 w-full md:w-auto pl-16 md:pl-0">
                                         <div className="text-right">
-                                            <p className="text-primary font-black text-xl uppercase tracking-tighter">{formatBRL(item.total)}</p>
+                                            <p className="text-primary font-black text-lg md:text-xl uppercase tracking-tighter">{formatBRL(item.total)}</p>
                                             <p className="text-muted-foreground text-[10px] uppercase font-bold">{item.quantity}x R$ {formatBRL(item.unitPrice)}</p>
                                         </div>
                                         {!isClosed && (
                                             <button
                                                 onClick={() => handleRemoveItem(item.id)}
-                                                className="p-3 text-destructive bg-destructive/5 rounded-xl border border-transparent hover:border-destructive/30 hover:bg-destructive/10 transition-all group-hover:opacity-100 opacity-0 md:opacity-100"
+                                                className="p-3 text-destructive bg-destructive/5 rounded-xl border border-transparent hover:border-destructive/30 hover:bg-destructive/10 transition-all opacity-100"
                                             >
-                                                <Trash2 className="w-5 h-5" />
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         )}
                                     </div>
@@ -241,10 +232,10 @@ export default function OrderDetailsPage() {
                         </div>
 
                         {!isClosed && (
-                            <div className="p-8 bg-muted/30 border-t border-border grid grid-cols-2 gap-6">
+                            <div className="p-6 md:p-8 bg-muted/30 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                 {/* Add Service Dropdown */}
                                 <div className="relative group">
-                                    <button className="w-full p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
                                         <Scissors className="w-5 h-5" /> Add Serviço
                                     </button>
                                     <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
@@ -267,7 +258,7 @@ export default function OrderDetailsPage() {
 
                                 {/* Add Product Dropdown */}
                                 <div className="relative group">
-                                    <button className="w-full p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
                                         <Package className="w-5 h-5" /> Add Produto
                                     </button>
                                     <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
@@ -294,7 +285,7 @@ export default function OrderDetailsPage() {
 
                 {/* Summary */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-card p-10 rounded-[3rem] border border-border shadow-xl sticky top-8">
+                    <div className="bg-card p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-border shadow-xl sticky top-8">
                         <h3 className="text-muted-foreground font-black text-[10px] uppercase tracking-[0.2em] mb-8">Resumo do Fechamento</h3>
 
                         <div className="space-y-5 mb-10 border-b border-border pb-10">
@@ -308,7 +299,7 @@ export default function OrderDetailsPage() {
                             </div>
                             <div className="flex justify-between items-end text-foreground pt-6 border-t border-border/50">
                                 <span className="text-xs font-black uppercase tracking-widest">Total da Comanda</span>
-                                <span className="text-4xl font-black text-primary uppercase tracking-tighter leading-none">{formatBRL(order.total)}</span>
+                                <span className="text-3xl md:text-4xl font-black text-primary uppercase tracking-tighter leading-none">{formatBRL(order.total)}</span>
                             </div>
 
                             {order.totalPaid > 0 && (
@@ -365,9 +356,9 @@ export default function OrderDetailsPage() {
 
             {/* Discount Modal */}
             {showDiscountModal && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <div className="bg-card w-full max-w-md rounded-[2.5rem] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95">
-                        <div className="p-8 border-b border-border bg-muted/20 flex justify-between items-center">
+                        <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
                             <h3 className="text-foreground font-black text-lg uppercase tracking-widest flex items-center gap-3">
                                 <Percent className="w-6 h-6 text-primary" />
                                 Ajustar Desconto
@@ -379,7 +370,7 @@ export default function OrderDetailsPage() {
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
-                        <div className="p-8 space-y-8">
+                        <div className="p-6 md:p-8 space-y-8">
                             <div className="space-y-3">
                                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Valor do Desconto (R$)</label>
                                 <div className="relative">
@@ -431,78 +422,81 @@ export default function OrderDetailsPage() {
                 </div>
             )}
 
-            {/* Payment Selection Modal */}
+            {/* Payment Selection Modal - RESPONSIVE FIX */}
             {showPaymentModal && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="bg-card w-full max-w-lg rounded-[3rem] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95">
-                        <div className="p-10 border-b border-border bg-muted/10">
-                            <h3 className="text-foreground font-black text-3xl uppercase tracking-tighter mb-2">Finalizar Comanda</h3>
-                            <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest italic">Escolha o método para processamento.</p>
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-[60] flex items-center justify-center p-2 md:p-4 animate-in fade-in duration-300">
+                    <div className="bg-card w-full max-w-lg rounded-[2rem] md:rounded-[3rem] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+
+                        <div className="p-6 md:p-10 border-b border-border bg-muted/10 shrink-0">
+                            <h3 className="text-foreground font-black text-2xl md:text-3xl uppercase tracking-tighter mb-2">Finalizar Comanda</h3>
+                            <p className="text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-widest italic">Escolha o método para processamento.</p>
                         </div>
 
-                        <div className="p-10 grid grid-cols-2 gap-5">
-                            {[
-                                { id: 'PIX', label: 'Pix Instantâneo', icon: '⚡' },
-                                { id: 'CASH', label: 'Dinheiro Vivo', icon: '💵' },
-                                { id: 'CREDIT_CARD', label: 'Cartão Crédito', icon: '💳' },
-                                { id: 'DEBIT_CARD', label: 'Cartão Débito', icon: '🏧' },
-                            ].map(method => (
-                                <button
-                                    key={method.id}
-                                    onClick={() => setSelectedMethod(method.id)}
-                                    className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all duration-300 ${selectedMethod === method.id
-                                        ? 'border-primary bg-primary/5 text-primary shadow-2xl shadow-primary/10 scale-105'
-                                        : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-muted/50'
-                                        }`}
-                                >
-                                    <span className="text-3xl">{method.icon}</span>
-                                    <span className="font-black text-[10px] uppercase tracking-widest">{method.label}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="flex justify-between items-center mb-8 px-2">
-                            <span className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest italic">Valor Final</span>
-                            <span className="text-4xl font-black text-foreground uppercase tracking-tighter">{formatBRL(order.total)}</span>
-                        </div>
-
-                        {/* Informativo sobre Método Selecionado */}
-                        {selectedMethod && (
-                            <div className="mb-6 p-4 bg-muted/30 rounded-2xl border border-border text-center">
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Método Selecionado</p>
-                                <p className="text-sm font-black text-primary uppercase">
-                                    {[
-                                        { id: 'PIX', label: 'Pix (Registro Manual)' },
-                                        { id: 'CASH', label: 'Dinheiro' },
-                                        { id: 'CREDIT_CARD', label: 'Cartão de Crédito' },
-                                        { id: 'DEBIT_CARD', label: 'Cartão de Débito' },
-                                    ].find(m => m.id === selectedMethod)?.label}
-                                </p>
-                                {selectedMethod === 'PIX' && (
-                                    <div className="mt-2 text-[10px] text-yellow-500 font-bold bg-yellow-500/10 p-2 rounded-lg border border-yellow-500/20">
-                                        ⚠️ Este sistema NÃO gera cobrança Pix. <br /> Receba na sua conta e apenas confirme aqui.
-                                    </div>
-                                )}
+                        <div className="overflow-y-auto p-6 md:p-10">
+                            <div className="grid grid-cols-2 gap-3 md:gap-5 mb-6 md:mb-8">
+                                {[
+                                    { id: 'PIX', label: 'Pix', icon: '⚡' },
+                                    { id: 'CASH', label: 'Dinheiro', icon: '💵' },
+                                    { id: 'CREDIT_CARD', label: 'Crédito', icon: '💳' },
+                                    { id: 'DEBIT_CARD', label: 'Débito', icon: '🏧' },
+                                ].map(method => (
+                                    <button
+                                        key={method.id}
+                                        onClick={() => setSelectedMethod(method.id)}
+                                        className={`p-4 md:p-6 rounded-[2rem] border-2 flex flex-col items-center gap-2 md:gap-3 transition-all duration-300 ${selectedMethod === method.id
+                                            ? 'border-primary bg-primary/5 text-primary shadow-xl shadow-primary/10 scale-105'
+                                            : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-muted/50'
+                                            }`}
+                                    >
+                                        <span className="text-2xl md:text-3xl">{method.icon}</span>
+                                        <span className="font-black text-[10px] uppercase tracking-widest">{method.label}</span>
+                                    </button>
+                                ))}
                             </div>
-                        )}
 
-                        <button
-                            onClick={() => handleConfirmPayment(false)}
-                            disabled={processing || !selectedMethod}
-                            className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 scale-100 active:scale-95 ${processing || !selectedMethod
-                                ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed opacity-50'
-                                : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20'
-                                }`}
-                        >
-                            {processing ? 'PROCESSANDO...' : 'CONFIRMAR BAIXA MANUAL'}
-                        </button>
+                            <div className="flex justify-between items-center mb-6 md:mb-8 px-2">
+                                <span className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest italic">Valor Final</span>
+                                <span className="text-3xl md:text-4xl font-black text-foreground uppercase tracking-tighter">{formatBRL(order.total)}</span>
+                            </div>
 
-                        <button
-                            onClick={() => setShowPaymentModal(false)}
-                            className="w-full mt-6 py-3 text-muted-foreground font-black text-[10px] uppercase tracking-widest hover:text-foreground transition-colors"
-                        >
-                            Voltar para a comanda
-                        </button>
+                            {/* Informativo sobre Método Selecionado */}
+                            {selectedMethod && (
+                                <div className="mb-6 p-4 bg-muted/30 rounded-2xl border border-border text-center">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Método Selecionado</p>
+                                    <p className="text-sm font-black text-primary uppercase">
+                                        {[
+                                            { id: 'PIX', label: 'Pix (Registro Manual)' },
+                                            { id: 'CASH', label: 'Dinheiro' },
+                                            { id: 'CREDIT_CARD', label: 'Cartão de Crédito' },
+                                            { id: 'DEBIT_CARD', label: 'Cartão de Débito' },
+                                        ].find(m => m.id === selectedMethod)?.label}
+                                    </p>
+                                    {selectedMethod === 'PIX' && (
+                                        <div className="mt-2 text-[10px] text-yellow-500 font-bold bg-yellow-500/10 p-2 rounded-lg border border-yellow-500/20">
+                                            ⚠️ Este sistema NÃO gera cobrança Pix. <br /> Receba na sua conta e apenas confirme aqui.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => handleConfirmPayment(false)}
+                                disabled={processing || !selectedMethod}
+                                className={`w-full py-5 md:py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 scale-100 active:scale-95 ${processing || !selectedMethod
+                                    ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed opacity-50'
+                                    : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20 flex items-center justify-center gap-2'
+                                    }`}
+                            >
+                                {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'CONFIRMAR BAIXA MANUAL'}
+                            </button>
+
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="w-full mt-4 md:mt-6 py-3 text-muted-foreground font-black text-[10px] uppercase tracking-widest hover:text-foreground transition-colors"
+                            >
+                                Voltar para a comanda
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
