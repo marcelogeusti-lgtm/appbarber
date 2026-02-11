@@ -282,6 +282,8 @@ exports.updateDiscount = async (req, res) => {
     }
 };
 
+const TransactionService = require('../services/TransactionService');
+
 // Close/Pay Order
 exports.closeOrder = async (req, res) => {
     try {
@@ -305,99 +307,50 @@ exports.closeOrder = async (req, res) => {
             return res.status(400).json({ message: 'Esta comanda já foi finalizada.' });
         }
 
-        // 1. Verify open shift
-        // First try strict match by barbershopId
-        const openShift = await prisma.cashShift.findFirst({
-            where: { barbershopId: order.barbershopId, status: 'OPEN' }
-        });
-
-        if (!openShift) {
-            console.error(`[CloseOrder] No Open Shift found for Barbershop: ${order.barbershopId}. User ID: ${req.user.id}`);
-            return res.status(400).json({
-                message: 'Não há caixa aberto. Abra o caixa antes de finalizar a comanda.'
-            });
-        }
+        // Removed blocking check for Open Shift (24/7 Operation)
 
         const finalDiscount = discount !== undefined ? parseFloat(discount) : order.discount;
         const finalTotal = order.subtotal - finalDiscount;
 
         const result = await prisma.$transaction(async (tx) => {
-            // 2. Update Order
-            const updatedOrder = await tx.order.update({
-                where: { id },
-                data: {
-                    status: 'CLOSED',
-                    paymentStatus: 'PAID',
-                    paymentMethod,
-                    discount: finalDiscount,
-                    total: finalTotal,
-                    paidAt: new Date(),
-                }
-            });
-
-            // 3. Create Transaction (Caixa Entry)
-            const transaction = await tx.transaction.create({
-                data: {
-                    description: `Venda - Comanda #${order.id.substring(0, 8)} ${order.client ? '- ' + order.client.name : ''}`,
-                    amount: finalTotal,
-                    type: 'INCOME',
-                    category: 'Comanda',
-                    date: new Date(),
-                    barbershopId: order.barbershopId,
-                    orderId: id,
-                    cashShiftId: openShift.id
-                }
-            });
-
-            // 4. Update Shift Balance
-            await tx.cashShift.update({
-                where: { id: openShift.id },
-                data: {
-                    currentBalance: { increment: finalTotal }
-                }
-            });
-
-            // 5. Generate Commissions (Strict Flow: Transaction -> Commission)
-            // Calculate commission base (Services only?)
-            const serviceTotal = order.items
-                .filter(item => item.type === 'SERVICE')
-                .reduce((acc, item) => acc + item.total, 0);
-
-            if (serviceTotal > 0 && order.professionalId) {
-                // Determine commission percentage (Professional Default or 50% fallback)
-                let proPercent = 50;
-                if (order.professional && order.professional.commissionPercent !== null) {
-                    proPercent = order.professional.commissionPercent;
-                }
-
-                const commissionValue = (serviceTotal * proPercent) / 100;
-
-                await tx.commission.create({
-                    data: {
-                        barberId: order.professionalId,
-                        barbershopId: order.barbershopId,
-                        transactionId: transaction.id, // Linked to source transaction
-                        appointmentId: order.appointmentId,
-                        type: 'SERVICE',
-                        description: `Comissão Comanda #${order.id.substring(0, 8)}`,
-                        amount: commissionValue,
-                        percentage: proPercent,
-                        status: 'PENDING'
-                    }
-                });
+            // Check if already paid (Prepaid via Online)
+            let isPrepaid = false;
+            if (order.paymentStatus === 'PAID') isPrepaid = true;
+            if (!isPrepaid && order.appointmentId) {
+                const apt = await tx.appointment.findUnique({ where: { id: order.appointmentId } });
+                if (apt && apt.paymentStatus === 'PAID') isPrepaid = true;
             }
 
-            // 6. Update Appointment status if exists
-            if (order.appointmentId) {
-                await tx.appointment.update({
-                    where: { id: order.appointmentId },
+            if (isPrepaid) {
+                // Just Close, no new financial transaction
+                const updatedOrder = await tx.order.update({
+                    where: { id },
                     data: {
+                        status: 'CLOSED',
                         paymentStatus: 'PAID',
                         paymentMethod,
-                        status: 'COMPLETED'
+                        discount: finalDiscount,
+                        total: finalTotal,
+                        paidAt: new Date()
                     }
                 });
+                return { order: updatedOrder, message: 'Comanda finalizada (Pré-paga).' };
             }
+
+            // Standard Payment Flow
+            const transaction = await TransactionService.createTransaction({
+                barbershopId: order.barbershopId,
+                amount: finalTotal,
+                method: paymentMethod,
+                origin: 'PRESENCIAL', // Manual closing
+                orderId: id,
+                appointmentId: order.appointmentId,
+                professionalId: order.professionalId,
+                description: `Venda Presencial - Comanda #${order.id.substring(0, 8)} ${order.client ? '- ' + order.client.name : ''}`
+            }, tx);
+
+            // Assuming TransactionService returns the transaction object.
+            const updatedOrder = await tx.order.findUnique({ where: { id } });
 
             return { order: updatedOrder, transaction };
         });

@@ -5,7 +5,7 @@ import { TrendingUp, Users, Scissors, DollarSign, Calendar, ArrowUpRight, ArrowD
 
 export default function FinancePage() {
     const [transactions, setTransactions] = useState([]);
-    const [stats, setStats] = useState({ totalRevenue: 0, totalAppointments: 0, totalExpenses: 0, netProfit: 0, commissions: [] });
+    const [stats, setStats] = useState({ totalRevenue: 0, totalAppointments: 0, totalExpenses: 0, netProfit: 0, commissions: [], revenueByMethod: {}, revenueByOrigin: {}, revenueByBarber: {} });
     const [loading, setLoading] = useState(true);
     const [period, setPeriod] = useState('month');
     const [isAdding, setIsAdding] = useState(false);
@@ -28,7 +28,7 @@ export default function FinancePage() {
             else startDate.setMonth(startDate.getMonth() - 1);
 
             const res = await api.get(`/finance/stats?barbershopId=${bId}&startDate=${startDate.toISOString()}&endDate=${new Date().toISOString()}`);
-            setStats(res.data || { totalRevenue: 0, totalAppointments: 0, totalExpenses: 0, netProfit: 0, commissions: [] });
+            setStats(res.data || { totalRevenue: 0, totalAppointments: 0, totalExpenses: 0, netProfit: 0, commissions: [], revenueByMethod: {}, revenueByOrigin: {}, revenueByBarber: {} });
             setTransactions(res.data?.transactions || []);
             setLoading(false);
         } catch (err) {
@@ -128,6 +128,49 @@ export default function FinancePage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-8">
                         <div className="lg:col-span-2 space-y-6">
+                            {/* REVENUE BREAKDOWNS */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-card p-6 rounded-[2rem] border border-border shadow-sm">
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-4">Por Método</h3>
+                                    <div className="space-y-3">
+                                        {stats.revenueByMethod && Object.entries(stats.revenueByMethod).length > 0 ? (
+                                            Object.entries(stats.revenueByMethod).map(([method, val]) => (
+                                                <div key={method} className="flex justify-between items-center p-3 bg-muted/20 rounded-xl">
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-foreground">{method === 'CREDIT_CARD' ? 'Cartão' : method}</span>
+                                                    <span className="font-black text-primary">{formatBRL(val)}</span>
+                                                </div>
+                                            ))
+                                        ) : <p className="text-[10px] italic text-muted-foreground">Sem dados</p>}
+                                    </div>
+                                </div>
+                                <div className="bg-card p-6 rounded-[2rem] border border-border shadow-sm">
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-4">Por Origem</h3>
+                                    <div className="space-y-3">
+                                        {stats.revenueByOrigin && Object.entries(stats.revenueByOrigin).length > 0 ? (
+                                            Object.entries(stats.revenueByOrigin).map(([origin, val]) => (
+                                                <div key={origin} className="flex justify-between items-center p-3 bg-muted/20 rounded-xl">
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-foreground">{origin}</span>
+                                                    <span className="font-black text-secondary">{formatBRL(val)}</span>
+                                                </div>
+                                            ))
+                                        ) : <p className="text-[10px] italic text-muted-foreground">Sem dados</p>}
+                                    </div>
+                                </div>
+                                <div className="bg-card p-6 rounded-[2rem] border border-border shadow-sm md:col-span-2">
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-4">Por Profissional (Receita Gerada)</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {stats.revenueByBarber && Object.entries(stats.revenueByBarber).length > 0 ? (
+                                            Object.entries(stats.revenueByBarber).map(([barber, val]) => (
+                                                <div key={barber} className="flex justify-between items-center p-3 bg-muted/20 rounded-xl">
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-foreground">{barber}</span>
+                                                    <span className="font-black text-primary">{formatBRL(val)}</span>
+                                                </div>
+                                            ))
+                                        ) : <p className="text-[10px] italic text-muted-foreground">Sem dados</p>}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
                                 <div className="flex justify-between items-center mb-10">
                                     <div>

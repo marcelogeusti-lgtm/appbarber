@@ -213,6 +213,7 @@ model User {
   mpPayoutId            String?  // For automated payment splits (Mercado Pago ID)
   enrolledCourses       UserCourse[]
   pushSubscriptions     PushSubscription[]
+  transactions          Transaction[] @relation("ProTransactions")
 }
 
 model Notification {
@@ -525,6 +526,13 @@ model Transaction {
   orderId       String?
   order         Order?       @relation("OrderTransactions", fields: [orderId], references: [id])
   
+  // Financial V2 Fields
+  paymentMethod String?   // "PIX", "CREDIT_CARD", "MONEY", "DEBIT_CARD"
+  origin        String?   // "ONLINE" | "PRESENCIAL"
+  
+  professionalId String?
+  professional   User?     @relation("ProTransactions", fields: [professionalId], references: [id])
+
   cashShiftId   String?
   cashShift     CashShift?   @relation(fields: [cashShiftId], references: [id])
 

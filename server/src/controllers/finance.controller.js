@@ -20,6 +20,7 @@ exports.getFinancialDashboard = async (req, res) => {
                     lte: endOfDay(end)
                 }
             },
+            include: { professional: { select: { name: true } } },
             orderBy: { date: 'asc' }
         });
 
@@ -98,8 +99,51 @@ exports.getFinancialDashboard = async (req, res) => {
         const toReceiveCard = toReceive * 0.35;
         const toReceivePix = toReceive * 0.25;
 
+        // --- BREAKDOWNS ---
+
+        // By Method
+        const revenueByMethod = transactions
+            .filter(t => t.type === 'INCOME')
+            .reduce((acc, t) => {
+                const method = t.paymentMethod || 'OUTROS';
+                acc[method] = (acc[method] || 0) + Number(t.amount);
+                return acc;
+            }, {});
+
+        // By Origin
+        const revenueByOrigin = transactions
+            .filter(t => t.type === 'INCOME')
+            .reduce((acc, t) => {
+                const origin = t.origin || 'NAO_IDENTIFICADO';
+                acc[origin] = (acc[origin] || 0) + Number(t.amount);
+                return acc;
+            }, {});
+
+        // By Barber (need professional name? Transaction has professionalId, need to map)
+        // We can fetch professionals or just group by ID for now, or if we want names we need to include them in the query above.
+        // Let's rely on Orders for Barber breakdown? No, Transactions have professionalId now.
+        // But we didn't include 'professional' in the Transaction query.
+        // Let's just return by ID for frontend to map, or we update the query.
+
+        // Let's update the transaction query to include professional (optional, might be heavy if many)
+        // Or better: Use the existing logic where we have orders.
+        // But we want ALL transactions.
+
+        // By Barber
+        const revenueByBarber = transactions
+            .filter(t => t.type === 'INCOME' && t.professionalId)
+            .reduce((acc, t) => {
+                const name = t.professional?.name || 'Desconhecido';
+                acc[name] = (acc[name] || 0) + Number(t.amount);
+                return acc;
+            }, {});
+
+
         res.json({
             revenueByDay,
+            revenueByMethod,
+            revenueByOrigin,
+            revenueByBarber,
             totalRevenue,
             totalClients,
             avgClientsPerDay,

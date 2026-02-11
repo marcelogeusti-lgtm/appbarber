@@ -1,6 +1,6 @@
-const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const TransactionService = require('../services/TransactionService');
 
 exports.createPayment = async (req, res) => {
     try {
@@ -189,6 +189,18 @@ exports.createPixPayment = async (req, res) => {
                 }
             });
 
+            // 7.5 If Approved Immediately (e.g. Mock/Test), Register Transaction
+            if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
+                await TransactionService.createTransaction({
+                    barbershopId: appointment.barbershopId,
+                    amount: Number(amount),
+                    method: 'PIX',
+                    origin: 'ONLINE',
+                    appointmentId: appointment.id,
+                    description: `Pagamento Online (Pix) - Agendamento #${appointment.id.substring(0, 8)}`
+                });
+            }
+
             // 8. Return Success Payload
             return res.status(201).json({
                 paymentId: updatedPayment.id,
@@ -292,12 +304,18 @@ exports.createCardPayment = async (req, res) => {
                 }
             });
 
-            // 4. If Approved, Confirm Appointment
+            // 4. If Approved, Confirm Appointment & Register Transaction
             if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
-                await prisma.appointment.update({
-                    where: { id: appointmentId },
-                    data: { status: 'CONFIRMED' }
+                await TransactionService.createTransaction({
+                    barbershopId: appointment.barbershopId,
+                    amount: Number(amount),
+                    method: 'CREDIT_CARD',
+                    origin: 'ONLINE',
+                    appointmentId: appointment.id,
+                    description: `Pagamento Online (Cartão) - Agendamento #${appointment.id.substring(0, 8)}`
                 });
+
+                // Status updated by TransactionService, but we can verify/log if needed.
 
                 // 5. Automatic Card Saving Logic
                 if (saveCard) {
@@ -427,6 +445,18 @@ exports.createBrickPayment = async (req, res) => {
                     pixCopiaECola: paymentResult.pixCopiaECola,
                     ticketUrl: paymentResult.ticketUrl
                 }
+            });
+        }
+
+        // 3.5 If Approved, Register Transaction
+        if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
+            await TransactionService.createTransaction({
+                barbershopId,
+                amount: Number(transaction_amount),
+                method: payment_method_id === 'pix' ? 'PIX' : 'CREDIT_CARD', // Simple mapping
+                origin: 'ONLINE',
+                appointmentId: appointmentId || null,
+                description: `Pagamento Online (Brick) - ${description || 'Venda'}`
             });
         }
 

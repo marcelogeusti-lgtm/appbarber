@@ -1,6 +1,7 @@
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const TransactionService = require('../services/TransactionService');
 
 exports.handleWebhook = async (req, res) => {
     const { gateway } = req.params;
@@ -47,7 +48,7 @@ exports.handleWebhook = async (req, res) => {
 
             if (payment && payment.status !== 'paid') {
                 await prisma.$transaction(async (tx) => {
-                    // Update Payment
+                    // Update Payment Status first
                     await tx.payment.update({
                         where: { id: payment.id },
                         data: { status: 'paid', paidAt: new Date() }
@@ -61,24 +62,19 @@ exports.handleWebhook = async (req, res) => {
                         });
                     }
 
-                    // Update Order if linked
-                    if (payment.orderId) {
-                        await tx.order.update({
-                            where: { id: payment.orderId },
-                            data: { paymentStatus: 'PAID', status: 'CLOSED' }
-                        });
-                    }
+                    // Register Financial Transaction & Update Order/Appointment (Idempotent)
+                    // We need to pass the amount. Payment record has it.
+                    await TransactionService.createTransaction({
+                        barbershopId: payment.barbershopId, // Ensure payment has this field or fetch it
+                        amount: Number(payment.amount),
+                        method: payment.method === 'pix' ? 'PIX' : 'CREDIT_CARD', // Map correctly
+                        origin: 'ONLINE',
+                        appointmentId: payment.appointmentId,
+                        orderId: payment.orderId,
+                        professionalId: null, // Let Service resolve it
+                        description: `Pagamento Online (Webhook) - ${payment.method} - #${payment.externalId}`
+                    }, tx);
 
-                    // Update Appointment if linked
-                    if (payment.appointmentId) {
-                        await tx.appointment.update({
-                            where: { id: payment.appointmentId },
-                            data: {
-                                paymentStatus: 'PAID',
-                                status: 'CONFIRMED'
-                            }
-                        });
-                    }
                 });
                 console.log(`[Webhook] Successfully processed payment ${result.externalId}`);
             }
