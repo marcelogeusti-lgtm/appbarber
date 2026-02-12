@@ -110,14 +110,14 @@ class TransactionService {
 
             // 5. Generate Commission (If Pro exists and value > 0)
             if (professionalId && commissionBaseValue > 0) {
-                // Fetch Pro's commission rate
-                const pro = await tx.user.findUnique({
+                // Fetch Pro's commission rate from Professional profile
+                const proUser = await tx.user.findUnique({
                     where: { id: professionalId },
-                    select: { commissionPercent: true } // Assuming this field exists on User
+                    include: { professionalProfile: true }
                 });
 
                 // Default 50% if not set
-                const rate = pro?.commissionPercent ?? 50;
+                const rate = proUser?.professionalProfile?.commissionPercent ?? 50;
                 const commissionValue = (commissionBaseValue * rate) / 100;
 
                 await tx.commission.create({
