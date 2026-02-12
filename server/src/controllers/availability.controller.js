@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { utcToZonedTime, zonedTimeToUtc, format } = require('date-fns-tz');
-const { addMinutes, isBefore, startOfDay, endOfDay, parse } = require('date-fns');
+const { addMinutes, isBefore, startOfDay, endOfDay, parse, addDays } = require('date-fns');
 const FeatureFlagService = require('../services/FeatureFlagService');
 
 const TIMEZONE = 'America/Sao_Paulo';
@@ -104,7 +104,12 @@ exports.getAvailableSlots = async (req, res) => {
             };
 
             const workStart = createTimeSP(proSchedule.startTime);
-            const workEnd = createTimeSP(proSchedule.endTime);
+            let workEnd = createTimeSP(proSchedule.endTime);
+
+            // Handle Overnight Shifts (e.g. 09:00 to 01:00)
+            if (workEnd <= workStart) {
+                workEnd = addDays(workEnd, 1);
+            }
 
             let breakStart = null;
             let breakEnd = null;
