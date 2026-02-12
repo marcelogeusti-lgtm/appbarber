@@ -28,6 +28,16 @@ exports.getAvailableSlots = async (req, res) => {
 
         // 1. Target Date Configuration (Sao Paulo)
         // Parse the input string YYYY-MM-DD as being in Sao Paulo
+        // const { barbershopId, date } = req.params; // This line was a redeclaration and is now commented out.
+        // const { serviceIds } = req.query; // This line was a redeclaration and is now commented out.
+
+        console.log(`[Availability Debug] Params: barbershopId=${barbershopId}, date=${date}, serviceIds=${serviceIds}`);
+
+        if (!barbershopId || !date || !serviceIds) {
+            console.error('[Availability Debug] Missing required parameters');
+            return res.status(400).json({ error: 'Missing parameters' });
+        }
+
         // This ensures "2023-01-01" means the full day in SP, not partial day if UTC.
         // We construct a string "YYYY-MM-DDT00:00:00" and parse it as that zone.
         const startOfDaySP = zonedTimeToUtc(`${date}T00:00:00`, TIMEZONE);
@@ -37,6 +47,8 @@ exports.getAvailableSlots = async (req, res) => {
         // using utcToZonedTime to get the date object representing local time
         const dateSP = utcToZonedTime(startOfDaySP, TIMEZONE);
         const dayOfWeek = dateSP.getDay(); // 0-6 correct for SP
+
+        console.log(`[Availability Debug] dayOfWeek: ${dayOfWeek}, startOfDaySP: ${startOfDaySP.toISOString()}`);
 
         // 2. Get Professionals
         const pros = await prisma.user.findMany({
@@ -56,6 +68,7 @@ exports.getAvailableSlots = async (req, res) => {
             }
         });
 
+        console.log(`[Availability Debug] Pros found: ${pros.length}`);
         console.log(`[Availability] Calculating for Shop ${barbershopId} on ${date}. Active Pros: ${pros.length}`);
 
         if (pros.length === 0) {
