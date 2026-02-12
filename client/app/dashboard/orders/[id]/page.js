@@ -7,6 +7,7 @@ import {
     CreditCard, CheckCircle, AlertCircle, Scissors, Package, Percent, X,
     Zap, DollarSign, Globe, Loader2
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function OrderDetailsPage() {
     const params = useParams();
@@ -83,7 +84,8 @@ export default function OrderDetailsPage() {
             await api.post(`/orders/${id}/items`, payload);
             fetchOrder();
         } catch (err) {
-            alert('Erro ao adicionar item');
+        } catch (err) {
+            toast.error('Erro ao adicionar item');
         }
     };
 
@@ -93,7 +95,8 @@ export default function OrderDetailsPage() {
             await api.delete(`/orders/items/${itemId}`);
             fetchOrder();
         } catch (err) {
-            alert('Erro ao remover item');
+        } catch (err) {
+            toast.error('Erro ao remover item');
         }
     };
 
@@ -106,7 +109,8 @@ export default function OrderDetailsPage() {
             setShowDiscountModal(false);
             setDiscountValue(0);
         } catch (err) {
-            alert('Erro ao aplicar desconto');
+        } catch (err) {
+            toast.error('Erro ao aplicar desconto');
         }
     };
 
@@ -116,7 +120,7 @@ export default function OrderDetailsPage() {
 
     const handleConfirmPayment = async (isAutomatic = false) => {
         if (!selectedMethod && !isAutomatic) {
-            alert('Selecione uma forma de pagamento.');
+            toast.error('Selecione uma forma de pagamento.');
             return;
         }
 
@@ -132,12 +136,12 @@ export default function OrderDetailsPage() {
 
             setShowPaymentModal(false);
             setSelectedMethod('');
-            alert('✅ Comanda finalizada com sucesso!');
+            toast.success('Comanda finalizada com sucesso!');
 
         } catch (err) {
             console.error(err);
             const msg = err.response?.data?.message || 'Erro ao processar pagamento.';
-            alert(`❌ Erro: ${msg}`);
+            toast.error(`Erro: ${msg}`);
         } finally {
             setProcessing(false);
         }
