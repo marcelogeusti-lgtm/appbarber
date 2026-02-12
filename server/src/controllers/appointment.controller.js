@@ -873,3 +873,25 @@ exports.getPendingFees = async (req, res) => {
         res.status(500).json({ message: 'Error fetching fees' });
     }
 };
+
+exports.getUnreviewedAppointments = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const unreviewed = await prisma.appointment.findMany({
+            where: {
+                clientId: userId,
+                status: 'COMPLETED',
+                review: null
+            },
+            include: {
+                service: true,
+                professional: { select: { name: true } }
+            },
+            orderBy: { date: 'desc' }
+        });
+        res.json(unreviewed);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching unreviewed appointments' });
+    }
+};
