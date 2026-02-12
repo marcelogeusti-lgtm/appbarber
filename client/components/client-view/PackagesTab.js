@@ -3,6 +3,7 @@ import { Package } from 'lucide-react';
 import api from '../../lib/api';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function PackagesTab({ plans = [] }) {
     const router = useRouter();
@@ -18,11 +19,11 @@ export default function PackagesTab({ plans = [] }) {
                 planId: pkg.id,
                 paymentMethod: 'ONLINE' // Placeholder until payment gateway integration
             });
-            alert('Pacote comprado com sucesso! Verifique seus agendamentos para usar.');
+            toast.success('Pacote comprado com sucesso! Verifique seus agendamentos para usar.');
             router.refresh();
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || 'Erro ao comprar pacote.');
+            toast.error(error.response?.data?.message || 'Erro ao comprar pacote.');
         } finally {
             setLoading(null);
         }

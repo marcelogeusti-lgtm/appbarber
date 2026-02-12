@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ShieldCheck, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
 import PaymentBrick from '../../components/payment/PaymentBrick';
 import api from '../../lib/clientApi';
+import { toast } from 'sonner';
 
 export default function CheckoutPage() {
     const searchParams = useSearchParams();
@@ -82,7 +83,7 @@ export default function CheckoutPage() {
     const handleError = (err) => {
         console.error("Payment Component Error:", err);
         // Validations are handled by Brick mostly, this is for critical errors
-        alert(`Erro no pagamento: ${err}`);
+        toast.error(`Erro no pagamento: ${err}`);
     };
 
     if (loading) return (

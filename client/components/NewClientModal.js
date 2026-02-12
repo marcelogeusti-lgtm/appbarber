@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { X, Save, User, Phone, Mail, FileText, Loader2, Camera } from 'lucide-react';
 import api from '../lib/api';
+import { toast } from 'sonner';
 import { storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -79,7 +80,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
             setFormData(prev => ({ ...prev, avatarUrl: url }));
         } catch (err) {
             console.error('Upload error:', err);
-            alert('Erro ao enviar imagem: ' + err.message);
+            toast.error('Erro ao enviar imagem: ' + err.message);
         } finally {
             setUploading(false);
         }
@@ -98,7 +99,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
         } catch (error) {
             console.error('Error creating client:', error);
             const msg = error.response?.data?.message || error.message || 'Erro deconhecido';
-            alert(`Erro ao cadastrar cliente: ${msg}`);
+            toast.error(`Erro ao cadastrar cliente: ${msg}`);
         } finally {
             setLoading(false);
         }

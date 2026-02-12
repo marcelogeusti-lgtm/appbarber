@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { X, Calendar, Clock, User, Scissors, Check, Loader2 } from 'lucide-react';
 import api from '../lib/api';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 export default function NewOrderModal({ isOpen, onClose, user }) {
@@ -56,10 +57,10 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (selectedServiceIds.length === 0) return alert('Selecione ao menos um serviço');
+        if (selectedServiceIds.length === 0) return toast.error('Selecione ao menos um serviço');
 
         const shopId = getBarbershopId();
-        if (!shopId) return alert('Erro: Barbearia não identificada.');
+        if (!shopId) return toast.error('Erro: Barbearia não identificada.');
 
         setLoading(true);
         try {
@@ -79,7 +80,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
             }
         } catch (error) {
             console.error('Error creating order:', error);
-            alert(error.response?.data?.message || 'Erro ao criar comanda');
+            toast.error(error.response?.data?.message || 'Erro ao criar comanda');
         } finally {
             setLoading(false);
         }

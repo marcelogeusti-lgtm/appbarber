@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import api from '../lib/api';
 import { storage } from '../lib/firebase';
+import { toast } from 'sonner';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const professionalSchema = z.object({
@@ -229,25 +230,10 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
         setUploading(true);
         try {
-            console.log("Starting upload...", file.name, file.size);
-
-            let fileToUpload = file;
-            // Compress if > 500KB
-            if (file.size > 500000) {
-                console.log("Compressing image...");
-                fileToUpload = await compressImage(file);
-                console.log("Compressed size:", fileToUpload.size);
-            }
-
-            const storageRef = ref(storage, `professionals/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`);
-            const snapshot = await uploadBytes(storageRef, fileToUpload);
-            const url = await getDownloadURL(snapshot.ref);
-
-            console.log("Upload successful:", url);
             setValue('avatarUrl', url);
         } catch (err) {
             console.error('Upload error:', err);
-            alert('Erro ao enviar imagem: ' + (err.message || 'Erro desconhecido'));
+            toast.error('Erro ao enviar imagem: ' + (err.message || 'Erro desconhecido'));
         } finally {
             setUploading(false);
             // Clear input
@@ -270,17 +256,17 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
             if (isEdit) {
                 await api.put(`/professionals/${professional.id}`, payload);
-                alert('✅ Profissional atualizado com sucesso!');
+                toast.success('Profissional atualizado com sucesso!');
             } else {
                 await api.post('/professionals', payload);
-                alert('✅ Profissional cadastrado com sucesso!');
+                toast.success('Profissional cadastrado com sucesso!');
             }
 
             onSuccess();
             onClose();
         } catch (err) {
             console.error(err);
-            alert('❌ Erro ao salvar: ' + (err.response?.data?.message || err.message));
+            toast.error('Erro ao salvar: ' + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
         }

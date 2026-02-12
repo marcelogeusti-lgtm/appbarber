@@ -208,7 +208,7 @@ exports.createProfessional = async (req, res) => {
             const target = error.meta?.target || 'campo único';
             return res.status(400).json({ message: `Erro: O valor informado para '${target}' já existe no sistema.` });
         }
-        res.status(500).json({ message: 'Erro ao criar profissional: ' + error.message });
+        res.status(500).json({ message: 'Erro ao criar profissional. Verifique os dados e tente novamente.' });
     }
 };
 

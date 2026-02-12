@@ -2,6 +2,7 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import clsx from 'clsx';
 import Providers from './providers';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,6 +18,7 @@ export default function RootLayout({ children }) {
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
                         {children}
+                        <Toaster richColors position="top-center" />
                     </Providers>
                 </main>
             </body>

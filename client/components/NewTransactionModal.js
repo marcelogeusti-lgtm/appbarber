@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { X, TrendingDown, TrendingUp, Calendar, DollarSign, FileText, Loader2, Check } from 'lucide-react';
 import api from '../lib/api';
+import { toast } from 'sonner';
 
 export default function NewTransactionModal({ isOpen, onClose, user, type = 'EXPENSE', onSuccess }) {
     const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ export default function NewTransactionModal({ isOpen, onClose, user, type = 'EXP
             });
         } catch (error) {
             console.error('Error creating transaction:', error);
-            alert(error.response?.data?.message || 'Erro ao criar transação');
+            toast.error(error.response?.data?.message || 'Erro ao criar transação');
         } finally {
             setLoading(false);
         }
