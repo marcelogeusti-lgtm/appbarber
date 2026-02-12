@@ -6,7 +6,22 @@ const prisma = new PrismaClient();
 exports.getFinancialDashboard = async (req, res) => {
     try {
         const { barbershopId, startDate, endDate } = req.query;
-        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        // Validation / Governance Logic
+        let where = {};
+
+        // 1. If ID provided, filter by it (enforced by middleware for non-admins)
+        if (barbershopId) {
+            where.barbershopId = barbershopId;
+        }
+        // 2. If NO ID provided:
+        else {
+            // Only SUPER_ADMIN can see "All"
+            if (req.user.role !== 'SUPER_ADMIN') {
+                return res.status(400).json({ message: 'Barbershop ID required for this user role.' });
+            }
+            // SUPER_ADMIN with no ID = Global View (empty where.barbershopId)
+        }
 
         const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1)); // Primeiro dia do mês
         const end = endDate ? new Date(endDate) : new Date(); // Hoje
@@ -14,7 +29,7 @@ exports.getFinancialDashboard = async (req, res) => {
         // 1. Single Source of Truth for Finance: TRANSACTIONS
         const transactions = await prisma.transaction.findMany({
             where: {
-                barbershopId,
+                ...where,
                 date: {
                     gte: startOfDay(start),
                     lte: endOfDay(end)
@@ -25,9 +40,10 @@ exports.getFinancialDashboard = async (req, res) => {
         });
 
         // 2. Operational Metrics (Clients, etc.) - Can still use Orders but only for counts
+        // 2. Operational Metrics (Clients, etc.) - Can still use Orders but only for counts
         const orders = await prisma.order.findMany({
             where: {
-                barbershopId,
+                ...where,
                 status: { in: ['CLOSED', 'PAID'] },
                 updatedAt: {
                     gte: startOfDay(start),
@@ -72,7 +88,7 @@ exports.getFinancialDashboard = async (req, res) => {
         // Comandas em aberto (Status OPEN)
         const openOrders = await prisma.order.findMany({
             where: {
-                barbershopId,
+                ...where,
                 status: 'OPEN',
             },
             select: { total: true }
@@ -81,9 +97,10 @@ exports.getFinancialDashboard = async (req, res) => {
         const totalOpenCommands = openOrders.reduce((sum, order) => sum + (order.total || 0), 0);
 
         // Valores a receber (Agendamentos futuros)
+        // Valores a receber (Agendamentos futuros)
         const futureAppointments = await prisma.appointment.findMany({
             where: {
-                barbershopId,
+                ...where,
                 status: 'CONFIRMED',
                 date: { gte: new Date() },
                 order: null
@@ -167,7 +184,16 @@ exports.getFinancialDashboard = async (req, res) => {
 exports.getFinancialStats = async (req, res) => {
     try {
         const { barbershopId, startDate, endDate } = req.query;
-        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        // Governance Logic
+        let where = {};
+        if (barbershopId) {
+            where.barbershopId = barbershopId;
+        } else {
+            if (req.user.role !== 'SUPER_ADMIN') {
+                return res.status(400).json({ message: 'Barbershop ID required' });
+            }
+        }
 
         const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));
         const end = endDate ? new Date(endDate) : new Date();
@@ -175,7 +201,7 @@ exports.getFinancialStats = async (req, res) => {
         const [orders, transactions] = await Promise.all([
             prisma.order.findMany({
                 where: {
-                    barbershopId,
+                    ...where,
                     status: { in: ['CLOSED', 'PAID'] },
                     updatedAt: {
                         gte: startOfDay(start),
@@ -195,7 +221,7 @@ exports.getFinancialStats = async (req, res) => {
             }),
             prisma.transaction.findMany({
                 where: {
-                    barbershopId,
+                    ...where,
                     date: {
                         gte: startOfDay(start),
                         lte: endOfDay(end)

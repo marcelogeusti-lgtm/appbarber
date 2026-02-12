@@ -27,9 +27,26 @@ exports.createTransaction = async (req, res) => {
 exports.getTransactions = async (req, res) => {
     try {
         const { barbershopId, startDate, endDate } = req.query;
-        const bId = req.user.barbershopId || barbershopId;
 
-        const where = { barbershopId: bId };
+        let where = {};
+
+        // 1. Tenant Scope
+        if (barbershopId) {
+            where.barbershopId = barbershopId;
+        } else {
+            // If no ID, check if Super Admin
+            if (req.user.role !== 'SUPER_ADMIN') {
+                // For normal users, req.user.barbershopId should have been enforced or passed, 
+                // but if we are here without an ID in query, fallback to user's shop if exists
+                if (req.user.barbershopId) {
+                    where.barbershopId = req.user.barbershopId;
+                } else {
+                    return res.status(400).json({ message: 'Barbershop ID required' });
+                }
+            }
+            // If SUPER_ADMIN and no ID -> Global View (empty where.barbershopId)
+        }
+
         if (startDate && endDate) {
             where.date = {
                 gte: new Date(startDate),

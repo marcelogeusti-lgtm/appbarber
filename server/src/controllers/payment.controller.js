@@ -7,6 +7,19 @@ exports.createPayment = async (req, res) => {
         const { amount, method, description, gateway, barbershopId, appointmentId, orderId } = req.body;
         const userId = req.user.id;
 
+        // Security / Tenant Isolation
+        // If user is not SUPER_ADMIN, they can only create payments for their own shop context
+        // req.tenantId should be populated by middleware if enforced, but let's double check.
+        const enforceShopId = req.tenantId || req.user.barbershopId;
+        if (enforceShopId && barbershopId && enforceShopId !== barbershopId) {
+            if (req.user.role !== 'SUPER_ADMIN') {
+                return res.status(403).json({ error: 'Acesso negado: Você não pode criar pagamentos para outra barbearia.' });
+            }
+        }
+
+        // If no barbershopId in body but we have context, inject it
+        const finalBarbershopId = barbershopId || enforceShopId;
+
         if (!amount || !method) {
             return res.status(400).json({ error: 'Amount and method are required' });
         }
@@ -27,7 +40,7 @@ exports.createPayment = async (req, res) => {
                 userId,
                 appointmentId,
                 orderId,
-                barbershopId
+                barbershopId: finalBarbershopId
             }
         });
 
@@ -38,7 +51,7 @@ exports.createPayment = async (req, res) => {
                 method,
                 description: description || `Payment for user ${user?.name || userId}`,
                 gateway,
-                barbershopId,
+                barbershopId: finalBarbershopId,
                 customer: {
                     name: user?.name || 'Cliente',
                     email: user?.authUser?.email || user?.email,
@@ -387,6 +400,15 @@ exports.createBrickPayment = async (req, res) => {
             appointmentId // Optional context
         } = req.body;
 
+        // Security / Tenant Isolation
+        const enforceShopId = req.tenantId || req.user.barbershopId;
+        if (enforceShopId && barbershopId && enforceShopId !== barbershopId) {
+            if (req.user.role !== 'SUPER_ADMIN') {
+                return res.status(403).json({ error: 'Acesso negado: Você não pode criar pagamentos para outra barbearia.' });
+            }
+        }
+        const finalBarbershopId = barbershopId || enforceShopId;
+
         const userId = req.user.id;
 
         if (!transaction_amount || !payment_method_id) {
@@ -405,7 +427,7 @@ exports.createBrickPayment = async (req, res) => {
                     amount: transaction_amount,
                     userId,
                     appointmentId,
-                    barbershopId
+                    barbershopId: finalBarbershopId
                 }
             });
         }
@@ -416,7 +438,7 @@ exports.createBrickPayment = async (req, res) => {
             amount: transaction_amount,
             method: payment_method_id, // e.g. 'master', 'pix', 'bolbradesco'
             description: description || 'Payment via Brick',
-            barbershopId,
+            barbershopId: finalBarbershopId,
             externalId: pendingPayment?.id, // Optional linkage
 
             // Card specific
@@ -451,7 +473,7 @@ exports.createBrickPayment = async (req, res) => {
         // 3.5 If Approved, Register Transaction
         if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
             await TransactionService.createTransaction({
-                barbershopId,
+                barbershopId: finalBarbershopId,
                 amount: Number(transaction_amount),
                 method: payment_method_id === 'pix' ? 'PIX' : 'CREDIT_CARD', // Simple mapping
                 origin: 'ONLINE',
