@@ -84,7 +84,6 @@ export default function OrderDetailsPage() {
             await api.post(`/orders/${id}/items`, payload);
             fetchOrder();
         } catch (err) {
-        } catch (err) {
             toast.error('Erro ao adicionar item');
         }
     };
@@ -94,7 +93,6 @@ export default function OrderDetailsPage() {
         try {
             await api.delete(`/orders/items/${itemId}`);
             fetchOrder();
-        } catch (err) {
         } catch (err) {
             toast.error('Erro ao remover item');
         }
@@ -108,7 +106,6 @@ export default function OrderDetailsPage() {
             fetchOrder();
             setShowDiscountModal(false);
             setDiscountValue(0);
-        } catch (err) {
         } catch (err) {
             toast.error('Erro ao aplicar desconto');
         }
