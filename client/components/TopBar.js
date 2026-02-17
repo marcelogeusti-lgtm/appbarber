@@ -2,7 +2,7 @@ import { Menu, Search, Wallet } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import ThemeToggle from './ThemeToggle';
 
-export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashier }) {
+export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, onOpenCashier }) {
     return (
         <header className="h-20 bg-card/90 border-b border-border px-8 flex items-center justify-between sticky top-0 z-40 backdrop-blur-sm">
             {/* Mobile Menu & Brand */}
@@ -61,9 +61,17 @@ export default function TopBar({ user, isLocked, onMobileMenuClick, onOpenCashie
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1 group-hover:text-primary transition-colors">Bem-vindo,</p>
                         <p className="text-sm font-black text-foreground uppercase tracking-tighter">{user?.name || 'Usuário'}</p>
                     </div>
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                        {user?.name?.[0] || 'U'}
-                    </div>
+                    {barbershop?.logo_url ? (
+                        <img
+                            src={barbershop.logo_url}
+                            alt={barbershop.name || 'Logo'}
+                            className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform"
+                        />
+                    ) : (
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                            {user?.name?.[0] || 'U'}
+                        </div>
+                    )}
                 </div>
             </div>
         </header >

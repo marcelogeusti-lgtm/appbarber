@@ -10,7 +10,7 @@ import {
     PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield
 } from 'lucide-react';
 
-export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
+export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, onClose }) {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -93,23 +93,33 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                 ${isCollapsed ? 'md:w-20' : 'md:w-72'}
             `}>
                 {/* Header */}
-                <div className={`p-6 border-b border-border flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-                    <div className={`flex items-center gap-3 ${isCollapsed ? 'hidden' : 'flex'}`}>
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shadow-lg shadow-primary/20">
-                            <Store className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                            <h2 className="text-sm font-black text-foreground italic tracking-tight">Barbe<span className="text-primary">On</span></h2>
-                        </div>
+                <div className={`border-b border-border flex items-center transition-all duration-300 relative ${isCollapsed ? 'justify-center p-4' : 'justify-between p-6'}`}>
+                    <div className="flex items-center gap-3 w-full justify-center md:justify-start">
+                        {!isCollapsed ? (
+                            <img
+                                src="/logos/logo_full.svg"
+                                alt="Platform Logo"
+                                className="h-8 object-contain w-auto transition-all duration-300"
+                            />
+                        ) : (
+                            <img
+                                src="/logos/logo_icon.svg"
+                                alt="Platform Icon"
+                                className="w-8 h-8 object-contain transition-all duration-300"
+                            />
+                        )}
                     </div>
 
-                    {/* Desktop Collapse Toggle */}
-                    <button onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors">
-                        {isCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+                    {/* Desktop Collapse Toggle - Border Positioned */}
+                    <button
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className={`hidden md:flex absolute -right-3 top-7 w-6 h-6 bg-card border border-border rounded-full items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all shadow-sm z-50 ${isCollapsed ? 'rotate-180' : ''}`}
+                    >
+                        <ChevronRight className="w-3 h-3" />
                     </button>
 
                     {/* Mobile Close Button */}
-                    <button onClick={onClose} className="md:hidden text-muted-foreground hover:text-foreground">
+                    <button onClick={onClose} className="md:hidden absolute right-4 text-muted-foreground hover:text-foreground">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -177,18 +187,34 @@ export default function Sidebar({ user, isLocked, logout, isOpen, onClose }) {
                 <div className="p-4 border-t border-border bg-sidebar">
                     {!isCollapsed ? (
                         <div className={`flex items-center gap-3 p-3 rounded-xl border border-border bg-card/50 ${isLocked ? 'opacity-50' : ''}`}>
-                            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-500 text-xs font-bold">
-                                {user?.name?.[0]}
-                            </div>
+                            {barbershop?.logo_url ? (
+                                <img
+                                    src={barbershop.logo_url}
+                                    alt={barbershop.name || 'Logo'}
+                                    className="w-8 h-8 rounded-full object-cover border border-emerald-500/30"
+                                />
+                            ) : (
+                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-500 text-xs font-bold">
+                                    {user?.name?.[0]}
+                                </div>
+                            )}
                             <div className="flex-1 overflow-hidden">
                                 <p className="text-[11px] font-bold text-white truncate">{user?.name}</p>
                                 <p className="text-[9px] text-slate-500 truncate">{user?.email}</p>
                             </div>
                         </div>
                     ) : (
-                        <div className="w-8 h-8 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-500 text-xs font-bold">
-                            {user?.name?.[0]}
-                        </div>
+                        barbershop?.logo_url ? (
+                            <img
+                                src={barbershop.logo_url}
+                                alt={barbershop.name || 'Logo'}
+                                className="w-8 h-8 mx-auto rounded-full object-cover border border-emerald-500/30"
+                            />
+                        ) : (
+                            <div className="w-8 h-8 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-500 text-xs font-bold">
+                                {user?.name?.[0]}
+                            </div>
+                        )
                     )}
 
                     <button

@@ -69,9 +69,11 @@ export default function DashboardLayout({ children }) {
 
     if (!user) return null;
 
+    const currentBarbershop = user?.barbershop || user?.workedBarbershop || user?.ownedBarbershops?.[0];
+
     const isSubscriptionActive = () => {
         if (user?.role === 'CLIENT' || user?.role === 'SUPER_ADMIN') return true;
-        const shop = user?.barbershop || user?.workedBarbershop || user?.ownedBarbershops?.[0];
+        const shop = currentBarbershop;
 
         if (!shop) return false;
 
@@ -101,6 +103,7 @@ export default function DashboardLayout({ children }) {
                 {/* Sidebar Component - Responsive */}
                 <Sidebar
                     user={user}
+                    barbershop={currentBarbershop}
                     isLocked={isLocked}
                     logout={logout}
                     isOpen={isMobileMenuOpen}
@@ -144,6 +147,7 @@ export default function DashboardLayout({ children }) {
                 <div className="flex-1 flex flex-col min-h-screen relative w-full">
                     <TopBar
                         user={user}
+                        barbershop={currentBarbershop}
                         isLocked={isLocked}
                         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
                         onOpenCashier={() => setIsCashierOpen(true)}
