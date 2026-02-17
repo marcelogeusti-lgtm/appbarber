@@ -97,7 +97,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     <div className="flex items-center gap-3 w-full justify-center md:justify-start">
                         {!isCollapsed ? (
                             <img
-                                src="/logos/logo_full.svg"
+                                src="/logos/NEXT_logo_idêntica.svg"
                                 alt="Platform Logo"
                                 className="h-10 object-contain w-auto transition-all duration-300"
                             />
