@@ -187,9 +187,9 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 <div className="p-4 border-t border-border bg-sidebar">
                     {!isCollapsed ? (
                         <div className={`flex items-center gap-3 p-3 rounded-xl border border-border bg-card/50 ${isLocked ? 'opacity-50' : ''}`}>
-                            {barbershop?.logo_url ? (
+                            {barbershop?.logo_url || barbershop?.logoUrl ? (
                                 <img
-                                    src={barbershop.logo_url}
+                                    src={barbershop.logo_url || barbershop.logoUrl}
                                     alt={barbershop.name || 'Logo'}
                                     className="w-8 h-8 rounded-full object-cover border border-emerald-500/30"
                                 />
@@ -204,9 +204,9 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             </div>
                         </div>
                     ) : (
-                        barbershop?.logo_url ? (
+                        barbershop?.logo_url || barbershop?.logoUrl ? (
                             <img
-                                src={barbershop.logo_url}
+                                src={barbershop.logo_url || barbershop.logoUrl}
                                 alt={barbershop.name || 'Logo'}
                                 className="w-8 h-8 mx-auto rounded-full object-cover border border-emerald-500/30"
                             />

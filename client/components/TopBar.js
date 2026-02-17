@@ -63,9 +63,9 @@ export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, 
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1 group-hover:text-primary transition-colors">Bem-vindo,</p>
                         <p className="text-sm font-black text-foreground uppercase tracking-tighter">{user?.name || 'Usuário'}</p>
                     </div>
-                    {barbershop?.logo_url ? (
+                    {barbershop?.logo_url || barbershop?.logoUrl ? (
                         <img
-                            src={barbershop.logo_url}
+                            src={barbershop.logo_url || barbershop.logoUrl}
                             alt={barbershop.name || 'Logo'}
                             className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform"
                         />
