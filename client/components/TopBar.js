@@ -13,9 +13,11 @@ export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, 
                 >
                     <Menu className="w-6 h-6" />
                 </button>
-                <span className="font-black uppercase text-xl tracking-tighter text-foreground">
-                    <span className="text-primary italic">Barbe</span>-On
-                </span>
+                <img
+                    src="/logos/logo_full.svg"
+                    alt="BarbeOn"
+                    className="h-8 w-auto object-contain"
+                />
             </div>
 
             {/* Desktop Actions (Future Search/Notifications) */}
