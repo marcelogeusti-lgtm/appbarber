@@ -57,12 +57,13 @@ function ClientLayoutContent({ children }) {
             <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
 
                 {/* Logo */}
-                <Link href="/home" className="flex items-center">
+                <Link href="/home" className="flex items-center gap-2">
                     <img
-                        src="/logos/logo_full.svg"
+                        src="/logos/logo_icon.svg"
                         alt="BarbeOn"
                         className="h-8 w-auto object-contain"
                     />
+                    <span className="text-white font-bold text-lg tracking-tight">BarbeOn</span>
                 </Link>
 
                 {/* Desktop Navigation */}
