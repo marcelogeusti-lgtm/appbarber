@@ -59,7 +59,7 @@ function ClientLayoutContent({ children }) {
                 {/* Logo */}
                 <Link href="/home" className="flex items-center">
                     <img
-                        src="/logos/NEXT_logo_idêntica.svg"
+                        src="/logos/logo_convertido.svg"
                         alt="BarbeOn"
                         className="h-8 w-auto object-contain"
                     />
@@ -73,7 +73,7 @@ function ClientLayoutContent({ children }) {
                             <Link
                                 key={tab.href}
                                 href={tab.href}
-                                className={`text-sm font-medium transition-colors ${isActive ? 'text-emerald-500 font-bold' : 'text-slate-400 hover:text-white'}`}
+                                className={`text-sm font-medium transition-colors ${isActive ? 'text-primary font-bold' : 'text-slate-400 hover:text-white'}`}
                             >
                                 {tab.name}
                             </Link>
@@ -93,12 +93,12 @@ function ClientLayoutContent({ children }) {
                                     {user?.avatarUrl ? (
                                         <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="font-bold text-xs text-emerald-500">
+                                        <div className="font-bold text-xs text-primary">
                                             {user.name?.[0].toUpperCase()}
                                         </div>
                                     )}
                                 </div>
-                                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-emerald-500' : ''}`} />
+                                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180 text-primary' : ''}`} />
                             </button>
 
                             {/* Dropdown Menu */}
@@ -116,7 +116,7 @@ function ClientLayoutContent({ children }) {
                                                 onClick={() => setIsProfileOpen(false)}
                                                 className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-xl transition group"
                                             >
-                                                <item.icon className="w-4 h-4 text-slate-500 group-hover:text-emerald-500 transition-colors" />
+                                                <item.icon className="w-4 h-4 text-slate-500 group-hover:text-primary transition-colors" />
                                                 <span className="font-medium">{item.label}</span>
                                             </Link>
                                         ))}
@@ -158,7 +158,7 @@ function ClientLayoutContent({ children }) {
                             <Link
                                 key={tab.href}
                                 href={tab.href}
-                                className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${isActive ? 'text-emerald-500' : 'text-slate-500 hover:text-slate-300'}`}
+                                className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-300'}`}
                             >
                                 <Icon className={`w-6 h-6 mb-1 ${isActive ? 'fill-current' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
                                 <span className={`text-[10px] font-medium tracking-wide ${isActive ? 'opacity-100' : 'opacity-70'}`}>

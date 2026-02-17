@@ -35,17 +35,17 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
             href={href}
             onClick={() => onClose && onClose()} // Close on mobile click
             className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 overflow-hidden whitespace-nowrap ${isActive(href)
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                ? 'bg-primary/10 text-primary border border-primary/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
                 }`}
             title={isCollapsed ? label : ''}
         >
-            <Icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive(href) ? 'text-emerald-500' : 'text-slate-500 group-hover:text-white'}`} />
+            <Icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive(href) ? 'text-primary' : 'text-slate-500 group-hover:text-white'}`} />
             <span className={`transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
                 {label}
             </span>
             {badge && !isCollapsed && (
-                <span className="ml-auto bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">
+                <span className="ml-auto bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded font-bold">
                     {badge}
                 </span>
             )}
@@ -57,7 +57,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
             {!isCollapsed && (
                 <button
                     onClick={() => toggleGroup(id)}
-                    className={`w-full flex items-center justify-between px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-colors ${expandedGroups[id] ? 'text-emerald-500' : 'text-slate-600 hover:text-slate-400'
+                    className={`w-full flex items-center justify-between px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-colors ${expandedGroups[id] ? 'text-primary' : 'text-slate-600 hover:text-slate-400'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -97,7 +97,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     <div className="flex items-center gap-3 w-full justify-center md:justify-start">
                         {!isCollapsed ? (
                             <img
-                                src="/logos/NEXT_logo_idêntica.svg"
+                                src="/logos/logo_convertido.svg"
                                 alt="Platform Logo"
                                 className="h-10 object-contain w-auto transition-all duration-300"
                             />
@@ -191,10 +191,10 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                                 <img
                                     src={barbershop.logo_url || barbershop.logoUrl}
                                     alt={barbershop.name || 'Logo'}
-                                    className="w-8 h-8 rounded-full object-cover border border-emerald-500/30"
+                                    className="w-8 h-8 rounded-full object-cover border border-primary/30"
                                 />
                             ) : (
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-500 text-xs font-bold">
+                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold">
                                     {user?.name?.[0]}
                                 </div>
                             )}
@@ -208,10 +208,10 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             <img
                                 src={barbershop.logo_url || barbershop.logoUrl}
                                 alt={barbershop.name || 'Logo'}
-                                className="w-8 h-8 mx-auto rounded-full object-cover border border-emerald-500/30"
+                                className="w-8 h-8 mx-auto rounded-full object-cover border border-primary/30"
                             />
                         ) : (
-                            <div className="w-8 h-8 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-500 text-xs font-bold">
+                            <div className="w-8 h-8 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold">
                                 {user?.name?.[0]}
                             </div>
                         )
