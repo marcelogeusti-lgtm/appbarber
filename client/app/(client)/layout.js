@@ -58,9 +58,11 @@ function ClientLayoutContent({ children }) {
 
                 {/* Logo */}
                 <Link href="/home" className="flex items-center">
-                    <div className="bg-emerald-600 px-3 py-1 rounded-full flex items-center justify-center border border-white/10 shadow-lg shadow-emerald-500/20">
-                        <span className="text-white font-bold text-xs tracking-wider uppercase font-sans">Barberon</span>
-                    </div>
+                    <img
+                        src="/logos/logo_full.svg"
+                        alt="BarbeOn"
+                        className="h-8 w-auto object-contain"
+                    />
                 </Link>
 
                 {/* Desktop Navigation */}
