@@ -105,7 +105,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             <img
                                 src="/logos/logo_icon.svg"
                                 alt="Platform Icon"
-                                className="w-10 h-10 object-contain transition-all duration-300"
+                                className="w-12 h-12 object-contain transition-all duration-300"
                             />
                         )}
                     </div>
