@@ -6,7 +6,7 @@ services:
     buildCommand: npm install && npx prisma generate
     startCommand: npm start
     plan: free
-    region: oregon 
+    region: oregon
     envVars:
       - key: NODE_VERSION
         value: 18.17.0
@@ -19,4 +19,6 @@ services:
       - key: WHATSAPP_API_TOKEN
         sync: false
       - key: WHATSAPP_INSTANCE_NAME
+        sync: false
+      - key: ENCRYPTION_KEY
         sync: false
