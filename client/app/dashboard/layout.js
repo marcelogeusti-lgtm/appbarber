@@ -61,8 +61,33 @@ export default function DashboardLayout({ children }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex min-h-screen bg-background text-foreground font-sans">
+                {/* Skeleton Sidebar */}
+                <aside className="w-80 border-r border-border bg-card hidden lg:flex flex-col p-8 opacity-50 animate-pulse">
+                    <div className="w-32 h-10 bg-muted rounded-xl mb-12"></div>
+                    <div className="space-y-4 flex-1">
+                        {[1, 2, 3, 4, 5, 6].map(i => (
+                            <div key={i} className="w-full h-12 bg-muted rounded-2xl mb-2"></div>
+                        ))}
+                    </div>
+                </aside>
+
+                <div className="flex-1 flex flex-col min-h-screen">
+                    {/* Skeleton TopBar */}
+                    <header className="h-24 border-b border-border bg-card flex items-center justify-between px-8 md:px-12 opacity-50 animate-pulse">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-muted rounded-full"></div>
+                            <div className="space-y-2 hidden md:block">
+                                <div className="w-40 h-4 bg-muted rounded"></div>
+                                <div className="w-24 h-3 bg-muted rounded"></div>
+                            </div>
+                        </div>
+                        <div className="w-24 h-10 bg-muted rounded-xl"></div>
+                    </header>
+                    <main className="flex-1 p-8 md:p-12 flex items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </main>
+                </div>
             </div>
         );
     }

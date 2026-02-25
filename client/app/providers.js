@@ -9,10 +9,11 @@ export default function Providers({ children }) {
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
             queries: {
-                // With SSR, we usually want to set some default staleTime
-                // above 0 to avoid refetching immediately on the client
-                staleTime: 60 * 1000, // 1 minute
-                refetchOnWindowFocus: false,
+                // Aumentado para 5 minutos para evitar loading na troca rápida de abas
+                staleTime: 5 * 60 * 1000,
+                gcTime: 10 * 60 * 1000, // Garbage collection time (mantém dados antigas na RAM por 10 min)
+                refetchOnWindowFocus: true, // Recarrega se o usuário sair e voltar pro navegador (Bom para ver status pagos)
+                retry: 1, // Não insistir muito se o net cair (evita travamentos ruins)
             },
         },
     }));

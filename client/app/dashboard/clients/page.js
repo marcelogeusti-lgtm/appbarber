@@ -1,17 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar, Plus, Trash2, AlertCircle, Users } from 'lucide-react';
 import api from '../../../lib/api';
 import ClientDetailsModal from '../../../components/ClientDetailsModal';
 import NewClientModal from '../../../components/NewClientModal';
 
 export default function ClientsPage() {
-    const [clients, setClients] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedClient, setSelectedClient] = useState(null);
     const [isNewClientModalOpen, setIsNewClientModalOpen] = useState(false);
     const [user, setUser] = useState(null);
+    const [barbershopId, setBarbershopId] = useState(null);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -20,31 +21,22 @@ export default function ClientsPage() {
                 const parsedUser = JSON.parse(userData);
                 setUser(parsedUser);
                 const bId = parsedUser.barbershop?.id || parsedUser.barbershopId || parsedUser.ownedBarbershops?.[0]?.id;
-                if (bId) {
-                    fetchClients(bId);
-                } else {
-                    setLoading(false);
-                }
+                setBarbershopId(bId);
             } catch (e) {
                 console.error("Error parsing user data", e);
-                setLoading(false);
             }
-        } else {
-            setLoading(false);
         }
     }, []);
 
-    const fetchClients = async (barbershopId) => {
-        try {
+    const { data: clients = [], isLoading } = useQuery({
+        queryKey: ['clients', barbershopId],
+        queryFn: async () => {
+            if (!barbershopId) return [];
             const res = await api.get(`/clients?barbershopId=${barbershopId}`);
-            setClients(Array.isArray(res.data) ? res.data : []);
-        } catch (error) {
-            console.error('Error fetching clients:', error);
-            setClients([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!barbershopId,
+    });
 
     const filteredClients = clients.filter(client =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,14 +55,16 @@ export default function ClientsPage() {
         if (!confirm('Tem certeza que deseja remover este cliente da sua lista?')) return;
 
         try {
-            const bId = user?.barbershop?.id || user?.barbershopId || user?.ownedBarbershops?.[0]?.id;
-            await api.delete(`/clients/${clientId}?barbershopId=${bId}`);
-            fetchClients(bId);
+            await api.delete(`/clients/${clientId}?barbershopId=${barbershopId}`);
+            queryClient.invalidateQueries(['clients', barbershopId]);
         } catch (error) {
             console.error('Error deleting client:', error);
             alert('Erro ao remover cliente.');
         }
     };
+
+    // Checks if there's no data AND the query is running
+    const isInitialLoading = isLoading && clients.length === 0;
 
     return (
         <div className="space-y-8 pb-20">
@@ -125,7 +119,7 @@ export default function ClientsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
-                            {loading ? (
+                            {isInitialLoading ? (
                                 <tr>
                                     <td colSpan="5" className="p-20 text-center">
                                         <div className="flex flex-col items-center gap-4">
@@ -219,10 +213,9 @@ export default function ClientsPage() {
                 isOpen={isNewClientModalOpen}
                 onClose={() => setIsNewClientModalOpen(false)}
                 onSuccess={() => {
-                    const id = user?.barbershop?.id || user?.barbershopId || user?.ownedBarbershops?.[0]?.id;
-                    if (id) fetchClients(id);
+                    queryClient.invalidateQueries(['clients', barbershopId]);
                 }}
-                barbershopId={user?.barbershop?.id || user?.barbershopId || user?.ownedBarbershops?.[0]?.id}
+                barbershopId={barbershopId}
             />
         </div>
     );

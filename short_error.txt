@@ -1,0 +1,6 @@
+Erro Mercado Pago (Orders): user not found
+Error: Erro Mercado Pago (Orders): user not found
+    at MercadoPagoAdapter.createPayment (C:\Users\wanie\Downloads\MARCELO\EU\App Barbeiro\server\src\services\payment\gateways\MercadoPagoAdapter.js:132:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async PaymentOrchestrator.createPayment (C:\Users\wanie\Downloads\MARCELO\EU\App Barbeiro\server\src\services\payment\PaymentOrchestrator.js:159:24)
+    at async testIntegratedPayment (C:\Users\wanie\Downloads\MARCELO\EU\App Barbeiro\server\scripts\test_integrated_payment.js:62:24)

@@ -1,49 +1,47 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { ShoppingBag, Plus, Trash2, Search, Package, AlertCircle, Edit } from 'lucide-react';
 
 export default function ProductsPage() {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [newProduct, setNewProduct] = useState({ name: '', price: '', costPrice: '', stock: '' });
     const [isAdding, setIsAdding] = useState(false);
-    const [isEditing, setIsEditing] = useState(null); // id of product being edited
+    const [isEditing, setIsEditing] = useState(null);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [user, setUser] = useState(null);
+    const [barbershopId, setBarbershopId] = useState(null);
 
     useEffect(() => {
-        fetchProducts();
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const parsed = JSON.parse(userStr);
+            setUser(parsed);
+            const bId = parsed.barbershopId || parsed.barbershop?.id || parsed.ownedBarbershops?.[0]?.id;
+            setBarbershopId(bId);
+        }
     }, []);
 
-    const fetchProducts = async () => {
-        try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) return;
-            const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
-            const res = await api.get(`/products?barbershopId=${bId}`);
-            setProducts(res.data);
-            setLoading(false);
-        } catch (err) {
-            console.error(err);
-            setLoading(false);
-        }
-    };
+    const { data: products = [], isLoading } = useQuery({
+        queryKey: ['products', barbershopId],
+        queryFn: async () => {
+            if (!barbershopId) return [];
+            const res = await api.get(`/products?barbershopId=${barbershopId}`);
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!barbershopId,
+    });
 
     const handleCreateProduct = async (e) => {
         e.preventDefault();
         setError('');
         try {
-            const userStr = localStorage.getItem('user');
-            const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
-            await api.post('/products', { ...newProduct, barbershopId: bId });
+            await api.post('/products', { ...newProduct, barbershopId });
             setNewProduct({ name: '', price: '', costPrice: '', stock: '' });
             setIsAdding(false);
-            fetchProducts();
+            queryClient.invalidateQueries(['products', barbershopId]);
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao criar produto');
         }
@@ -56,7 +54,7 @@ export default function ProductsPage() {
             await api.put(`/products/${isEditing}`, newProduct);
             setIsEditing(null);
             setNewProduct({ name: '', price: '', costPrice: '', stock: '' });
-            fetchProducts();
+            queryClient.invalidateQueries(['products', barbershopId]);
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao atualizar produto');
         }
@@ -77,7 +75,7 @@ export default function ProductsPage() {
         if (!confirm('Deseja excluir este produto?')) return;
         try {
             await api.delete(`/products/${id}`);
-            fetchProducts();
+            queryClient.invalidateQueries(['products', barbershopId]);
         } catch (err) {
             alert('Erro ao excluir');
         }
@@ -90,7 +88,9 @@ export default function ProductsPage() {
         return isNaN(num) ? '0.00' : num.toFixed(2);
     };
 
-    if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs">Carregando produtos...</div>;
+    const isInitialLoading = isLoading && products.length === 0;
+
+    if (isInitialLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs">Carregando produtos...</div>;
 
     return (
         <div className="space-y-8 pb-20">

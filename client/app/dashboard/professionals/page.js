@@ -54,7 +54,9 @@ export default function ProfessionalsPage() {
         }
     };
 
-    if (loadingPros) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Carregando equipe...</div>;
+    const isInitialLoading = loadingPros && professionals.length === 0;
+
+    if (isInitialLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Carregando equipe...</div>;
 
     return (
         <div className="space-y-8 pb-20">

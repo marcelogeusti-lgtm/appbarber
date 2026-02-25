@@ -7,7 +7,7 @@ import {
     ShoppingBag, Receipt, DollarSign, PieChart, Wallet,
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, ScrollText, MessageSquare,
-    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield
+    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star
 } from 'lucide-react';
 
 export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, onClose }) {
@@ -148,6 +148,8 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                         <MenuItem href="/dashboard/orders" icon={ScrollText} label="Comandas" />
                         <MenuItem href="/dashboard/subscriptions" icon={Package} label="Planos & Assinaturas" />
                         <MenuItem href="/dashboard/subscribers" icon={Users} label="Assinantes" />
+                        <MenuItem href="/dashboard/loyalty" icon={Gift} label="Fidelidade" />
+                        <MenuItem href="/dashboard/reviews" icon={Star} label="Avaliações" />
                     </MenuGroup>
 
                     {/* Conteúdo (Cursos) */}

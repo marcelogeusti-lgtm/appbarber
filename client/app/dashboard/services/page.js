@@ -130,7 +130,11 @@ export default function ServicesPage() {
         }
     };
 
-    if (loadingServices) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs">Carregando serviços...</div>;
+    // isPending checks if there's absolutely NO data yet.
+    // If we have cached data, it won't show the skeleton/spinner.
+    const isInitialLoading = loadingServices && services.length === 0;
+
+    if (isInitialLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs">Carregando serviços...</div>;
 
     return (
         <div className="space-y-8 pb-20">

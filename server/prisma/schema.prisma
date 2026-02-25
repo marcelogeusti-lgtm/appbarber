@@ -109,6 +109,8 @@ model Client {
   
   reviews        Review[]
   favorites      FavoriteBarbershop[]
+  
+  points         Int      @default(0)
 }
 
 model GatewayCustomer {

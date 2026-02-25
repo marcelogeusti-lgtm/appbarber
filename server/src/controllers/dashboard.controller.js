@@ -15,28 +15,32 @@ exports.getDashboardStats = async (req, res) => {
         const startOfYesterday = new Date(yesterday);
         const endOfYesterday = new Date(new Date(yesterday).setHours(23, 59, 59, 999));
 
-        // 1. Revenue and Attendance (Based on Orders CLOSED/PAID)
+        // 1. Revenue and Attendance using Aggregations
         const [
-            todayOrders,
-            yesterdayOrders,
+            todayStats,
+            yesterdayStats,
             totalRevenueResult,
-            uniqueClientsResult
+            uniqueClientsCount,
+            openCommandsCount
         ] = await Promise.all([
-            // Today's Orders
-            prisma.order.findMany({
+            // Today's Orders (Aggregate sum and count)
+            prisma.order.aggregate({
                 where: {
                     barbershopId,
                     status: { in: ['CLOSED', 'PAID'] },
                     updatedAt: { gte: startOfToday, lte: endOfToday }
-                }
+                },
+                _sum: { total: true },
+                _count: { id: true }
             }),
-            // Yesterday's Orders
-            prisma.order.findMany({
+            // Yesterday's Orders (Aggregate sum only)
+            prisma.order.aggregate({
                 where: {
                     barbershopId,
                     status: { in: ['CLOSED', 'PAID'] },
                     updatedAt: { gte: startOfYesterday, lte: endOfYesterday }
-                }
+                },
+                _sum: { total: true }
             }),
             // Total Lifetime Revenue
             prisma.order.aggregate({
@@ -46,25 +50,24 @@ exports.getDashboardStats = async (req, res) => {
                 },
                 _sum: { total: true }
             }),
-            // Real Clients (Unique IDs with history)
-            // Rule: Has at least one appointment OR one order OR one manual entry (CommunicationLog)
-            // Filtering for only ACTIVE clients (Soft Delete)
-            prisma.$queryRaw`
-                SELECT COUNT(DISTINCT "clientId") as count FROM (
-                    SELECT "clientId" FROM "Appointment" WHERE "barbershopId" = ${barbershopId}
-                    UNION
-                    SELECT "clientId" FROM "Order" WHERE "barbershopId" = ${barbershopId} AND "status" IN ('CLOSED', 'PAID')
-                    UNION
-                    SELECT "clientId" FROM "CommunicationLog" WHERE "barbershopId" = ${barbershopId}
-                ) as all_links
-                WHERE "clientId" IN (SELECT "id" FROM "Client" WHERE "active" = true)
-            `
+            // Simpler unique clients via Prisma groupBy (much faster than giant queryRaw UNION)
+            prisma.appointment.groupBy({
+                by: ['clientId'],
+                where: {
+                    barbershopId,
+                    client: { active: true } // Ensure active
+                },
+            }).then(clients => clients.length),
+
+            // Open Commands Count
+            prisma.order.count({ where: { barbershopId, status: 'OPEN' } })
         ]);
 
-        const revenueToday = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-        const revenueYesterday = yesterdayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const revenueToday = todayStats._sum.total || 0;
+        const revenueYesterday = yesterdayStats._sum.total || 0;
         const revenueTotal = totalRevenueResult._sum.total || 0;
-        const clientsTotal = Number(uniqueClientsResult[0]?.count || 0);
+        const clientsTotal = uniqueClientsCount || 0;
+        const appointmentsToday = todayStats._count.id || 0;
 
         // Trend calculation
         let revenueTrend = "0% vs ontem";
@@ -79,10 +82,9 @@ exports.getDashboardStats = async (req, res) => {
             revenueToday,
             revenueTotal,
             revenueTrend,
-            appointmentsToday: todayOrders.length, // Count of finalized orders
+            appointmentsToday,
             clientsTotal,
-            // Add open commands count for convenience
-            openCommands: await prisma.order.count({ where: { barbershopId, status: 'OPEN' } })
+            openCommands: openCommandsCount
         });
 
     } catch (error) {

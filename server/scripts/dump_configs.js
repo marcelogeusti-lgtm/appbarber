@@ -1,18 +1,30 @@
+
 const { PrismaClient } = require('@prisma/client');
-const fs = require('fs');
 const prisma = new PrismaClient();
 
-async function main() {
-    const barbershopId = '94dad01c-504e-4f93-bcfe-5371d5a7ee50';
-    const configs = await prisma.gatewayConfig.findMany({
-        where: { barbershopId }
+async function checkConfigs() {
+    const email = 'marcelogeusti@gmail.com';
+    const user = await prisma.user.findFirst({
+        where: { email },
+        include: { ownedBarbershops: { include: { gatewayConfigs: true } } }
     });
-    fs.writeFileSync('db_check.json', JSON.stringify(configs, null, 2));
-    console.log('Results written to db_check.json');
+
+    if (!user) {
+        console.log('User not found');
+        return;
+    }
+
+    const shop = user.ownedBarbershops[0];
+    if (!shop) {
+        console.log('Shop not found');
+        return;
+    }
+
+    console.log(`Shop: ${shop.name} (${shop.id})`);
+    require('fs').writeFileSync('configs.json', JSON.stringify(shop.gatewayConfigs, null, 2));
+    console.log('Configs written to configs.json');
 }
 
-main()
+checkConfigs()
     .catch(e => console.error(e))
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+    .finally(async () => await prisma.$disconnect());

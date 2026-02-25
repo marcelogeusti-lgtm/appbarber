@@ -59,6 +59,12 @@ exports.getReviews = async (req, res) => {
             include: {
                 client: {
                     select: { name: true, avatarUrl: true }
+                },
+                appointment: {
+                    include: {
+                        service: { select: { name: true } },
+                        professional: { select: { name: true } }
+                    }
                 }
             },
             orderBy: { createdAt: 'desc' }

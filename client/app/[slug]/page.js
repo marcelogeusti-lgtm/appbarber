@@ -821,7 +821,7 @@ export default function BarbershopPage() {
                                                 <p className="text-slate-500 text-xs">Aproveite para garantir seus produtos favoritos</p>
                                             </div>
                                             <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto pr-1">
-                                                {products.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0)).map(p => {
+                                                {(products || []).slice().sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0)).map(p => {
                                                     const isSel = selectedProducts.find(sp => sp.id === p.id);
                                                     return (
                                                         <div key={p.id} onClick={() => handleProductToggle(p)} className={`p-3 rounded-2xl border flex items-center gap-4 cursor-pointer transition ${isSel ? 'bg-emerald-500/10 border-emerald-500' : 'bg-slate-900 border-slate-800'}`}>

@@ -73,8 +73,8 @@ async function testIntegratedPayment() {
     } catch (error) {
         console.error("\n=== ERRO NO TESTE ===");
         console.error(error.message);
+        require('fs').writeFileSync('short_error.txt', error.message + '\n' + (error.stack || ''));
         if (error.response) console.error(JSON.stringify(error.response.data, null, 2));
-        console.error(error);
     } finally {
         await prisma.$disconnect();
     }
