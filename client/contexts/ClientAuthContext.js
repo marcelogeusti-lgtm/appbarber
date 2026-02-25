@@ -118,6 +118,10 @@ export function ClientAuthProvider({ children }) {
             const res = await api.post('/auth/social-login', { ...payload, context: 'CLIENT' });
             const { token, user } = res.data;
             persistSession(token, user);
+
+            // Redirect to home after login
+            router.push('/home');
+
             return { success: true };
         } catch (error) {
             return {
