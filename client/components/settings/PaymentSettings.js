@@ -91,19 +91,10 @@ export default function PaymentSettings() {
                     icon={<div className="w-16 h-16 rounded-2xl bg-white p-2 border border-border shadow-xl group-hover:scale-110 transition-transform flex items-center justify-center">
                         <img src="/logos/mercadopago.png" alt="Mercado Pago" className="w-full h-full object-contain" />
                     </div>}
-                    helpText="Acesse suas credenciais de Produção no painel do Mercado Pago Developers."
+                    helpText="Acesse suas credenciais no painel do Mercado Pago Developers."
                     fields={[
-                        {
-                            name: 'environment',
-                            label: 'Ambiente de Operação',
-                            type: 'radio',
-                            options: [
-                                { label: 'Ambiente de Teste (Sandbox)', value: 'sandbox' },
-                                { label: 'Produção Real', value: 'production' }
-                            ]
-                        },
-                        { name: 'publicKey', label: 'Public Key de Produção', placeholder: 'APP_USR-...' },
-                        { name: 'accessToken', label: 'Access Token Mestre', type: 'password', placeholder: 'APP_USR-...' },
+                        { name: 'publicKey', label: 'Public Key', placeholder: 'APP_USR-... ou TEST-...' },
+                        { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'APP_USR-... ou TEST-...' },
                         { name: 'secretKey', label: 'Secret Key (Webhooks)', type: 'password', placeholder: 'Para validação de segurança...' }
                     ]}
                 />
