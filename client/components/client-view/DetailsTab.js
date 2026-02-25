@@ -4,33 +4,39 @@ import { MapPin, Phone, Clock, Wifi, Car, Accessibility, Baby } from 'lucide-rea
 export default function DetailsTab({ barbershop }) {
     return (
         <div className="space-y-8 text-slate-300 pb-24">
-            {/* Map */}
-            <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(barbershop.address + ', ' + barbershop.city)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block h-48 rounded-3xl bg-slate-800 overflow-hidden relative border border-white/10 hover:border-emerald-500/50 transition-all group"
-            >
-                {/* Background Pattern / Static Map Placeholder */}
-                <div className="absolute inset-0 bg-[#1e293b] flex items-center justify-center">
-                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #334155 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
-                    <div className="flex flex-col items-center gap-2 group-hover:scale-110 transition-transform">
-                        <MapPin className="w-10 h-10 text-emerald-500" />
-                        <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{barbershop.city || 'Ver no Mapa'}</span>
-                    </div>
+            {/* Address & Map Block */}
+            <div className="bg-[#111] rounded-3xl border border-white/5 overflow-hidden flex flex-col sm:flex-row shadow-2xl">
+                {/* Text Section */}
+                <div className="p-6 flex-1 flex flex-col justify-center bg-gradient-to-br from-[#151a23] to-[#0c0f14]">
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Endereço
+                    </p>
+                    <h3 className="text-[15px] font-bold text-white mb-1 leading-snug">
+                        {barbershop.address || 'Localização não informada'}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+                        {barbershop.city || 'Atendimento Local'}
+                    </p>
                 </div>
 
-                {/* Info Overlay */}
-                <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                        <MapPin className="w-4 h-4 text-emerald-500" />
+                {/* Map Button Section */}
+                <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((barbershop.address || '') + ', ' + (barbershop.city || ''))}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative bg-slate-900 sm:w-48 overflow-hidden flex flex-col items-center justify-center p-6 border-t sm:border-t-0 sm:border-l border-white/5 hover:bg-slate-800 transition-colors group"
+                >
+                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #334155 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
+                    <div className="relative z-10 flex flex-col items-center gap-2 group-hover:scale-110 transition-transform duration-300">
+                        <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30">
+                            <MapPin className="w-6 h-6 text-emerald-500" />
+                        </div>
+                        <span className="text-[10px] font-black text-white uppercase tracking-widest text-center shadow-black drop-shadow-md">
+                            Abrir no Mapa
+                        </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Endereço</p>
-                        <p className="text-xs text-white truncate font-medium">{barbershop.address || 'Endereço não informado'}</p>
-                    </div>
-                </div>
-            </a>
+                </a>
+            </div>
 
             <div className="space-y-4">
                 <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Sobre</h3>
