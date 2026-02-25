@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// Google Login Configuration Trigger
 export const metadata = {
     title: 'Barbe-On - Sistema de Gestão para Barbearias',
     description: 'O sistema de gestão que sua barbearia merece',
