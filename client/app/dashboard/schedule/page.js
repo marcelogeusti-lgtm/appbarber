@@ -335,9 +335,13 @@ export default function SchedulePage() {
                 )}
 
                 {activeTab === 'availability' && (
-                    <div className="p-20 text-center">
-                        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Visualização de horários livres em desenvolvimento.</p>
-                    </div>
+                    <AvailabilityView
+                        currentDate={currentDate}
+                        professionals={professionals}
+                        selectedPro={selectedPro}
+                        barbershopId={barbershopId}
+                        services={services}
+                    />
                 )}
             </div>
 
@@ -345,6 +349,7 @@ export default function SchedulePage() {
                 isOpen={isSqueezeInOpen}
                 onClose={() => setIsSqueezeInOpen(false)}
                 services={services}
+                professionals={professionals}
                 barbershopId={barbershopId}
                 onConfirm={handleSqueezeInConfirm}
             />
@@ -700,6 +705,69 @@ function MonthView({ currentDate, getFilteredAppointments, professionals, select
     );
 }
 
+
+function AvailabilityView({ currentDate, professionals, selectedPro, barbershopId, services }) {
+    const [availability, setAvailability] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!barbershopId || services.length === 0) return;
+
+        // Let's use the shortest service or the first service to get maximum granularity of 30min blocks
+        const targetService = services.find(s => s.duration === 30) || services[0];
+        if (!targetService) return;
+
+        const fetchAvail = async () => {
+            setLoading(true);
+            try {
+                const dateStr = format(currentDate, 'yyyy-MM-dd');
+                const res = await api.get(`/availability/${barbershopId}/${dateStr}`, {
+                    params: { serviceIds: targetService.id }
+                });
+                setAvailability(res.data);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAvail();
+    }, [currentDate, barbershopId, services]);
+
+    if (loading) return <div className="p-20 text-center text-muted-foreground animate-pulse text-xs font-bold uppercase tracking-widest">Calculando matriz de horários...</div>;
+
+    const filteredAvail = selectedPro === 'all' ? availability : availability.filter(a => a.proId === selectedPro);
+
+    if (filteredAvail.length === 0) return (
+        <div className="p-20 text-center text-muted-foreground text-[10px] font-bold uppercase tracking-widest flex flex-col items-center gap-4">
+            <AlertCircle className="w-8 h-8 text-muted-foreground/50" />
+            Nenhum profissional com escala encontrada ou não há serviços.
+        </div>
+    );
+
+    return (
+        <div className="p-8 space-y-8 animate-in fade-in duration-500">
+            {filteredAvail.map(pro => (
+                <div key={pro.proId} className="space-y-4">
+                    <h4 className="font-black text-lg uppercase tracking-tight text-foreground flex items-center gap-2 pb-2 border-b border-border/50 w-full">
+                        <User className="w-4 h-4 text-primary" /> {pro.proName}
+                    </h4>
+                    {pro.slots.length > 0 ? (
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                            {pro.slots.map(time => (
+                                <div key={time} className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 p-3 rounded-xl text-center font-black text-[12px] shadow-sm hover:scale-105 transition-transform cursor-default">
+                                    {time}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-widest bg-muted/20 p-4 rounded-xl inline-block">Nenhum horário livre.</p>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}
 
 function EmptyState() {
     return (
