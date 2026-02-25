@@ -1,6 +1,6 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { PlayCircle, GraduationCap, Clock, ExternalLink, Zap } from 'lucide-react';
+import { PlayCircle, GraduationCap, Clock, ExternalLink, Zap, AlertCircle } from 'lucide-react';
 import api from '../../../lib/api';
 import Skeleton from '../../../components/ui/Skeleton';
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import api from '../../lib/clientApi';
 import { Loader2 } from 'lucide-react';
 
 const PaymentBrick = ({
@@ -23,7 +23,7 @@ const PaymentBrick = ({
     useEffect(() => {
         const fetchPublicKey = async () => {
             try {
-                const { data } = await axios.get(`/api/payments/public-key?barbershopId=${barbershopId}`);
+                const { data } = await api.get(`/payments/public-key?barbershopId=${barbershopId}`);
                 if (data.publicKey) {
                     initMercadoPago(data.publicKey, { locale: 'pt-BR' });
                     setPublicKey(data.publicKey);
@@ -76,7 +76,7 @@ const PaymentBrick = ({
         // Brick onSubmit returns { formData }
         const { formData } = param;
         try {
-            const response = await axios.post('/api/payments/process-brick', {
+            const response = await api.post('/payments/process-brick', {
                 ...formData,
                 barbershopId,
                 description,
