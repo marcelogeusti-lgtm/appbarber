@@ -74,3 +74,5 @@ client/node_modules/
 .next/
 client/.next/
 client/public/logos/Samuel ensaio/
+.vercel
+.env*.local
