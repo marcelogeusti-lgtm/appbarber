@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Star, User, MessageSquare } from 'lucide-react';
 import api from '../../lib/clientApi';
+import { toast } from 'react-hot-toast';
 
 export default function ReviewsTab({ barbershopId }) {
     const [reviews, setReviews] = useState([]);
@@ -9,15 +10,47 @@ export default function ReviewsTab({ barbershopId }) {
     const [average, setAverage] = useState(5.0);
 
     const [unreviewed, setUnreviewed] = useState([]);
+    const [isWriting, setIsWriting] = useState(false);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
 
     useEffect(() => {
-        if (barbershopId && localStorage.getItem('token')) {
-            // Fetch unreviewed appointments to allow the user to write a review
-            api.get(`/appointments/unreviewed?barbershopId=${barbershopId}`)
-                .then(res => setUnreviewed(res.data))
-                .catch(err => console.error("Error fetching unreviewed apps", err));
-        }
+        const fetchReviewsAndUnreviewed = async () => {
+            if (!barbershopId) return;
+            setLoading(true);
+            try {
+                // Fetch public reviews
+                const reviewsRes = await api.get(`/reviews?barbershopId=${barbershopId}`);
+                const fetchedReviews = reviewsRes.data;
+                setReviews(fetchedReviews);
+
+                // Calculate average dynamically
+                if (fetchedReviews && fetchedReviews.length > 0) {
+                    const sum = fetchedReviews.reduce((acc, curr) => acc + curr.rating, 0);
+                    setAverage((sum / fetchedReviews.length).toFixed(1));
+                }
+
+                // Check logged user for eligible appointments to review
+                if (localStorage.getItem('token')) {
+                    api.get(`/appointments/unreviewed?barbershopId=${barbershopId}`)
+                        .then(res => setUnreviewed(res.data))
+                        .catch(err => console.error("Error fetching unreviewed apps", err));
+                }
+            } catch (error) {
+                console.error("Error loading reviews", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReviewsAndUnreviewed();
     }, [barbershopId]);
+
+    const formatTime = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleDateString('pt-BR');
+    };
 
     const handleSubmitReview = async () => {
         if (!comment && rating === 0) return;
