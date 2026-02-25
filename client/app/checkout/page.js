@@ -144,18 +144,12 @@ export default function CheckoutPage() {
             }
 
             if (qr_code_base64 || qr_code) {
-                // Pix UI (Fallback if Brick doesn't handle it, though usually Brick does)
-                // But strictly speaking, if backend generated it, we show it.
+                // Redireciona imediatamente para a tela especializada de PIX com Copia e Cola / Polling
+                router.push(`/checkout-pix?id=${paymentResult.id}`);
                 return (
-                    <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-4">
-                        <h1 className="text-2xl font-bold mb-4">Pagamento Pix Gerado</h1>
-                        {qr_code_base64 && (
-                            <img src={`data:image/png;base64,${qr_code_base64}`} alt="Pix QR Code" className="w-64 h-64 mb-4 rounded-lg" />
-                        )}
-                        <p className="text-slate-400 mb-8 max-w-md text-center">Escaneie o QR Code para pagar.</p>
-                        <button onClick={() => router.push('/dashboard/appointments')} className="text-slate-500 underline">
-                            Já paguei, voltar
-                        </button>
+                    <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-4 animate-pulse">
+                        <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-6" />
+                        <h1 className="text-xl font-bold text-slate-300">Preparando ambiente PIX...</h1>
                     </div>
                 );
             }

@@ -147,7 +147,7 @@ export default function CheckoutPixPage() {
                         <>
                             <div className="text-center space-y-2">
                                 <h1 className="text-2xl font-bold text-white">Pagamento via Pix</h1>
-                                <p className="text-sm text-slate-400">Escaneie o QR Code ou use o Copia e Cola</p>
+                                <p className="text-sm text-slate-400">Escaneie o QR Code abaixo com seu celular</p>
                             </div>
 
                             {/* QR Code Card */}
@@ -175,25 +175,42 @@ export default function CheckoutPixPage() {
                             </div>
 
                             {/* Copia e Cola */}
-                            <div className="space-y-3 pt-4">
+                            <div className="space-y-4 pt-6 w-full animate-in slide-in-from-bottom-4 duration-700">
+                                <button
+                                    onClick={handleCopy}
+                                    className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 ${copied
+                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5'
+                                        }`}
+                                >
+                                    {copied ? (
+                                        <>
+                                            <CheckCircle className="w-5 h-5" />
+                                            Copiado com Sucesso!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy className="w-5 h-5" />
+                                            Copiar Código Pix
+                                        </>
+                                    )}
+                                </button>
+
                                 <div className="relative">
                                     <input
                                         type="text"
                                         readOnly
                                         value={payment.pixCopiaECola || payment.qrCode || ''}
-                                        className="w-full bg-zinc-900 border border-zinc-800 text-slate-300 text-xs p-4 rounded-xl focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition pr-12 font-mono"
-                                    />
-                                    <button
                                         onClick={handleCopy}
-                                        className="absolute right-2 top-2 bottom-2 aspect-square flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-slate-300 hover:text-white transition"
-                                        title="Copiar"
-                                    >
-                                        {copied ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                                    </button>
+                                        className="w-full bg-zinc-900/50 border border-zinc-800 text-slate-500 text-[10px] p-3 rounded-lg focus:outline-none cursor-pointer text-center truncate font-mono hover:bg-zinc-900 transition"
+                                    />
                                 </div>
-                                <p className="text-center text-[10px] text-slate-500">
-                                    Ao copiar, abra o app do seu banco e escolha "Pix Copia e Cola".
-                                </p>
+
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 mt-2">
+                                    <p className="text-center text-xs text-slate-300 font-medium leading-relaxed">
+                                        Ou se preferir, abra o app do seu banco pelo celular e escolha <strong className="text-emerald-500 font-bold">Pix Copia e Cola</strong>.
+                                    </p>
+                                </div>
                             </div>
                         </>
                     )}
