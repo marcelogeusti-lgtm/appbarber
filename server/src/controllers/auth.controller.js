@@ -221,76 +221,132 @@ exports.login = async (req, res) => {
 // Social Login (Google/Facebook)
 exports.socialLogin = async (req, res) => {
     try {
-        // Payload from Frontend (Firebase/Google Identity)
-        const { email, name, provider, providerId, avatarUrl } = req.body;
+        const { email, name, provider, providerId, avatarUrl, context } = req.body;
 
-        console.log(`[AUTH] Social Login attempt: ${email} via ${provider}`);
+        console.log(`[AUTH] Social Login attempt: ${email} via ${provider} (Context: ${context})`);
 
         if (!email || !provider) {
             return res.status(400).json({ message: 'Email e Provider são obrigatórios' });
         }
 
-        // 1. Find AuthUser
+        // 1. Find or Create AuthUser
         let authUser = await prisma.authUser.findUnique({
             where: { email },
-            include: { client: true, user: true }
+            include: {
+                client: true,
+                user: {
+                    include: { ownedBarbershops: true, workedBarbershop: true }
+                }
+            }
         });
 
-        if (authUser) {
-            console.log(`[AUTH] User found: ${authUser.id}`);
-            // Update info if new
-            if (!authUser.client) {
-                // Determine name: use payload name, or fallback to Pro name, or default
-                const clientName = name || (authUser.user ? authUser.user.name : 'Cliente');
+        if (!authUser) {
+            console.log(`[AUTH] Creating new AuthUser for social login`);
+            authUser = await prisma.authUser.create({
+                data: {
+                    email,
+                    password: null,
+                    provider: provider.toUpperCase(),
+                },
+                include: { client: true, user: true }
+            });
+        }
 
-                const client = await prisma.client.create({
-                    data: {
-                        name: clientName,
-                        authUserId: authUser.id,
-                        avatarUrl: avatarUrl
-                    }
+        // 2. Handle Profiles based on Context
+        if (context === 'PRO') {
+            // If the user doesn't have a professional profile, create one (and a barbershop)
+            if (!authUser.user) {
+                console.log(`[AUTH] Creating new Pro User + Barbershop`);
+                const result = await prisma.$transaction(async (tx) => {
+                    const newUser = await tx.user.create({
+                        data: {
+                            name: name || 'Barbeiro',
+                            email, // Legacy field
+                            role: 'ADMIN',
+                            authUserId: authUser.id,
+                            avatarUrl: avatarUrl
+                        }
+                    });
+
+                    const slug = await generateUniqueSlug(tx, name || 'Minha Barbearia');
+                    const newBarbershop = await tx.barbershop.create({
+                        data: {
+                            name: name ? `${name} Barbearia` : 'Minha Barbearia',
+                            slug,
+                            ownerId: newUser.id,
+                            staff: { connect: { id: newUser.id } },
+                            subscriptionStatus: 'TRIAL',
+                            trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
+                        }
+                    });
+
+                    await tx.professional.create({
+                        data: {
+                            userId: newUser.id,
+                            showInApp: true,
+                            showPublicly: true,
+                            position: 'Proprietário'
+                        }
+                    });
+
+                    return { user: newUser, barbershop: newBarbershop };
                 });
-                authUser.client = client;
+
+                authUser.user = {
+                    ...result.user,
+                    ownedBarbershops: [result.barbershop],
+                    workedBarbershop: null
+                };
             }
-        } else {
-            console.log(`[AUTH] Creating new user for social login`);
-            // 2. Register New User (Social)
-            // Transaction
-            const result = await prisma.$transaction(async (tx) => {
-                const newAuth = await tx.authUser.create({
-                    data: {
-                        email,
-                        password: null, // No password for social
-                        provider: provider.toUpperCase(), // GOOGLE, FACEBOOK
-                    }
-                });
 
-                const newClient = await tx.client.create({
+            const user = authUser.user;
+            const token = generateToken(user, authUser);
+
+            const barbershopId = user.workedBarbershopId || user.barbershopId || user.ownedBarbershops?.[0]?.id;
+            const barbershopSlug = user.ownedBarbershops?.[0]?.slug || user.workedBarbershop?.slug;
+
+            return res.json({
+                token,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: authUser.email,
+                    role: user.role,
+                    avatarUrl: user.avatarUrl
+                },
+                barbershopId,
+                barbershopSlug
+            });
+
+        } else {
+            // Context: CLIENT (or default)
+            if (!authUser.client) {
+                console.log(`[AUTH] Creating new Client profile`);
+                const newClient = await prisma.client.create({
                     data: {
-                        name: name || 'Novo Cliente',
-                        authUserId: newAuth.id,
+                        name: name || 'Cliente',
+                        authUserId: authUser.id,
                         avatarUrl: avatarUrl,
                         theme: 'dark'
                     }
                 });
-                return { authUser: newAuth, client: newClient };
-            });
-            authUser = result.authUser;
-            authUser.client = result.client;
-        }
-
-        const token = generateClientToken(authUser.client, authUser);
-
-        res.json({
-            token,
-            user: {
-                id: authUser.client.id,
-                name: authUser.client.name,
-                email: authUser.email,
-                role: 'CLIENT',
-                avatarUrl: authUser.client.avatarUrl
+                authUser.client = newClient;
             }
-        });
+
+            const client = authUser.client;
+            const token = generateClientToken(client, authUser);
+
+            return res.json({
+                token,
+                user: {
+                    id: client.id,
+                    name: client.name,
+                    email: authUser.email,
+                    role: 'CLIENT',
+                    avatarUrl: client.avatarUrl
+                }
+            });
+        }
 
     } catch (error) {
         console.error('Social Login Error:', error);

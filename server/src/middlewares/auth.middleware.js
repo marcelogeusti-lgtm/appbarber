@@ -16,8 +16,8 @@ exports.protect = async (req, res, next) => {
         req.user = decoded; // { id, role, barbershopId }
         next();
     } catch (error) {
-        console.error('Token verification failed:', error);
-        res.status(401).json({ message: 'Not authorized, token failed' });
+        console.error(`[AUTH] Token verification failed for ${req.headers.authorization?.substring(0, 15)}... :`, error.message);
+        res.status(401).json({ message: 'Sessão inválida ou expirada. Por favor, faça login novamente.' });
     }
 };
 
