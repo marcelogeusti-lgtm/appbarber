@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
-import { X, Search, Calendar, User, Scissors, CheckCircle, Clock } from 'lucide-react';
+import { X, Search, Calendar, User, Scissors, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { normalizeString } from '../lib/utils/string';
 
