@@ -36,6 +36,9 @@ exports.searchBarbershops = async (req, res) => {
         // If simple ordering needed
         // orderBy = { name: 'asc' }; 
 
+        // Only consider active barbershops
+        where.subscriptionStatus = 'ACTIVE';
+
         const barbershops = await prisma.barbershop.findMany({
             where,
             include: {
@@ -43,18 +46,30 @@ exports.searchBarbershops = async (req, res) => {
                     take: 1,
                     where: { active: true }
                 },
-                // Include Review Rating average? (If implemented)
+                reviews: {
+                    select: { rating: true }
+                }
             },
             take: 50
         });
 
-        // Post-processing for Distance (if lat/lng provided)
+        // Post-processing for Distance and Reviews
         let results = barbershops.map(shop => {
             let distance = null;
             if (lat && lng && shop.latitude && shop.longitude) {
                 distance = calculateDistance(parseFloat(lat), parseFloat(lng), shop.latitude, shop.longitude);
             }
-            return { ...shop, distance }; // distance in km
+
+            let averageRating = "5.0";
+            let totalReviews = 0;
+            if (shop.reviews && shop.reviews.length > 0) {
+                totalReviews = shop.reviews.length;
+                const sum = shop.reviews.reduce((acc, curr) => acc + curr.rating, 0);
+                averageRating = (sum / totalReviews).toFixed(1);
+            }
+
+            const { reviews, ...safeShop } = shop;
+            return { ...safeShop, distance, averageRating, totalReviews }; // distance in km
         });
 
         // 4. Sort by Distance if 'NEARBY'

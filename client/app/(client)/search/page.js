@@ -17,9 +17,18 @@ export default function SearchPage() {
         // Load user name for "Welcome" message if desired, or skip
         const u = localStorage.getItem('user');
         if (u) setUser(JSON.parse(u));
-
-        // Initial fetch or suggestions could go here
     }, []);
+
+    // Live Search with Debounce
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            doSearch(term, filter, location?.lat, location?.lng);
+        }, 500); // 500ms delay after user stops typing
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [term, filter, location]);
 
     const requestLocation = () => {
         if ('geolocation' in navigator) {
@@ -151,9 +160,12 @@ export default function SearchPage() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
                                             <h3 className="font-bold text-white text-base truncate pr-2 group-hover:text-emerald-400 transition">{shop.name}</h3>
-                                            <div className="bg-slate-800 rounded-full px-2 py-0.5 flex items-center gap-1">
+                                            <div className="bg-slate-800 rounded-full px-2 py-0.5 flex items-center gap-1" title={`${shop.totalReviews || 0} avaliações`}>
                                                 <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                                <span className="text-[10px] font-bold text-white">5.0</span>
+                                                <span className="text-[10px] font-bold text-white">
+                                                    {shop.averageRating ? shop.averageRating : '5.0'}
+                                                </span>
+                                                <span className="text-[9px] text-slate-400 font-medium">({shop.totalReviews || 0})</span>
                                             </div>
                                         </div>
 
