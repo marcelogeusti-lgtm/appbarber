@@ -5,97 +5,76 @@
 @layer base {
   :root {
     /* LIGHT MODE - Premium SaaS (Clean & Airy) */
-    /* Background: Pure White */
     --background: 0 0% 100%;
-    /* Foreground: Deep Slate/Black for high contrast */
     --foreground: 222 47% 11%;
 
-    /* Card: Pure White for distinct layering */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
-    /* Popover: Same as Card */
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary: Brand Blue (User Requested #4d72e4) */
     --primary: 225 73% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Soft Slate-100 (#F1F5F9) for subtle elements */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11%;
 
-    /* Muted: Slate-100/200 for deactivated text/bgs */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 16% 47%;
 
-    /* Accent: Slate-100 for hover states */
     --accent: 210 40% 96.1%;
     --accent-foreground: 222 47% 11%;
 
-    /* Destructive: Red-500 */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Border: Slate-200 (#E2E8F0) - Subtle but visible */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
 
     --ring: 225 73% 60%;
 
-    --ring: 225 73% 60%;
+    /* SaaS Minimalist Tokens */
+    --radius: 8px;
+    /* Standard for buttons */
+    --radius-card: 12px;
+    /* Smooth card corners */
 
-    --radius: 0.75rem;
-
-    /* Sidebar: Light Mode (Usually White or Light Slate) */
     --sidebar: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
   }
 
-  /* DARK THEME - Premium SaaS (Deep & Elegant) */
   [data-theme="dark"],
   .dark {
-    /* Background: Deep Slate-950 (#020617) - Not pure black */
     --background: 222 47% 5%;
-    /* Foreground: Slate-50 (#F8FAFC) */
     --foreground: 210 40% 98%;
 
-    /* Card: Slate-900 (#0F172A) - Slightly lighter than BG */
     --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
 
-    /* Popover: Same as Card */
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    /* Primary: Brand Blue (#4d72e4) */
     --primary: 225 73% 60%;
     --primary-foreground: 210 40% 98%;
 
-    /* Secondary: Slate-800 (#1E293B) */
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
 
-    /* Muted: Slate-800 */
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
 
-    /* Accent: Slate-800 for hover */
     --accent: 217 33% 17%;
     --accent-foreground: 210 40% 98%;
 
-    /* Destructive: Red-900/500 mix */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Border: Slate-800 (#1E293B) - Very subtle */
     --border: 217 33% 17%;
     --input: 217 33% 17%;
 
     --ring: 225 73% 60%;
 
-    /* Sidebar: Dark Mode (Slightly different from BG to create depth) */
     --sidebar: 222 47% 7%;
     --sidebar-foreground: 210 40% 98%;
   }
@@ -104,14 +83,49 @@
 @layer base {
   * {
     @apply border-border;
+    letter-spacing: 0.2px;
+  }
+
+  html {
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.4;
+    font-weight: 400;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    @apply tracking-tight;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    @apply tracking-tight;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* Menus and navigation weight */
+  nav,
+  .menu-item {
+    font-weight: 500;
   }
 }
 
-/* Custom Utilities for Neon/Glass effects */
 @layer utilities {
   .glass {
     @apply bg-white/5 backdrop-blur-lg border border-white/10;
@@ -119,14 +133,21 @@
 
   .glass-card {
     @apply bg-card/60 backdrop-blur-md border border-white/5 shadow-xl;
+    border-radius: var(--radius-card);
   }
 
-  .text-glow {
-    text-shadow: 0 0 20px rgba(77, 114, 228, 0.5);
+  .premium-card {
+    @apply border border-border bg-card shadow-sm transition-all duration-200;
+    border-radius: var(--radius-card);
+    padding: 20px;
   }
 
-  .shadow-glow {
-    box-shadow: 0 0 20px rgba(77, 114, 228, 0.3);
+  .shadow-soft {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .section-padding {
+    padding: 24px;
   }
 }
 
@@ -142,18 +163,17 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 9999px;
-    transition: background 0.3s ease;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.2);
   }
 
-  /* For Firefox */
+  /* Support for Firefox and newer Chrome */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
   }
 }

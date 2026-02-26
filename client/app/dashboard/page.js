@@ -78,40 +78,40 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground p-4 md:p-8 space-y-6">
+        <div className="bg-background text-foreground space-y-6">
 
             {/* Header Section */}
-            <div className="bg-card rounded-3xl p-6 md:p-8 border border-border flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="bg-card rounded-xl p-6 border border-border flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary font-bold text-xl">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-lg">
                         {user.name?.[0]}
                     </div>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground flex items-center gap-2">
-                            OLÁ, {user.name?.toUpperCase()}! <Scissors className="w-6 h-6 text-primary" />
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                            Olá, {user.name} <Scissors className="w-5 h-5 text-primary" />
                         </h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                            <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Gestor Barber</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                            <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Gestor Barber</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={() => refetch()}
                         title="Atualizar Dados"
-                        className="p-3 bg-muted border border-border hover:border-primary/50 hover:bg-primary/5 rounded-xl text-muted-foreground hover:text-primary transition-all flex items-center justify-center group"
+                        className="h-9 w-9 bg-card border border-border hover:border-primary/50 hover:bg-primary/5 rounded-lg text-muted-foreground hover:text-primary transition-all flex items-center justify-center group"
                     >
-                        <RotateCw className={`w-4 h-4 group-active:rotate-180 transition-transform duration-500 ${isLoading ? 'animate-spin text-primary' : ''}`} />
+                        <RotateCw className={`w-3.5 h-3.5 transition-transform duration-500 ${isLoading ? 'animate-spin text-primary' : ''}`} />
                     </button>
 
                     <Link
                         href="/search"
                         target="_blank"
-                        className="px-6 py-3 bg-background border border-border hover:border-primary/50 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 group"
+                        className="h-9 px-4 bg-card border border-border hover:border-primary/50 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 group"
                     >
-                        Acessar Marketplace
+                        Marketplace
                         <ExternalLink className="w-3 h-3 group-hover:text-primary" />
                     </Link>
                 </div>
@@ -121,40 +121,37 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* Link Card */}
-                <div className="bg-card rounded-[2rem] p-8 border border-border flex flex-col justify-center">
-                    <div className="flex items-center gap-2 text-primary mb-6">
+                <div className="bg-card rounded-xl p-6 border border-border flex flex-col justify-center">
+                    <div className="flex items-center gap-2 text-primary mb-4">
                         <UsersIcon />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Link de Agendamento Profissional</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Link de Agendamento Profissional</span>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="flex-1 min-w-0 bg-background rounded-xl border border-border flex items-center px-4 py-3 relative group">
-                            <span className="text-[10px] sm:text-xs text-primary/50 truncate font-mono block w-full pr-8">
+                        <div className="flex-1 min-w-0 bg-muted rounded-lg border border-border flex items-center px-3 py-2 relative group">
+                            <span className="text-xs text-slate-500 truncate font-mono block w-full pr-8">
                                 {publicUrl || 'https://...'}
                             </span>
-                            <button onClick={copyToClipboard} className="absolute right-2 p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
-                                <Copy className="w-4 h-4" />
+                            <button onClick={copyToClipboard} className="absolute right-1.5 p-1.5 hover:bg-card rounded-md text-muted-foreground hover:text-foreground transition-colors">
+                                <Copy className="w-3.5 h-3.5" />
                             </button>
                         </div>
                         <a
                             href={publicUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-primary text-primary-foreground px-6 py-4 sm:py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-colors flex items-center justify-center sm:justify-start whitespace-nowrap"
+                            className="bg-primary text-white px-5 h-9 rounded-lg font-bold text-xs hover:bg-primary/90 transition-colors flex items-center justify-center whitespace-nowrap"
                         >
                             Abrir Página
                         </a>
                     </div>
-                    <p className="mt-4 text-[10px] text-slate-500 italic">
-                        Este link é a porta de entrada para novos agendamentos 24h por dia.
-                    </p>
                 </div>
 
                 {/* Today's Appointments Card */}
-                <div className="bg-card rounded-[2rem] p-8 border border-border flex flex-col items-center justify-center text-center relative overflow-hidden">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Atendimentos Hoje</span>
-                    <h2 className="text-6xl font-black text-foreground mb-4">{stats.appointments}</h2>
-                    <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
+                <div className="bg-card rounded-xl p-6 border border-border flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Atendimentos Hoje</span>
+                    <h2 className="text-5xl font-bold text-foreground mb-2">{stats.appointments}</h2>
+                    <div className="bg-primary/5 text-primary border border-primary/10 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider">
                         Atendimento Dinâmico
                     </div>
                 </div>
@@ -163,43 +160,36 @@ export default function DashboardPage() {
             {/* Metrics Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Historical Performance */}
-                <div className="bg-card rounded-[2rem] p-8 border border-border relative overflow-hidden min-h-[180px]">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Performance Histórica</span>
-                    <h3 className="text-4xl font-black text-foreground mb-1">
+                <div className="bg-card rounded-xl p-6 border border-border relative overflow-hidden">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Performance Histórica</span>
+                    <h3 className="text-3xl font-bold text-foreground mb-1">
                         {stats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </h3>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Faturamento Acumulado (Hoje)</p>
-
-                    {/* Decorative Graph */}
-                    <div className="absolute right-0 bottom-0 opacity-10">
-                        <svg width="150" height="80" viewBox="0 0 150 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 79L30 50L60 60L100 20L149 1" stroke="currentColor" className="text-primary" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </div>
+                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Faturamento Hoje</p>
                 </div>
 
                 {/* Community Metric */}
-                <div className="bg-card rounded-[2rem] p-8 border border-border min-h-[180px]">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Nossa Comunidade</span>
-                    <h3 className="text-4xl font-black text-foreground mb-1">{stats.clients}</h3>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Clientes reais na sua base</p>
+                <div className="bg-card rounded-xl p-6 border border-border">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Nossa Comunidade</span>
+                    <h3 className="text-3xl font-bold text-foreground mb-1">{stats.clients}</h3>
+                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Clientes Cadastrados</p>
                 </div>
             </div>
 
             {/* Premium Experience Banner */}
-            <div className="bg-card rounded-[2.5rem] p-8 md:p-12 border border-border relative overflow-hidden">
+            <div className="bg-card rounded-xl p-8 border border-border relative overflow-hidden">
                 <div className="relative z-10 max-w-2xl">
-                    <h2 className="text-2xl md:text-3xl font-black text-foreground mb-4 uppercase leading-tight">
+                    <h2 className="text-xl font-bold text-foreground mb-3 uppercase tracking-tight">
                         A Experiência <span className="text-primary">Premium</span> de Agendamento.
                     </h2>
-                    <p className="text-xs text-muted-foreground font-medium mb-8 max-w-lg leading-relaxed">
+                    <p className="text-sm text-muted-foreground mb-6 max-w-lg leading-relaxed">
                         O NEXT foi desenhado para eliminar fricção. Seu cliente não precisa de apps pesados ou cadastros complexos.
                     </p>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FeatureBox title="Simplicidade" desc="Acesso direto via QR Code ou Link Bio" />
-                        <FeatureBox title="Agilidade" desc="Seleção de profissional em 3 toques" />
-                        <FeatureBox title="Retenção" desc="Histórico e fidelidade automático" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <FeatureBox title="Simplicidade" desc="Acesso via QR Code ou Link" />
+                        <FeatureBox title="Agilidade" desc="Agendamento em 3 toques" />
+                        <FeatureBox title="Retenção" desc="Fidelização automática" />
                     </div>
                 </div>
 
@@ -210,14 +200,14 @@ export default function DashboardPage() {
             </div>
 
             {/* Onboarding / Actions Section */}
-            <div className="rounded-[2.5rem] border border-border border-dashed p-10 text-center relative bg-muted/50">
-                <h3 className="text-xl font-black text-foreground uppercase mb-2">Primeiros Passos...</h3>
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-8">
+            <div className="rounded-xl border border-dashed border-border p-8 text-center bg-muted/30">
+                <h3 className="text-lg font-bold text-foreground mb-2">Primeiros Passos...</h3>
+                <p className="text-xs text-muted-foreground font-medium mb-6">
                     Configure seus serviços e comece a faturar hoje mesmo.
                 </p>
                 <Link
                     href="/dashboard/services"
-                    className="inline-block bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                    className="inline-flex h-10 px-8 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm items-center justify-center"
                 >
                     Cadastrar Meus Serviços
                 </Link>

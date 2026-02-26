@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const checkAuth = require('../middlewares/auth.middleware');
-const masterMiddleware = require('../middlewares/master.middleware'); // se for super-admin apenas
+const { protect, authorize } = require('../middlewares/auth.middleware');
 
 // Provider de WA do projeto
 const whatsAppProvider = require('../services/communication/providers/WhatsAppProvider');
 
 // GET /api/whatsapp/status
 // Retorna o status de conexao e o QR Code em base64 caso esteja aguardando leitura
-router.get('/status', checkAuth, async (req, res) => {
+router.get('/status', protect, async (req, res) => {
     try {
         const data = await whatsAppProvider.getStatus();
         res.json(data);

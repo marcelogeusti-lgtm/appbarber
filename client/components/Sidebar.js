@@ -34,13 +34,13 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
         <Link
             href={href}
             onClick={() => onClose && onClose()} // Close on mobile click
-            className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 overflow-hidden whitespace-nowrap ${isActive(href)
-                ? 'bg-primary/10 text-primary border border-primary/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            className={`group flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 overflow-hidden whitespace-nowrap ${isActive(href)
+                ? 'bg-primary/5 text-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 }`}
             title={isCollapsed ? label : ''}
         >
-            <Icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive(href) ? 'text-primary' : 'text-slate-500 group-hover:text-white'}`} />
+            <Icon className={`w-4 h-4 flex-shrink-0 transition-colors ${isActive(href) ? 'text-primary' : 'text-gray-400 group-hover:text-gray-600'}`} />
             <span className={`transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
                 {label}
             </span>
@@ -53,18 +53,18 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
     );
 
     const MenuGroup = ({ title, id, icon: Icon, children }) => (
-        <div className="mb-2">
+        <div className="mb-4">
             {!isCollapsed && (
                 <button
                     onClick={() => toggleGroup(id)}
-                    className={`w-full flex items-center justify-between px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-colors ${expandedGroups[id] ? 'text-primary' : 'text-slate-600 hover:text-slate-400'
+                    className={`w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors ${expandedGroups[id] ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
                         }`}
                 >
                     <div className="flex items-center gap-2">
-                        <Icon className="w-3 h-3" />
+                        <Icon className="w-3.5 h-3.5" />
                         <span>{title}</span>
                     </div>
-                    {expandedGroups[id] ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    {expandedGroups[id] ? <ChevronDown className="w-3 h-3 opacity-50" /> : <ChevronRight className="w-3 h-3 opacity-50" />}
                 </button>
             )}
 
@@ -87,10 +87,10 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
             )}
 
             <aside className={`
-                fixed inset-y-0 left-0 z-50 bg-sidebar border-r border-border flex flex-col h-full transition-all duration-300 shadow-2xl md:shadow-none
+                fixed inset-y-0 left-0 z-50 bg-sidebar border-r border-border flex flex-col h-full transition-all duration-300 shadow-xl md:shadow-none
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
                 md:translate-x-0 md:sticky md:top-0 md:h-screen
-                ${isCollapsed ? 'md:w-20' : 'md:w-72'}
+                ${isCollapsed ? 'md:w-16' : 'md:w-64'}
             `}>
                 {/* Header */}
                 <div className={`border-b border-border flex items-center transition-all duration-300 relative ${isCollapsed ? 'justify-center p-4' : 'justify-between p-6'}`}>
@@ -99,13 +99,13 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             <img
                                 src="/logos/NEXT_logo.svg"
                                 alt="NEXT Logo"
-                                className="h-10 object-contain w-auto transition-all duration-300"
+                                className="h-8 object-contain w-auto transition-all duration-300"
                             />
                         ) : (
                             <img
                                 src="/logos/logo_icon.svg"
                                 alt="Platform Icon"
-                                className="w-12 h-12 object-contain transition-all duration-300"
+                                className="w-8 h-8 object-contain transition-all duration-300"
                             />
                         )}
                     </div>
@@ -186,23 +186,23 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 </nav>
 
                 {/* Footer / User Info */}
-                <div className="p-4 border-t border-border bg-sidebar">
+                <div className="p-3 border-t border-border bg-sidebar/50 backdrop-blur-sm">
                     {!isCollapsed ? (
-                        <div className={`flex items-center gap-3 p-3 rounded-xl border border-border bg-card/50 ${isLocked ? 'opacity-50' : ''}`}>
+                        <div className={`flex items-center gap-3 p-2 rounded-lg border border-border bg-card/50 ${isLocked ? 'opacity-50' : ''}`}>
                             {barbershop?.logo_url || barbershop?.logoUrl ? (
                                 <img
                                     src={barbershop.logo_url || barbershop.logoUrl}
                                     alt={barbershop.name || 'Logo'}
-                                    className="w-8 h-8 rounded-full object-cover border border-primary/30"
+                                    className="w-7 h-7 rounded-full object-cover border border-gray-100"
                                 />
                             ) : (
-                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold">
+                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
                                     {user?.name?.[0]}
                                 </div>
                             )}
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-[11px] font-bold text-white truncate">{user?.name}</p>
-                                <p className="text-[9px] text-slate-500 truncate">{user?.email}</p>
+                                <p className="text-xs font-semibold text-foreground truncate">{user?.name}</p>
+                                <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                             </div>
                         </div>
                     ) : (
@@ -222,9 +222,9 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     <button
                         onClick={logout}
                         title="Sair"
-                        className={`w-full mt-3 flex items-center justify-center gap-2 text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 py-2.5 rounded-lg transition-all ${isCollapsed ? 'px-0' : ''}`}
+                        className={`w-full mt-2 flex items-center justify-center gap-2 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 py-2 rounded-lg transition-all ${isCollapsed ? 'px-0' : ''}`}
                     >
-                        <LogOut className="w-4 h-4" />
+                        <LogOut className="w-3.5 h-3.5" />
                         {!isCollapsed && <span>Sair</span>}
                     </button>
                 </div>

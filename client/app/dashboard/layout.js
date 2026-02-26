@@ -63,28 +63,28 @@ export default function DashboardLayout({ children }) {
         return (
             <div className="flex min-h-screen bg-background text-foreground font-sans">
                 {/* Skeleton Sidebar */}
-                <aside className="w-80 border-r border-border bg-card hidden lg:flex flex-col p-8 opacity-50 animate-pulse">
-                    <div className="w-32 h-10 bg-muted rounded-xl mb-12"></div>
-                    <div className="space-y-4 flex-1">
+                <aside className="w-64 border-r border-border bg-card hidden lg:flex flex-col p-6 opacity-50 animate-pulse">
+                    <div className="w-24 h-8 bg-muted rounded-lg mb-10"></div>
+                    <div className="space-y-3 flex-1">
                         {[1, 2, 3, 4, 5, 6].map(i => (
-                            <div key={i} className="w-full h-12 bg-muted rounded-2xl mb-2"></div>
+                            <div key={i} className="w-full h-10 bg-muted rounded-xl"></div>
                         ))}
                     </div>
                 </aside>
 
                 <div className="flex-1 flex flex-col min-h-screen">
                     {/* Skeleton TopBar */}
-                    <header className="h-24 border-b border-border bg-card flex items-center justify-between px-8 md:px-12 opacity-50 animate-pulse">
+                    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 md:px-8 opacity-50 animate-pulse">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-muted rounded-full"></div>
+                            <div className="w-10 h-10 bg-muted rounded-full"></div>
                             <div className="space-y-2 hidden md:block">
-                                <div className="w-40 h-4 bg-muted rounded"></div>
-                                <div className="w-24 h-3 bg-muted rounded"></div>
+                                <div className="w-32 h-3 bg-muted rounded"></div>
+                                <div className="w-20 h-2 bg-muted rounded"></div>
                             </div>
                         </div>
-                        <div className="w-24 h-10 bg-muted rounded-xl"></div>
+                        <div className="w-20 h-8 bg-muted rounded-lg"></div>
                     </header>
-                    <main className="flex-1 p-8 md:p-12 flex items-center justify-center">
+                    <main className="flex-1 p-6 md:p-8 flex items-center justify-center">
                         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                     </main>
                 </div>
@@ -124,7 +124,7 @@ export default function DashboardLayout({ children }) {
 
     return (
         <SocketProvider>
-            <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-emerald-500/30">
+            <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20">
                 {/* Sidebar Component - Responsive */}
                 <Sidebar
                     user={user}
@@ -178,21 +178,21 @@ export default function DashboardLayout({ children }) {
                         onOpenCashier={() => setIsCashierOpen(true)}
                     />
 
-                    <main className="flex-1 p-8 md:p-12 overflow-x-hidden relative">
+                    <main className="flex-1 p-4 md:p-6 overflow-x-hidden relative">
                         {isLocked ? (
-                            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-8">
-                                <div className="bg-card border border-border p-8 rounded-3xl max-w-md w-full text-center shadow-2xl">
-                                    <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <LogOut className="w-10 h-10 text-destructive" />
+                            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+                                <div className="bg-card border border-border p-6 rounded-xl max-w-md w-full text-center shadow-soft">
+                                    <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-5">
+                                        <LogOut className="w-8 h-8 text-destructive" />
                                     </div>
-                                    <h2 className="text-2xl font-black text-foreground mb-2">Assinatura Inativa</h2>
-                                    <p className="text-muted-foreground mb-8 leading-relaxed">
+                                    <h2 className="text-xl font-bold text-foreground mb-2">Assinatura Inativa</h2>
+                                    <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                                         Sua assinatura está inativa ou vencida. Para continuar utilizando os recursos administrativos, por favor regularize seu plano.
                                     </p>
-                                    <button className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+                                    <button className="w-full bg-primary text-primary-foreground text-sm font-semibold py-3 rounded-lg shadow-sm hover:opacity-90 transition-opacity">
                                         Regularizar Agora
                                     </button>
-                                    <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest">
+                                    <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
                                         Dúvidas? Entre em contato com o suporte.
                                     </p>
                                 </div>

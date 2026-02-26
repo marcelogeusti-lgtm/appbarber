@@ -30,42 +30,42 @@ export default function Navbar() {
                 </Link>
 
                 {/* Desktop Menu */}
-                <div className="hidden md:flex items-center gap-8">
-                    <Link href="#features" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Funcionalidades</Link>
-                    <Link href="#start" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Como Começar</Link>
-                    <Link href="#pricing" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Planos</Link>
-                    <Link href="#faq" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">FAQ</Link>
+                <div className="hidden md:flex items-center gap-6">
+                    <Link href="#features" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">Funcionalidades</Link>
+                    <Link href="#start" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">Como Começar</Link>
+                    <Link href="#pricing" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">Planos</Link>
+                    <Link href="#faq" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">FAQ</Link>
                 </div>
 
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-4">
-                    <Link href="/login" className="text-sm font-bold text-gray-600 hover:text-primary transition-colors">
+                    <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
                         Entrar
                     </Link>
                     <Link href="/register">
-                        <button className="bg-primary hover:bg-primary/90 text-black font-bold py-2.5 px-6 rounded-xl transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(0,230,118,0.4)]">
+                        <button className="h-9 px-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
                             Teste Grátis
                         </button>
                     </Link>
                 </div>
 
                 {/* Mobile Menu Toggle */}
-                <button className="md:hidden text-white" onClick={() => setIsOpen(!isOpen)}>
-                    {isOpen ? <X /> : <Menu />}
+                <button className="md:hidden text-gray-900" onClick={() => setIsOpen(!isOpen)}>
+                    {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
             </div>
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-b border-white/10 p-4 animate-in slide-in-from-top-10">
-                    <div className="flex flex-col gap-4">
-                        <Link href="#features" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-300 hover:text-white">Funcionalidades</Link>
-                        <Link href="#start" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-300 hover:text-white">Como Começar</Link>
-                        <Link href="#pricing" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-300 hover:text-white">Planos</Link>
-                        <hr className="border-white/10" />
-                        <Link href="/login" className="text-lg font-bold text-white text-center py-2">Entrar</Link>
+                <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 p-6 shadow-xl animate-in slide-in-from-top-4">
+                    <div className="flex flex-col gap-5">
+                        <Link href="#features" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Funcionalidades</Link>
+                        <Link href="#start" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Como Começar</Link>
+                        <Link href="#pricing" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Planos</Link>
+                        <hr className="border-gray-50" />
+                        <Link href="/login" className="text-base font-semibold text-gray-900 text-center py-2">Entrar</Link>
                         <Link href="/register">
-                            <button className="w-full bg-primary text-black font-bold py-3 rounded-xl">
+                            <button className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-sm">
                                 Criar Conta Grátis
                             </button>
                         </Link>

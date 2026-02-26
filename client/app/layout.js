@@ -15,7 +15,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
-            <body className={clsx(inter.className, 'min-h-screen bg-background font-sans antialiased')}>
+            <body className={clsx(inter.className, 'min-h-screen bg-background antialiased')}>
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
                         {children}
