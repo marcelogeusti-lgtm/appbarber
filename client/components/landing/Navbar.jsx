@@ -23,7 +23,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
                     <img
-                        src="/logos/logo_convertido.svg"
+                        src="/logos/logo_full.svg"
                         alt="Logo"
                         className="h-10 w-auto object-contain"
                     />
