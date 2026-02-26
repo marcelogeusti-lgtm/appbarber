@@ -69,7 +69,7 @@ export default function SuperAdminCoursesPage() {
                     </div>
                     <div>
                         <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Academia Maestro</h1>
-                        <p className="text-muted-foreground text-sm font-medium italic mt-1 leading-none uppercase tracking-widest text-[10px] opacity-80">Gestão de Ativos de Conhecimento Barbe-On Diamond</p>
+                        <p className="text-muted-foreground text-sm font-medium italic mt-1 leading-none uppercase tracking-widest text-[10px] opacity-80">Gestão de Ativos de Conhecimento NEXT Diamond</p>
                     </div>
                 </div>
                 <button

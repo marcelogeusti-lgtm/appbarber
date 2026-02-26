@@ -1,127 +1,107 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, TrendingUp, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function Hero() {
     return (
-        <section className="relative min-h-[110vh] flex items-center pt-20 overflow-hidden bg-[#050505]">
+        <section className="relative min-h-[90vh] flex items-center pt-32 pb-20 overflow-hidden bg-white">
 
-            {/* Background Elements */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/20 blur-[120px] rounded-full opacity-30 pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-blue-500/10 blur-[120px] rounded-full opacity-20 pointer-events-none" />
+            {/* Background Accent */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none" />
 
-            <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+            <div className="container mx-auto px-4 relative z-10">
+                <div className="grid lg:grid-cols-2 gap-16 items-center">
 
-                {/* Text Content */}
-                <div className="max-w-2xl">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-6 backdrop-blur-md">
-                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        <span className="text-xs font-medium text-primary uppercase tracking-wider">Novo Sistema 2.0</span>
-                    </div>
-
-                    <h1 className="text-5xl lg:text-7xl font-bold text-white leading-[1.1] mb-6 tracking-tight">
-                        A gestão da sua <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">
-                            Barbearia
-                        </span> <br />
-                        em outro nível.
-                    </h1>
-
-                    <p className="text-lg text-gray-400 mb-8 leading-relaxed max-w-lg">
-                        Deixe de ser apenas um barbeiro e torne-se um gestor de elite.
-                        Agendamento, financeiro e marketing em uma única plataforma inteligente.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                        <Link href="/register">
-                            <button className="w-full sm:w-auto px-8 py-4 bg-primary text-black text-lg font-bold rounded-2xl hover:bg-primary/90 transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] flex items-center justify-center gap-2">
-                                Começar Teste Grátis <ArrowRight className="w-5 h-5" />
-                            </button>
-                        </Link>
-                        <Link href="#features">
-                            <button className="w-full sm:w-auto px-8 py-4 bg-white/5 text-white text-lg font-bold rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
-                                Ver Funcionalidades
-                            </button>
-                        </Link>
-                    </div>
-
-                    <div className="flex items-center gap-6 text-sm font-medium text-gray-500">
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-primary" />
-                            <span>Sem cartão de crédito</span>
+                    {/* Left Content */}
+                    <div className="max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-8">
+                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                            <span className="text-xs font-bold text-primary uppercase tracking-[0.2em]">O Futuro é NEXT</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-primary" />
-                            <span>Setup instantâneo</span>
+
+                        <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-[1.05] mb-8 tracking-tighter">
+                            Gerencie sua <br />
+                            <span className="text-primary italic">Barbearia</span> de forma <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">
+                                simples & inteligente.
+                            </span>
+                        </h1>
+
+                        <p className="text-xl text-gray-500 mb-10 leading-relaxed max-w-lg font-medium">
+                            O ecossistema definitivo para transformar seu negócio.
+                            Agendamento intuitivo, controle financeiro impecável e fidelização de elite.
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row gap-5 mb-12">
+                            <Link href="/register">
+                                <button className="w-full sm:w-auto px-10 py-5 bg-primary text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary/90 transition-all hover:scale-105 shadow-xl shadow-primary/20 flex items-center justify-center gap-2 italic">
+                                    Ativar Agora <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </Link>
+                            <Link href="#pricing">
+                                <button className="w-full sm:w-auto px-10 py-5 bg-white text-gray-900 text-xs font-black uppercase tracking-[0.2em] rounded-2xl border-2 border-gray-100 hover:border-primary/20 hover:bg-gray-50 transition-all flex items-center justify-center italic">
+                                    Ver Planos
+                                </button>
+                            </Link>
                         </div>
-                    </div>
-                </div>
 
-                {/* Visual / Dashboard Mockup */}
-                <div className="relative hidden lg:block perspective-1000">
-                    {/* Floating Cards */}
-                    <div className="relative z-20 animate-float-slow">
-                        <div className="glass-card p-6 rounded-3xl border border-white/10 bg-gradient-to-br from-gray-900/90 to-black/90 aspect-[4/3] shadow-2xl relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors duration-500" />
-
-                            {/* Mock UI Header */}
-                            <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
-                                <div className="flex gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                                    <div className="w-3 h-3 rounded-full bg-green-500/50" />
-                                </div>
-                                <div className="h-2 w-20 bg-white/10 rounded-full" />
+                        <div className="flex flex-wrap items-center gap-8">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                <CheckCircle2 className="w-4 h-4 text-primary" />
+                                <span>15 Dias Grátis</span>
                             </div>
-
-                            {/* Mock Graph */}
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-end h-32 gap-4">
-                                    {[40, 65, 45, 80, 55, 90, 75].map((h, i) => (
-                                        <div key={i} className="w-full bg-primary/20 rounded-t-lg relative group-hover:bg-primary/30 transition-all duration-500 overflow-hidden" style={{ height: `${h}%` }}>
-                                            <div className="absolute bottom-0 w-full bg-primary h-full opacity-50 blur-sm" />
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="flex justify-between text-xs text-gray-500">
-                                    <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sab</span><span>Dom</span>
-                                </div>
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                <CheckCircle2 className="w-4 h-4 text-primary" />
+                                <span>Sem fidelidade</span>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Floating Badge 1 - Daily Revenue */}
-                        <div className="absolute -right-8 -top-8 p-4 glass rounded-2xl border border-white/10 animate-float-delayed shadow-xl">
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 bg-green-500/20 rounded-xl text-green-400">
-                                    <TrendingUp className="w-6 h-6" />
+                    {/* Right Visual / Clean Dashboard Mockup */}
+                    <div className="relative hidden lg:block">
+                        <div className="relative z-20 transition-transform duration-700 hover:scale-[1.02]">
+                            <div className="rounded-[2.5rem] bg-white border border-gray-100 shadow-[0_40px_100px_rgba(0,0,0,0.08)] p-4 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-400" />
+
+                                {/* Mockup Header */}
+                                <div className="flex items-center justify-between mb-8 px-4 pt-4">
+                                    <div className="flex gap-1.5">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-100" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-100" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-green-100" />
+                                    </div>
+                                    <div className="h-2 w-24 bg-gray-50 rounded-full" />
+                                </div>
+
+                                {/* Mockup Image - Using actual Dahsboard screenshot */}
+                                <div className="rounded-2xl border border-gray-50 overflow-hidden bg-gray-50">
+                                    <img
+                                        src="/screenshots/dashboard_main_1772068419823.png"
+                                        alt="Dashboard NEXT"
+                                        className="w-full h-auto opacity-90"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Floating Stats Label / Animated Notification */}
+                            <div className="absolute -left-10 bottom-10 p-5 bg-white rounded-3xl shadow-2xl border border-gray-50 flex items-center gap-4 animate-float group">
+                                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary relative">
+                                    <div className="absolute inset-0 bg-primary/20 rounded-2xl animate-ping opacity-75" />
+                                    <img src="/logos/logo_icon.svg" alt="Logo" className="w-6 h-6 object-contain relative z-10" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-400 font-medium">Faturamento Hoje</p>
-                                    <p className="text-xl font-bold text-white">R$ 1.240,00</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5 mb-0.5">
+                                        Novo Agendamento
+                                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                    </p>
+                                    <p className="text-lg font-black text-gray-900 leading-tight group-hover:text-primary transition-colors">Corte + Barba</p>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Floating Badge 2 - Active Clients */}
-                        <div className="absolute -left-12 bottom-20 p-4 glass rounded-2xl border border-white/10 animate-float shadow-xl">
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 bg-blue-500/20 rounded-xl text-blue-400">
-                                    <ShieldCheck className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-400 font-medium">Clientes Ativos</p>
-                                    <p className="text-xl font-bold text-white">+ 2.400</p>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
-                </div>
 
+                </div>
             </div>
-
-            {/* Bottom Gradient Fade */}
-            <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-20 " />
         </section>
     );
 }

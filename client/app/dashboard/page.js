@@ -193,7 +193,7 @@ export default function DashboardPage() {
                         A Experiência <span className="text-primary">Premium</span> de Agendamento.
                     </h2>
                     <p className="text-xs text-muted-foreground font-medium mb-8 max-w-lg leading-relaxed">
-                        O Barbe-On foi desenhado para eliminar fricção. Seu cliente não precisa de apps pesados ou cadastros complexos.
+                        O NEXT foi desenhado para eliminar fricção. Seu cliente não precisa de apps pesados ou cadastros complexos.
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

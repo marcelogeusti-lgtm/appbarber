@@ -14,7 +14,8 @@ const PaymentBrick = ({
     payer,
     onSuccess,
     onError,
-    installments = 12
+    installments = 12,
+    enabledMethods = []
 }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [publicKey, setPublicKey] = useState(null);
@@ -57,10 +58,10 @@ const PaymentBrick = ({
 
     const customization = {
         paymentMethods: {
-            ticket: 'all',
-            bankTransfer: 'all',
-            creditCard: 'all',
-            debitCard: 'all',
+            ticket: enabledMethods.includes('BOLETO') ? 'all' : undefined,
+            bankTransfer: enabledMethods.includes('PIX') ? 'all' : undefined,
+            creditCard: enabledMethods.includes('CREDIT_CARD') ? 'all' : undefined,
+            debitCard: enabledMethods.includes('DEBIT_CARD') ? 'all' : undefined,
             mercadoPago: 'all',
             maxInstallments: installments
         },

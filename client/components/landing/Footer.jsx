@@ -10,10 +10,11 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="col-span-1 md:col-span-1">
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="bg-primary/10 p-2 rounded-xl">
-                                <Scissors className="w-6 h-6 text-primary" />
-                            </div>
-                            <span className="text-2xl font-bold text-white">Barbe<span className="text-primary">On</span></span>
+                            <img
+                                src="/logos/logo_convertido.svg"
+                                alt="Logo"
+                                className="h-10 w-auto object-contain brightness-0 invert"
+                            />
                         </div>
                         <p className="text-gray-500 text-sm leading-relaxed mb-6">
                             A plataforma completa para barbeiros que desejam escalar seu negócio e fidelizar clientes.
@@ -86,7 +87,7 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center bg-[#050505] gap-4">
-                    <p className="text-gray-600 text-sm">© 2024 BarbeOn SaaS. Todos os direitos reservados.</p>
+                    <p className="text-gray-600 text-sm">© 2024 NEXT SaaS. Todos os direitos reservados.</p>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                         <span>Feito com</span>
                         <span className="text-red-500">♥</span>

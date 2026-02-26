@@ -361,7 +361,7 @@ exports.createAppointment = async (req, res) => {
                     barbershopId: service.barbershopId,
                     paymentMethod: method,
                     paymentStatus: method === 'CASH' ? 'PENDING' : (method === 'SUBSCRIPTION' ? 'PAID' : 'PENDING'),
-                    status: method === 'CASH' ? 'CONFIRMED' : (method === 'SUBSCRIPTION' ? 'CONFIRMED' : 'SCHEDULED'),
+                    status: method === 'CASH' ? 'CONFIRMED' : (method === 'SUBSCRIPTION' ? 'CONFIRMED' : 'PENDING'),
                     isSqueezeIn: isSqueezeIn || false,
                     reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
                 }
@@ -538,8 +538,8 @@ exports.createAppointment = async (req, res) => {
 
         res.status(201).json({
             appointment_id: appointment.id,
-            status: "confirmado",
-            mensagem: "Agendamento realizado com sucesso",
+            status: appointment.status === 'CONFIRMED' ? 'confirmado' : 'pendente',
+            mensagem: appointment.status === 'CONFIRMED' ? 'Agendamento realizado com sucesso' : 'Agendamento pré-reservado. Aguardando pagamento.',
             order_id: order.id,
             appointment,
             order,
@@ -622,6 +622,38 @@ exports.getAllAppointments = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching all appointments' });
+    }
+};
+
+exports.getAppointmentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const appointment = await prisma.appointment.findUnique({
+            where: { id },
+            include: {
+                client: { include: { authUser: { select: { email: true } } } },
+                service: true,
+                professional: { select: { id: true, name: true, avatarUrl: true } },
+                barbershop: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        logoUrl: true,
+                        enabledPaymentMethods: true
+                    }
+                }
+            }
+        });
+
+        if (!appointment) {
+            return res.status(404).json({ message: 'Agendamento não encontrado' });
+        }
+
+        res.json(appointment);
+    } catch (error) {
+        console.error('Error fetching appointment by ID:', error);
+        res.status(500).json({ message: 'Erro interno ao buscar agendamento' });
     }
 };
 

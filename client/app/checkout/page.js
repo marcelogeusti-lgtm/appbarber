@@ -18,6 +18,7 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [paymentResult, setPaymentResult] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         if (!appointmentId && !paymentId) {
@@ -47,6 +48,7 @@ export default function CheckoutPage() {
                             email: res.data.client.authUser?.email || 'email@naoinformado.com',
                             name: res.data.client.name
                         },
+                        enabledPaymentMethods: res.data.barbershop.enabledPaymentMethods,
                         context: { appointmentId }
                     });
                 } else {
@@ -60,6 +62,7 @@ export default function CheckoutPage() {
                             email: 'email@naoinformado.com', // Need to fetch user if strictly required or prompt
                             name: 'Cliente'
                         },
+                        enabledPaymentMethods: res.data.barbershop?.enabledPaymentMethods,
                         context: { paymentId } // Pass paymentId if re-trying
                     });
                 }
@@ -82,8 +85,15 @@ export default function CheckoutPage() {
 
     const handleError = (err) => {
         console.error("Payment Component Error:", err);
-        // Validations are handled by Brick mostly, this is for critical errors
+        setError(`Falha no pagamento: ${err}`);
         toast.error(`Erro no pagamento: ${err}`);
+        setIsProcessing(false);
+    };
+
+    const resetPayment = () => {
+        setError(null);
+        setPaymentResult(null);
+        setIsProcessing(false);
     };
 
     if (loading) return (
@@ -94,9 +104,33 @@ export default function CheckoutPage() {
 
     if (error) return (
         <div className="min-h-screen bg-black flex items-center justify-center p-4">
-            <div className="text-white text-center">
-                <p className="text-red-500 mb-4">{error}</p>
-                <button onClick={() => router.back()} className="text-emerald-500 underline">Voltar</button>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 w-full max-w-md text-center shadow-2xl">
+                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-red-500/5">
+                    <AlertCircle className="text-red-500 w-10 h-10" />
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-3">Ops! Algo deu errado</h1>
+                <p className="text-zinc-400 mb-8 leading-relaxed">
+                    {error.includes("expirou") ? "O tempo para realizar o pagamento expirou. Por favor, tente novamente." : error}
+                </p>
+
+                <div className="space-y-4">
+                    <button
+                        onClick={resetPayment}
+                        className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl hover:bg-emerald-500 transition-all transform active:scale-[0.98] shadow-lg shadow-emerald-900/20"
+                    >
+                        Tentar Novamente
+                    </button>
+                    <button
+                        onClick={() => router.push('/')}
+                        className="w-full bg-zinc-800 text-white font-bold py-4 rounded-2xl hover:bg-zinc-700 transition-all"
+                    >
+                        Voltar para o Início
+                    </button>
+                </div>
+
+                <p className="mt-8 text-xs text-zinc-500">
+                    Se o problema persistir, entre em contato com o suporte da barbearia.
+                </p>
             </div>
         </div>
     );
@@ -218,6 +252,7 @@ export default function CheckoutPage() {
                         barbershopId={data.barbershopId}
                         description={data.description}
                         payer={data.payer}
+                        enabledMethods={data.enabledPaymentMethods}
                         onSuccess={handleSuccess}
                         onError={handleError}
                     />

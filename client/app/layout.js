@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 // Google Login Configuration Trigger Fix (Clean Env)
 export const metadata = {
-    title: 'Barbe-On - Sistema de Gestão para Barbearias',
+    title: 'NEXT - Sistema de Gestão para Barbearias',
     description: 'O sistema de gestão que sua barbearia merece',
 };
 

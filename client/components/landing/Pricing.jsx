@@ -1,89 +1,87 @@
 'use client';
-import { Check } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Pricing() {
     return (
-        <section id="pricing" className="py-24 bg-black relative overflow-hidden">
-            {/* Glow Effect */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[150px] rounded-full pointer-events-none" />
+        <section className="py-24 bg-white" id="pricing">
+            <div className="container mx-auto px-4">
 
-            <div className="container mx-auto px-4 relative z-10">
-                <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-sm font-bold text-primary uppercase tracking-widest mb-4">Planos e Preços</h2>
-                    <h3 className="text-4xl font-bold text-white mb-6">Investimento que se paga.</h3>
-                    <p className="text-gray-400 text-lg">
-                        Escolha o plano ideal para o tamanho do seu negócio. Cancele quando quiser.
+                <div className="text-center max-w-3xl mx-auto mb-20">
+                    <h2 className="text-4xl lg:text-6xl font-black text-gray-900 mb-6 tracking-tighter uppercase italic">
+                        Escolha seu Nível de <br />
+                        <span className="text-primary italic">Dominação.</span>
+                    </h2>
+                    <p className="text-gray-500 text-lg font-medium leading-relaxed">
+                        Comece pequeno, escale como um império. O NEXT se adapta ao seu momento.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
 
-                    {/* Starter */}
-                    <div className="p-8 rounded-3xl bg-[#09090b] border border-white/5 text-gray-400">
-                        <h4 className="text-xl font-bold text-white mb-2">Autônomo</h4>
-                        <p className="text-sm mb-6">Para quem trabalha sozinho.</p>
+                    {/* Autônomo */}
+                    <div className="p-10 rounded-3xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col hover:border-primary/20 transition-all duration-300">
+                        <h4 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight italic">Autônomo</h4>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-8 text-gray-400">Para unidades individuais.</p>
                         <div className="flex items-baseline gap-1 mb-8">
-                            <span className="text-4xl font-bold text-white">R$ 49</span>
-                            <span className="text-sm">/mês</span>
+                            <span className="text-5xl font-black text-gray-900 italic">R$ 49</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">/ mensal</span>
                         </div>
-                        <ul className="space-y-4 mb-8">
-                            {['1 Profissional', 'Agenda Online', 'Link de Agendamento', 'Lembretes WhatsApp', 'Relatórios Básicos'].map(i => (
-                                <li key={i} className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-gray-500" /> {i}
+                        <ul className="space-y-5 mb-10 flex-1">
+                            {['1 Profissional Master', 'Acesso à Agenda Maestro', 'Link de Agendamento Pro', 'WhatsApp Lembretes'].map(i => (
+                                <li key={i} className="flex items-center gap-4 text-xs font-semibold text-gray-600 uppercase tracking-tight italic">
+                                    <Check className="w-4 h-4 text-primary flex-shrink-0" /> {i}
                                 </li>
                             ))}
                         </ul>
                         <Link href="/register">
-                            <button className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white/5 transition-colors">
-                                Começar Agora
+                            <button className="w-full py-5 rounded-2xl border border-gray-200 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-50 transition-all text-gray-900 italic">
+                                Ativar Plano
                             </button>
                         </Link>
                     </div>
 
-                    {/* PRO (Featured) */}
-                    <div className="p-8 rounded-3xl bg-[#0F1115] border border-primary/50 relative shadow-[0_0_50px_rgba(0,230,118,0.1)] scale-105">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-black px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
-                            Mais Popular
-                        </div>
-                        <h4 className="text-xl font-bold text-white mb-2">Profissional</h4>
-                        <p className="text-sm text-gray-400 mb-6">Para barbearias em crescimento.</p>
+                    {/* Diamond Pro */}
+                    <div className="p-10 rounded-3xl bg-white border-2 border-primary shadow-[0_20px_60px_rgba(77,114,228,0.1)] flex flex-col relative scale-[1.03] z-10">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1.5 bg-primary rounded-full text-[10px] font-black text-white uppercase tracking-widest">Recomendado</div>
+                        <h4 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight italic">Diamond Pro</h4>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-8 text-primary">Crescimento acelerado.</p>
                         <div className="flex items-baseline gap-1 mb-8">
-                            <span className="text-5xl font-bold text-white">R$ 89</span>
-                            <span className="text-sm text-gray-400">/mês</span>
+                            <span className="text-5xl font-black text-gray-900 italic">R$ 89,70</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">/ mensal</span>
                         </div>
-                        <ul className="space-y-4 mb-8">
-                            {['Até 3 Profissionais', 'Gestão Financeira Completa', 'Comissões Automáticas', 'Site Personalizado', 'Suporte Prioritário', 'Tudo do plano Autônomo'].map(i => (
-                                <li key={i} className="flex items-center gap-3 text-sm text-white">
-                                    <Check className="w-5 h-5 text-primary" /> {i}
+                        <ul className="space-y-5 mb-10 flex-1">
+                            {['Até 5 Profissionais', 'Dashboard de Elite', 'Fidelização Completa', 'Financeiro Avançado', 'Estoque & Produtos'].map(i => (
+                                <li key={i} className="flex items-center gap-4 text-xs font-black text-gray-900 uppercase tracking-tight italic">
+                                    <Check className="w-4 h-4 text-primary flex-shrink-0" /> {i}
                                 </li>
                             ))}
                         </ul>
                         <Link href="/register">
-                            <button className="w-full py-4 rounded-xl bg-primary text-black font-bold hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(0,230,118,0.3)]">
-                                Testar Grátis
+                            <button className="w-full py-5 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 italic flex items-center justify-center gap-2">
+                                Experimentar Grátis <ArrowRight className="w-4 h-4" />
                             </button>
                         </Link>
                     </div>
 
-                    {/* Enterprise */}
-                    <div className="p-8 rounded-3xl bg-[#09090b] border border-white/5 text-gray-400">
-                        <h4 className="text-xl font-bold text-white mb-2">Empire</h4>
-                        <p className="text-sm mb-6">Para redes e franquias.</p>
+                    {/* Empire */}
+                    <div className="p-10 rounded-3xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col hover:border-primary/20 transition-all duration-300">
+                        <h4 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight italic">Empire</h4>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-8 text-gray-400">Escala sem limites.</p>
                         <div className="flex items-baseline gap-1 mb-8">
-                            <span className="text-4xl font-bold text-white">R$ 149</span>
-                            <span className="text-sm">/mês</span>
+                            <span className="text-5xl font-black text-gray-900 italic">R$ 159,70</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">/ mensal</span>
                         </div>
-                        <ul className="space-y-4 mb-8">
-                            {['Profissionais Ilimitados', 'Múltiplas Unidades', 'API de Integração', 'Gerente de Conta', 'Tudo do plano Pro'].map(i => (
-                                <li key={i} className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-gray-500" /> {i}
+                        <ul className="space-y-5 mb-10 flex-1">
+                            {['Ilimitados Profissionais', 'Multi-unidades', 'Suporte VIP 24h', 'Assunção de Custos MP', 'Exportação Full de Dados'].map(i => (
+                                <li key={i} className="flex items-center gap-4 text-xs font-semibold text-gray-600 uppercase tracking-tight italic">
+                                    <Check className="w-4 h-4 text-primary flex-shrink-0" /> {i}
                                 </li>
                             ))}
                         </ul>
                         <Link href="/register">
-                            <button className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white/5 transition-colors">
-                                Falar com Vendas
+                            <button className="w-full py-5 rounded-2xl border border-gray-200 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-50 transition-all text-gray-900 italic">
+                                Ativar Plano
                             </button>
                         </Link>
                     </div>

@@ -90,7 +90,7 @@ export default function SettingsPage() {
         });
     };
 
-    if (loading) return <div className="p-10 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Sincronizando Ecossistema...</div>;
+    if (loading) return <div className="p-10 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Sincronizando Ecossistema NEXT...</div>;
 
     return (
         <div className="max-w-5xl mx-auto space-y-10 pb-20">
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                                     <Shield className="w-3 h-3" /> Camada Técnica de Governança (Master Only)
                                 </h5>
                                 <p className="text-[10px] text-muted-foreground leading-relaxed italic">
-                                    Chave de API e endpoint de comunicação são gerenciados automaticamente pelo **Barbe-On Maestro**.
+                                    Chave de API e endpoint de comunicação são gerenciados automaticamente pelo **NEXT Maestro**.
                                     Não recomendamos a alteração manual dessas configurações para evitar interrupções no serviço.
                                 </p>
                             </div>

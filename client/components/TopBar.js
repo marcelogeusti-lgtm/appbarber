@@ -15,7 +15,7 @@ export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, 
                 </button>
                 <img
                     src="/logos/logo_convertido.svg"
-                    alt="BarbeOn"
+                    alt="NEXT"
                     className="h-8 w-auto object-contain"
                 />
             </div>

@@ -98,7 +98,7 @@ export default function CheckoutPixPage() {
 
                     <div className="flex items-center gap-4 mb-6">
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-800 border border-slate-700">
-                            <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" onError={(e) => e.target.src = '/svg/logo.svg'} />
+                            <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" onError={(e) => e.target.src = '/logos/logo_convertido.svg'} />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-white leading-tight">{shopName}</h2>
@@ -179,8 +179,8 @@ export default function CheckoutPixPage() {
                                 <button
                                     onClick={handleCopy}
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 ${copied
-                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5'
+                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                                        : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5'
                                         }`}
                                 >
                                     {copied ? (

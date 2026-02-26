@@ -100,10 +100,18 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 // Ticket/Pix data is often in payment_method or transaction_details
                 // Pix
                 if (method === 'PIX') {
-                    qrCode = mainPayment.payment_method?.qr_code || mainPayment.transaction_details?.qr_code;
-                    qrCodeBase64 = mainPayment.payment_method?.qr_code_base64 || mainPayment.transaction_details?.qr_code_base64;
+                    // Try different MP response paths for Pix Data (Orders vs Payments API)
+                    qrCode = mainPayment.payment_method?.qr_code ||
+                        mainPayment.transaction_details?.qr_code ||
+                        mainPayment.point_of_interaction?.transaction_data?.qr_code;
+
+                    qrCodeBase64 = mainPayment.payment_method?.qr_code_base64 ||
+                        mainPayment.transaction_details?.qr_code_base64 ||
+                        mainPayment.point_of_interaction?.transaction_data?.qr_code_base64;
+
                     pixCopiaECola = qrCode; // Same for Pix
-                    checkoutUrl = mainPayment.transaction_details?.external_resource_url;
+                    checkoutUrl = mainPayment.transaction_details?.external_resource_url ||
+                        mainPayment.point_of_interaction?.transaction_data?.ticket_url;
                 }
                 // Boleto
                 else if (method === 'BOLETO') {

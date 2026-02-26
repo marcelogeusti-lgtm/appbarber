@@ -214,7 +214,8 @@ exports.getBarbershopBySlug = async (req, res) => {
             methods.add('DEBIT_CARD');
         }
 
-        const acceptedPaymentMethods = Array.from(methods);
+        // Resulting list from DB (explicitly configured)
+        const acceptedPaymentMethods = barbershop.enabledPaymentMethods || Array.from(methods);
         const online_payment_enabled = acceptedPaymentMethods.length > 0;
 
         // Remove sensitive gatewayConfigs from the original object
@@ -236,7 +237,7 @@ exports.getBarbershopBySlug = async (req, res) => {
 exports.updateBarbershop = async (req, res) => {
     try {
         const { id } = req.params; // or derived from user token
-        const { name, address, phone, slug, webhookUrl, noShowEnabled, noShowPercent, noShowText, logoUrl, bannerUrls, whatsappPhone } = req.body;
+        const { name, address, phone, slug, webhookUrl, noShowEnabled, noShowPercent, noShowText, logoUrl, bannerUrls, whatsappPhone, enabledPaymentMethods } = req.body;
 
         // Check ownership
         // Ideally use req.user.barbershopId or check ownerId
@@ -258,7 +259,8 @@ exports.updateBarbershop = async (req, res) => {
             noShowText,
             logoUrl,
             bannerUrls,
-            whatsappPhone
+            whatsappPhone,
+            enabledPaymentMethods
         };
 
         if (slug && typeof slug === 'string' && slug.trim().length > 0) {

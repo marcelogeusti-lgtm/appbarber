@@ -43,6 +43,7 @@ enum PaymentMethod {
   CREDIT_CARD
   DEBIT_CARD
   PIX
+  BOLETO
   SUBSCRIPTION
 }
 
@@ -263,6 +264,8 @@ model Barbershop {
   subscriptionStatus String @default("ACTIVE") // ACTIVE, OVERDUE, CANCELED, TRIAL
   trialEndsAt    DateTime?
   saasPlan       String @default("BASIC")
+  enabledPaymentMethods PaymentMethod[] @default([CASH, PIX, CREDIT_CARD, DEBIT_CARD])
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

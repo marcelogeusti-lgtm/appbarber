@@ -17,30 +17,29 @@ export default function Navbar() {
     }, []);
 
     return (
-        <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/50 backdrop-blur-lg border-b border-white/10 py-4' : 'bg-transparent py-6'}`}>
+        <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md border-b border-gray-100 py-3 shadow-sm' : 'bg-white py-5'}`}>
             <div className="container mx-auto px-4 flex justify-between items-center">
 
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                        <Scissors className="w-6 h-6 text-primary" />
-                    </div>
-                    <span className="text-2xl font-bold tracking-tighter text-white">
-                        Barbe<span className="text-primary">On</span>
-                    </span>
+                    <img
+                        src="/logos/logo_convertido.svg"
+                        alt="Logo"
+                        className="h-10 w-auto object-contain"
+                    />
                 </Link>
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex items-center gap-8">
-                    <Link href="#features" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Funcionalidades</Link>
-                    <Link href="#start" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Como Começar</Link>
-                    <Link href="#pricing" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Planos</Link>
-                    <Link href="#faq" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">FAQ</Link>
+                    <Link href="#features" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Funcionalidades</Link>
+                    <Link href="#start" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Como Começar</Link>
+                    <Link href="#pricing" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Planos</Link>
+                    <Link href="#faq" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">FAQ</Link>
                 </div>
 
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-4">
-                    <Link href="/login" className="text-sm font-bold text-white hover:text-primary transition-colors">
+                    <Link href="/login" className="text-sm font-bold text-gray-600 hover:text-primary transition-colors">
                         Entrar
                     </Link>
                     <Link href="/register">

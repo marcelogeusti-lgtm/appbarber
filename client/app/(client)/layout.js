@@ -60,7 +60,7 @@ function ClientLayoutContent({ children }) {
                 <Link href="/home" className="flex items-center">
                     <img
                         src="/logos/logo_convertido.svg"
-                        alt="BarbeOn"
+                        alt="NEXT"
                         className="h-8 w-auto object-contain"
                     />
                 </Link>

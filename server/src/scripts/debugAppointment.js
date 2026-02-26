@@ -19,8 +19,8 @@ async function test() {
     try {
         console.log('--- Setup Data ---');
         // IDs capturados do debugData.js
-        const serviceId = 'aabfdeef-cc8b-4d91-9fc4-2d5aa802d511'; // Barba + Tinta (ACTIVE)
-        const barberId = '6b3f101e-2c91-4310-b051-c06ae9cf50a1'; // Marcelo Geusti (BARBER)
+        const serviceId = '0f7fd72c-4b36-41c8-b6fb-d4283eef1838'; // Corte Degradê
+        const barberId = 'c96a1303-d42c-48fc-a2a3-3bcd31a2bae2'; // Rafael Fonseca
 
         console.log(`Using Service: ${serviceId}`);
         console.log(`Using Barber: ${barberId}`);

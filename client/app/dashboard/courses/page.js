@@ -22,7 +22,7 @@ export default function CoursesPage() {
                     <AlertCircle className="w-12 h-12 text-destructive" />
                 </div>
                 <h2 className="text-2xl font-black text-foreground mb-3 uppercase tracking-tighter">Sincronização Falhou</h2>
-                <p className="text-muted-foreground text-sm font-medium italic mb-8 max-w-sm">Não foi possível conectar com a Academia Barbe-On no momento.</p>
+                <p className="text-muted-foreground text-sm font-medium italic mb-8 max-w-sm">Não foi possível conectar com a Academia NEXT no momento.</p>
                 <button
                     onClick={() => window.location.reload()}
                     className="px-10 py-4 bg-primary text-primary-foreground rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all"
@@ -41,7 +41,7 @@ export default function CoursesPage() {
                 <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-2">
                         <GraduationCap className="w-10 h-10 text-primary" />
-                        <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Academia Barbe-On</h1>
+                        <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Academia NEXT</h1>
                     </div>
                     <p className="text-muted-foreground text-sm font-medium italic uppercase tracking-widest ml-1 opacity-80">
                         Evolua suas técnicas e gestão com nossos conteúdos exclusivos para parceiros.

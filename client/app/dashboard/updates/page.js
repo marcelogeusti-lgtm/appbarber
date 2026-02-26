@@ -35,7 +35,7 @@ export default function UpdatesPage() {
                                     <span className="px-6 py-2 bg-background border border-border rounded-full text-[10px] font-black uppercase tracking-widest text-muted-foreground">Último Check: Hoje, 09:15</span>
                                 </div>
                                 <p className="text-muted-foreground mt-4 font-medium italic text-sm max-w-md mx-auto leading-relaxed">
-                                    Sua barbearia está operando com a tecnologia mais avançada do <span className="text-primary font-black">Ecossistema Barbe-On</span>. Todos os módulos estão otimizados.
+                                    Sua barbearia está operando com a tecnologia mais avançada do <span className="text-primary font-black">Ecossistema NEXT</span>. Todos os módulos estão otimizados.
                                 </p>
                             </div>
                         </div>

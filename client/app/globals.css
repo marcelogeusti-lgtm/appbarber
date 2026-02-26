@@ -5,9 +5,9 @@
 @layer base {
   :root {
     /* LIGHT MODE - Premium SaaS (Clean & Airy) */
-    /* Background: Soft Slate-50 (#F8FAFC) */
-    --background: 210 40% 98%;
-    /* Foreground: Deep Slate-900 (#0F172A) for strong readability */
+    /* Background: Pure White */
+    --background: 0 0% 100%;
+    /* Foreground: Deep Slate/Black for high contrast */
     --foreground: 222 47% 11%;
 
     /* Card: Pure White for distinct layering */

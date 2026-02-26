@@ -61,7 +61,7 @@ export default function SuperAdminPage() {
                     </div>
                     <div>
                         <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Gestão Global SaaS</h1>
-                        <p className="text-muted-foreground text-sm font-medium italic mt-1 leading-none uppercase tracking-widest text-[10px] opacity-80">Controle maestro da Rede Barbe-On Diamond</p>
+                        <p className="text-muted-foreground text-sm font-medium italic mt-1 leading-none uppercase tracking-widest text-[10px] opacity-80">Controle maestro da Rede NEXT Diamond</p>
                     </div>
                 </div>
                 <div className="flex gap-4 relative z-10">
@@ -155,7 +155,7 @@ export default function SuperAdminPage() {
                                     </td>
                                     <td className="px-8 py-8">
                                         <p className="font-black text-foreground text-xs uppercase tracking-tight">{shop.owner?.name || 'Sistema Cores'}</p>
-                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-60 truncate max-w-[200px]">{shop.owner?.email || 'suporte@barbeon.com'}</p>
+                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-60 truncate max-w-[200px]">{shop.owner?.email || 'suporte@next.com'}</p>
                                     </td>
                                     <td className="px-8 py-8">
                                         <span className="bg-primary/10 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner">{shop.saasPlan}</span>

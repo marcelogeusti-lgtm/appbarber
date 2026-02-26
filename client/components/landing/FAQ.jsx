@@ -9,7 +9,7 @@ const faqs = [
     },
     {
         q: "O sistema funciona no celular?",
-        a: "Sim, o BarbeOn é totalmente responsivo e funciona perfeitamente em celulares, tablets e computadores."
+        a: "Sim, o NEXT é totalmente responsivo e funciona perfeitamente em celulares, tablets e computadores."
     },
     {
         q: "Como funciona a migração de dados?",
