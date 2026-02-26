@@ -3,6 +3,7 @@ const qrcode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
 const socket = require('../../../socket'); // Check relative path correctness
+const eventBus = require('../../events/eventBus'); // Use absolute/relative path as needed (it's in server/src/services/events/eventBus.js)
 
 class WhatsAppProvider {
     constructor() {
@@ -106,13 +107,18 @@ class WhatsAppProvider {
 
                 try {
                     // Safe Emit to Server Logic
-                    socket.getIO().emit('whatsapp_message_received', {
+                    const eventPayload = {
                         id: msg.key.id,
                         from,
                         name,
                         text,
                         timestamp: new Date()
-                    });
+                    };
+
+                    socket.getIO().emit('whatsapp_message_received', eventPayload);
+
+                    // Also emit to internal event bus for the Smart Bot
+                    eventBus.emit('WHATSAPP_MESSAGE_RECEIVED', eventPayload);
                 } catch (e) { }
             });
 

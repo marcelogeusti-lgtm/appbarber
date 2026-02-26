@@ -12,121 +12,65 @@ class MercadoPagoAdapter extends GatewayAdapter {
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
         try {
-            // Base Payload for Orders API
+            // Payload for /v1/payments API (Standard & Better for Pix/Cards)
             const payload = {
+                transaction_amount: parseFloat(amount),
+                description: description || 'Serviço Barbearia',
                 external_reference: externalId,
                 notification_url: `${process.env.BACKEND_URL}/api/webhooks/mercadopago`,
-                processing_mode: 'automatic', // Default for auto-capture/process
                 payer: {
                     email: customer.email || 'guest@example.com',
                     first_name: customer.name?.split(' ')[0] || 'Cliente',
-                    last_name: customer.name?.split(' ').slice(1).join(' ') || 'Visitante'
-                },
-                items: [
-                    {
-                        title: description || 'Serviço Barbearia',
-                        quantity: 1,
-                        unit_price: parseFloat(amount),
-                        currency_id: 'BRL'
-                    }
-                ],
-                transactions: {
-                    payments: [] // Correct structure: object with payments array
-                }
-            };
-
-            // Payment Object for Orders API (nested inside transactions.payments)
-            const payment = {
-                amount: parseFloat(amount),
-                payment_method: {
-                    installments: 1
+                    last_name: customer.name?.split(' ').slice(1).join(' ') || 'Visitante',
+                    identification: identification || payer?.identification
                 }
             };
 
             if (method === 'PIX') {
-                payment.payment_method.id = 'pix';
-                payment.payment_method.type = 'bank_transfer';
+                payload.payment_method_id = 'pix';
             } else if (method === 'BOLETO') {
-                payment.payment_method.id = 'bolbradesco'; // Standard for BR
-                payment.payment_method.type = 'ticket';
-                if (payer?.identification) {
-                    // Payer identification for Boleto
-                    if (!payload.payer.identification) payload.payer.identification = {};
-                    payload.payer.identification = payer.identification;
-                }
+                payload.payment_method_id = 'bolbradesco';
             } else if (method === 'CREDIT_CARD' || method === 'DEBIT_CARD') {
-                if (!token) throw new Error("Token do cartão obrigatório para pagamentos via cartão.");
-
-                payment.payment_method.token = token;
-                payment.payment_method.installments = Number(installments) || 1;
-                payment.payment_method.id = paymentMethodId; // e.g. 'master'
-                payment.payment_method.type = method === 'CREDIT_CARD' ? 'credit_card' : 'debit_card';
-                if (issuerId) payment.payment_method.issuer_id = issuerId;
+                if (!token) throw new Error("Token do cartão obrigatório.");
+                payload.token = token;
+                payload.installments = Number(installments) || 1;
+                payload.payment_method_id = paymentMethodId;
+                if (issuerId) payload.issuer_id = issuerId;
             }
 
-            // Add payment to transactions.payments
-            payload.transactions.payments.push(payment);
-
-            // Request to /v1/orders
-            const response = await axios.post(`${this.apiUrl}/orders`, payload, {
+            const response = await axios.post(`${this.apiUrl}/payments`, payload, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
-                    'X-Idempotency-Key': `order_${externalId}_${Date.now()}`
+                    'X-Idempotency-Key': `pay_${externalId}_${Date.now()}`
                 }
             });
 
             const data = response.data;
-            // Response structure has 'transactions' -> 'payments' array
-            const mainPayment = data.transactions?.payments?.[0]; // The payment object inside the response
-
-            // Determine Status
             let finalStatus = 'pending';
-            const orderStatus = data.status; // open, closed, expired
-            const paymentStatus = mainPayment?.status;
 
-            if (orderStatus === 'closed' || paymentStatus === 'approved' || paymentStatus === 'processed' || paymentStatus === 'accredited') {
-                finalStatus = 'paid';
-            } else if (orderStatus === 'expired' || paymentStatus === 'rejected' || paymentStatus === 'cancelled') {
-                finalStatus = 'failed';
-            }
+            if (data.status === 'approved' || data.status === 'accredited') finalStatus = 'paid';
+            else if (data.status === 'rejected' || data.status === 'cancelled') finalStatus = 'failed';
 
-            // Extract QR Code / Ticket URL
+            // Extract PIX / Ticket Data
             let qrCode = null;
             let qrCodeBase64 = null;
             let checkoutUrl = null;
             let pixCopiaECola = null;
 
-            if (mainPayment) {
-                // Ticket/Pix data is often in payment_method or transaction_details
-                // Pix
-                if (method === 'PIX') {
-                    // Try different MP response paths for Pix Data (Orders vs Payments API)
-                    qrCode = mainPayment.payment_method?.qr_code ||
-                        mainPayment.transaction_details?.qr_code ||
-                        mainPayment.point_of_interaction?.transaction_data?.qr_code;
-
-                    qrCodeBase64 = mainPayment.payment_method?.qr_code_base64 ||
-                        mainPayment.transaction_details?.qr_code_base64 ||
-                        mainPayment.point_of_interaction?.transaction_data?.qr_code_base64;
-
-                    pixCopiaECola = qrCode; // Same for Pix
-                    checkoutUrl = mainPayment.transaction_details?.external_resource_url ||
-                        mainPayment.point_of_interaction?.transaction_data?.ticket_url;
-                }
-                // Boleto
-                else if (method === 'BOLETO') {
-                    checkoutUrl = mainPayment.payment_method?.ticket_url || mainPayment.transaction_details?.external_resource_url;
-                    qrCode = mainPayment.payment_method?.barcode_content || mainPayment.transaction_details?.barcode_content; // Barcode line
-                }
-                // Card
-                else {
-                    // Card generally doesn't have "checkoutUrl" unless 3DS is needed
-                }
+            if (method === 'PIX') {
+                const txData = data.point_of_interaction?.transaction_data;
+                qrCode = txData?.qr_code;
+                qrCodeBase64 = txData?.qr_code_base64;
+                pixCopiaECola = qrCode;
+                checkoutUrl = txData?.ticket_url;
+            } else if (method === 'BOLETO') {
+                checkoutUrl = data.transaction_details?.external_resource_url;
+                qrCode = data.barcode?.content;
             }
 
             return {
-                externalId: data.id.toString(), // Order ID
-                transactionId: mainPayment?.id?.toString(),
+                externalId: data.id.toString(),
+                transactionId: data.id.toString(),
                 qrCode,
                 qrCodeBase64,
                 pixCopiaECola,
@@ -135,9 +79,9 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 rawResponse: data
             };
         } catch (err) {
-            console.error('[MP] Create Order Error:', err.response?.data || err.message);
-            const errorMsg = err.response?.data?.message || JSON.stringify(err.response?.data?.causes) || err.message;
-            throw new Error(`Erro Mercado Pago (Orders): ${errorMsg}`);
+            console.error('[MP] Create Payment Error:', err.response?.data || err.message);
+            const errorMsg = err.response?.data?.message || err.message;
+            throw new Error(`Erro Mercado Pago: ${errorMsg}`);
         }
     }
 

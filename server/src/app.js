@@ -58,6 +58,7 @@ app.use('/api/webhooks', require('./routes/webhook.routes'));
 app.use('/api/gateways', require('./routes/gateway.routes'));
 app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
+app.use('/api/whatsapp', require('./routes/whatsapp.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
 app.use('/api/feature-flags', require('./routes/featureFlag.routes'));
 app.use('/api/rollout', require('./routes/rollout.routes'));
@@ -69,6 +70,10 @@ app.use('/api/reviews', require('./routes/review.routes'));
 // Initialize Notification Service (Listeners)
 const notificationService = require('./services/notificationService');
 notificationService.init();
+
+// Initialize Appointment Event Listeners (WhatsApp Automation)
+const appointmentListeners = require('./services/events/appointmentListeners');
+appointmentListeners.init();
 
 // Master / Educational Platform
 app.use('/api', require('./routes/master.routes'));

@@ -443,7 +443,7 @@ exports.createAppointment = async (req, res) => {
                     subtotal: totalVal,
                     total: totalVal,
                     paymentMethod: method,
-                    paymentStatus: (method === 'ONLINE' || method === 'SUBSCRIPTION') ? 'PAID' : 'PENDING',
+                    paymentStatus: method === 'SUBSCRIPTION' ? 'PAID' : 'PENDING',
                     items: {
                         create: [
                             ...servicesToBook.map(s => ({
@@ -689,6 +689,11 @@ exports.updateAppointmentStatus = async (req, res) => {
                 professional: true
             }
         });
+
+        // --- Emit Update Event for Automation ---
+        const eventBus = require('../services/events/eventBus');
+        eventBus.emit('APPOINTMENT_UPDATED', { appointment, oldStatus: curApp.status });
+        // ----------------------------------------
 
         // HANDLE PAYMENT ON COMPLETION (If provided)
         if (status === 'COMPLETED' && req.body.paymentMethod && req.body.paymentMethod !== 'ONLINE') {

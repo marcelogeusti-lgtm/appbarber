@@ -103,6 +103,79 @@ class CommunicationService {
         }
     }
 
+    // Send Cancellation Notice
+    async sendCancellationNotice(appointment) {
+        const { client, service, date, barbershop } = appointment;
+        const formattedDate = new Date(date).toLocaleDateString('pt-BR');
+        const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
+
+        // Fetch Template
+        const template = await this.getTemplate('CANCELLATION', barbershop.id);
+
+        let messageContent = template
+            ? template.content
+            : `❌ *Agendamento Cancelado*\n\nOlá, ${client.name}.\nSeu agendamento para ${service.name} em ${formattedDate} foi cancelado.\n\nSe desejar reagendar, acesse:\n🔗 ${bookingLink}`;
+
+        // Ensure template active
+        if (template && !template.active) {
+            console.log(`Template CANCELLATION inactive for barbershop ${barbershop.id}`);
+            return;
+        }
+
+        // Replace Variables
+        messageContent = messageContent
+            .replace('{{clientName}}', client.name)
+            .replace('{{barbershopName}}', barbershop.name)
+            .replace('{{date}}', formattedDate)
+            .replace('{{serviceName}}', service.name)
+            .replace('{{link}}', bookingLink);
+
+        if (client.phone) {
+            try {
+                await whatsappService.sendText(client.phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CANCELLATION', messageContent, 'SENT');
+            } catch (error) {
+                console.error('Failed to send WA Cancellation:', error);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CANCELLATION', messageContent, 'FAILED');
+            }
+        }
+    }
+
+    // Send Thank You Message (Completion)
+    async sendThankYouMessage(appointment) {
+        const { client, service, barbershop } = appointment;
+        const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
+
+        // Fetch Template
+        const template = await this.getTemplate('COMPLETED_THANKS', barbershop.id);
+
+        let messageContent = template
+            ? template.content
+            : `✂️ *Obrigado pela preferência, ${client.name}!*\n\nEsperamos que tenha gostado do atendimento na *${barbershop.name}*.\n\nPara garantir seu próximo horário, use o link:\n🔗 ${bookingLink}\n\nAté a próxima! 😄`;
+
+        // Ensure template active
+        if (template && !template.active) {
+            console.log(`Template COMPLETED_THANKS inactive for barbershop ${barbershop.id}`);
+            return;
+        }
+
+        // Replace Variables
+        messageContent = messageContent
+            .replace('{{clientName}}', client.name)
+            .replace('{{barbershopName}}', barbershop.name)
+            .replace('{{serviceName}}', service.name)
+            .replace('{{link}}', bookingLink);
+
+        if (client.phone) {
+            try {
+                await whatsappService.sendText(client.phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'COMPLETED_THANKS', messageContent, 'SENT');
+            } catch (error) {
+                console.error('Failed to send WA Thank You:', error);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'COMPLETED_THANKS', messageContent, 'FAILED');
+            }
+        }
+    }
 
     async log(appointment, channel, direction, type, content, status) {
         try {
@@ -128,58 +201,95 @@ class CommunicationService {
         return whatsAppProvider.getStatus();
     }
 
-    // --- Handling Incoming Messages (Strict Rule) ---
+    // --- Handling Incoming Messages (Smart Bot Layer) ---
     async handleIncomingMessage(data) {
-        const { from, text, name } = data;
+        const { from, text, name: senderName } = data;
         const phone = from.replace('@s.whatsapp.net', '');
+        const normalizedText = text.toLowerCase().trim();
 
-        // 1. Strict Filter: Register Client Only
-        // Search user by phone (try exact or without 55 if needed, standardizing on DB)
-        // Assuming DB stores with 55 or distinct. 
-        // Better: Search endswith to be safe or exact match if standardized.
-
-        const client = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { phone: phone },
-                    { phone: `+${phone}` }, // if stored with +
-                    { phone: phone.replace('55', '') } // backup check
-                ]
-            }
+        // 1. Find Barbershop context (Assuming a mapping of phone <-> barbershop)
+        // For now, let's find the first barbershop where this client is linked
+        const client = await prisma.client.findFirst({
+            where: { phone: { contains: phone } },
+            include: { appointments: { take: 1, orderBy: { createdAt: 'desc' }, include: { barbershop: true } } }
         });
 
         if (!client) {
-            console.log(`[WA Strict] Ignored message from unregistered number: ${phone}`);
+            console.log(`[WA Bot] Ignored message from unregistered client: ${phone}`);
             return;
         }
 
-        console.log(`[WA Strict] Valid message from client ${client.name} (${client.id})`);
+        // Get Barbershop Context (either from last appointment or default link)
+        let barbershop = client.appointments[0]?.barbershop;
+        if (!barbershop) {
+            // Fallback: search barbershop that has this client in logs
+            const lastLog = await prisma.communicationLog.findFirst({
+                where: { clientId: client.id },
+                orderBy: { createdAt: 'desc' }
+            });
+            if (lastLog) barbershop = await prisma.barbershop.findUnique({ where: { id: lastLog.barbershopId } });
+        }
 
-        // 2. Create Log / Conversation Context
-        // Find active appointment to bind context (Prioritize today or future)
-        const activeAppointment = await prisma.appointment.findFirst({
-            where: {
-                clientId: client.id,
-                status: { in: ['PENDING', 'CONFIRMED', 'SCHEDULED'] },
-                date: { gte: new Date() } // Future
-            },
-            orderBy: { date: 'asc' }
-        });
+        if (!barbershop || !barbershop.whatsappAutoReply) {
+            console.log(`[WA Bot] Auto-reply disabled for shop or context not found.`);
+            return;
+        }
 
-        // Log Inbound
-        await this.log({
-            clientId: client.id,
-            id: activeAppointment?.id,
-            barbershopId: activeAppointment?.barbershopId // Or derive from client owner/last interaction? 
-            // If checking strict context, message must belong to a barbershop context. 
-            // If client has NO appointment, maybe he is just asking info?
-            // If we enforce appointment context, we might lose general inquiries.
-            // User requested: "Conversas não relacionadas a clientes... bloqueadas". 
-            // "Cada conversa deve estar OBRIGATORIAMENTE vinculada a um contexto... Agendamento (opcional, mas prioritário)".
-            // So if no appointment, we bind to Client-Barbershop general context (if client is linked to shop).
-        }, 'WHATSAPP', 'INBOUND', 'REPLY', text, 'READ');
+        // 2. Business Hours Filter
+        if (barbershop.whatsappBusinessHoursOnly) {
+            const now = new Date();
+            const hour = now.getHours();
+            // Basic rule: 08:00 - 19:00 (Can be expanded to use real schedule table)
+            if (hour < 8 || hour > 19) {
+                console.log(`[WA Bot] Outside business hours: ${hour}h`);
+                return;
+            }
+        }
 
-        // TODO: Emit to frontend CRM if needed
+        // 3. Keyword Processing
+        let response = null;
+        const keywords = barbershop.whatsappKeywords || {
+            "agendar": "Olá! Para agendar seu horário agora, use o link abaixo:\n🔗 {{link}}",
+            "marcar": "Olá! Para agendar seu horário agora, use o link abaixo:\n🔗 {{link}}",
+            "horario": "Olá! Para agendar seu horário agora, use o link abaixo:\n🔗 {{link}}",
+            "link": "Aqui está o link para agendamento:\n🔗 {{link}}"
+        };
+
+        const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
+
+        // Check exact match or includes
+        for (const [key, msg] of Object.entries(keywords)) {
+            if (normalizedText.includes(key)) {
+                response = msg.replace('{{link}}', bookingLink).replace('{{clientName}}', client.name);
+                break;
+            }
+        }
+
+        // 4. Default Greeting if no keyword matched but bot is active
+        if (!response && barbershop.whatsappWelcomeMessage) {
+            response = barbershop.whatsappWelcomeMessage
+                .replace('{{link}}', bookingLink)
+                .replace('{{clientName}}', client.name);
+        } else if (!response) {
+            // Internal default fallback
+            response = `Olá, ${client.name}! Para agendar seu serviço na *${barbershop.name}*, basta clicar no link:\n🔗 ${bookingLink}`;
+        }
+
+        // 5. Send and Log
+        if (response) {
+            await whatsappService.sendText(phone, response);
+            await prisma.communicationLog.create({
+                data: {
+                    barbershopId: barbershop.id,
+                    clientId: client.id,
+                    channel: 'WHATSAPP',
+                    direction: 'OUTBOUND',
+                    type: 'AUTO_REPLY',
+                    content: response,
+                    status: 'SENT'
+                }
+            });
+        }
     }
 }
 

@@ -265,6 +265,12 @@ model Barbershop {
   trialEndsAt    DateTime?
   saasPlan       String @default("BASIC")
   enabledPaymentMethods PaymentMethod[] @default([CASH, PIX, CREDIT_CARD, DEBIT_CARD])
+
+  // WhatsApp Automation Settings
+  whatsappAutoReply        Boolean @default(false)
+  whatsappKeywords         Json?    // e.g. { "agendar": "Link de agendamento: {{link}}", "cancelar": "Instruções..." }
+  whatsappBusinessHoursOnly Boolean @default(true)
+  whatsappWelcomeMessage   String?  @db.Text
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -300,8 +306,9 @@ model Barbershop {
   auditLogs     AuditLog[]
   
   loyaltyProgram LoyaltyProgram?
-  reviews        Review[]
   favoritedBy    FavoriteBarbershop[]
+  reviews        Review[]
+  notificationTemplates NotificationTemplate[]
 }
 
 model GatewayConfig {
@@ -1022,4 +1029,19 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+model NotificationTemplate {
+  id           String   @id @default(uuid())
+  barbershopId String?  // Null for Global templates
+  barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
+  
+  name         String?   // Friendly name
+  type         String    // appointment_confirmed, appointment_cancelled, etc.
+  content      String    @db.Text
+  active       Boolean   @default(true)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([barbershopId, type])
 }

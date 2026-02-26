@@ -11,8 +11,8 @@ export default function Footer() {
                     <div className="col-span-1 md:col-span-1">
                         <div className="flex items-center gap-2 mb-6">
                             <img
-                                src="/logos/logo_convertido.svg"
-                                alt="Logo"
+                                src="/logos/NEXT_logo.svg"
+                                alt="NEXT Logo"
                                 className="h-10 w-auto object-contain brightness-0 invert"
                             />
                         </div>
