@@ -297,6 +297,13 @@ exports.socialLogin = async (req, res) => {
                     ownedBarbershops: [result.barbershop],
                     workedBarbershop: null
                 };
+            } else if (avatarUrl && !authUser.user.avatarUrl) {
+                // Persistent fix: If existing pro has no photo, but social provider has one, save it.
+                await prisma.user.update({
+                    where: { id: authUser.user.id },
+                    data: { avatarUrl }
+                });
+                authUser.user.avatarUrl = avatarUrl;
             }
 
             const user = authUser.user;
@@ -308,11 +315,9 @@ exports.socialLogin = async (req, res) => {
             return res.json({
                 token,
                 user: {
-                    id: user.id,
-                    name: user.name,
+                    ...user, // Spreading user includes relations like ownedBarbershops
                     email: authUser.email,
-                    role: user.role,
-                    avatarUrl: user.avatarUrl
+                    role: user.role
                 },
                 barbershopId,
                 barbershopSlug
