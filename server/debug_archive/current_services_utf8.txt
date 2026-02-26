@@ -1,0 +1,14 @@
+﻿[
+  {
+    "id": "3691776c-6f8e-47e1-be14-332ee1d28a4e",
+    "name": "Corte tesoura",
+    "description": "",
+    "price": "50",
+    "duration": 30,
+    "active": true,
+    "commissionType": "FIXED",
+    "commissionValue": "0",
+    "barbershopId": "8b3fcfd4-309c-4e24-9004-e03492986be4"
+  }
+]
+

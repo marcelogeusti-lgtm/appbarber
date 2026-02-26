@@ -1,0 +1,14 @@
+# Excluir pastas pesadas e desnecessárias
+node_modules
+**/node_modules
+server
+.git
+.next
+.vercel
+dist
+build
+tmp
+*.log
+client/node_modules
+client/.next
+client/public/logos/Samuel ensaio

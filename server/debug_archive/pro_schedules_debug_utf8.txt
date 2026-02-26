@@ -1,0 +1,93 @@
+﻿{
+  "id": "00f120fb-4220-4866-b1e3-8274b6770e8c",
+  "userId": "f66798e7-6fb2-4c73-ac7a-c8b45bbe40fd",
+  "bio": "",
+  "position": "Barbeiro Master",
+  "showInApp": true,
+  "showPublicly": true,
+  "appointmentInterval": 30,
+  "zipCode": "24451-650",
+  "street": "Rua Augusto Rush",
+  "number": "45",
+  "complement": "Bloco - 14 Apartamento 1008",
+  "neighborhood": "Colubande",
+  "city": "S├úo Gon├ºalo",
+  "state": "RJ",
+  "country": "Brasil",
+  "commissionPercent": 0,
+  "createdAt": "2026-01-23T21:33:38.098Z",
+  "updatedAt": "2026-01-23T21:42:21.666Z",
+  "schedules": [
+    {
+      "id": "2eb56693-02cc-4ba3-b7b5-9e87cf8bb150",
+      "dayOfWeek": 0,
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "breakStart": "12:00",
+      "breakEnd": "13:00",
+      "isOff": true,
+      "professionalId": "00f120fb-4220-4866-b1e3-8274b6770e8c"
+    },
+    {
+      "id": "6f30e2cf-7b1f-4724-ab0a-1eacac539e98",
+      "dayOfWeek": 1,
+      "startTime": "09:00",
+      "endTime": "22:00",
+      "breakStart": "12:00",
+      "breakEnd": "13:00",
+      "isOff": false,
+      "professionalId": "00f120fb-4220-4866-b1e3-8274b6770e8c"
+    },
+    {
+      "id": "dd32dda4-a7ad-4409-8a43-b2d6cdb96649",
+      "dayOfWeek": 2,
+      "startTime": "09:00",
+      "endTime": "22:00",
+      "breakStart": "12:00",
+      "breakEnd": "13:00",
+      "isOff": false,
+      "professionalId": "00f120fb-4220-4866-b1e3-8274b6770e8c"
+    },
+    {
+      "id": "d499e1e8-344b-4748-8145-00b04e6db42f",
+      "dayOfWeek": 3,
+      "startTime": "09:00",
+      "endTime": "22:00",
+      "breakStart": "12:00",
+      "breakEnd": "13:00",
+      "isOff": false,
+      "professionalId": "00f120fb-4220-4866-b1e3-8274b6770e8c"
+    },
+    {
+      "id": "72761255-47c8-4c95-ba69-0b507210aa0c",
+      "dayOfWeek": 4,
+      "startTime": "09:00",
+      "endTime": "22:00",
+      "breakStart": "12:00",
+      "breakEnd": "13:00",
+      "isOff": false,
+      "professionalId": "00f120fb-4220-4866-b1e3-8274b6770e8c"
+    },
+    {
+      "id": "5032d235-47ff-4218-b5bb-f1ef447835e0",
+      "dayOfWeek": 5,
+      "startTime": "09:00",
+      "endTime": "22:00",
+      "breakStart": "12:00",
+      "breakEnd": "13:00",
+      "isOff": false,
+      "professionalId": "00f120fb-4220-4866-b1e3-8274b6770e8c"
+    },
+    {
+      "id": "4fdaf953-0943-43fc-89d1-c41f48683b5f",
+      "dayOfWeek": 6,
+      "startTime": "09:00",
+      "endTime": "22:00",
+      "breakStart": "12:00",
+      "breakEnd": "13:00",
+      "isOff": false,
+      "professionalId": "00f120fb-4220-4866-b1e3-8274b6770e8c"
+    }
+  ]
+}
+
