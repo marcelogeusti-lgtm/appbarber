@@ -336,6 +336,13 @@ exports.socialLogin = async (req, res) => {
                     }
                 });
                 authUser.client = newClient;
+            } else if (avatarUrl && !authUser.client.avatarUrl) {
+                // Persistent fix: If existing client has no photo, but social provider has one, save it.
+                await prisma.client.update({
+                    where: { id: authUser.client.id },
+                    data: { avatarUrl }
+                });
+                authUser.client.avatarUrl = avatarUrl;
             }
 
             const client = authUser.client;
@@ -344,11 +351,9 @@ exports.socialLogin = async (req, res) => {
             return res.json({
                 token,
                 user: {
-                    id: client.id,
-                    name: client.name,
-                    email: authUser.email,
+                    ...client,
                     role: 'CLIENT',
-                    avatarUrl: client.avatarUrl
+                    email: authUser.email
                 }
             });
         }
