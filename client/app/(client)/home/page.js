@@ -74,11 +74,11 @@ export default function ClientHome() {
                 <div className="mb-8">
                     {user ? (
                         <h1 className="text-2xl font-normal text-slate-300">
-                            Olá, <span className="text-emerald-500 font-bold">{user?.name?.split(' ')[0]}</span>
+                            Olá, <span className="text-primary font-bold">{user?.name?.split(' ')[0]}</span>
                         </h1>
                     ) : (
                         <h1 className="text-2xl font-normal text-slate-300">
-                            Olá, <span className="text-emerald-500 font-bold">Visitante</span>
+                            Olá, <span className="text-primary font-bold">Visitante</span>
                         </h1>
                     )}
 
@@ -94,7 +94,7 @@ export default function ClientHome() {
                         type="text"
                         placeholder="Procurar estabelecimento"
                         onClick={() => router.push('/search')}
-                        className="w-full bg-[#111111] border border-white/5 rounded-lg py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition shadow-lg shadow-black/50 cursor-pointer hover:bg-[#151515]"
+                        className="w-full bg-[#111111] border border-white/5 rounded-lg py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition shadow-lg shadow-black/50 cursor-pointer hover:bg-[#151515]"
                         readOnly
                     />
                 </div>
@@ -122,7 +122,7 @@ export default function ClientHome() {
                                     <p className="text-slate-500 text-xs">{lastAppointment.service?.name || 'Serviço Agendado'}</p>
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-emerald-500 transition">
+                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-primary transition">
                                 <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
                             </div>
                         </div>
@@ -211,8 +211,8 @@ export default function ClientHome() {
 
                     {/* Brand */}
                     <div>
-                        <div className="bg-emerald-600 px-4 py-1.5 rounded-lg inline-flex items-center justify-center border border-white/10 shadow-lg shadow-emerald-500/10 mb-6">
-                            <span className="text-white font-medium text-sm tracking-wide lowercase font-sans">barberon</span>
+                        <div className="px-4 py-1.5 rounded-lg inline-flex items-center justify-center mb-6">
+                            <img src="/logos/logo_full.png" alt="NEXT" className="h-6 w-auto" />
                         </div>
                         <p className="text-slate-500 text-xs leading-relaxed max-w-[200px]">
                             Uma nova experiência para uma antiga tradição.
@@ -229,10 +229,10 @@ export default function ClientHome() {
                     <div>
                         <h4 className="text-white font-bold text-sm mb-6">Acesso rápido</h4>
                         <ul className="space-y-3 text-sm text-slate-500">
-                            <li><Link href="/home" className="hover:text-emerald-500 transition">Início</Link></li>
-                            <li><Link href="/search" className="hover:text-emerald-500 transition">Encontrar estabelecimentos</Link></li>
-                            <li><Link href="/appointments" className="hover:text-emerald-500 transition">Meus agendamentos</Link></li>
-                            <li><Link href="/profile" className="hover:text-emerald-500 transition">Favoritos</Link></li>
+                            <li><Link href="/home" className="hover:text-primary transition">Início</Link></li>
+                            <li><Link href="/search" className="hover:text-primary transition">Encontrar estabelecimentos</Link></li>
+                            <li><Link href="/appointments" className="hover:text-primary transition">Meus agendamentos</Link></li>
+                            <li><Link href="/profile" className="hover:text-primary transition">Favoritos</Link></li>
                         </ul>
                     </div>
 
@@ -240,8 +240,8 @@ export default function ClientHome() {
                     <div>
                         <h4 className="text-white font-bold text-sm mb-6">Mais</h4>
                         <ul className="space-y-3 text-sm text-slate-500">
-                            <li><Link href="/terms" className="hover:text-emerald-500 transition">Termos de uso</Link></li>
-                            <li><Link href="/privacy" className="hover:text-emerald-500 transition">Preferências de cookies</Link></li>
+                            <li><Link href="/terms" className="hover:text-primary transition">Termos de uso</Link></li>
+                            <li><Link href="/privacy" className="hover:text-primary transition">Preferências de cookies</Link></li>
                         </ul>
                     </div>
 
@@ -249,15 +249,15 @@ export default function ClientHome() {
                     <div>
                         <h4 className="text-white font-bold text-sm mb-6">Baixe nosso App</h4>
                         <div className="space-y-3">
-                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-emerald-500/50 transition group">
-                                <Apple className="w-5 h-5 text-white group-hover:text-emerald-500" />
+                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-primary/50 transition group">
+                                <Apple className="w-5 h-5 text-white group-hover:text-primary" />
                                 <div className="text-left">
                                     <p className="text-[9px] text-slate-500 uppercase font-bold">Download on the</p>
                                     <p className="text-xs text-white font-bold">App Store</p>
                                 </div>
                             </button>
-                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-emerald-500/50 transition group">
-                                <Play className="w-5 h-5 text-white group-hover:text-emerald-500 fill-current" />
+                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-primary/50 transition group">
+                                <Play className="w-5 h-5 text-white group-hover:text-primary fill-current" />
                                 <div className="text-left">
                                     <p className="text-[9px] text-slate-500 uppercase font-bold">Get it on</p>
                                     <p className="text-xs text-white font-bold">Google Play</p>

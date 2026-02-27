@@ -59,7 +59,7 @@ function ClientLayoutContent({ children }) {
                 {/* Logo */}
                 <Link href="/home" className="flex items-center">
                     <img
-                        src="/logos/logo_convertido.svg"
+                        src="/logos/logo_full.png"
                         alt="NEXT"
                         className="h-8 w-auto object-contain"
                     />
