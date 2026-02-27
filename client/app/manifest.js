@@ -5,8 +5,8 @@ export default function manifest() {
         description: 'O sistema de gestão que sua barbearia merece',
         start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#ffffff',
+        background_color: '#002d72',
+        theme_color: '#002d72',
         icons: [
             {
                 src: '/icons/icon-192.png',
