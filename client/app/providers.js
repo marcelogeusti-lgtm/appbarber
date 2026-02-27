@@ -5,6 +5,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { FeatureFlagProvider } from '../contexts/FeatureFlagContext';
 
+import FcmManager from '../components/FcmManager';
+
 export default function Providers({ children }) {
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
@@ -21,6 +23,7 @@ export default function Providers({ children }) {
     return (
         <QueryClientProvider client={queryClient}>
             <FeatureFlagProvider>
+                <FcmManager />
                 {children}
             </FeatureFlagProvider>
             <ReactQueryDevtools initialIsOpen={false} />

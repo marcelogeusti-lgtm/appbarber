@@ -1,58 +1,71 @@
-const webpush = require('web-push');
+const { messaging } = require('../../config/firebaseAdmin');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 /**
  * PushNotificationService
- * Handles sending browser/mobile push notifications using Web Push protocol.
+ * Handles sending browser/mobile push notifications using Firebase Cloud Messaging (FCM).
  */
 class PushNotificationService {
-    constructor() {
-        this.vapidKeys = {
-            publicKey: process.env.VAPID_PUBLIC_KEY,
-            privateKey: process.env.VAPID_PRIVATE_KEY
-        };
-
-        if (this.vapidKeys.publicKey && this.vapidKeys.privateKey) {
-            webpush.setVapidDetails(
-                `mailto:${process.env.EMAIL_USER || 'admin@example.com'}`,
-                this.vapidKeys.publicKey,
-                this.vapidKeys.privateKey
-            );
-        }
-    }
-
     /**
-     * Sends a push notification to a specific subscription.
+     * Sends a push notification to a specific FCM token.
      */
-    async sendNotification(subscription, payload) {
-        if (!this.vapidKeys.publicKey) {
-            console.warn('[PushService] VAPID keys not configured. Skipping.');
-            return;
-        }
-
-        try {
-            await webpush.sendNotification(
-                subscription,
-                JSON.stringify(payload)
-            );
-            return { success: true };
-        } catch (error) {
-            console.error('[PushService] Send Error:', error.message);
-            if (error.statusCode === 410 || error.statusCode === 404) {
-                // Subscription has expired or is no longer valid
-                return { success: false, expired: true };
-            }
+    async sendByToken(token, title, body, data = {}) {
+        if (!messaging) {
+            console.warn('[PushService] Firebase Messaging not initialized. Skipping.');
             return { success: false };
         }
+
+        const message = {
+            notification: { title, body },
+            data: {
+                ...data,
+                click_action: data.url || '/'
+            },
+            token: token
+        };
+
+        try {
+            const response = await messaging.send(message);
+            return { success: true, messageId: response };
+        } catch (error) {
+            console.error('[PushService] FCM Send Error:', error.message);
+            if (error.code === 'messaging/registration-token-not-registered' ||
+                error.code === 'messaging/invalid-registration-token') {
+                // Token is no longer valid, we should remove it
+                await prisma.fcmToken.deleteMany({ where: { token } });
+                return { success: false, expired: true };
+            }
+            return { success: false, error: error.message };
+        }
     }
 
     /**
-     * Broadcasts notification to multiple users.
+     * Sends push notifications to all devices of a specific user.
      */
-    async broadcast(subscriptions, payload) {
-        const results = await Promise.all(
-            subscriptions.map(sub => this.sendNotification(sub, payload))
-        );
-        return results;
+    async sendToUser(authUserId, title, body, data = {}) {
+        try {
+            const tokens = await prisma.fcmToken.findMany({
+                where: { authUserId },
+                select: { token: true }
+            });
+
+            if (tokens.length === 0) return [];
+
+            const promises = tokens.map(t => this.sendByToken(t.token, title, body, data));
+            return await Promise.all(promises);
+        } catch (error) {
+            console.error('[PushService] sendToUser Error:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Broadcasts notification to multiple tokens.
+     */
+    async broadcast(tokens, title, body, data = {}) {
+        const promises = tokens.map(token => this.sendByToken(token, title, body, data));
+        return await Promise.all(promises);
     }
 }
 

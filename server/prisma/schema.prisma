@@ -78,6 +78,7 @@ model AuthUser {
 
   client    Client?
   user      User?    // Professional User
+  fcmTokens FcmToken[]
 }
 
 model Client {
@@ -1029,6 +1030,18 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+model FcmToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  authUserId String
+  authUser   AuthUser @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+  deviceType String?  // ios, android, web
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([authUserId])
 }
 model NotificationTemplate {
   id           String   @id @default(uuid())

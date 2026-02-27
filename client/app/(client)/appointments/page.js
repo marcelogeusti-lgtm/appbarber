@@ -57,16 +57,20 @@ export default function HistoryPage() {
 
     // 2. Then, bucket them for Tabs
     const now = new Date();
+    // Set to start of day for safer comparison if we want to show everything from today
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const scheduled = filteredByShop.filter(a =>
-        (a.status === 'PENDING' || a.status === 'CONFIRMED' || a.status === 'SCHEDULED') &&
-        new Date(a.date) >= now
-    ).sort((a, b) => new Date(a.date) - new Date(b.date)); // Ascending for upcoming
+    const scheduled = filteredByShop.filter(a => {
+        const appDate = new Date(a.date);
+        return (a.status === 'PENDING' || a.status === 'CONFIRMED' || a.status === 'SCHEDULED') &&
+            appDate >= today;
+    }).sort((a, b) => new Date(a.date) - new Date(b.date)); // Ascending for upcoming
 
-    const completed = filteredByShop.filter(a =>
-        a.status === 'COMPLETED' ||
-        ((a.status === 'PENDING' || a.status === 'CONFIRMED') && new Date(a.date) < now)
-    ).sort((a, b) => new Date(b.date) - new Date(a.date)); // Descending for history
+    const completed = filteredByShop.filter(a => {
+        const appDate = new Date(a.date);
+        return a.status === 'COMPLETED' ||
+            ((a.status === 'PENDING' || a.status === 'CONFIRMED') && appDate < today);
+    }).sort((a, b) => new Date(b.date) - new Date(a.date)); // Descending for history
 
     const cancelled = filteredByShop.filter(a =>
         a.status === 'CANCELLED' || a.status === 'NO_SHOW'
@@ -175,8 +179,8 @@ function AppointmentCard({ app, onCancel, showCancel }) {
 
     return (
         <div className={`bg-[#151821] rounded-[2rem] p-6 border transition-all group ${isCancelled ? 'border-red-500/10 hover:border-red-500/30' :
-                isCompleted ? 'border-emerald-500/10 hover:border-emerald-500/30' :
-                    'border-blue-500/10 hover:border-blue-500/30'
+            isCompleted ? 'border-emerald-500/10 hover:border-emerald-500/30' :
+                'border-blue-500/10 hover:border-blue-500/30'
             }`}>
             <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4">
@@ -193,8 +197,8 @@ function AppointmentCard({ app, onCancel, showCancel }) {
                 </div>
                 {/* Status Badge */}
                 <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${app.status === 'CONFIRMED' || app.status === 'PENDING' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                        app.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                            'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                    app.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                        'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                     }`}>
                     {app.status === 'PENDING' ? 'Agendado' : app.status === 'CONFIRMED' ? 'Confirmado' : app.status === 'CANCELLED' ? 'Cancelado' : 'Concluído'}
                 </span>

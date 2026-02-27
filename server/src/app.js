@@ -58,6 +58,7 @@ app.use('/api/webhooks', require('./routes/webhook.routes'));
 app.use('/api/gateways', require('./routes/gateway.routes'));
 app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
+app.use('/api/notifications/fcm', require('./routes/fcmToken.routes'));
 app.use('/api/whatsapp', require('./routes/whatsapp.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
 app.use('/api/feature-flags', require('./routes/featureFlag.routes'));

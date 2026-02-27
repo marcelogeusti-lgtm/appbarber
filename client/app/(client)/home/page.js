@@ -31,7 +31,12 @@ export default function ClientHome() {
             const apps = res.data || [];
 
             if (apps.length > 0) {
-                setLastAppointment(apps[0]);
+                const now = new Date();
+                const futureApps = apps
+                    .filter(a => (a.status === 'PENDING' || a.status === 'CONFIRMED') && new Date(a.date) >= now)
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                setLastAppointment(futureApps.length > 0 ? futureApps[0] : apps[0]);
             }
 
             // Mock Favorites/Recents from appointments logic
