@@ -23,7 +23,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
                     <img
-                        src="/logos/NEXT_logo.svg"
+                        src="/logos/logo_full.png"
                         alt="NEXT Logo"
                         className="h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105"
                     />
