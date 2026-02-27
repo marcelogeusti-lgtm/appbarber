@@ -12,6 +12,8 @@ export const metadata = {
     description: 'O sistema de gestão que sua barbearia merece',
     manifest: '/manifest.json',
     icons: {
+        icon: '/icon.png',
+        shortcut: '/icon.png',
         apple: '/apple-icon.png',
     }
 };
