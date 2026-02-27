@@ -2,6 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { generateUniqueSlug } = require('../utils/slugGenerator');
+const emailProvider = require('../services/communication/providers/EmailProvider');
 
 const prisma = new PrismaClient();
 
@@ -372,27 +373,86 @@ exports.forgotPassword = async (req, res) => {
 
         const authUser = await prisma.authUser.findUnique({ where: { email } });
         if (!authUser) {
-            // Security: Don't leak if email exists or not, but for now we might be nice
-            // Actually standard practice is to say "If ID exists, email sent"
+            // Security: Don't leak if email exists or not
             return res.status(200).json({ message: 'Se o email existir, enviamos o link.' });
         }
 
-        // Generate Token (simple random string or JWT)
-        const resetToken = jwt.sign({ id: authUser.id, purpose: 'RESET_PASSWORD' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Generate Token
+        const resetToken = jwt.sign(
+            { id: authUser.id, purpose: 'RESET_PASSWORD' },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
-        // TODO: Send Email using nodemailer
-        // For now, since user wants "Real" and I can't set up SMTP credentials I don't have:
-        // I will log it to console so user can "see" it works in dev, 
-        // and ideally we'd use a CommunicationService.
+        // Build reset link
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-        console.log(`[AUTH] Password Reset Link for ${email}: http://localhost:3000/reset-password?token=${resetToken}`);
+        // Send Email
+        const emailSent = await emailProvider.sendEmail(
+            email,
+            'Recuperação de Senha - NEXT',
+            `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; rounded: 10px;">
+                <h2 style="color: #00e676;">Recuperação de Senha</h2>
+                <p>Olá,</p>
+                <p>Recebemos uma solicitação para redefinir a senha da sua conta no NEXT.</p>
+                <p>Para prosseguir, clique no botão abaixo:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetLink}" style="background-color: #00e676; color: black; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Redefinir Minha Senha</a>
+                </div>
+                <p>Se você não solicitou isso, por favor ignore este e-mail. O link expira em 1 hora.</p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                <p style="font-size: 12px; color: #888;">Equipe NEXT</p>
+            </div>
+            `
+        );
 
-        // Return success
+        if (!emailSent) {
+            console.log(`[AUTH] Simulated Reset Link for ${email}: ${resetLink}`);
+        }
+
         res.status(200).json({ message: 'Email de recuperação enviado.' });
 
     } catch (error) {
         console.error('Forgot Password Error:', error);
         res.status(500).json({ message: 'Erro ao processar solicitação.' });
+    }
+};
+
+// Reset Password
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ message: 'Token e nova senha são obrigatórios.' });
+        }
+
+        // Verify Token
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            return res.status(400).json({ message: 'Token inválido ou expirado.' });
+        }
+
+        if (decoded.purpose !== 'RESET_PASSWORD') {
+            return res.status(400).json({ message: 'Token inválido.' });
+        }
+
+        // Update Password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await prisma.authUser.update({
+            where: { id: decoded.id },
+            data: { password: hashedPassword }
+        });
+
+        res.json({ message: 'Senha redefinida com sucesso!' });
+
+    } catch (error) {
+        console.error('Reset Password Error:', error);
+        res.status(500).json({ message: 'Erro ao redefinir senha.' });
     }
 };
 

@@ -8,6 +8,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/social-login', require('../controllers/auth.controller').socialLogin);
 router.post('/forgot-password', require('../controllers/auth.controller').forgotPassword);
+router.post('/reset-password', require('../controllers/auth.controller').resetPassword);
 router.get('/me', protect, getMe);
 
 module.exports = router;
