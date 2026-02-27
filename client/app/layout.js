@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import clsx from 'clsx';
 import Providers from './providers';
 import { Toaster } from 'sonner';
+import FcmManager from '../components/FcmManager';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
             <body className={clsx(inter.className, 'min-h-screen bg-background antialiased')}>
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
+                        <FcmManager />
                         {children}
                         <Toaster richColors position="top-center" />
                     </Providers>
