@@ -17,7 +17,11 @@ class PushNotificationService {
         }
 
         const message = {
-            notification: { title, body },
+            notification: {
+                title: title,
+                body: body,
+                icon: '/icons/icon-192.png'
+            },
             data: {
                 ...data,
                 click_action: data.url || '/'

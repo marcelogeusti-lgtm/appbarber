@@ -10,6 +10,10 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
     title: 'NEXT - Sistema de Gestão para Barbearias',
     description: 'O sistema de gestão que sua barbearia merece',
+    manifest: '/manifest.json',
+    icons: {
+        apple: '/apple-icon.png',
+    }
 };
 
 export default function RootLayout({ children }) {
