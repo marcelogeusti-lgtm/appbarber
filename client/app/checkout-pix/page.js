@@ -98,7 +98,7 @@ export default function CheckoutPixPage() {
 
                     <div className="flex items-center gap-4 mb-6">
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-800 border border-slate-700">
-                            <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" onError={(e) => e.target.src = '/logos/logo_convertido.svg'} />
+                            <img src={shopLogo} alt={shopName} className="w-full h-full object-cover" onError={(e) => e.target.src = '/logos/logo_full.png'} />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-white leading-tight">{shopName}</h2>
