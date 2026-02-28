@@ -10,6 +10,7 @@ import ForgotPasswordModal from '../../components/client-view/ForgotPasswordModa
 import FooterCliente from '../../components/client-view/FooterCliente';
 import SidebarCliente from '../../components/client-view/SidebarCliente';
 import NotificationsModal from '../../components/client-view/NotificationsModal';
+import ProfileDropdown from '../../components/client-view/ProfileDropdown';
 import { ChevronDown, Bell, Menu as MenuIcon } from 'lucide-react';
 
 function ClientLayoutContent({ children }) {
