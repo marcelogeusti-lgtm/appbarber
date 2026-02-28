@@ -8,10 +8,9 @@ import LoginModal from '../../components/client-view/LoginModal';
 import RegisterModal from '../../components/client-view/RegisterModal';
 import ForgotPasswordModal from '../../components/client-view/ForgotPasswordModal';
 import FooterCliente from '../../components/client-view/FooterCliente';
-import SidebarCliente from '../../components/client-view/SidebarCliente';
 import NotificationsModal from '../../components/client-view/NotificationsModal';
 import ProfileDropdown from '../../components/client-view/ProfileDropdown';
-import { ChevronDown, Bell, Menu as MenuIcon } from 'lucide-react';
+import { ChevronDown, Bell } from 'lucide-react';
 
 function ClientLayoutContent({ children }) {
     const pathname = usePathname();
@@ -19,7 +18,6 @@ function ClientLayoutContent({ children }) {
     const { user, loading } = useClientAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // ROLE GUARD: Prevent non-clients (e.g. Pros) from using this layout
     useEffect(() => {
@@ -42,24 +40,10 @@ function ClientLayoutContent({ children }) {
             <ForgotPasswordModal />
             <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
 
-            {/* SIDEBAR: Only for logged-in users on Desktop (default lg:block) or mobile sandwich */}
-            {user && (
-                <SidebarCliente isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-            )}
-
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar">
                 {/* TOP HEADER */}
                 <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
-                        {/* Mobile Sandwich Trigger: Only for Logged In */}
-                        {user && (
-                            <button
-                                onClick={() => setIsSidebarOpen(true)}
-                                className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
-                            >
-                                <MenuIcon className="w-6 h-6" />
-                            </button>
-                        )}
 
                         <Link href="/home">
                             <img src="/logos/logo_full.png" alt="NEXT" className="h-7 w-auto" />
