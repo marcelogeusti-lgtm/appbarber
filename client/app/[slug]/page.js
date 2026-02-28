@@ -803,8 +803,12 @@ export default function BarbershopPage() {
                                             <div className="grid grid-cols-2 gap-3">
                                                 {barbershop.staff?.filter(s => ['BARBER', 'ADMIN', 'SUPER_ADMIN'].includes(s.role.toUpperCase())).map(pro => (
                                                     <div key={pro.id} onClick={() => handleProfessionalSelect(pro)} className={`bg-slate-900/50 p-4 rounded-3xl border transition-all text-center group cursor-pointer ${selectedProfessional?.id === pro.id ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-800 hover:border-slate-600'}`}>
-                                                        <div className="w-14 h-14 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center font-black text-lg text-white group-hover:scale-105 transition">
-                                                            {pro.name.charAt(0)}
+                                                        <div className="w-14 h-14 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center font-black text-lg text-white group-hover:scale-105 transition overflow-hidden">
+                                                            {pro.avatarUrl ? (
+                                                                <img src={pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                pro.name.charAt(0)
+                                                            )}
                                                         </div>
                                                         <p className="font-bold text-white text-[11px] uppercase truncate">{pro.name}</p>
                                                     </div>

@@ -174,7 +174,7 @@ export default function AuthPage() {
                                 <span className="text-2xl font-bold text-zinc-900">NE<span className="text-primary">XT</span></span>
                             </Link>
                             <h2 className="text-3xl font-bold text-zinc-900 mb-2">
-                                {activeTab === 'login' ? 'Bem-vindo de volta!' : 'Crie sua conta grátis'}
+                                {activeTab === 'login' ? 'Acesso Profissional' : 'Crie sua conta grátis'}
                             </h2>
                             <p className="text-zinc-500">
                                 {activeTab === 'login' ? 'Acesse o painel da sua barbearia.' : 'Comece a usar o sistema em menos de 2 minutos.'}
@@ -315,6 +315,10 @@ export default function AuthPage() {
                                 >
                                     {loading ? 'Criando conta...' : 'Começar Gratuitamente'}
                                 </button>
+
+                                <p className="text-center text-sm text-zinc-500 mt-6">
+                                    Sou cliente e quero agendar: <Link href="/" className="text-primary font-bold hover:underline">Clique aqui</Link>
+                                </p>
 
                                 <div className="relative my-8">
                                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-100"></div></div>

@@ -1,10 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { generateUniqueSlug } = require('../utils/slugGenerator');
 const emailProvider = require('../services/communication/providers/EmailProvider');
-
-const prisma = new PrismaClient();
 
 const generateToken = (user, authUser) => {
     const barbershopId = user.workedBarbershopId ||

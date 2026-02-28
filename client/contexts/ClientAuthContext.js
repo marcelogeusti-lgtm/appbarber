@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '../lib/clientApi';
 import { auth, googleProvider, facebookProvider } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
@@ -12,6 +13,7 @@ export function ClientAuthProvider({ children }) {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         checkSession();
@@ -120,7 +122,8 @@ export function ClientAuthProvider({ children }) {
             persistSession(token, user);
 
             // Redirect to home after login
-            router.push('/home');
+            // Redirect to home or stay on page
+            // router.push('/home'); // REMOVED: keep context
 
             return { success: true };
         } catch (error) {
@@ -146,7 +149,8 @@ export function ClientAuthProvider({ children }) {
         localStorage.removeItem('user'); // Also clear generic user to prevent cross-pollution
         setUser(null);
         // Force redirect to safe public zone
-        window.location.href = '/search';
+        // Force redirect to safe public zone
+        window.location.href = '/home';
     };
 
     const openLoginModal = () => { setIsLoginModalOpen(true); setIsRegisterModalOpen(false); setIsForgotPasswordModalOpen(false); };

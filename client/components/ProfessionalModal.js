@@ -230,7 +230,22 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
         setUploading(true);
         try {
+            // 1. Compress
+            const compressedFile = await compressImage(file);
+
+            // 2. Upload to Firebase
+            const extension = compressedFile.name.split('.').pop() || 'jpg';
+            const filename = `professionals/${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
+            const storageRef = ref(storage, filename);
+
+            await uploadBytes(storageRef, compressedFile);
+
+            // 3. Get URL
+            const url = await getDownloadURL(storageRef);
+
+            // 4. Set in form
             setValue('avatarUrl', url);
+            toast.success('Foto enviada com sucesso!');
         } catch (err) {
             console.error('Upload error:', err);
             toast.error('Erro ao enviar imagem: ' + (err.message || 'Erro desconhecido'));

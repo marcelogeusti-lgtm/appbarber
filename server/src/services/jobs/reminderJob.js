@@ -1,9 +1,7 @@
 const cron = require('node-cron');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../../lib/prisma');
 const { addMinutes, subMinutes } = require('date-fns');
 const eventBus = require('../events/eventBus');
-
-const prisma = new PrismaClient();
 
 const initScheduler = () => {
     console.log('[Scheduler] Reminder Job initialized (Every 10 mins).');

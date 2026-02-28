@@ -139,6 +139,46 @@ class CommunicationService {
                 await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'CANCELLATION', messageContent, 'FAILED');
             }
         }
+
+        // --- AUTOMATIC WAITLIST NOTIFICATION ---
+        try {
+            // Find the first pending user in the waitlist for exactly this date and professional
+            const nextInWaitlist = await prisma.waitlist.findFirst({
+                where: {
+                    barbershopId: barbershop.id,
+                    professionalId: appointment.professionalId,
+                    date: appointment.date.split('T')[0], // ensure format matches YYYY-MM-DD
+                    status: 'PENDING'
+                },
+                orderBy: { createdAt: 'asc' } // first come, first served
+            });
+
+            if (nextInWaitlist && nextInWaitlist.clientPhone) {
+                console.log(`[Waitlist Automation] Found user waiting: ${nextInWaitlist.clientName}. Sending notification.`);
+                const waitlistMessage = `🚨 *Vaga Liberada!* 🚨\n\nOlá, ${nextInWaitlist.clientName}!\nAcabou de liberar um horário na *${barbershop.name}* para a data que você estava aguardando na lista de espera (${formattedDate}).\n\nCorra e garanta agora pelo link antes que outra pessoa pegue:\n🔗 ${bookingLink}\n\nResponda SIM ou NÃO se você conseguiu agendar.`;
+
+                await whatsappService.sendText(nextInWaitlist.clientPhone, waitlistMessage);
+
+                // Optional: Update waitlist status so we don't notify them again
+                await prisma.waitlist.update({
+                    where: { id: nextInWaitlist.id },
+                    data: { status: 'NOTIFIED' }
+                });
+
+                await prisma.communicationLog.create({
+                    data: {
+                        barbershopId: barbershop.id,
+                        channel: 'WHATSAPP',
+                        direction: 'OUTBOUND',
+                        type: 'WAITLIST_ALERT',
+                        content: waitlistMessage,
+                        status: 'SENT'
+                    }
+                });
+            }
+        } catch (waitlistErr) {
+            console.error('[Waitlist Automation] Error checking waitlist on cancellation:', waitlistErr);
+        }
     }
 
     // Send Thank You Message (Completion)

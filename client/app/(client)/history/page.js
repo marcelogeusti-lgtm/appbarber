@@ -75,7 +75,7 @@ export default function HistoryPage() {
                             {app.barbershop?.slug && (
                                 <Link
                                     href={`/agendamento/${app.barbershop.slug}`}
-                                    className="block w-full bg-slate-900 text-center py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition"
+                                    className="block w-full bg-slate-900 text-center py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition"
                                 >
                                     Reagendar
                                 </Link>

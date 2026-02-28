@@ -93,7 +93,7 @@ export default function SearchPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#0F111A] text-white font-sans p-6 md:p-12 max-w-7xl mx-auto">
+        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 md:p-12 lg:max-w-none mx-auto">
 
             {/* Header / Greeting */}
             <div className="mb-8">
@@ -105,8 +105,8 @@ export default function SearchPage() {
 
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="space-y-6 mb-12">
-                <div className="bg-[#151821] rounded-2xl p-2 flex items-center border border-white/5 focus-within:border-emerald-500/50 transition-all shadow-lg shadow-black/20">
-                    <div className="p-3 text-emerald-500">
+                <div className="bg-[#151821] rounded-2xl p-2 flex items-center border border-white/5 focus-within:border-primary/50 transition-all shadow-lg shadow-black/20">
+                    <div className="p-3 text-primary">
                         <SearchIcon className="w-6 h-6" />
                     </div>
                     <input
@@ -146,7 +146,7 @@ export default function SearchPage() {
                                     className="bg-[#151821] p-4 rounded-3xl border border-white/5 hover:border-emerald-500/30 hover:bg-[#1A1D27] transition-all cursor-pointer group flex items-center gap-4"
                                 >
                                     {/* Logo / Avatar */}
-                                    <div className="w-16 h-16 rounded-full bg-slate-800 flex-shrink-0 relative overflow-hidden flex items-center justify-center border-2 border-slate-700/50 group-hover:border-emerald-500/50 transition">
+                                    <div className="w-16 h-16 rounded-full bg-slate-800 flex-shrink-0 relative overflow-hidden flex items-center justify-center border-2 border-slate-700/50 group-hover:border-primary/50 transition">
                                         {shop.logoUrl ? (
                                             <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -154,12 +154,12 @@ export default function SearchPage() {
                                         )}
 
                                         {/* Status Dot */}
-                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-[#151821] rounded-full"></div>
+                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-primary border-2 border-[#151821] rounded-full"></div>
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
-                                            <h3 className="font-bold text-white text-base truncate pr-2 group-hover:text-emerald-400 transition">{shop.name}</h3>
+                                            <h3 className="font-bold text-white text-base truncate pr-2 group-hover:text-primary transition">{shop.name}</h3>
                                             <div className="bg-slate-800 rounded-full px-2 py-0.5 flex items-center gap-1" title={`${shop.totalReviews || 0} avaliações`}>
                                                 <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                                                 <span className="text-[10px] font-bold text-white">
@@ -172,7 +172,7 @@ export default function SearchPage() {
                                         <p className="text-slate-500 text-xs truncate mt-1">{shop.address || 'Endereço não informado'}</p>
 
                                         {shop.distance !== undefined && shop.distance !== null && (
-                                            <p className="text-emerald-500 text-[10px] font-bold mt-1 uppercase tracking-wider flex items-center gap-1">
+                                            <p className="text-primary text-[10px] font-bold mt-1 uppercase tracking-wider flex items-center gap-1">
                                                 <MapPin className="w-3 h-3" /> {shop.distance} km
                                             </p>
                                         )}
@@ -188,9 +188,8 @@ export default function SearchPage() {
                             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
                                 <div className="w-32 h-32 bg-[#151821] rounded-full flex items-center justify-center mb-6 relative">
                                     <SearchIcon className="w-12 h-12 text-slate-600" />
-                                    <div className="absolute -bottom-2 -right-2 bg-slate-800 p-2 rounded-full border-4 border-[#0F111A]">
-                                        <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                                    </div>
+                                    <span className="absolute bottom-1 right-1 w-4 h-4 bg-primary rounded-full border-2 border-[#050505]"></span>
+                                    <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
                                 </div>
                                 <h3 className="text-xl font-bold text-white mb-2">Encontre um estabelecimento</h3>
                                 <p className="text-slate-500 text-sm max-w-xs mx-auto">Pesquise pelo nome ou cidade do estabelecimento para começar seu agendamento.</p>

@@ -49,9 +49,9 @@ export default function FavoritesPage() {
     if (loading) return null;
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24">
+        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24 max-w-7xl mx-auto">
             <div className="flex items-center gap-4 mb-8">
-                <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-emerald-500/20 transition">
+                <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-primary/20 transition">
                     <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <h1 className="text-xl font-bold">Meus Favoritos</h1>
@@ -62,7 +62,7 @@ export default function FavoritesPage() {
                     <div
                         key={shop.id}
                         onClick={() => router.push(`/${shop.slug}`)}
-                        className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-emerald-500/30 transition group cursor-pointer"
+                        className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-primary/30 transition group cursor-pointer"
                     >
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center relative overflow-hidden border border-slate-800/50">
@@ -73,7 +73,7 @@ export default function FavoritesPage() {
                                 )}
                             </div>
                             <div>
-                                <h3 className="font-bold text-white text-base group-hover:text-emerald-500 transition">{shop.name}</h3>
+                                <h3 className="font-bold text-white text-base group-hover:text-primary transition">{shop.name}</h3>
                                 <p className="text-slate-500 text-xs flex items-center gap-1 mt-1">
                                     <MapPin className="w-3 h-3" /> {shop.address || 'Endereço não informado'}
                                 </p>
@@ -83,7 +83,7 @@ export default function FavoritesPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-emerald-500 transition">
+                        <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center group-hover:bg-primary transition">
                             <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
                         </div>
                     </div>
@@ -91,7 +91,7 @@ export default function FavoritesPage() {
                     <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
                         <Heart className="w-16 h-16 text-slate-700 mb-4" />
                         <p className="text-slate-500 font-medium">Você ainda não tem favoritos.</p>
-                        <button onClick={() => router.push('/search')} className="mt-6 text-emerald-500 text-xs font-bold uppercase tracking-widest hover:underline">
+                        <button onClick={() => router.push('/search')} className="mt-6 text-primary text-xs font-bold uppercase tracking-widest hover:underline">
                             Encontrar Barbearias
                         </button>
                     </div>

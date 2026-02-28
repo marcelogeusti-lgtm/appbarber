@@ -1,3 +1,4 @@
+const prisma = require('../../lib/prisma');
 const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter');
 
 class PaymentOrchestrator {

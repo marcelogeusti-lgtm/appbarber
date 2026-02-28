@@ -70,10 +70,10 @@ export default function CardsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24">
+        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24 max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
-                <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-emerald-500/20 transition">
+                <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-primary/20 transition">
                     <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <h1 className="text-xl font-bold uppercase tracking-tight">Meus Cartões</h1>
@@ -88,16 +88,16 @@ export default function CardsPage() {
                     {/* Add Trigger */}
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="w-full bg-[#111111] border border-dashed border-slate-800 rounded-2xl p-6 flex items-center justify-center gap-3 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition group"
+                        className="w-full bg-[#111111] border border-dashed border-slate-800 rounded-2xl p-6 flex items-center justify-center gap-3 hover:border-primary/50 hover:bg-primary/5 transition group"
                     >
-                        <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition">
+                        <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-white transition">
                             <Plus className="w-4 h-4 text-slate-400 group-hover:text-white" />
                         </div>
-                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest group-hover:text-emerald-500">Adicionar novo cartão</span>
+                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest group-hover:text-primary">Adicionar novo cartão</span>
                     </button>
 
                     <div className="flex items-center gap-2 mb-2 px-2 mt-6">
-                        <Lock className="w-3 h-3 text-emerald-500" />
+                        <Lock className="w-3 h-3 text-primary" />
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest">Seus cartões salvos para pagamentos rápidos</p>
                     </div>
 
@@ -136,7 +136,7 @@ export default function CardsPage() {
                                     <p className="text-sm font-bold text-white font-mono">{card.expiryMonth}/{card.expiryYear}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                    <p className="text-xs font-black text-primary uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full border border-primary/20 shadow-[0_0_10px_rgba(37,99,235,0.2)]">
                                         {card.brand}
                                     </p>
                                 </div>

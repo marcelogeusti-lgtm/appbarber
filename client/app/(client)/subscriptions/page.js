@@ -124,7 +124,7 @@ export default function SubscriptionsPage() {
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-[#050505]">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
     );
 
@@ -146,7 +146,7 @@ export default function SubscriptionsPage() {
                             <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Plano Selecionado</p>
                             <h3 className="font-black text-white uppercase">{selectedPlan.name}</h3>
                         </div>
-                        <p className="font-black text-emerald-500">R$ {Number(selectedPlan.price).toFixed(2)}</p>
+                        <p className="font-black text-primary">R$ {Number(selectedPlan.price).toFixed(2)}</p>
                     </div>
 
                     <div className="space-y-3">
@@ -154,11 +154,11 @@ export default function SubscriptionsPage() {
 
                         <div
                             onClick={() => setPaymentMethod('PIX')}
-                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'PIX' ? 'bg-emerald-500/10 border-emerald-500' : 'bg-[#111111] border-white/5 opacity-60'}`}
+                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'PIX' ? 'bg-primary/10 border-primary' : 'bg-[#111111] border-white/5 opacity-60'}`}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white' : 'bg-slate-900'}`}>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'PIX' ? 'bg-primary text-white' : 'bg-slate-900'}`}>
                                         <Zap size={20} />
                                     </div>
                                     <div>
@@ -166,17 +166,17 @@ export default function SubscriptionsPage() {
                                         <p className="text-[10px] text-slate-500">Aprovação em segundos</p>
                                     </div>
                                 </div>
-                                {paymentMethod === 'PIX' && <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>}
+                                {paymentMethod === 'PIX' && <div className="w-4 h-4 bg-primary rounded-full"></div>}
                             </div>
                         </div>
 
                         <div
                             onClick={() => setPaymentMethod('CREDIT_CARD')}
-                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500/10 border-emerald-500' : 'bg-[#111111] border-white/5 opacity-60'}`}
+                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'CREDIT_CARD' ? 'bg-primary/10 border-primary' : 'bg-[#111111] border-white/5 opacity-60'}`}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white' : 'bg-slate-900'}`}>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'CREDIT_CARD' ? 'bg-primary text-white' : 'bg-slate-900'}`}>
                                         <CreditCard size={20} />
                                     </div>
                                     <div>
@@ -184,7 +184,7 @@ export default function SubscriptionsPage() {
                                         <p className="text-[10px] text-slate-500">Pague com cartões salvos ou novo</p>
                                     </div>
                                 </div>
-                                {paymentMethod === 'CREDIT_CARD' && <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>}
+                                {paymentMethod === 'CREDIT_CARD' && <div className="w-4 h-4 bg-primary rounded-full"></div>}
                             </div>
                         </div>
                     </div>
@@ -205,7 +205,7 @@ export default function SubscriptionsPage() {
                                                 <CreditCard className="w-4 h-4 text-slate-400" />
                                                 <p className="text-xs font-bold uppercase">•••• {card.last4} ({card.brand})</p>
                                             </div>
-                                            {selectedCardId === card.id && <Check className="w-4 h-4 text-emerald-500" />}
+                                            {selectedCardId === card.id && <Check className="w-4 h-4 text-primary" />}
                                         </div>
                                     ))}
                                 </div>
@@ -214,7 +214,7 @@ export default function SubscriptionsPage() {
                             )}
 
                             <button
-                                className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-[10px] font-bold text-slate-500 uppercase hover:border-emerald-500/50 hover:text-emerald-500 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-[10px] font-bold text-slate-500 uppercase hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-2"
                                 onClick={() => alert('Integração de checkout do cartão está sendo finalizada no gateway.')}
                             >
                                 <Plus className="w-3 h-3" /> Adicionar Novo Cartão
@@ -225,7 +225,7 @@ export default function SubscriptionsPage() {
                     <button
                         onClick={() => handleSubscribe(selectedPlan)}
                         disabled={actionLoading || (paymentMethod === 'CREDIT_CARD' && savedCards.length === 0)}
-                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-30 mt-8 shadow-2xl shadow-emerald-900/20"
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-30 mt-8 shadow-2xl shadow-primary/20"
                     >
                         {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Confirmar e Pagar <ArrowRight className="w-4 h-4" /></>}
                     </button>
@@ -290,7 +290,7 @@ export default function SubscriptionsPage() {
                     )}
 
                     <div className="pt-4 border-t border-white/5 flex items-start gap-3 text-left">
-                        <AlertCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                         <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
                             Sua assinatura será ativada instantaneamente após a confirmação do pagamento. Você receberá um e-mail de confirmação.
                         </p>
@@ -301,9 +301,9 @@ export default function SubscriptionsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24">
+        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24 max-w-7xl mx-auto">
             <div className="flex items-center gap-4 mb-8">
-                <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-emerald-500/20 transition">
+                <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-primary/20 transition">
                     <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <h1 className="text-xl font-black uppercase tracking-tighter">Clube de Assinatura</h1>
@@ -317,20 +317,20 @@ export default function SubscriptionsPage() {
                         <div className="absolute top-0 right-0 bg-emerald-500 text-black text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-bl-2xl shadow-xl">ATIVA</div>
 
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
-                                <Repeat className="w-6 h-6 text-emerald-500" />
+                            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                <Repeat className="w-6 h-6 text-primary" />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black uppercase tracking-tight">{subscription.plan?.name}</h2>
-                                <p className="text-emerald-500/60 text-xs font-bold uppercase tracking-widest">Renova em: {new Date(subscription.endDate).toLocaleDateString('pt-BR')}</p>
+                                <p className="text-primary/60 text-xs font-bold uppercase tracking-widest">Renova em: {new Date(subscription.endDate).toLocaleDateString('pt-BR')}</p>
                             </div>
                         </div>
 
                         <div className="space-y-3 mb-8">
                             {subscription.plan?.benefits?.map((benefit, idx) => (
                                 <div key={idx} className="flex items-center gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                                        <Check className="w-3 h-3 text-emerald-500" />
+                                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                                        <Check className="w-3 h-3 text-primary" />
                                     </div>
                                     <span className="text-sm font-medium text-slate-300">{benefit}</span>
                                 </div>
@@ -379,7 +379,7 @@ export default function SubscriptionsPage() {
                                     <div className="space-y-3 pt-2 border-t border-white/5">
                                         {plan.benefits.map((b, idx) => (
                                             <div key={idx} className="flex items-center gap-3">
-                                                <Check className="w-4 h-4 text-emerald-500" />
+                                                <Check className="w-4 h-4 text-primary" />
                                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">{b}</span>
                                             </div>
                                         ))}
@@ -389,7 +389,7 @@ export default function SubscriptionsPage() {
                                 <button
                                     onClick={() => handleSubscribe(plan)}
                                     disabled={actionLoading}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Assinar Agora <ArrowRight className="w-4 h-4" /></>}
                                 </button>

@@ -14,8 +14,12 @@ export default function ProfessionalsTab({ professionals }) {
         <div className="space-y-4 pb-24">
             {professionals.map(pro => (
                 <div key={pro.id} className="bg-[#111] p-4 rounded-3xl border border-white/5 flex items-center gap-4 hover:border-emerald-500/50 transition-all">
-                    <div className="w-16 h-16 rounded-2xl bg-[#1e293b] flex items-center justify-center font-black text-2xl text-white border border-white/5 uppercase">
-                        {pro.name.charAt(0)}
+                    <div className="w-16 h-16 rounded-2xl bg-[#1e293b] flex items-center justify-center font-black text-2xl text-white border border-white/5 uppercase overflow-hidden shrink-0">
+                        {pro.avatarUrl ? (
+                            <img src={pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
+                        ) : (
+                            pro.name.charAt(0)
+                        )}
                     </div>
                     <div>
                         <h3 className="font-bold text-white text-base uppercase tracking-tight">{pro.name}</h3>

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ChevronRight, MapPin, Star, Play, Apple, ArrowUp } from 'lucide-react';
+import { Search, ChevronRight, Star, MapPin, Bell, Search as SearchIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '../../../lib/clientApi';
 import { useClientAuth } from '../../../contexts/ClientAuthContext';
@@ -9,49 +9,42 @@ import { useClientAuth } from '../../../contexts/ClientAuthContext';
 export default function ClientHome() {
     const { user, loading: authLoading } = useClientAuth();
     const [loadingData, setLoadingData] = useState(true);
-    const [lastAppointment, setLastAppointment] = useState(null);
-    const [recentBarbershops, setRecentBarbershops] = useState([]);
-    const [favorites, setFavorites] = useState([]);
+    const [barbershops, setBarbershops] = useState([]);
+    const [currentSlide, setCurrentSlide] = useState(0);
     const router = useRouter();
+
+    const slides = [
+        {
+            image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop",
+            text: "Agende compromissos rapidamente pelo app, sem filas ou ligações"
+        },
+        {
+            image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074&auto=format&fit=crop",
+            text: "Descubra os melhores profissionais da sua região"
+        },
+        {
+            image: "https://images.unsplash.com/photo-1621605815841-2cd6066f4e33?q=80&w=2070&auto=format&fit=crop",
+            text: "Corte de cabelo, barba e tratamentos exclusivos"
+        }
+    ];
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % slides.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         if (!authLoading) {
-            if (user) {
-                fetchData();
-            } else {
-                setLoadingData(false); // No data for guest
-            }
+            fetchData();
         }
     }, [user, authLoading]);
 
     const fetchData = async () => {
         try {
-            // Fetch last appointment
-            const res = await api.get('/appointments/me');
-            const apps = res.data || [];
-
-            if (apps.length > 0) {
-                const now = new Date();
-                const futureApps = apps
-                    .filter(a => (a.status === 'PENDING' || a.status === 'CONFIRMED') && new Date(a.date) >= now)
-                    .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                setLastAppointment(futureApps.length > 0 ? futureApps[0] : apps[0]);
-            }
-
-            // Mock Favorites/Recents from appointments logic
-            const shops = [];
-            const seen = new Set();
-            for (const app of apps) {
-                // Check structure safety
-                if (app.barbershop && !seen.has(app.barbershop.id)) {
-                    seen.add(app.barbershop.id);
-                    shops.push(app.barbershop);
-                }
-            }
-            setRecentBarbershops(shops.slice(0, 2));
-            setFavorites(shops.slice(0, 1));
-
+            const res = await api.get('/barbershops');
+            setBarbershops(res.data || []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -63,223 +56,274 @@ export default function ClientHome() {
         return new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
 
-    // Wait only for auth check, not data fetch (show skeleton or partial if needed, but for now just wait auth)
-    if (authLoading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Carregando...</div>;
+    if (authLoading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white font-sans">Carregando...</div>;
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-emerald-500/30">
+        <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-primary/30 pb-24">
 
-            <main className="max-w-6xl mx-auto px-6 md:px-12 py-10">
-                {/* Greeting */}
-                <div className="mb-8">
-                    {user ? (
-                        <h1 className="text-2xl font-normal text-slate-300">
-                            Olá, <span className="text-primary font-bold">{user?.name?.split(' ')[0]}</span>
-                        </h1>
-                    ) : (
-                        <h1 className="text-2xl font-normal text-slate-300">
-                            Olá, <span className="text-primary font-bold">Visitante</span>
-                        </h1>
-                    )}
+            <main className="max-w-xl lg:max-w-6xl mx-auto px-5 pt-8">
 
-                    <p className="text-sm text-slate-500 capitalize mt-1 text-[13px]">{formatDate()}</p>
-                </div>
+                {/* VISITOR VIEW */}
+                {!user && (
+                    <>
+                        {/* Header: Visitor */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h1 className="text-xl font-bold tracking-tight text-white">Seja bem vindo(a)</h1>
+                                <p className="text-[11px] text-slate-500 font-medium capitalize mt-0.5">{formatDate()}</p>
+                            </div>
+                            <button className="p-2.5 bg-white/5 rounded-full border border-white/5 text-slate-400 hover:text-white transition-colors relative">
+                                <Bell className="w-5 h-5" />
+                                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-[#050505]"></span>
+                            </button>
+                        </div>
 
-                {/* Search Input */}
-                <div className="mb-12 relative group">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                        <Search className="w-5 h-5 text-slate-500 group-focus-within:text-white transition" />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Procurar estabelecimento"
-                        onClick={() => router.push('/search')}
-                        className="w-full bg-[#111111] border border-white/5 rounded-lg py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition shadow-lg shadow-black/50 cursor-pointer hover:bg-[#151515]"
-                        readOnly
-                    />
-                </div>
+                        {/* Search: Visitor */}
+                        <div className="mb-6 relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                <SearchIcon className="w-5 h-5 text-slate-500" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Pesquisar pelo nome"
+                                onClick={() => router.push('/search')}
+                                className="w-full bg-[#111] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none transition-all cursor-pointer"
+                                readOnly
+                            />
+                        </div>
 
-                {/* Last Appointment */}
-                {lastAppointment && (
-                    <div className="mb-10 animate-in slide-in-from-bottom-4 duration-700">
-                        <h2 className="text-white font-medium text-lg mb-4">Último agendamento</h2>
-                        <div
-                            className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer"
-                            onClick={() => router.push(`/${lastAppointment.barbershop?.slug || ''}`)}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-0.5 relative border border-slate-800/50 bg-slate-900 overflow-hidden">
-                                    {lastAppointment.barbershop?.logoUrl ? (
-                                        <img src={lastAppointment.barbershop.logoUrl} alt={lastAppointment.barbershop?.name || 'Barbearia'} className="w-full h-full object-cover rounded-full" />
-                                    ) : (
-                                        <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center font-bold text-xs">
-                                            {lastAppointment.barbershop?.name?.[0] || 'B'}
+                        {/* Categories: Visitor */}
+                        <div className="flex items-center gap-3 mb-10 overflow-x-auto no-scrollbar py-1">
+                            <button className="flex items-center gap-2.5 px-6 py-3 bg-primary text-white rounded-2xl text-xs font-bold transition-transform active:scale-95 shadow-lg shadow-primary/20">
+                                <div className="p-1 bg-white/20 rounded-md">
+                                    <Search className="w-3.5 h-3.5" />
+                                </div>
+                                Nome
+                            </button>
+                            <button className="flex items-center gap-2.5 px-6 py-3 bg-[#111] border border-white/5 text-slate-300 rounded-2xl text-xs font-bold hover:bg-white/5 transition-colors">
+                                <div className="p-1 bg-white/5 rounded-md text-slate-500">
+                                    <MapPin className="w-3.5 h-3.5" />
+                                </div>
+                                Cidade
+                            </button>
+                            <button className="flex items-center gap-2.5 px-6 py-3 bg-[#111] border border-white/5 text-slate-300 rounded-2xl text-xs font-bold hover:bg-white/5 transition-colors">
+                                <div className="p-1 bg-white/5 rounded-md text-slate-500">
+                                    <Search className="w-3.5 h-3.5" />
+                                </div>
+                                Próximas
+                            </button>
+                        </div>
+
+                        {/* Hero Carousel: Visitor */}
+                        <div className="relative mb-12 aspect-[16/9] rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl group">
+                            {slides.map((slide, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+                                >
+                                    <img src={slide.image} alt="Carousel" className="w-full h-full object-cover brightness-[0.4]" />
+                                    <div className="absolute inset-x-0 bottom-0 p-8 pt-20 bg-gradient-to-t from-black/80 to-transparent">
+                                        <h2 className="text-lg md:text-xl font-bold leading-tight max-w-[80%] drop-shadow-lg">
+                                            {slide.text}
+                                        </h2>
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                                {slides.map((_, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-primary w-6' : 'bg-white/30'}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* LOGGED-IN VIEW */}
+                {user && (
+                    <>
+                        {/* Header: Logged In */}
+                        <div className="mb-8">
+                            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                                Olá, <span className="text-primary">{user.name.split(' ')[0]}</span>
+                            </h1>
+                            <p className="text-[11px] text-slate-500 font-medium capitalize mt-1">{formatDate()}</p>
+                        </div>
+
+                        {/* Search: Logged In */}
+                        <div className="mb-12 relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                <SearchIcon className="w-5 h-5 text-slate-500" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Encontre um estabelecimento"
+                                onClick={() => router.push('/search')}
+                                className="w-full bg-[#111] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder-slate-600 focus:outline-none transition-all cursor-pointer"
+                                readOnly
+                            />
+                        </div>
+
+                        {/* Favorites Section */}
+                        <div className="mb-12">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-white tracking-tight">Favoritos</h2>
+                                <button className="px-4 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-colors">
+                                    Editar lista
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {barbershops.slice(0, 1).map(shop => (
+                                    <div
+                                        key={shop.id}
+                                        className="bg-[#111] border border-white/5 rounded-[2rem] p-4 flex items-center justify-between hover:border-white/10 transition-all group cursor-pointer"
+                                        onClick={() => router.push(`/${shop.slug}`)}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center relative bg-slate-900 overflow-hidden shadow-inner">
+                                                {shop.logoUrl ? (
+                                                    <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center font-black text-xs text-primary bg-primary/5 uppercase">
+                                                        {shop.name.substring(0, 5)}
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
+                                                    <Star className="w-2.5 h-2.5 text-yellow-500 fill-current" />
+                                                    <span className="text-[8px] font-black text-white">5.0</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-white text-sm tracking-tight">{shop.name}</h3>
+                                                <p className="text-slate-500 text-[10px] font-medium truncate max-w-[200px]">
+                                                    {shop.address || 'Endereço não informado'}
+                                                </p>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-white text-sm">{lastAppointment.barbershop?.name}</h3>
-                                    <p className="text-slate-500 text-xs">{lastAppointment.service?.name || 'Serviço Agendado'}</p>
-                                </div>
+                                        <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-primary transition-all duration-300">
+                                            <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-primary transition">
-                                <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
+                        </div>
+
+                        {/* Recent Accesses */}
+                        <div className="mb-12">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-white tracking-tight">Últimos acessos</h2>
+                                <button className="px-4 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-colors">
+                                    Editar lista
+                                </button>
                             </div>
+
+                            <div className="space-y-4">
+                                {barbershops.slice(1, 2).map(shop => (
+                                    <div
+                                        key={shop.id}
+                                        className="bg-[#111] border border-white/5 rounded-[2rem] p-4 flex items-center justify-between hover:border-white/10 transition-all group cursor-pointer"
+                                        onClick={() => router.push(`/${shop.slug}`)}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center relative bg-slate-900 overflow-hidden shadow-inner">
+                                                {shop.logoUrl ? (
+                                                    <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center font-black text-xs text-primary bg-primary/5 uppercase">
+                                                        {shop.name.substring(0, 5)}
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
+                                                    <Star className="w-2.5 h-2.5 text-yellow-500 fill-current" />
+                                                    <span className="text-[8px] font-black text-white">5.0</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-white text-sm tracking-tight">{shop.name}</h3>
+                                                <p className="text-slate-500 text-[10px] font-medium truncate max-w-[200px]">
+                                                    {shop.address || 'Endereço não informado'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-primary transition-all duration-300">
+                                            <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* SHARED LIST: Visible if search active or for visitors (Optional customization based on UX preference) */}
+                {(!user || barbershops.length > 2) && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-white tracking-tight">{user ? 'Mais opções' : 'Próximos a você'}</h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {loadingData ? (
+                                Array(3).fill(0).map((_, i) => (
+                                    <div key={i} className="h-28 w-full bg-[#111] animate-pulse rounded-[2rem]" />
+                                ))
+                            ) : barbershops.length > 0 ? barbershops.slice(user ? 2 : 0).map(shop => (
+                                <div
+                                    key={shop.id}
+                                    className="bg-[#111] border border-white/5 rounded-[2rem] p-4 flex items-center justify-between hover:border-white/10 transition-all group cursor-pointer active:scale-[0.98]"
+                                    onClick={() => router.push(`/${shop.slug}`)}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center relative bg-slate-900 overflow-hidden shadow-inner">
+                                            {shop.logoUrl ? (
+                                                <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center font-black text-xs text-primary bg-primary/5 uppercase">
+                                                    {shop.name.substring(0, 5)}
+                                                </div>
+                                            )}
+                                            <div className="absolute top-1 right-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
+                                                <Star className="w-2.5 h-2.5 text-yellow-500 fill-current" />
+                                                <span className="text-[8px] font-black text-white">5.0</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-white text-sm truncate tracking-tight">{shop.name}</h3>
+                                            <p className="text-slate-500 text-[10px] font-medium leading-relaxed truncate max-w-[200px]">
+                                                {shop.address || 'Endereço não informado'}
+                                            </p>
+                                            <div className="flex items-center gap-1 mt-1 text-primary">
+                                                <MapPin className="w-2.5 h-2.5 fill-current" />
+                                                <span className="text-[9px] font-black uppercase tracking-widest">1.28 km</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-primary transition-all duration-300">
+                                        <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                                    </div>
+                                </div>
+                            )) : !loadingData && (
+                                <div className="py-24 text-center space-y-6">
+                                    <div className="relative w-32 h-32 mx-auto">
+                                        <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full" />
+                                        <div className="relative flex items-center justify-center w-full h-full bg-[#111] border border-white/5 rounded-full shadow-2xl">
+                                            <SearchIcon className="w-12 h-12 text-slate-700" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Encontre um estabelecimento</h3>
+                                        <p className="text-slate-500 text-sm font-medium">Pesquise pelo nome ou cidade do estabelecimento</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Favorites */}
-                <div className="mb-10 animate-in slide-in-from-bottom-6 duration-700 delay-100">
-                    <div className="flex items-center gap-4 mb-4">
-                        <h2 className="text-white font-medium text-lg">Favoritos</h2>
-                        {/* <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button> */}
-                    </div>
-
-                    <div className="space-y-3">
-                        {favorites.length > 0 ? favorites.map(shop => (
-                            <div
-                                key={shop.id}
-                                className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer"
-                                onClick={() => router.push(`/${shop.slug}`)}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full border border-slate-800/50 flex items-center justify-center relative bg-slate-900 overflow-hidden">
-                                        {shop.logoUrl ? (
-                                            <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white text-sm">{shop.name}</h3>
-                                        <p className="text-slate-500 text-xs">{shop.address || 'Endereço não informado'}</p>
-                                    </div>
-                                </div>
-                                <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-emerald-500 transition">
-                                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
-                                </div>
-                            </div>
-                        )) : (
-                            <p className="text-slate-600 text-xs italic">Você ainda não tem favoritos.</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Recent Access */}
-                <div className="animate-in slide-in-from-bottom-8 duration-700 delay-200">
-                    <div className="flex items-center gap-4 mb-4">
-                        <h2 className="text-white font-medium text-lg">Últimos acessos</h2>
-                        {/* <button className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full hover:bg-slate-200 transition">Editar lista</button> */}
-                    </div>
-
-                    <div className="space-y-3">
-                        {recentBarbershops.length > 0 ? recentBarbershops.map(shop => (
-                            <div
-                                key={shop.id}
-                                className="bg-[#111111] border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition group cursor-pointer"
-                                onClick={() => router.push(`/${shop.slug}`)}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full border border-slate-800/50 flex items-center justify-center relative bg-slate-900 overflow-hidden">
-                                        {shop.logoUrl ? (
-                                            <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-[9px] font-bold text-yellow-500">{shop.name.substring(0, 5).toUpperCase()}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white text-sm">{shop.name}</h3>
-                                        <p className="text-slate-500 text-xs">{shop.address || 'Endereço não informado'}</p>
-                                    </div>
-                                </div>
-                                <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center group-hover:bg-emerald-500 transition">
-                                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white" />
-                                </div>
-                            </div>
-                        )) : (
-                            <p className="text-slate-600 text-xs italic">Nenhum acesso recente.</p>
-                        )}
-                    </div>
-                </div>
-
             </main>
-
-            {/* Footer */}
-            <footer className="border-t border-white/5 bg-[#08080A] pt-16 pb-8">
-                <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-
-                    {/* Brand */}
-                    <div>
-                        <div className="px-4 py-1.5 rounded-lg inline-flex items-center justify-center mb-6">
-                            <img src="/logos/logo_full.png" alt="NEXT" className="h-6 w-auto" />
-                        </div>
-                        <p className="text-slate-500 text-xs leading-relaxed max-w-[200px]">
-                            Uma nova experiência para uma antiga tradição.
-                        </p>
-                        <div className="flex gap-4 mt-6">
-                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">f</div>
-                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">in</div>
-                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">yt</div>
-                            <div className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-bold">x</div>
-                        </div>
-                    </div>
-
-                    {/* Quick Access */}
-                    <div>
-                        <h4 className="text-white font-bold text-sm mb-6">Acesso rápido</h4>
-                        <ul className="space-y-3 text-sm text-slate-500">
-                            <li><Link href="/home" className="hover:text-primary transition">Início</Link></li>
-                            <li><Link href="/search" className="hover:text-primary transition">Encontrar estabelecimentos</Link></li>
-                            <li><Link href="/appointments" className="hover:text-primary transition">Meus agendamentos</Link></li>
-                            <li><Link href="/profile" className="hover:text-primary transition">Favoritos</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* More */}
-                    <div>
-                        <h4 className="text-white font-bold text-sm mb-6">Mais</h4>
-                        <ul className="space-y-3 text-sm text-slate-500">
-                            <li><Link href="/terms" className="hover:text-primary transition">Termos de uso</Link></li>
-                            <li><Link href="/privacy" className="hover:text-primary transition">Preferências de cookies</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* App Download */}
-                    <div>
-                        <h4 className="text-white font-bold text-sm mb-6">Baixe nosso App</h4>
-                        <div className="space-y-3">
-                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-primary/50 transition group">
-                                <Apple className="w-5 h-5 text-white group-hover:text-primary" />
-                                <div className="text-left">
-                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Download on the</p>
-                                    <p className="text-xs text-white font-bold">App Store</p>
-                                </div>
-                            </button>
-                            <button className="w-full bg-[#0E1218] border border-white/10 rounded-lg py-3 px-4 flex items-center gap-3 hover:border-primary/50 transition group">
-                                <Play className="w-5 h-5 text-white group-hover:text-primary fill-current" />
-                                <div className="text-left">
-                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Get it on</p>
-                                    <p className="text-xs text-white font-bold">Google Play</p>
-                                </div>
-                            </button>
-                        </div>
-
-                        <div className="mt-8">
-                            <h4 className="text-white font-bold text-sm mb-2">É um gestor?</h4>
-                            <p className="text-xs text-slate-500 mb-4">Cadastre seu estabelecimento e comece a receber agendamentos online.</p>
-                            <Link href="/register" className="bg-[#0E1218] border border-white/10 text-white text-xs font-bold py-2 px-6 rounded-lg hover:bg-white hover:text-black transition">Saiba mais</Link>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="max-w-6xl mx-auto px-6 md:px-12 border-t border-white/5 pt-8 flex items-center justify-between">
-                    <p className="text-slate-600 text-xs text-[11px]">© 2026 StarApp Sistemas. Todos os direitos reservados.</p>
-                    <button className="bg-[#0E1218] border border-white/10 p-2 rounded-lg hover:border-white/30 transition">
-                        <ArrowUp className="w-4 h-4 text-slate-400" />
-                    </button>
-                </div>
-            </footer>
         </div>
     );
 }
