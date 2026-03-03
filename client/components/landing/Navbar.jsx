@@ -41,6 +41,13 @@ export default function Navbar() {
 
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-4">
+                    <Link
+                        href="/login"
+                        className="text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+                    >
+                        Entrar (SaaS)
+                    </Link>
+
                     {user ? (
                         <Link href="/home">
                             <button className="h-9 px-5 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
@@ -53,7 +60,7 @@ export default function Navbar() {
                                 onClick={openLoginModal}
                                 className="text-sm font-medium text-gray-600 hover:text-primary transition-colors"
                             >
-                                Entrar
+                                Login Cliente
                             </button>
                             <Link href="/register">
                                 <button className="h-9 px-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
@@ -78,9 +85,12 @@ export default function Navbar() {
                         <Link href="#start" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Como Começar</Link>
                         <Link href="#pricing" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Planos</Link>
                         <hr className="border-gray-50" />
+                        <Link href="/login" onClick={() => setIsOpen(false)} className="text-base font-semibold text-gray-900 text-center py-2">
+                            Entrar (Barbeiro)
+                        </Link>
                         {user ? (
                             <Link href="/home" onClick={() => setIsOpen(false)} className="text-base font-semibold text-gray-900 text-center py-2">
-                                Minha Conta
+                                Minha Conta (Cliente)
                             </Link>
                         ) : (
                             <>
@@ -88,7 +98,7 @@ export default function Navbar() {
                                     onClick={() => { setIsOpen(false); openLoginModal(); }}
                                     className="text-base font-semibold text-gray-900 text-center py-2"
                                 >
-                                    Entrar
+                                    Login Cliente
                                 </button>
                                 <Link href="/register" onClick={() => setIsOpen(false)}>
                                     <button className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-sm">

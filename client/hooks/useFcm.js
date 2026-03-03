@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { initializeApp } from 'firebase/app';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import api from '../lib/clientApi';
 import { firebaseConfig } from '../lib/firebaseConfig';
+import { app as firebaseApp } from '../lib/firebase';
 
 export default function useFcm(user) {
     const [token, setToken] = useState(null);
@@ -18,7 +19,7 @@ export default function useFcm(user) {
                 setPermission(permissionStatus);
 
                 if (permissionStatus === 'granted') {
-                    const app = initializeApp(firebaseConfig);
+                    const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
                     const messaging = getMessaging(app);
 
                     // 2. Get Token
@@ -44,7 +45,7 @@ export default function useFcm(user) {
 
         // 4. Handle Foreground Messages
         if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-            const app = initializeApp(firebaseConfig);
+            const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
             const messaging = getMessaging(app);
             onMessage(messaging, (payload) => {
                 console.log('[useFcm] Foreground message:', payload);

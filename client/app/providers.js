@@ -23,7 +23,6 @@ export default function Providers({ children }) {
         <QueryClientProvider client={queryClient}>
             <ClientAuthProvider>
                 <FeatureFlagProvider>
-                    <FcmManager />
                     {children}
                 </FeatureFlagProvider>
             </ClientAuthProvider>

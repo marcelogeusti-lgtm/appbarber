@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInAnonymously } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
@@ -12,7 +12,7 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "YOUR_APP_ID"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
@@ -38,3 +38,5 @@ export const ensureFirebaseAuth = async () => {
 if (firebaseConfig.apiKey === "YOUR_API_KEY") {
     console.warn("⚠️ Firebase configs are missing. Social login will not work.");
 }
+
+export { app };
