@@ -4,6 +4,9 @@ Olá! Não se preocupe, é normal ter dúvidas no começo. Vamos esclarecer o qu
 
 Você já tem o **Domínio** (o nome do site, ex: `suabarbearia.com.br`). Isso é ótimo! Mas o domínio é apenas o endereço. Agora precisamos da "casa" (Hospedagem) e dos "móveis" (Banco de Dados e Sistema).
 
+- **Dashboard**: Área para proprietários gerenciarem sua barbearia.
+- **Blueprint de Arquitetura**: Clique aqui para ver o [Gold Standard do projeto](ARCHITECTURE_BLUEPRINT.md).
+
 ## O que este sistema precisa?
 
 Diferente de sites antigos (feitos apenas em HTML ou PHP simples), este sistema é moderno e usa tecnologias que exigem um servidor mais robusto.

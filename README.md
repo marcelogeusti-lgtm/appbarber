@@ -76,6 +76,9 @@ npm run dev
 - **Landing Page**: Página de apresentação do SaaS.
 - **Página da Barbearia**: URL pública (ex: /marcelo-cuts).
 
+- [Guia do Iniciante](GUIA_INICIANTE.md)
+- [Blueprint de Arquitetura (Gold Standard)](ARCHITECTURE_BLUEPRINT.md)
+
 ## 🧪 Dados de Teste (Seed)
 
 Se rodar `npx prisma db seed`, você terá:
