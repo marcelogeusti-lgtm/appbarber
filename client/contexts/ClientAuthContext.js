@@ -148,9 +148,7 @@ export function ClientAuthProvider({ children }) {
         localStorage.removeItem('clientUser');
         localStorage.removeItem('user'); // Also clear generic user to prevent cross-pollution
         setUser(null);
-        // Force redirect to safe public zone
-        // Force redirect to safe public zone
-        window.location.href = '/';
+        // User stays on page, interface updates to logged-out state via context
     };
 
     const openLoginModal = () => { setIsLoginModalOpen(true); setIsRegisterModalOpen(false); setIsForgotPasswordModalOpen(false); };

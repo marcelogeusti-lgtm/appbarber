@@ -1,10 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar, Clock, MapPin, User, XCircle, Loader2, Filter, CheckCircle, AlertCircle, ChevronDown, Search } from 'lucide-react';
+import { Calendar, Clock, MapPin, User as UserIcon, XCircle, Loader2, Filter, CheckCircle, AlertCircle, ChevronDown, Search } from 'lucide-react';
 import api from '../../../lib/clientApi';
+import { useClientAuth } from '../../../contexts/ClientAuthContext';
 
 export default function HistoryPage() {
+    const { user, loading: authLoading, openLoginModal } = useClientAuth();
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterShop, setFilterShop] = useState('ALL');
@@ -12,8 +14,12 @@ export default function HistoryPage() {
     const [activeTab, setActiveTab] = useState('scheduled'); // scheduled, completed, cancelled
 
     useEffect(() => {
-        fetchAppointments();
-    }, []);
+        if (!authLoading && user) {
+            fetchAppointments();
+        } else if (!authLoading && !user) {
+            setLoading(false);
+        }
+    }, [user, authLoading]);
 
     const fetchAppointments = async () => {
         try {
@@ -44,11 +50,32 @@ export default function HistoryPage() {
         }
     };
 
-    if (loading) return (
+    if (authLoading || (user && loading)) return (
         <div className="min-h-screen bg-[#050505] flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
     );
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-[#050505] text-white font-sans p-6 md:p-12 flex flex-col items-center justify-center text-center">
+                <div className="relative w-32 h-32 mb-8">
+                    <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
+                    <div className="relative flex items-center justify-center w-full h-full bg-[#111] border border-white/5 rounded-full shadow-2xl">
+                        <AlertCircle className="w-12 h-12 text-primary" />
+                    </div>
+                </div>
+                <h2 className="text-xl font-black text-white uppercase tracking-tight mb-2">Acesso Restrito</h2>
+                <p className="text-slate-500 text-sm font-medium mb-8">Você precisa estar logado para visualizar seus agendamentos.</p>
+                <button
+                    onClick={openLoginModal}
+                    className="px-10 py-4 bg-primary text-black font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-primary/90 transition shadow-xl shadow-primary/20"
+                >
+                    Fazer Login
+                </button>
+            </div>
+        );
+    }
 
     // 1. First, Apply Shop Filter
     const filteredByShop = filterShop === 'ALL'

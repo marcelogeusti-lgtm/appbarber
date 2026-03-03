@@ -36,13 +36,45 @@ export default function ClientHome() {
     }, []);
 
     useEffect(() => {
-        fetchData();
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    fetchData(position.coords.latitude, position.coords.longitude);
+                },
+                () => fetchData()
+            );
+        } else {
+            fetchData();
+        }
     }, [user]);
 
-    const fetchData = async () => {
+    const fetchData = async (lat = null, lng = null) => {
         try {
-            const res = await api.get('/barbershops/search');
-            setBarbershops(res.data || []);
+            setLoadingData(true);
+            let url = '/barbershops/search';
+            if (lat && lng) {
+                url += `?lat=${lat}&lng=${lng}&type=NEARBY`;
+            }
+
+            const res = await api.get(url);
+            let data = res.data || [];
+
+            // Regra Obrigatória: Proximidade + Avaliação (Top 3)
+            if (lat && lng) {
+                // Filtrar por proximidade (raio de 100km como "perto")
+                // E ordenar por Rating DESC
+                data = data
+                    .filter(shop => shop.distance !== null && shop.distance < 100)
+                    .sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating))
+                    .slice(0, 3);
+            } else {
+                // Sem localização: apenas ordenar por rating e pegar top 3
+                data = data
+                    .sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating))
+                    .slice(0, 3);
+            }
+
+            setBarbershops(data);
         } catch (err) {
             console.error(err);
         } finally {
@@ -139,7 +171,10 @@ export default function ClientHome() {
                             <div
                                 key={shop.id}
                                 className="bg-[#0A0A0B] border border-white/5 rounded-[2.5rem] p-6 flex flex-col gap-6 hover:border-primary/30 transition-all group cursor-pointer active:scale-[0.98] shadow-xl"
-                                onClick={() => router.push(`/${shop.slug}`)}
+                                onClick={() => {
+                                    if (!user) openLoginModal();
+                                    else router.push(`/${shop.slug}`);
+                                }}
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="w-20 h-20 rounded-3xl border border-white/5 flex items-center justify-center relative bg-slate-900 overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
@@ -170,7 +205,14 @@ export default function ClientHome() {
                                     </p>
                                 </div>
 
-                                <button className="w-full py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] group-hover:bg-primary group-hover:text-black transition-all">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!user) openLoginModal();
+                                        else router.push(`/${shop.slug}`);
+                                    }}
+                                    className="w-full py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] group-hover:bg-primary group-hover:text-black transition-all"
+                                >
                                     Ver Perfil
                                 </button>
                             </div>
