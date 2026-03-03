@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ChevronRight, Star, MapPin, Bell, Search as SearchIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import api from '../../../lib/clientApi';
-import { useClientAuth } from '../../../contexts/ClientAuthContext';
+import api from '../../lib/clientApi';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 export default function ClientHome() {
     const { user, loading: authLoading } = useClientAuth();
