@@ -566,12 +566,14 @@ exports.createAppointment = async (req, res) => {
 exports.getMyAppointments = async (req, res) => {
     try {
         const userId = req.user.id;
+
         // As Client
         const bookings = await prisma.appointment.findMany({
             where: { clientId: userId },
             include: { professional: { select: { name: true } }, service: true, barbershop: true },
             orderBy: { date: 'desc' }
         });
+
         res.json(bookings);
     } catch (error) {
         res.status(500).json({ message: 'Error' });

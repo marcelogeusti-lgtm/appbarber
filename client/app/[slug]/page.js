@@ -185,15 +185,24 @@ export default function BarbershopPage() {
     }
 
     async function loadUserData(barbershopId) {
-        const userStr = localStorage.getItem('user');
+        let userStr = localStorage.getItem('clientUser');
+        if (!userStr) {
+            userStr = localStorage.getItem('user');
+        }
+
         if (userStr) {
-            const user = JSON.parse(userStr);
-            setFormData(prev => ({
-                ...prev,
-                name: user.name || prev.name,
-                phone: user.phone || prev.phone,
-                email: user.email || prev.email
-            }));
+            try {
+                const user = JSON.parse(userStr);
+                setFormData(prev => ({
+                    ...prev,
+                    name: user.name || prev.name,
+                    phone: user.phone || prev.phone,
+                    email: user.email || prev.email,
+                    clientId: user.role === 'CLIENT' ? user.id : undefined
+                }));
+            } catch (e) {
+                console.error("Error parsing user data", e);
+            }
 
             // Parallel fetches for user specific info
             Promise.allSettled([
@@ -313,6 +322,7 @@ export default function BarbershopPage() {
             }
 
             const payload = {
+                ...(formData.clientId ? { cliente_id: formData.clientId } : {}),
                 cliente_nome: formData.name,
                 cliente_telefone: formData.phone,
                 barbearia_id: barbershop?.id,
@@ -323,10 +333,10 @@ export default function BarbershopPage() {
                     valor: Number(selectedService?.price || 0),
                     duracao_minutos: selectedService?.duration
                 }],
-                produtos: selectedProducts?.map(p => ({
-                    produto_id: p.id,
-                    nome: p.name,
-                    valor: Number(p.price || 0)
+                produtos: selectedProducts?.map(prod => ({
+                    produto_id: prod.id,
+                    nome: prod.name,
+                    valor: Number(prod.price || 0)
                 })) || [],
                 data: formData.date,
                 horario: formData.time,
