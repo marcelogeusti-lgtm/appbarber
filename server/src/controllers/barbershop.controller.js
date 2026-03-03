@@ -365,7 +365,16 @@ exports.toggleFavorite = async (req, res) => {
         const { id } = req.params; // Barbershop ID
         const authUserId = req.user.id;
 
-        const client = await prisma.client.findUnique({ where: { authUserId } });
+        // Try finding by Client ID (if token is generateClientToken) or authUserId
+        const client = await prisma.client.findFirst({
+            where: {
+                OR: [
+                    { id: authUserId },
+                    { authUserId: authUserId }
+                ]
+            }
+        });
+
         if (!client) return res.status(404).json({ message: 'Perfil de cliente não encontrado.' });
 
         const existing = await prisma.favoriteBarbershop.findUnique({
@@ -400,7 +409,14 @@ exports.checkFavoriteStatus = async (req, res) => {
         const { id } = req.params;
         if (!req.user) return res.json({ favorited: false });
 
-        const client = await prisma.client.findUnique({ where: { authUserId: req.user.id } });
+        const client = await prisma.client.findFirst({
+            where: {
+                OR: [
+                    { id: req.user.id },
+                    { authUserId: req.user.id }
+                ]
+            }
+        });
         if (!client) return res.json({ favorited: false });
 
         const favorite = await prisma.favoriteBarbershop.findUnique({

@@ -21,7 +21,7 @@ export function useBarbershop(slug) {
 
                 // Trigger parallel loads
                 loadProducts(res.data.id);
-                if (localStorage.getItem('token')) {
+                if (localStorage.getItem('clientToken')) {
                     checkFavoriteStatus(res.data.id);
                 }
             } catch (err) {
@@ -54,7 +54,7 @@ export function useBarbershop(slug) {
 
     const toggleFavorite = async () => {
         if (!barbershop) return;
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('clientToken');
         if (!token) {
             alert('Faça login para favoritar.'); // Ideally replace with toast
             return;

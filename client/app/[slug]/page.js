@@ -128,7 +128,7 @@ export default function BarbershopPage() {
 
     async function checkFavoriteStatus(id) {
         try {
-            if (!localStorage.getItem('token')) return;
+            if (!localStorage.getItem('clientToken')) return;
             const res = await api.get(`/barbershops/${id}/favorite-status`);
             setIsFavorite(res.data.favorited);
         } catch (err) {
@@ -138,7 +138,7 @@ export default function BarbershopPage() {
 
     const handleToggleFavorite = async () => {
         if (!barbershop) return;
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('clientToken');
         if (!token) return alert('Faça login para favoritar.');
 
         try {

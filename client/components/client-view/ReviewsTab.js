@@ -31,7 +31,7 @@ export default function ReviewsTab({ barbershopId }) {
                 }
 
                 // Check logged user for eligible appointments to review
-                if (localStorage.getItem('token')) {
+                if (localStorage.getItem('clientToken')) {
                     api.get(`/appointments/unreviewed?barbershopId=${barbershopId}`)
                         .then(res => setUnreviewed(res.data))
                         .catch(err => console.error("Error fetching unreviewed apps", err));
