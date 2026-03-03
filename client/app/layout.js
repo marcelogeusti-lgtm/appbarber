@@ -4,6 +4,9 @@ import clsx from 'clsx';
 import Providers from './providers';
 import { Toaster } from 'sonner';
 import FcmManager from '../components/FcmManager';
+import LoginModal from '../components/client-view/LoginModal';
+import RegisterModal from '../components/client-view/RegisterModal';
+import ForgotPasswordModal from '../components/client-view/ForgotPasswordModal';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,6 +29,9 @@ export default function RootLayout({ children }) {
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
                         <FcmManager />
+                        <LoginModal />
+                        <RegisterModal />
+                        <ForgotPasswordModal />
                         {children}
                         <Toaster richColors position="top-center" />
                     </Providers>

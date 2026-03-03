@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, Scissors } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const { user, openLoginModal } = useClientAuth();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -39,14 +41,27 @@ export default function Navbar() {
 
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-4">
-                    <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
-                        Entrar
-                    </Link>
-                    <Link href="/register">
-                        <button className="h-9 px-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
-                            Teste Grátis
-                        </button>
-                    </Link>
+                    {user ? (
+                        <Link href="/home">
+                            <button className="h-9 px-5 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
+                                Minha Conta
+                            </button>
+                        </Link>
+                    ) : (
+                        <>
+                            <button
+                                onClick={openLoginModal}
+                                className="text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+                            >
+                                Entrar
+                            </button>
+                            <Link href="/register">
+                                <button className="h-9 px-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
+                                    Teste Grátis
+                                </button>
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu Toggle */}
@@ -63,12 +78,25 @@ export default function Navbar() {
                         <Link href="#start" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Como Começar</Link>
                         <Link href="#pricing" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Planos</Link>
                         <hr className="border-gray-50" />
-                        <Link href="/login" className="text-base font-semibold text-gray-900 text-center py-2">Entrar</Link>
-                        <Link href="/register">
-                            <button className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-sm">
-                                Criar Conta Grátis
-                            </button>
-                        </Link>
+                        {user ? (
+                            <Link href="/home" onClick={() => setIsOpen(false)} className="text-base font-semibold text-gray-900 text-center py-2">
+                                Minha Conta
+                            </Link>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => { setIsOpen(false); openLoginModal(); }}
+                                    className="text-base font-semibold text-gray-900 text-center py-2"
+                                >
+                                    Entrar
+                                </button>
+                                <Link href="/register" onClick={() => setIsOpen(false)}>
+                                    <button className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-sm">
+                                        Criar Conta Grátis
+                                    </button>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

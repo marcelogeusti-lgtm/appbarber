@@ -3,10 +3,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, Calendar, User } from 'lucide-react';
-import { ClientAuthProvider, useClientAuth } from '../../contexts/ClientAuthContext';
-import LoginModal from '../../components/client-view/LoginModal';
-import RegisterModal from '../../components/client-view/RegisterModal';
-import ForgotPasswordModal from '../../components/client-view/ForgotPasswordModal';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
 import FooterCliente from '../../components/client-view/FooterCliente';
 import NotificationsModal from '../../components/client-view/NotificationsModal';
 import ProfileDropdown from '../../components/client-view/ProfileDropdown';
@@ -34,9 +31,6 @@ function ClientLayoutContent({ children }) {
 
     return (
         <div className="flex h-screen bg-[#050505] text-white overflow-hidden">
-            <LoginModal />
-            <RegisterModal />
-            <ForgotPasswordModal />
             <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
 
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar">
@@ -153,10 +147,8 @@ function ClientLayoutContent({ children }) {
 
 export default function ClientLayout({ children }) {
     return (
-        <ClientAuthProvider>
-            <ClientLayoutContent>
-                {children}
-            </ClientLayoutContent>
-        </ClientAuthProvider>
+        <ClientLayoutContent>
+            {children}
+        </ClientLayoutContent>
     );
 }
