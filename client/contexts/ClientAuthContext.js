@@ -150,7 +150,7 @@ export function ClientAuthProvider({ children }) {
         setUser(null);
         // Force redirect to safe public zone
         // Force redirect to safe public zone
-        window.location.href = '/home';
+        window.location.href = '/';
     };
 
     const openLoginModal = () => { setIsLoginModalOpen(true); setIsRegisterModalOpen(false); setIsForgotPasswordModalOpen(false); };

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar, Clock, MapPin, User, XCircle, Loader2, Filter, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, XCircle, Loader2, Filter, CheckCircle, AlertCircle, ChevronDown, Search } from 'lucide-react';
 import api from '../../../lib/clientApi';
 
 export default function HistoryPage() {

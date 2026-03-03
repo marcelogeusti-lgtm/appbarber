@@ -1,6 +1,9 @@
-'use client';
-import Link from 'next/link';
-import { User, Heart, CreditCard, Sparkles, Box, History, LogOut, ChevronRight } from 'lucide-react';
+import {
+    User, Heart, CreditCard, Sparkles, Box,
+    History, LogOut, ChevronRight, Key,
+    MapPin, ShieldCheck, Settings, MessageSquare,
+    FileText
+} from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 export default function ProfileDropdown({ isOpen, onClose }) {
@@ -8,102 +11,95 @@ export default function ProfileDropdown({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
+    const sections = [
+        {
+            items: [
+                { icon: User, label: 'Meus Dados', href: '/profile/edit' },
+                { icon: Key, label: 'Meus Acessos', href: '/profile/access' },
+                { icon: MapPin, label: 'Endereço', href: '/profile/address' },
+            ]
+        },
+        {
+            items: [
+                { icon: Heart, label: 'Favoritos', href: '/favorites' },
+                { icon: CreditCard, label: 'Meus Cartões', href: '/cards' },
+                { icon: Sparkles, label: 'Assinaturas', href: '/subscriptions' },
+                { icon: Box, label: 'Pacotes', href: '/packages' },
+                { icon: ShieldCheck, label: 'Segurança', href: '/profile/security' },
+                { icon: History, label: 'Histórico', href: '/history' },
+            ]
+        },
+        {
+            items: [
+                { icon: Settings, label: 'Preferências', href: '/profile/preferences' },
+                { icon: MessageSquare, label: 'Ouvidoria', href: '/support' },
+                { icon: FileText, label: 'Termos de Uso', href: '/terms' },
+            ]
+        }
+    ];
+
     return (
-        <div className="absolute top-14 right-0 w-64 bg-[#111] border border-white/5 rounded-2xl shadow-2xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-            {/* Header */}
-            <div className="p-4 border-b border-white/5 bg-white/5">
-                <p className="text-sm font-bold text-white truncate">{user?.name}</p>
-                <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
+        <>
+            {/* Backdrop for mobile/tablet to close on click outside if needed, though usually handled by parent */}
+            <div className="fixed inset-0 z-[90] lg:hidden" onClick={onClose} />
+
+            <div className="absolute top-14 right-0 w-72 bg-[#0A0A0B] border border-white/5 rounded-[2rem] shadow-2xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                {/* User Info Header */}
+                <div className="p-6 border-b border-white/5 bg-white/5 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full border border-primary/20 bg-slate-900 overflow-hidden shrink-0">
+                        {user?.avatarUrl ? (
+                            <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center font-black text-primary bg-primary/5">
+                                {user?.name?.[0].toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-sm font-black text-white truncate uppercase tracking-tight">{user?.name}</p>
+                        <p className="text-[10px] text-slate-500 truncate font-bold uppercase tracking-widest">{user?.email}</p>
+                    </div>
+                </div>
+
+                {/* Scrolled Content Area */}
+                <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+                    {sections.map((section, sIdx) => (
+                        <div key={sIdx} className={`p-2 ${sIdx !== sections.length - 1 ? 'border-b border-white/5' : ''}`}>
+                            {section.items.map((item, iIdx) => (
+                                <Link
+                                    key={iIdx}
+                                    href={item.href}
+                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all group"
+                                    onClick={onClose}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/10 transition-colors">
+                                            <item.icon className="w-4 h-4 text-slate-400 group-hover:text-primary" />
+                                        </div>
+                                        <span className="text-[11px] font-black text-slate-400 group-hover:text-white uppercase tracking-widest">{item.label}</span>
+                                    </div>
+                                    <ChevronRight className="w-3 h-3 text-slate-800 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                </Link>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Logout Footer */}
+                <div className="p-4 bg-[#0F0F10] border-t border-white/5">
+                    <button
+                        onClick={() => {
+                            logout();
+                            onClose();
+                        }}
+                        className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all group group"
+                    >
+                        <LogOut className="w-4 h-4 text-red-500 group-hover:text-white" />
+                        <span className="text-[11px] font-black text-red-500 group-hover:text-white uppercase tracking-[0.2em]">Sair da Conta</span>
+                    </button>
+                    <p className="text-center text-[8px] text-slate-700 font-bold uppercase tracking-widest mt-4">AppBarber v2.0</p>
+                </div>
             </div>
-
-            {/* Links */}
-            <div className="p-2">
-                <Link
-                    href="/profile"
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all group"
-                    onClick={onClose}
-                >
-                    <div className="flex items-center gap-3">
-                        <User className="w-4 h-4 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-bold text-slate-300 group-hover:text-white">Perfil</span>
-                    </div>
-                    <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
-                </Link>
-
-                <Link
-                    href="/favorites"
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all group"
-                    onClick={onClose}
-                >
-                    <div className="flex items-center gap-3">
-                        <Heart className="w-4 h-4 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-bold text-slate-300 group-hover:text-white">Favoritos</span>
-                    </div>
-                    <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
-                </Link>
-
-                <Link
-                    href="/cards"
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all group"
-                    onClick={onClose}
-                >
-                    <div className="flex items-center gap-3">
-                        <CreditCard className="w-4 h-4 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-bold text-slate-300 group-hover:text-white">Meus Cartões</span>
-                    </div>
-                    <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
-                </Link>
-
-                <Link
-                    href="/subscriptions"
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all group"
-                    onClick={onClose}
-                >
-                    <div className="flex items-center gap-3">
-                        <Sparkles className="w-4 h-4 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-bold text-slate-300 group-hover:text-white">Assinaturas</span>
-                    </div>
-                    <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
-                </Link>
-
-                <Link
-                    href="/packages"
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all group"
-                    onClick={onClose}
-                >
-                    <div className="flex items-center gap-3">
-                        <Box className="w-4 h-4 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-bold text-slate-300 group-hover:text-white">Pacotes</span>
-                    </div>
-                    <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
-                </Link>
-
-                <Link
-                    href="/history"
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all group"
-                    onClick={onClose}
-                >
-                    <div className="flex items-center gap-3">
-                        <History className="w-4 h-4 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-bold text-slate-300 group-hover:text-white">Histórico</span>
-                    </div>
-                    <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400" />
-                </Link>
-            </div>
-
-            {/* Logout */}
-            <div className="p-2 border-t border-white/5">
-                <button
-                    onClick={() => {
-                        logout();
-                        onClose();
-                    }}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-500/10 transition-all group"
-                >
-                    <LogOut className="w-4 h-4 text-red-500/70 group-hover:text-red-500" />
-                    <span className="text-xs font-bold text-red-500/70 group-hover:text-red-500">Sair</span>
-                </button>
-            </div>
-        </div>
+        </>
     );
 }

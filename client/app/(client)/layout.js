@@ -27,10 +27,9 @@ function ClientLayoutContent({ children }) {
     }, [user, loading, router]);
 
     const tabs = [
-        { name: 'Início', href: '/home', icon: Home },
+        { name: 'Início', href: '/', icon: Home },
         { name: 'Buscar', href: '/search', icon: Search },
-        { name: 'Meus Agendamentos', href: '/appointments', icon: Calendar },
-        { name: 'Menu', href: '/profile', icon: User },
+        { name: 'Agendamentos', href: '/agendamentos', icon: Calendar },
     ];
 
     return (
@@ -44,19 +43,18 @@ function ClientLayoutContent({ children }) {
                 {/* TOP HEADER */}
                 <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
-
-                        <Link href="/home">
+                        <Link href="/">
                             <img src="/logos/logo_full.png" alt="NEXT" className="h-7 w-auto" />
                         </Link>
                     </div>
 
-                    {/* Center: Desktop Nav (Only for Visitors or specific top-nav preference - we'll keep it for now but hidden on lg if logged in) */}
-                    <nav className={`hidden ${user ? 'lg:hidden md:flex' : 'md:flex'} items-center gap-8`}>
-                        {tabs.slice(0, 3).map((tab) => (
+                    {/* Center: Desktop Nav */}
+                    <nav className="hidden md:flex items-center gap-8">
+                        {tabs.map((tab) => (
                             <Link
                                 key={tab.href}
                                 href={tab.href}
-                                className={`text-sm font-medium transition-colors ${pathname.startsWith(tab.href) ? 'text-primary' : 'text-slate-400 hover:text-white'}`}
+                                className={`text-sm font-bold uppercase tracking-widest transition-colors ${pathname === tab.href ? 'text-primary' : 'text-slate-400 hover:text-white'}`}
                             >
                                 {tab.name}
                             </Link>
@@ -64,32 +62,21 @@ function ClientLayoutContent({ children }) {
                     </nav>
 
                     <div className="flex items-center gap-4">
-                        {/* Visual Placeholders for Theme/Lang */}
-                        <div className="hidden xl:flex items-center gap-4 border-r border-white/5 pr-4 mr-2">
-                            <button className="p-2 text-slate-400 hover:text-white transition-colors">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
-                            </button>
-                        </div>
-
                         {user && (
                             <button
                                 onClick={() => setIsNotificationsOpen(true)}
                                 className="p-2 text-slate-400 hover:text-white transition-colors relative"
                             >
                                 <Bell className="w-5 h-5" strokeWidth={1.5} />
+                                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-[#050505]"></span>
                             </button>
                         )}
 
-                        <button className="hidden sm:block p-2 text-slate-400 hover:text-white transition-colors">
-                            <Search className="w-5 h-5" strokeWidth={1.5} />
-                        </button>
-
                         {!user && !loading && (
                             <button
-                                className="bg-[#111] border border-white/10 text-white px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 hover:bg-white/5 transition-all"
-                                onClick={() => router.push('/profile')}
+                                className="bg-primary text-black px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                                onClick={() => useClientAuth().openLoginModal()}
                             >
-                                <User className="w-4 h-4" />
                                 Entrar
                             </button>
                         )}
@@ -110,7 +97,7 @@ function ClientLayoutContent({ children }) {
                                         )}
                                     </div>
                                     <div className="hidden lg:flex items-center gap-2 pr-2">
-                                        <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">{user.name}</span>
+                                        <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">{user.name.split(' ')[0]}</span>
                                         <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                                     </div>
                                 </button>
@@ -124,7 +111,6 @@ function ClientLayoutContent({ children }) {
                     {children}
                 </main>
 
-                {/* DESKTOP FOOTER: Only if not in Dashboard view? Or always? Let's keep it for now. */}
                 <div className="hidden md:block">
                     <FooterCliente />
                 </div>
@@ -134,7 +120,7 @@ function ClientLayoutContent({ children }) {
                     <div className="flex justify-between items-center px-4">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
-                            const isActive = pathname.startsWith(tab.href);
+                            const isActive = pathname === tab.href;
                             return (
                                 <Link
                                     key={tab.href}
@@ -142,12 +128,22 @@ function ClientLayoutContent({ children }) {
                                     className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
                                     <Icon className={`w-6 h-6 mb-1 ${isActive ? 'fill-current' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
-                                    <span className={`text-[10px] font-medium tracking-wide ${isActive ? 'opacity-100' : 'opacity-70'}`}>
+                                    <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'opacity-100' : 'opacity-70'}`}>
                                         {tab.name}
                                     </span>
                                 </Link>
                             );
                         })}
+                        {/* Mobile Menu Icon for more */}
+                        <button
+                            onClick={() => user ? setIsProfileOpen(true) : useClientAuth().openLoginModal()}
+                            className="flex flex-col items-center justify-center p-2 text-slate-500 hover:text-slate-300"
+                        >
+                            <User className="w-6 h-6 mb-1" strokeWidth={2} />
+                            <span className="text-[9px] font-black uppercase tracking-widest opacity-70">
+                                {user ? 'Conta' : 'Perfil'}
+                            </span>
+                        </button>
                     </div>
                 </nav>
             </div>

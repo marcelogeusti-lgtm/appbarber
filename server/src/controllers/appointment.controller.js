@@ -566,10 +566,24 @@ exports.createAppointment = async (req, res) => {
 exports.getMyAppointments = async (req, res) => {
     try {
         const userId = req.user.id;
+        const authUserId = req.user.authUserId;
+
+        // If we have an authUserId (which we should for logged in users), 
+        // find ALL client profiles linked to this account.
+        // This handles legacy profiles created before registration.
+        let clientIds = [userId];
+
+        if (authUserId) {
+            const allProfiles = await prisma.client.findMany({
+                where: { authUserId },
+                select: { id: true }
+            });
+            clientIds = allProfiles.map(p => p.id);
+        }
 
         // As Client
         const bookings = await prisma.appointment.findMany({
-            where: { clientId: userId },
+            where: { clientId: { in: clientIds } },
             include: { professional: { select: { name: true } }, service: true, barbershop: true },
             orderBy: { date: 'desc' }
         });
