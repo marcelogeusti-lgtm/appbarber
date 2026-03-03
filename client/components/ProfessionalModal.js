@@ -228,48 +228,32 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
         const file = e.target.files[0];
         if (!file) return;
 
-        console.log('[UPLOAD] Início do upload:', file.name, file.size);
+        console.log('[UPLOAD] Início do processamento Base64:', file.name, file.size);
         setUploading(true);
         try {
-            // 1. Ensure Firebase Auth (Important for Storage Rules)
-            console.log('[UPLOAD] Garantindo autenticação Firebase...');
-            await ensureFirebaseAuth();
-            console.log('[UPLOAD] Autenticação OK');
-
-            // 2. Compress
+            // 1. Compress
             console.log('[UPLOAD] Comprimindo imagem...');
             const compressedFile = await compressImage(file);
             console.log('[UPLOAD] Compressão OK');
 
-            // 3. Upload to Firebase
-            const extension = compressedFile.name.split('.').pop() || 'jpg';
-            const filename = `professionals/${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
-            const storageRef = ref(storage, filename);
+            // 2. Convert to Base64
+            console.log('[UPLOAD] Convertendo para Base64...');
+            const reader = new FileReader();
+            const base64Promise = new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(compressedFile);
+            });
 
-            console.log('[UPLOAD] Enviando para o Storage:', filename);
-            await uploadBytes(storageRef, compressedFile);
-            console.log('[UPLOAD] Bytes enviados com sucesso');
+            const base64String = await base64Promise;
+            console.log('[UPLOAD] Conversão para Base64 OK');
 
-            // 4. Get URL
-            const url = await getDownloadURL(storageRef);
-            console.log('[UPLOAD] URL gerada:', url);
-
-            // 5. Set in form
-            setValue('avatarUrl', url);
-            toast.success('Foto enviada com sucesso!');
+            // 3. Set in form
+            setValue('avatarUrl', base64String);
+            toast.success('Foto processada com sucesso!');
         } catch (err) {
             console.error('[UPLOAD] Erro detalhado:', err);
-
-            let message = 'Erro ao enviar imagem.';
-            if (err.code === 'storage/unauthorized') {
-                message = 'Acesso negado ao Storage. Verifique se a Autenticação Anônima está ativa no Firebase.';
-            } else if (err.code === 'storage/retry-limit-exceeded') {
-                message = 'Tempo de tentativa excedido. Isso geralmente é causado por falta de configuração de CORS no Firebase.';
-            } else if (err.message) {
-                message = `Erro: ${err.message}`;
-            }
-
-            toast.error(message);
+            toast.error('Erro ao processar imagem: ' + (err.message || 'Erro desconhecido'));
         } finally {
             setUploading(false);
             // Clear input

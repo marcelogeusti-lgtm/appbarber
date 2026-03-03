@@ -68,19 +68,23 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
 
         setUploading(true);
         try {
-            // Compress if size > 300KB
-            let fileToUpload = file;
-            if (file.size > 300000) {
-                fileToUpload = await compressImage(file);
-            }
+            // 1. Compress
+            const compressedBlob = await compressImage(file);
+            const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
 
-            const storageRef = ref(storage, `clients/${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, fileToUpload);
-            const url = await getDownloadURL(snapshot.ref);
-            setFormData(prev => ({ ...prev, avatarUrl: url }));
+            // 2. Convert to Base64
+            const reader = new FileReader();
+            const base64Promise = new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(compressedFile);
+            });
+
+            const base64String = await base64Promise;
+            setFormData(prev => ({ ...prev, avatarUrl: base64String }));
         } catch (err) {
             console.error('Upload error:', err);
-            toast.error('Erro ao enviar imagem: ' + err.message);
+            toast.error('Erro ao processar imagem: ' + err.message);
         } finally {
             setUploading(false);
         }

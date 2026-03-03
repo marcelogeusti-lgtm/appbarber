@@ -56,21 +56,20 @@ export default function EditProfilePage() {
         setMessage({ type: '', text: '' });
 
         try {
-            // 1. Ensure Firebase Auth
-            await ensureFirebaseAuth();
+            // 1. Process as Base64 (Data URL)
+            const reader = new FileReader();
+            const base64Promise = new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            });
 
-            const storageRef = ref(storage, `client-avatars/${authUser.id}_${Date.now()}.jpg`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            setFormData(prev => ({ ...prev, avatarUrl: downloadURL }));
+            const base64String = await base64Promise;
+            setFormData(prev => ({ ...prev, avatarUrl: base64String }));
             setMessage({ type: 'success', text: 'Foto carregada! Clique em SALVAR para confirmar.' });
         } catch (error) {
             console.error("Upload error details:", error);
-            let errorMsg = 'Erro ao enviar foto.';
-            if (error.code === 'storage/unauthorized') {
-                errorMsg = 'Erro de permissão no Storage.';
-            }
-            setMessage({ type: 'error', text: errorMsg });
+            setMessage({ type: 'error', text: 'Erro ao processar foto.' });
         } finally {
             setUploading(false);
         }
