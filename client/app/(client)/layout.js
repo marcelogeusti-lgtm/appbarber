@@ -27,7 +27,7 @@ function ClientLayoutContent({ children }) {
     }, [user, loading, router]);
 
     const tabs = [
-        { name: 'Início', href: '/', icon: Home },
+        { name: 'Início', href: '/home', icon: Home },
         { name: 'Buscar', href: '/search', icon: Search },
         { name: 'Agendamentos', href: '/agendamentos', icon: Calendar },
     ];
@@ -43,7 +43,7 @@ function ClientLayoutContent({ children }) {
                 {/* TOP HEADER */}
                 <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
-                        <Link href="/">
+                        <Link href="/home">
                             <img src="/logos/logo_full.png" alt="NEXT" className="h-7 w-auto" />
                         </Link>
                     </div>
