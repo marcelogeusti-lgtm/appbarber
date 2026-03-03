@@ -36,10 +36,8 @@ export default function ClientHome() {
     }, []);
 
     useEffect(() => {
-        if (!authLoading) {
-            fetchData();
-        }
-    }, [user, authLoading]);
+        fetchData();
+    }, [user]);
 
     const fetchData = async () => {
         try {

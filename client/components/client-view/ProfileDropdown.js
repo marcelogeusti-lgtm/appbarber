@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {
     User, Heart, CreditCard, Sparkles, Box,
     History, LogOut, ChevronRight, Key,
@@ -15,8 +16,8 @@ export default function ProfileDropdown({ isOpen, onClose }) {
         {
             items: [
                 { icon: User, label: 'Meus Dados', href: '/profile/edit' },
-                { icon: Key, label: 'Meus Acessos', href: '/profile/access' },
-                { icon: MapPin, label: 'Endereço', href: '/profile/address' },
+                { icon: Key, label: 'Meus Acessos', href: '/profile' },
+                { icon: MapPin, label: 'Endereço', href: '/profile' },
             ]
         },
         {

@@ -41,16 +41,24 @@ exports.searchBarbershops = async (req, res) => {
 
         const barbershops = await prisma.barbershop.findMany({
             where,
-            include: {
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                address: true,
+                logoUrl: true,
+                latitude: true,
+                longitude: true,
                 services: {
                     take: 1,
-                    where: { active: true }
+                    where: { active: true },
+                    select: { id: true, name: true, price: true }
                 },
                 reviews: {
                     select: { rating: true }
                 }
             },
-            take: 50
+            take: 24
         });
 
         // Post-processing for Distance and Reviews
