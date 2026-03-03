@@ -228,35 +228,43 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
         const file = e.target.files[0];
         if (!file) return;
 
+        console.log('[UPLOAD] Início do upload:', file.name, file.size);
         setUploading(true);
         try {
             // 1. Ensure Firebase Auth (Important for Storage Rules)
+            console.log('[UPLOAD] Garantindo autenticação Firebase...');
             await ensureFirebaseAuth();
+            console.log('[UPLOAD] Autenticação OK');
 
             // 2. Compress
+            console.log('[UPLOAD] Comprimindo imagem...');
             const compressedFile = await compressImage(file);
+            console.log('[UPLOAD] Compressão OK');
 
             // 3. Upload to Firebase
             const extension = compressedFile.name.split('.').pop() || 'jpg';
             const filename = `professionals/${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
             const storageRef = ref(storage, filename);
 
+            console.log('[UPLOAD] Enviando para o Storage:', filename);
             await uploadBytes(storageRef, compressedFile);
+            console.log('[UPLOAD] Bytes enviados com sucesso');
 
             // 4. Get URL
             const url = await getDownloadURL(storageRef);
+            console.log('[UPLOAD] URL gerada:', url);
 
             // 5. Set in form
             setValue('avatarUrl', url);
             toast.success('Foto enviada com sucesso!');
         } catch (err) {
-            console.error('Upload error details:', err);
+            console.error('[UPLOAD] Erro detalhado:', err);
 
             let message = 'Erro ao enviar imagem.';
             if (err.code === 'storage/unauthorized') {
                 message = 'Acesso negado ao Storage. Verifique se a Autenticação Anônima está ativa no Firebase.';
             } else if (err.code === 'storage/retry-limit-exceeded') {
-                message = 'Tempo de tentativa excedido. Verifique sua conexão ou as configurações de CORS do Firebase.';
+                message = 'Tempo de tentativa excedido. Isso geralmente é causado por falta de configuração de CORS no Firebase.';
             } else if (err.message) {
                 message = `Erro: ${err.message}`;
             }
