@@ -54,14 +54,14 @@ export default function FooterCliente() {
                             <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">Baixe nosso App</h4>
                             <div className="flex flex-col gap-3">
                                 <a href="#" className="flex items-center gap-3 bg-[#111] border border-white/10 rounded-xl px-4 py-2 hover:bg-white/5 transition-all group">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Apple_logo_black.svg" alt="Apple" className="w-5 h-5 invert opacity-70 group-hover:opacity-100" />
+                                    <img src="https://cdn.simpleicons.org/apple/white" alt="Apple" className="w-5 h-5 opacity-70 group-hover:opacity-100" />
                                     <div className="leading-none">
                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Download on the</p>
                                         <p className="text-sm font-bold text-white">App Store</p>
                                     </div>
                                 </a>
                                 <a href="#" className="flex items-center gap-3 bg-[#111] border border-white/10 rounded-xl px-4 py-2 hover:bg-white/5 transition-all group">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Google_Play_Store_badge_EN.svg" alt="Google Play" className="w-5 h-5" />
+                                    <img src="https://cdn.simpleicons.org/googleplay/white" alt="Google Play" className="w-5 h-5 opacity-70 group-hover:opacity-100" />
                                     <div className="leading-none">
                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Get it on</p>
                                         <p className="text-sm font-bold text-white">Google Play</p>

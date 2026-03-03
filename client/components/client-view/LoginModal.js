@@ -75,21 +75,21 @@ export default function LoginModal() {
                             onClick={() => handleSocialLogin('google')}
                             className="flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-[#222] border border-white/5 hover:border-white/20 text-white p-3 rounded-xl transition font-medium text-xs"
                         >
-                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                            <img src="https://cdn.simpleicons.org/google/white" alt="Google" className="w-4 h-4" />
                             Google
                         </button>
                         <button
                             onClick={() => handleSocialLogin('facebook')}
                             className="flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-[#222] border border-white/5 hover:border-white/20 text-white p-3 rounded-xl transition font-medium text-xs"
                         >
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" className="w-4 h-4" />
+                            <img src="https://cdn.simpleicons.org/facebook/white" alt="Facebook" className="w-4 h-4" />
                             Facebook
                         </button>
                         <button
                             onClick={() => handleSocialLogin('apple')}
                             className="flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-[#222] border border-white/5 hover:border-white/20 text-white p-3 rounded-xl transition font-medium text-xs"
                         >
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Apple_logo_black.svg" alt="Apple" className="w-4 h-4 invert" />
+                            <img src="https://cdn.simpleicons.org/apple/white" alt="Apple" className="w-4 h-4" />
                             Apple
                         </button>
                     </div>
