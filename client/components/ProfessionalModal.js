@@ -9,7 +9,7 @@ import {
     Plus, Trash2, Info, ChevronRight, ChevronLeft, Edit
 } from 'lucide-react';
 import api from '../lib/api';
-import { storage } from '../lib/firebase';
+import { storage, ensureFirebaseAuth } from '../lib/firebase';
 import { toast } from 'sonner';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -230,25 +230,38 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
         setUploading(true);
         try {
-            // 1. Compress
+            // 1. Ensure Firebase Auth (Important for Storage Rules)
+            await ensureFirebaseAuth();
+
+            // 2. Compress
             const compressedFile = await compressImage(file);
 
-            // 2. Upload to Firebase
+            // 3. Upload to Firebase
             const extension = compressedFile.name.split('.').pop() || 'jpg';
             const filename = `professionals/${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
             const storageRef = ref(storage, filename);
 
             await uploadBytes(storageRef, compressedFile);
 
-            // 3. Get URL
+            // 4. Get URL
             const url = await getDownloadURL(storageRef);
 
-            // 4. Set in form
+            // 5. Set in form
             setValue('avatarUrl', url);
             toast.success('Foto enviada com sucesso!');
         } catch (err) {
-            console.error('Upload error:', err);
-            toast.error('Erro ao enviar imagem: ' + (err.message || 'Erro desconhecido'));
+            console.error('Upload error details:', err);
+
+            let message = 'Erro ao enviar imagem.';
+            if (err.code === 'storage/unauthorized') {
+                message = 'Acesso negado ao Storage. Verifique se a Autenticação Anônima está ativa no Firebase.';
+            } else if (err.code === 'storage/retry-limit-exceeded') {
+                message = 'Tempo de tentativa excedido. Verifique sua conexão ou as configurações de CORS do Firebase.';
+            } else if (err.message) {
+                message = `Erro: ${err.message}`;
+            }
+
+            toast.error(message);
         } finally {
             setUploading(false);
             // Clear input

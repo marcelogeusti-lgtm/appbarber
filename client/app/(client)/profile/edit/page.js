@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, User, Mail, Phone, ChevronLeft, Loader2, Camera } from 'lucide-react';
 import api from '../../../../lib/clientApi';
-import { storage } from '../../../../lib/firebase';
+import { storage, ensureFirebaseAuth } from '../../../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useClientAuth } from '../../../../contexts/ClientAuthContext';
 
@@ -53,15 +53,24 @@ export default function EditProfilePage() {
         if (!file) return;
 
         setUploading(true);
+        setMessage({ type: '', text: '' });
+
         try {
+            // 1. Ensure Firebase Auth
+            await ensureFirebaseAuth();
+
             const storageRef = ref(storage, `client-avatars/${authUser.id}_${Date.now()}.jpg`);
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
             setFormData(prev => ({ ...prev, avatarUrl: downloadURL }));
             setMessage({ type: 'success', text: 'Foto carregada! Clique em SALVAR para confirmar.' });
         } catch (error) {
-            console.error("Upload error:", error);
-            setMessage({ type: 'error', text: 'Erro ao enviar foto.' });
+            console.error("Upload error details:", error);
+            let errorMsg = 'Erro ao enviar foto.';
+            if (error.code === 'storage/unauthorized') {
+                errorMsg = 'Erro de permissão no Storage.';
+            }
+            setMessage({ type: 'error', text: errorMsg });
         } finally {
             setUploading(false);
         }
