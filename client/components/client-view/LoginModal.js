@@ -1,10 +1,19 @@
 'use client';
 import { useState } from 'react';
 import { X, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 export default function LoginModal() {
-    const { isLoginModalOpen, closeLoginModal, login, googleLogin, facebookLogin, openRegisterModal } = useClientAuth();
+    const {
+        isLoginModalOpen,
+        closeLoginModal,
+        login,
+        googleLogin,
+        facebookLogin,
+        openRegisterModal,
+        openForgotPasswordModal
+    } = useClientAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -132,7 +141,7 @@ export default function LoginModal() {
                     <div className="flex justify-end">
                         <button
                             type="button"
-                            onClick={useClientAuth().openForgotPasswordModal}
+                            onClick={openForgotPasswordModal}
                             className="text-xs text-slate-500 hover:text-white font-medium transition-colors"
                         >
                             Recuperar senha

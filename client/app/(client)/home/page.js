@@ -43,7 +43,7 @@ export default function ClientHome() {
 
     const fetchData = async () => {
         try {
-            const res = await api.get('/barbershops');
+            const res = await api.get('/barbershops/search');
             setBarbershops(res.data || []);
         } catch (err) {
             console.error(err);

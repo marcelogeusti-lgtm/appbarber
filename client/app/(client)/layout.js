@@ -12,7 +12,7 @@ import { ChevronDown, Bell } from 'lucide-react';
 function ClientLayoutContent({ children }) {
     const pathname = usePathname();
     const router = useRouter();
-    const { user, loading } = useClientAuth();
+    const { user, loading, openLoginModal } = useClientAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
@@ -69,7 +69,7 @@ function ClientLayoutContent({ children }) {
                         {!user && !loading && (
                             <button
                                 className="bg-primary text-black px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-                                onClick={() => useClientAuth().openLoginModal()}
+                                onClick={openLoginModal}
                             >
                                 Entrar
                             </button>
@@ -130,7 +130,7 @@ function ClientLayoutContent({ children }) {
                         })}
                         {/* Mobile Menu Icon for more */}
                         <button
-                            onClick={() => user ? setIsProfileOpen(true) : useClientAuth().openLoginModal()}
+                            onClick={() => user ? setIsProfileOpen(true) : openLoginModal()}
                             className="flex flex-col items-center justify-center p-2 text-slate-500 hover:text-slate-300"
                         >
                             <User className="w-6 h-6 mb-1" strokeWidth={2} />
