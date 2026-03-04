@@ -1,3 +1,4 @@
+'use client';
 import { ShieldCheck, Key, Smartphone, Lock, ChevronRight, X, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';

@@ -1,3 +1,4 @@
+'use client';
 import { MapPin, Plus, Loader2, Home, Trash2, CheckCircle2, X, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
