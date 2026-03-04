@@ -19,10 +19,15 @@ const getBaseUrl = () => {
 };
 
 const api = axios.create({
-    baseURL: getBaseUrl(),
+    baseURL: getBaseUrl().replace(/\/$/, '') + '/', // Ensure trailing slash
 });
 
 api.interceptors.request.use((config) => {
+    // Fix: Remove leading slash from URL to prevent Axios from dropping the /api prefix
+    if (config.url && config.url.startsWith('/')) {
+        config.url = config.url.substring(1);
+    }
+
     if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token') || localStorage.getItem('clientToken');
         if (token) {

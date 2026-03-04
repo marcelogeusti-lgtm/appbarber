@@ -28,11 +28,11 @@ const optionalProtect = async (req, res, next) => {
 };
 
 router.post('/', optionalProtect, createAppointment);
+router.get('/me', protect, getMyAppointments); // Client history
 router.get('/pending-fees', protect, getPendingFees);
 router.get('/unreviewed', protect, getUnreviewedAppointments);
-router.get('/:id', optionalProtect, require('../controllers/appointment.controller').getAppointmentById);
-router.get('/me', protect, getMyAppointments); // Client history
 router.get('/pro', protect, authorize('BARBER', 'ADMIN'), getProAppointments); // Pro View
+router.get('/:id', optionalProtect, require('../controllers/appointment.controller').getAppointmentById);
 router.get('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), require('../controllers/appointment.controller').getAllAppointments); // Admin View
 router.patch('/:id/status', protect, authorize('BARBER', 'ADMIN', 'CLIENT'), require('../controllers/appointment.controller').updateAppointmentStatus);
 
