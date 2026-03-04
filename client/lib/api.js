@@ -1,17 +1,21 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
-    let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-    // Remove trailing slash if present before appending /api
-    url = url.replace(/\/$/, '');
-
-    if (!url.endsWith('/api') && !url.includes('localhost')) {
-        url += '/api';
+    // Priority 1: Environment variable
+    if (process.env.NEXT_PUBLIC_API_URL) {
+        return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') + '/api';
     }
 
-    console.log('API Base URL:', url);
-    return url;
+    // Priority 2: Runtime detection (Vercel vs Local)
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+            return 'https://barber-api-uz05.onrender.com/api';
+        }
+    }
+
+    // Priority 3: Default Local
+    return 'http://localhost:3001/api';
 };
 
 const api = axios.create({
@@ -20,7 +24,7 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || localStorage.getItem('clientToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
