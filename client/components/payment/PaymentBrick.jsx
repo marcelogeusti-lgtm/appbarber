@@ -74,18 +74,21 @@ const PaymentBrick = ({
     };
 
     const handleSubmit = async (param) => {
-        // Brick onSubmit returns { formData }
         const { formData } = param;
         try {
+            // Determine method based on payment_type_id if available (credit_card, debit_card, bank_transfer, etc)
+            const resolvedMethod = formData.payment_type_id || (formData.payment_method_id?.includes('pix') ? 'pix' : 'card');
+
             const response = await api.post('/payments/process-brick', {
                 ...formData,
                 barbershopId,
                 description,
                 transaction_amount: Number(amount),
+                method: resolvedMethod, // Pass type to backend
                 payer: {
                     email: formData.payer.email,
                     ...formData.payer
-                } // Ensure payer info is passed explicitly if needed by backend
+                }
             });
 
             if (onSuccess) {
@@ -94,7 +97,7 @@ const PaymentBrick = ({
         } catch (error) {
             console.error('Payment Brick Error:', error);
             if (onError) {
-                onError(error.response?.data?.error || error.message);
+                onError(error.response?.data?.message || error.response?.data?.error || error.message);
             }
         }
     };

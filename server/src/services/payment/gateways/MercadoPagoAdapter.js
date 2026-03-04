@@ -12,54 +12,87 @@ class MercadoPagoAdapter extends GatewayAdapter {
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
         try {
-            // Payer Info
-            const identification = customer.document || customer.identification?.number || payer?.identification?.number;
+            // Payer Info - Strict identification check
+            const identificationNumber = (customer.document || customer.identification?.number || payer?.identification?.number || '').replace(/\D/g, '');
             const identificationType = customer.identification?.type || payer?.identification?.type || 'CPF';
 
-            // Payload for /v1/payments API (Standard & Better for Pix/Cards)
+            if (!identificationNumber) {
+                throw new Error("Documento (CPF/CNPJ) do pagador é obrigatório.");
+            }
+
+            const payerEmail = customer.email || payer?.email;
+            if (!payerEmail) {
+                throw new Error("E-mail do pagador é obrigatório.");
+            }
+
+            // Payload for /v1/payments API
             const payload = {
                 transaction_amount: parseFloat(amount),
                 description: description || 'Serviço Barbearia',
                 external_reference: externalId?.toString(),
                 notification_url: `${process.env.BACKEND_URL}/api/webhooks/mercadopago`,
                 payer: {
-                    email: customer.email || payer?.email || 'guest@example.com',
+                    email: payerEmail,
                     first_name: customer.name?.split(' ')[0] || payer?.first_name || 'Cliente',
-                    last_name: customer.name?.split(' ').slice(1).join(' ') || payer?.last_name || 'Visitante',
+                    last_name: customer.name?.split(' ').slice(1).join(' ') || payer?.last_name || '',
+                    identification: {
+                        type: identificationType,
+                        number: identificationNumber
+                    }
                 }
             };
 
-            if (identification) {
-                payload.payer.identification = {
-                    type: identificationType,
-                    number: identification.replace(/\D/g, '')
-                };
-            }
-
+            // Method Logic
             if (method === 'PIX') {
                 payload.payment_method_id = 'pix';
             } else if (method === 'BOLETO') {
                 payload.payment_method_id = 'bolbradesco';
-            } else if (method === 'CREDIT_CARD' || method === 'DEBIT_CARD') {
+            } else if (method === 'CREDIT_CARD' || method === 'DEBIT_CARD' || method.includes('card')) {
                 if (!token) throw new Error("Token do cartão obrigatório.");
                 payload.token = token;
-                payload.installments = Number(installments) || 1;
-                payload.payment_method_id = paymentMethodId;
+
+                // STRICT DEBIT ENFORCEMENT: If it's debit, force 1 installment.
+                // In MP, payment_method_id for debit usually starts with 'deb'.
+                const isDebit = method === 'DEBIT_CARD' || (paymentMethodId && paymentMethodId.toLowerCase().includes('deb'));
+
+                if (isDebit) {
+                    payload.installments = 1;
+                    if (!paymentMethodId) payload.payment_method_id = 'debvisa'; // Fallback if missing, but should be passed
+                } else {
+                    payload.installments = Number(installments) || 1;
+                }
+
+                if (paymentMethodId) payload.payment_method_id = paymentMethodId;
                 if (issuerId) payload.issuer_id = issuerId;
             }
+
+            // STABLE IDEMPOTENCY: Use the internal Payment UUID if available, otherwise fallback.
+            // This prevents duplicate charges if the same request is retried.
+            const idempotencyKey = externalId ? `pay_${externalId}` : `temp_${Date.now()}`;
 
             const response = await axios.post(`${this.apiUrl}/payments`, payload, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
-                    'X-Idempotency-Key': `pay_${externalId}_${Date.now()}`
+                    'X-Idempotency-Key': idempotencyKey
                 }
             });
 
             const data = response.data;
             let finalStatus = 'pending';
 
-            if (data.status === 'approved' || data.status === 'accredited') finalStatus = 'paid';
-            else if (data.status === 'rejected' || data.status === 'cancelled') finalStatus = 'failed';
+            // Mapping MP statuses to internal statuses
+            const statusMap = {
+                'approved': 'paid',
+                'accredited': 'paid',
+                'rejected': 'failed',
+                'cancelled': 'failed',
+                'in_process': 'pending',
+                'pending': 'pending',
+                'refunded': 'refunded',
+                'in_mediation': 'pending'
+            };
+
+            finalStatus = statusMap[data.status] || 'pending';
 
             // Extract PIX / Ticket Data
             let qrCode = null;
@@ -67,7 +100,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
             let checkoutUrl = null;
             let pixCopiaECola = null;
 
-            if (method === 'PIX') {
+            if (method === 'PIX' || data.payment_method_id === 'pix') {
                 const txData = data.point_of_interaction?.transaction_data;
                 qrCode = txData?.qr_code;
                 qrCodeBase64 = txData?.qr_code_base64;
@@ -85,12 +118,20 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 qrCodeBase64,
                 pixCopiaECola,
                 status: finalStatus,
+                statusDetail: data.status_detail,
                 checkoutUrl,
                 rawResponse: data
             };
         } catch (err) {
             console.error('[MP] Create Payment Error:', err.response?.data || err.message);
-            const errorMsg = err.response?.data?.message || err.message;
+            const mpError = err.response?.data;
+            let errorMsg = mpError?.message || err.message;
+
+            // Helpful errors for common MP issues
+            if (mpError?.cause?.[0]?.description) {
+                errorMsg = `${errorMsg}: ${mpError.cause[0].description}`;
+            }
+
             throw new Error(`Erro Mercado Pago: ${errorMsg}`);
         }
     }
@@ -151,12 +192,14 @@ class MercadoPagoAdapter extends GatewayAdapter {
             if (plan.validityDays >= 365) {
                 payload.auto_recurring.frequency = 1;
                 payload.auto_recurring.frequency_type = 'months';
-                payload.auto_recurring.repetitions = 12; // Example for annual
-            } else if (plan.validityDays === 30) {
+                payload.auto_recurring.repetitions = 12; // Annual plan billed monthly for 12 months
+            } else if (plan.validityDays === 30 || plan.validityDays === 31) {
                 payload.auto_recurring.frequency = 1;
                 payload.auto_recurring.frequency_type = 'months';
+            } else if (plan.validityDays === 7) {
+                payload.auto_recurring.frequency = 1;
+                payload.auto_recurring.frequency_type = 'weeks';
             } else if (plan.validityDays > 0) {
-                // For flexible days, use days
                 payload.auto_recurring.frequency = plan.validityDays;
                 payload.auto_recurring.frequency_type = 'days';
             }
@@ -288,6 +331,45 @@ class MercadoPagoAdapter extends GatewayAdapter {
         } catch (err) {
             console.error('[MP] Get Subscription Status Error:', err.response?.data || err.message);
             throw new Error(`Erro ao buscar status da assinatura no Mercado Pago: ${err.message}`);
+        }
+    }
+
+    async processWebhook(req, credentials) {
+        const isValid = this.validateWebhook(req, credentials);
+        if (!isValid) return { isValid: false };
+
+        const type = req.body?.type || req.body?.topic;
+        const dataId = req.query['data.id'] || req.body?.data?.id || req.body?.id;
+
+        if (!dataId) return { isValid: false };
+
+        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+
+        try {
+            if (type === 'payment') {
+                const statusData = await this.getPaymentStatus({ externalId: dataId, credentials });
+                return {
+                    isValid: true,
+                    type: 'payment',
+                    externalId: statusData.externalId,
+                    status: statusData.status,
+                    raw: statusData.rawResponse
+                };
+            } else if (type === 'subscription_preapproval' || type === 'preapproval') {
+                const statusData = await this.getSubscriptionStatus({ externalId: dataId, credentials });
+                return {
+                    isValid: true,
+                    type: 'subscription',
+                    externalId: statusData.externalId,
+                    status: statusData.status.toLowerCase(), // active -> paid? 
+                    raw: statusData.rawResponse
+                };
+            }
+
+            return { isValid: true, type: 'unknown', externalId: dataId };
+        } catch (err) {
+            console.error('[MP Webhook] Process Error:', err.message);
+            return { isValid: false, error: err.message };
         }
     }
 

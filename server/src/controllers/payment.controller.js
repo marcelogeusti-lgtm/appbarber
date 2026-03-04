@@ -2,15 +2,13 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const TransactionService = require('../services/TransactionService');
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
+const PaymentService = require('../services/payment/PaymentService');
 
 exports.createPayment = async (req, res) => {
     try {
         const { amount, method, description, gateway, barbershopId, appointmentId, orderId } = req.body;
         const userId = req.user.id;
 
-        // Security / Tenant Isolation
-        // If user is not SUPER_ADMIN, they can only create payments for their own shop context
-        // req.tenantId should be populated by middleware if enforced, but let's double check.
         const enforceShopId = req.tenantId || req.user.barbershopId;
         if (enforceShopId && barbershopId && enforceShopId !== barbershopId) {
             if (req.user.role !== 'SUPER_ADMIN') {
@@ -18,84 +16,27 @@ exports.createPayment = async (req, res) => {
             }
         }
 
-        // If no barbershopId in body but we have context, inject it
         const finalBarbershopId = barbershopId || enforceShopId;
 
         if (!amount || !method) {
             return res.status(400).json({ error: 'Amount and method are required' });
         }
 
-        // Fetch User/Client details
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { authUser: true }
+        const result = await PaymentService.createPayment({
+            amount,
+            method,
+            description,
+            gateway,
+            barbershopId: finalBarbershopId,
+            userId,
+            appointmentId,
+            orderId
         });
 
-        // 1. Create Pending Payment
-        const pendingPayment = await prisma.payment.create({
-            data: {
-                gateway: gateway || 'PENDING',
-                method,
-                status: 'PENDING',
-                amount,
-                userId,
-                appointmentId,
-                orderId,
-                barbershopId: finalBarbershopId
-            }
-        });
-
-        try {
-            // 2. Call Gateway
-            const paymentResult = await PaymentOrchestrator.createPayment({
-                amount,
-                method,
-                description: description || `Payment for user ${user?.name || userId}`,
-                gateway,
-                barbershopId: finalBarbershopId,
-                customer: {
-                    name: user?.name || 'Cliente',
-                    email: user?.authUser?.email || user?.email,
-                    phone: user?.phone
-                },
-                externalId: pendingPayment.id // Pass DB UUID
-            });
-
-            // 3. Update Payment
-            const updatedPayment = await prisma.payment.update({
-                where: { id: pendingPayment.id },
-                data: {
-                    gateway: paymentResult.gateway,
-                    externalId: paymentResult.paymentId,
-                    status: paymentResult.status,
-                    qrCode: paymentResult.qrCode,
-                    pixCopiaECola: paymentResult.pixCopiaECola,
-                    ticketUrl: paymentResult.ticketUrl // Add ticketUrl support
-                }
-            });
-
-            return res.status(201).json({
-                paymentId: updatedPayment.id,
-                qrCode: updatedPayment.qrCode,
-                qrCodeBase64: paymentResult.qrCodeBase64, // Pass ephemeral base64
-                pixCopiaECola: updatedPayment.pixCopiaECola,
-                ticketUrl: paymentResult.ticketUrl,
-                status: updatedPayment.status,
-                externalId: updatedPayment.externalId
-            });
-        } catch (gatewayError) {
-            console.error('Gateway Error:', gatewayError);
-            await prisma.payment.update({
-                where: { id: pendingPayment.id },
-                data: { status: 'FAILED' }
-            });
-            return res.status(502).json({
-                error: 'Erro no pagamento: ' + (gatewayError.message || 'Erro deconhecido')
-            });
-        }
+        return res.status(201).json(result);
     } catch (error) {
         console.error('Create Payment Error:', error);
-        return res.status(500).json({ error: 'Failed to create payment' });
+        return res.status(500).json({ error: error.message || 'Failed to create payment' });
     }
 };
 
@@ -108,7 +49,6 @@ exports.createPixPayment = async (req, res) => {
             return res.status(400).json({ error: 'Appointment ID is required' });
         }
 
-        // 1. Fetch Integration Data (Appointment + Service + Client + Fees)
         const appointment = await prisma.appointment.findUnique({
             where: { id: appointmentId },
             include: {
@@ -120,137 +60,52 @@ exports.createPixPayment = async (req, res) => {
 
         if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' });
 
-        // 2. SECURITY: Recalculate Total Value (Backend Source of Truth)
-        // Base Price
-        let amount = Number(appointment.service.price);
-
-        // Add Pending Fees (No-Show) if applicable logic exists
-        // (Assuming checking pendingFees for this client/barbershop)
-        // const pendingFees = await prisma.fee.findMany(...) -> amount += fee
-
-        // Products: If appointment created via new flow, products might be linked separately or need to be passed strictly by ID to be summed here.
-        // For now, focusing on Service Price which is the core request requirement.
-
-        // Sanity Check: Ensure amount is valid
+        const amount = Number(appointment.service.price);
         if (amount <= 0) return res.status(400).json({ error: 'Valor inválido para pagamento' });
 
-        // 3. Payer Info
         const payerUser = await prisma.user.findUnique({
             where: { id: userId },
             include: { authUser: true }
         });
 
-        // 4. Create PENDING Payment
-        const pendingPayment = await prisma.payment.create({
-            data: {
-                gateway: 'PENDING',
-                method: 'PIX',
-                status: 'PENDING',
-                amount: amount,
-                userId: req.user.id,
-                appointmentId: appointment.id,
-                barbershopId: appointment.barbershopId
+        const cpf = (payerUser?.cpf || payerUser?.document || '').replace(/\D/g, '');
+        const customerData = {
+            name: payerUser?.name || appointment.client.name || 'Cliente',
+            email: payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com',
+            phone: payerUser?.phone || appointment.client.phone || '00000000000',
+            document: cpf,
+            identification: {
+                type: 'CPF',
+                number: cpf
             }
+        };
+
+        const result = await PaymentService.createPayment({
+            amount,
+            method: 'PIX',
+            description: `Agendamento #${appointment.id.slice(0, 8)} - ${appointment.service.name}`,
+            barbershopId: appointment.barbershopId,
+            userId,
+            appointmentId: appointment.id,
+            customer: customerData
         });
 
-        try {
-            // Customer Data
-            const cpf = payerUser?.cpf || payerUser?.document || '';
-            const customerData = {
-                name: payerUser?.name || appointment.client.name || 'Cliente',
-                email: payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com',
-                phone: payerUser?.phone || appointment.client.phone || '00000000000',
-                document: cpf.replace(/\D/g, ''),
-                identification: {
-                    type: 'CPF',
-                    number: cpf.replace(/\D/g, '')
-                }
-            };
+        return res.status(201).json({
+            ...result,
+            checkoutUrl: `/checkout-pix?id=${result.id}`,
+            barbershopName: appointment.barbershop.name
+        });
 
-            // 5. Call Gateway
-            const paymentResult = await PaymentOrchestrator.createPayment({
-                amount,
-                method: 'PIX',
-                description: `Agendamento #${appointment.id.slice(0, 8)} - ${appointment.service.name}`,
-                barbershopId: appointment.barbershopId,
-                customer: customerData,
-                externalId: pendingPayment.id
-            });
-
-            // 6. Generate QR Code Image (Base64) if Gateway didn't return one
-            // Most Pix APIs return the "EMV" string (Copia e Cola). We need to render it.
-            let qrCodeBase64 = paymentResult.qrCodeBase64;
-            const pixString = paymentResult.pixCopiaECola || paymentResult.qrCode;
-
-            if (!qrCodeBase64 && pixString) {
-                try {
-                    const qrcode = require('qrcode');
-                    qrCodeBase64 = await qrcode.toDataURL(pixString);
-                    // Remove data:image/png;base64, prefix for consistency if needed, 
-                    // or keep it. Let's keep strict base64 content if possible, or full DataURL.
-                    // Usually frontend expects base64 content.
-                    qrCodeBase64 = qrCodeBase64.split(',')[1];
-                } catch (qrError) {
-                    console.error('Failed to generate local QR Code:', qrError);
-                }
-            }
-
-            // 7. Update Payment in DB
-            const updatedPayment = await prisma.payment.update({
-                where: { id: pendingPayment.id },
-                data: {
-                    gateway: paymentResult.gateway,
-                    externalId: paymentResult.paymentId,
-                    status: paymentResult.status,
-                    qrCode: pixString, // Save the String (EMV)
-                    pixCopiaECola: pixString
-                }
-            });
-
-            // 7.5 If Approved Immediately (e.g. Mock/Test), Register Transaction
-            if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
-                await TransactionService.createTransaction({
-                    barbershopId: appointment.barbershopId,
-                    amount: Number(amount),
-                    method: 'PIX',
-                    origin: 'ONLINE',
-                    appointmentId: appointment.id,
-                    description: `Pagamento Online (Pix) - Agendamento #${appointment.id.substring(0, 8)}`
-                });
-            }
-
-            // 8. Return Success Payload
-            return res.status(201).json({
-                paymentId: updatedPayment.id,
-                checkoutUrl: `/checkout-pix?id=${updatedPayment.id}`, // Internal Checkout Page
-                qrCode: pixString,
-                pixCopiaECola: pixString,
-                qrCodeBase64: qrCodeBase64, // The Image
-                status: updatedPayment.status,
-                amount: amount,
-                barbershopName: appointment.barbershop.name
-            });
-
-        } catch (gatewayError) {
-            console.error('Gateway Error:', gatewayError);
-            await prisma.payment.update({
-                where: { id: pendingPayment.id },
-                data: { status: 'FAILED' }
-            });
-            return res.status(502).json({
-                error: 'Erro Pix: ' + (gatewayError.message || 'Falha na comunicação')
-            });
-        }
     } catch (error) {
         console.error('Create Pix Error:', error);
-        return res.status(500).json({ error: 'Erro ao gerar Pix' });
+        return res.status(500).json({ error: error.message || 'Erro ao gerar Pix' });
     }
 };
 
 exports.createCardPayment = async (req, res) => {
     try {
         const { appointmentId, token, issuerId, paymentMethodId, installments, payer, saveCard } = req.body;
-        const userId = req.user.id; // Logged user
+        const userId = req.user.id;
 
         if (!appointmentId || !token) {
             return res.status(400).json({ error: 'Missing required data (appointmentId, token)' });
@@ -267,138 +122,57 @@ exports.createCardPayment = async (req, res) => {
 
         if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' });
 
-        const amount = appointment.service.price;
-
-        // Fetch User details for fallback
-        const payerUser = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { authUser: true }
+        const result = await PaymentService.createPayment({
+            amount: appointment.service.price,
+            method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
+            description: `Agendamento #${appointment.id.slice(0, 8)}`,
+            barbershopId: appointment.barbershopId,
+            userId,
+            appointmentId: appointment.id,
+            token,
+            installments: installments || 1,
+            issuerId,
+            paymentMethodId,
+            payer
         });
 
-        // 1. Create PENDING Payment in DB
-        const pendingPayment = await prisma.payment.create({
-            data: {
-                gateway: 'PENDING',
-                method: 'CREDIT_CARD', // or infer from paymentMethodId
-                status: 'PENDING',
-                amount: amount,
-                userId: req.user.id,
-                appointmentId: appointment.id,
-                barbershopId: appointment.barbershopId
-            }
-        });
-
-        const customerData = {
-            name: customerName,
-            email: customerEmail,
-            phone: payerUser?.phone || appointment.client.phone,
-            identification: {
-                type: 'CPF',
-                number: (payerUser?.cpf || payerUser?.document || '').replace(/\D/g, '')
-            }
-        };
-
-        try {
-            // 2. Call Payment Orchestrator (Mercado Pago / Stripe)
-            const paymentResult = await PaymentOrchestrator.createPayment({
-                amount,
-                method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
-                description: `Agendamento #${appointment.id.slice(0, 8)}`,
-                barbershopId: appointment.barbershopId,
-                customer: customerData,
-                externalId: pendingPayment.id,
-                // Card Details
-                token,
-                installments: installments || 1,
-                issuerId,
-                paymentMethodId,
-                payer: payer || {
-                    email: customerEmail,
-                    identification: customerData.identification
-                }
-            });
-
-            // 3. Update Payment Record
-            const updatedPayment = await prisma.payment.update({
-                where: { id: pendingPayment.id },
-                data: {
-                    gateway: paymentResult.gateway,
-                    externalId: paymentResult.paymentId,
-                    status: paymentResult.status
-                }
-            });
-
-            // 4. If Approved, Confirm Appointment & Register Transaction
-            if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
-                await TransactionService.createTransaction({
+        // 5. Automatic Card Saving Logic (Keep here for now or move to service if relevant)
+        if (saveCard && (result.status === 'paid' || result.status === 'approved')) {
+            try {
+                await PaymentOrchestrator.saveCard({
                     barbershopId: appointment.barbershopId,
-                    amount: Number(amount),
-                    method: 'CREDIT_CARD',
-                    origin: 'ONLINE',
-                    appointmentId: appointment.id,
-                    description: `Pagamento Online (Cartão) - Agendamento #${appointment.id.substring(0, 8)}`
-                });
-
-                // Status updated by TransactionService, but we can verify/log if needed.
-
-                // 5. Automatic Card Saving Logic
-                if (saveCard) {
-                    try {
-                        console.log(`[PaymentController] Auto-saving card for client ${appointment.clientId}`);
-
-                        // Reuse the Orchestrator's saveCard wrapper
-                        const savedCardData = await PaymentOrchestrator.saveCard({
+                    client: appointment.client,
+                    token: token
+                }).then(async (savedCardData) => {
+                    await prisma.cardToken.create({
+                        data: {
+                            clientId: appointment.clientId,
+                            gateway: savedCardData.gateway.toUpperCase(),
+                            token: savedCardData.token,
+                            last4: savedCardData.last4,
+                            brand: savedCardData.brand,
+                            expiryMonth: savedCardData.expiryMonth,
+                            expiryYear: savedCardData.expiryYear,
                             barbershopId: appointment.barbershopId,
-                            client: appointment.client,
-                            token: token // This is the single-use token from frontend
-                        });
-
-                        // Store in DB for this specific shop context
-                        await prisma.cardToken.create({
-                            data: {
-                                clientId: appointment.clientId,
-                                gateway: savedCardData.gateway.toUpperCase(),
-                                token: savedCardData.token, // This is the CARD_ID for future charges
-                                last4: savedCardData.last4,
-                                brand: savedCardData.brand,
-                                expiryMonth: savedCardData.expiryMonth,
-                                expiryYear: savedCardData.expiryYear,
-                                barbershopId: appointment.barbershopId,
-                                isDefault: false
-                            }
-                        });
-                    } catch (saveError) {
-                        console.error('[PaymentController] Failed to auto-save card:', saveError.message);
-                        // Don't fail the payment if saving card fails
-                    }
-                }
+                            isDefault: false
+                        }
+                    });
+                });
+            } catch (saveError) {
+                console.error('[PaymentController] Failed to auto-save card:', saveError.message);
             }
-
-            return res.status(201).json({
-                paymentId: updatedPayment.id,
-                status: updatedPayment.status,
-                externalId: updatedPayment.externalId
-            });
-
-        } catch (gatewayError) {
-            console.error('Gateway Error (Card):', gatewayError);
-            await prisma.payment.update({
-                where: { id: pendingPayment.id },
-                data: { status: 'FAILED' }
-            });
-            return res.status(502).json({
-                error: 'Falha no pagamento: ' + (gatewayError.message || 'Erro desconhecido')
-            });
         }
+
+        return res.status(201).json(result);
+
     } catch (error) {
         console.error('Create Card Payment Error:', error);
-        return res.status(500).json({ error: 'Erro interno ao processar cartão' });
+        return res.status(500).json({ error: error.message || 'Erro interno ao processar cartão' });
     }
 };
 
 exports.createBrickPayment = async (req, res) => {
     try {
-        // Payload from Brick
         const {
             transaction_amount,
             description,
@@ -408,10 +182,9 @@ exports.createBrickPayment = async (req, res) => {
             installments,
             issuer_id,
             barbershopId,
-            appointmentId // Optional context
+            appointmentId
         } = req.body;
 
-        // Security / Tenant Isolation
         const enforceShopId = req.tenantId || req.user.barbershopId;
         if (enforceShopId && barbershopId && enforceShopId !== barbershopId) {
             if (req.user.role !== 'SUPER_ADMIN') {
@@ -420,94 +193,25 @@ exports.createBrickPayment = async (req, res) => {
         }
         const finalBarbershopId = barbershopId || enforceShopId;
 
-        const userId = req.user.id;
-
-        if (!transaction_amount || !payment_method_id) {
-            return res.status(400).json({ error: 'Missing required data' });
-        }
-
-        // 1. Create Pending Payment in DB (if applicable)
-        // If we have appointmentId, link it. If subscription, logic differs.
-        let pendingPayment;
-        if (appointmentId) {
-            pendingPayment = await prisma.payment.create({
-                data: {
-                    gateway: 'PENDING',
-                    method: payment_method_id,
-                    status: 'PENDING',
-                    amount: transaction_amount,
-                    userId,
-                    appointmentId,
-                    barbershopId: finalBarbershopId
-                }
-            });
-        }
-
-        // 2. Call Orchestrator
-        // Map Brick payload to Orchestrator 'createPayment' params
-        const paymentResult = await PaymentOrchestrator.createPayment({
+        const result = await PaymentService.createPayment({
             amount: transaction_amount,
-            method: payment_method_id, // e.g. 'master', 'pix', 'bolbradesco'
-            description: description || 'Payment via Brick',
+            method: payment_method_id === 'pix' ? 'PIX' : (payment_method_id?.includes('deb') ? 'DEBIT_CARD' : 'CREDIT_CARD'),
+            description: description || 'Pagamento via Brick',
             barbershopId: finalBarbershopId,
-            externalId: pendingPayment?.id, // Optional linkage
-
-            // Card specific
+            userId: req.user.id,
+            appointmentId,
             token,
             installments,
             issuerId: issuer_id,
             paymentMethodId: payment_method_id,
-
-            // Payer
-            payer, // Pass mostly raw payer object from Brick
-            customer: {
-                email: payer.email,
-                name: payer.first_name ? `${payer.first_name} ${payer.last_name || ''}` : undefined
-            }
+            payer
         });
 
-        // 3. Update DB if created
-        if (pendingPayment) {
-            await prisma.payment.update({
-                where: { id: pendingPayment.id },
-                data: {
-                    gateway: paymentResult.gateway,
-                    externalId: paymentResult.paymentId,
-                    status: paymentResult.status,
-                    qrCode: paymentResult.qrCode,
-                    pixCopiaECola: paymentResult.pixCopiaECola,
-                    ticketUrl: paymentResult.ticketUrl
-                }
-            });
-        }
-
-        // 3.5 If Approved, Register Transaction
-        if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
-            await TransactionService.createTransaction({
-                barbershopId: finalBarbershopId,
-                amount: Number(transaction_amount),
-                method: payment_method_id === 'pix' ? 'PIX' : 'CREDIT_CARD', // Simple mapping
-                origin: 'ONLINE',
-                appointmentId: appointmentId || null,
-                description: `Pagamento Online (Brick) - ${description || 'Venda'}`
-            });
-        }
-
-        return res.status(201).json({
-            id: paymentResult.paymentId,
-            status: paymentResult.status,
-            status_detail: paymentResult.statusDetail, // Useful for frontend messages
-            qr_code_base64: paymentResult.qrCodeBase64,
-            qr_code: paymentResult.pixCopiaECola,
-            ticket_url: paymentResult.ticketUrl
-        });
+        return res.status(201).json(result);
 
     } catch (error) {
         console.error('Create Brick Payment Error:', error);
-        return res.status(500).json({
-            error: 'Failed to process brick payment',
-            details: error.message
-        });
+        return res.status(500).json({ error: error.message || 'Failed to process brick payment' });
     }
 };
 

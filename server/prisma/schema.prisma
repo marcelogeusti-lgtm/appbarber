@@ -636,6 +636,7 @@ model SubscriptionPlan {
   barbershopId  String
   barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
   
+  isRecurring   Boolean  @default(false) @map("is_recurring")
   externalId    String?   @map("external_id") // ID do plano no Gateway (MP)
 
   clientSubscriptions ClientSubscription[]

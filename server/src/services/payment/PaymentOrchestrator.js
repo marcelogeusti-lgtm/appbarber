@@ -256,74 +256,22 @@ class PaymentOrchestrator {
         const adapter = this.gateways[gateway];
         if (!adapter) throw new Error(`Webhook gateway '${gateway}' not supported.`);
 
-        let resourceId = req.query?.['data.id'] || req.body?.data?.id || req.body?.id;
-
-        if (!resourceId) {
-            return { isValid: false, error: 'Missing resource ID' };
-        }
+        // 1. Determine Resource ID to find credentials
+        let resourceId = req.query?.['data.id'] || req.body?.data?.id || req.body?.id || req.body?.preapproval_id;
+        if (!resourceId) return { isValid: false, error: 'Missing resource ID' };
         resourceId = resourceId.toString();
 
-        const paymentRecord = await this.getPaymentByExternalId(resourceId);
+        // 2. Resolve Credentials context (Shop or Platform)
+        const record = await this.getPaymentByExternalId(resourceId);
+        const credentials = await this.getGatewayConfig(record?.barbershopId || null, gatewayName.toUpperCase());
 
-        let credentials;
-        if (!paymentRecord) {
-            console.warn(`[Orchestrator] Webhook for unknown resource ${resourceId}. Trying Validation with Platform Creds.`);
-            // If payment not found, it might be a global subscription or orphan. Try Platform Creds as fallback?
-            // Or maybe we just return 200 OK to stop retries if we truly don't know it.
-            // Let's try platform validation just in case.
-            credentials = await this.getGatewayConfig(null, gatewayName.toUpperCase());
-        } else {
-            // 3. Get Credentials for the Shop (or Platform if null)
-            credentials = await this.getGatewayConfig(paymentRecord.barbershopId, gatewayName.toUpperCase());
-        }
-
-        if (!credentials || !credentials.accessToken) { // Basic check
+        if (!credentials || !credentials.accessToken) {
             console.error(`[Orchestrator] No credentials found for validation.`);
-            // Return true-ish to stop massive retries if we can't do anything?
-            return { isValid: false, error: 'No credentials' };
+            return { isValid: false, error: 'No credentials available' };
         }
 
-        // 4. Validate Webhook Signature (HMAC)
-        const isValid = await adapter.validateWebhook(req, credentials);
-        if (!isValid) {
-            console.error(`[Orchestrator] Invalid webhook signature for resource ${resourceId}`);
-            return { isValid: false, error: 'Invalid signature' };
-        }
-
-        // 5. Process Status
-        if (gateway === 'mercadopago') {
-            if (req.body?.type === 'subscription_preapproval') {
-                const response = await adapter.getSubscriptionStatus({
-                    externalId: resourceId,
-                    credentials
-                });
-
-                return {
-                    isValid: true,
-                    externalId: resourceId,
-                    status: response.status,
-                    isSubscription: true
-                };
-            }
-
-            try {
-                const response = await adapter.getPaymentStatus({
-                    externalId: resourceId,
-                    credentials
-                });
-
-                return {
-                    isValid: true,
-                    externalId: resourceId,
-                    status: response.status,
-                };
-            } catch (err) {
-                console.warn(`[Orchestrator] Payment status check failed for ${resourceId}: ${err.message}`);
-                return { isValid: true, externalId: resourceId, status: 'unknown', error: err.message };
-            }
-        }
-
-        return { isValid: true, externalId: resourceId, status: 'unknown' };
+        // 3. Delegate Processing to Adapter
+        return await adapter.processWebhook(req, credentials);
     }
 
     async getPaymentByExternalId(externalId) {
@@ -352,6 +300,24 @@ class PaymentOrchestrator {
         }
 
         return null;
+    }
+
+    async createSubscriptionPlan(params) {
+        const { gateway = 'mercadopago', barbershopId } = params;
+        const adapter = this.gateways[gateway];
+        if (!adapter || !adapter.createSubscriptionPlan) throw new Error(`Gateway '${gateway}' does not support subscription plans.`);
+
+        const credentials = await this.getGatewayConfig(barbershopId, gateway);
+        return await adapter.createSubscriptionPlan({ ...params, credentials });
+    }
+
+    async createSubscription(params) {
+        const { gateway = 'mercadopago', barbershopId } = params;
+        const adapter = this.gateways[gateway];
+        if (!adapter || !adapter.createSubscription) throw new Error(`Gateway '${gateway}' does not support subscriptions.`);
+
+        const credentials = await this.getGatewayConfig(barbershopId, gateway);
+        return await adapter.createSubscription({ ...params, credentials });
     }
 
     async getGatewayConfig(barbershopId, gatewayName) {
