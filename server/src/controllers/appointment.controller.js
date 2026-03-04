@@ -53,12 +53,36 @@ exports.createAppointment = async (req, res) => {
         // Service Mapping
         let serviceId = cam_serviceId || (servicos && servicos.length > 0 ? servicos[0].servico_id : null);
 
-        let clientId = req.user?.id || cliente_id; // Auth token or payload id
+        let clientId = cliente_id;
         let createdToken = null;
         let currentUser = null;
 
+        if (req.user) {
+            // Find the correct Client profile for this logged-in user
+            const authUserId = req.user.authUserId || (req.user.role === 'CLIENT' ? null : req.user.id);
+            const clientProfile = await prisma.client.findFirst({
+                where: {
+                    OR: [
+                        { id: req.user.id },
+                        { authUserId: authUserId || req.user.authUserId || req.user.id }
+                    ]
+                },
+                include: { authUser: true }
+            });
+
+            if (clientProfile) {
+                clientId = clientProfile.id;
+                currentUser = { ...clientProfile, email: clientProfile.authUser?.email, role: 'CLIENT' };
+            } else {
+                // Fallback: If no client profile yet, maybe it's a Pro booking
+                const userProfile = await prisma.user.findUnique({ where: { id: req.user.id } });
+                if (userProfile) {
+                    currentUser = userProfile;
+                }
+            }
+        }
+
         // 1. Fetch Service & Pro details first to ensure they exist
-        // Handle Multiple Services
         let servicesToBook = [];
         let primaryService = null;
 
@@ -66,7 +90,7 @@ exports.createAppointment = async (req, res) => {
             const allIds = servicos.map(s => s.servico_id);
             servicesToBook = await prisma.service.findMany({ where: { id: { in: allIds } } });
             if (servicesToBook.length === 0) return res.status(404).json({ message: 'Nenhum serviço válido encontrado.' });
-            primaryService = servicesToBook[0]; // Logic: First one is primary for Appointment record
+            primaryService = servicesToBook[0];
         } else if (serviceId) {
             const s = await prisma.service.findUnique({ where: { id: serviceId } });
             if (!s) return res.status(404).json({ message: 'Serviço não encontrado' });
@@ -76,7 +100,6 @@ exports.createAppointment = async (req, res) => {
             return res.status(400).json({ message: 'Serviço é obrigatório' });
         }
 
-        // Define 'service' variable for backward compatibility with rest of code that uses 'service'
         const service = primaryService;
         const barbershopId = service.barbershopId;
 
@@ -97,10 +120,8 @@ exports.createAppointment = async (req, res) => {
                 return res.status(400).json({ message: 'Nome e Telefone são obrigatórios para agendamento' });
             }
 
-            // Normalize phone
             const phone = guestPhone.replace(/\D/g, '');
 
-            // Check if Client exists by phone
             let existingClient = await prisma.client.findFirst({
                 where: {
                     OR: [
@@ -116,7 +137,6 @@ exports.createAppointment = async (req, res) => {
                     return res.status(400).json({ message: 'Email e Senha são obrigatórios para criar conta.' });
                 }
 
-                // Check if AuthUser email exists
                 const existingAuth = await prisma.authUser.findUnique({ where: { email: guestEmail } });
                 if (existingAuth) {
                     return res.status(400).json({ message: 'Este email já está em uso. Faça login.' });
@@ -128,7 +148,6 @@ exports.createAppointment = async (req, res) => {
 
                 const hashedPassword = await bcrypt.hash(password, 10);
 
-                // Transaction to create AuthUser + Client (or link existing Guest Client)
                 const result = await prisma.$transaction(async (tx) => {
                     const authUser = await tx.authUser.create({
                         data: {
@@ -159,24 +178,20 @@ exports.createAppointment = async (req, res) => {
 
                 clientId = result.client.id;
                 currentUser = { ...result.client, email: result.authUser.email, role: 'CLIENT' };
-                // Generate Token
                 createdToken = jwt.sign(
                     { id: result.client.id, role: 'CLIENT', authUserId: result.authUser.id },
                     process.env.JWT_SECRET, { expiresIn: '30d' }
                 );
 
             } else {
-                // GUEST (No Account)
                 if (!existingClient) {
                     existingClient = await prisma.client.create({
                         data: {
                             name: guestName,
                             phone: guestPhone,
-                            // authUserId left null
                         }
                     });
                 } else {
-                    // Update info and ensure active
                     await prisma.client.update({
                         where: { id: existingClient.id },
                         data: { name: guestName || existingClient.name, active: true }
@@ -186,10 +201,7 @@ exports.createAppointment = async (req, res) => {
                 currentUser = { ...existingClient, role: 'CLIENT' };
             }
 
-            // SECURITY: Ensure this new/guest client is linked to the barbershop via CommunicationLog
-            // This ensures they appear in the "Meus Clientes" list immediately.
             if (clientId && service && service.barbershopId) {
-                // Fire and forget - don't block
                 prisma.communicationLog.create({
                     data: {
                         barbershopId: service.barbershopId,
@@ -202,41 +214,19 @@ exports.createAppointment = async (req, res) => {
                     }
                 }).catch(err => console.error('[AutoLink] Failed to create CommunicationLog:', err.message));
             }
-        } else {
-            // Fetch Authenticated Client
-            const clientProfile = await prisma.client.findUnique({
-                where: { id: clientId },
-                include: { authUser: true }
-            });
-            if (clientProfile) {
-                currentUser = { ...clientProfile, email: clientProfile.authUser?.email, role: 'CLIENT' };
-            } else {
-                // Fallback: Check if it's a Pro booking themselves (User table)
-                const userProfile = await prisma.user.findUnique({ where: { id: clientId } });
-                if (userProfile) {
-                    currentUser = userProfile;
-                }
-            }
         }
 
         // 3. Robust Availability Check (Avoid Overbooking)
-        const { addMinutes, isBefore, isAfter, parseISO } = require('date-fns');
-
         if (!date || !date.includes('-')) return res.status(400).json({ message: 'Data inválida.' });
         if (!time || !time.includes(':')) return res.status(400).json({ message: 'Horário inválido.' });
 
-        // Construct ISO string for the requested time in SP
-        const dateTimeString = `${date}T${time}:00`; // e.g., "2023-10-25T09:00:00"
-
-        // Convert this SP time to UTC for storage/comparison
-        // zonedTimeToUtc takes a string (treated as local calculation in that TZ) and returns UTC Date
+        const dateTimeString = `${date}T${time}:00`;
         const appointmentDateTime = zonedTimeToUtc(dateTimeString, TIMEZONE);
 
         if (isNaN(appointmentDateTime.getTime())) {
             return res.status(400).json({ message: 'Data ou hora inválida.' });
         }
 
-        // --- SAME DAY BUFFER VALIDATION (GATED) ---
         const bufferEnabled = await FeatureFlagService.isEnabled('booking_buffer', barbershopId);
         if (bufferEnabled) {
             const nowSP = utcToZonedTime(new Date(), TIMEZONE);
@@ -247,17 +237,13 @@ exports.createAppointment = async (req, res) => {
                 });
             }
         }
-        // ----------------------------------
 
-        // Calculate Total Duration
         const requestedDuration = servicesToBook.reduce((acc, curr) => acc + curr.duration, 0);
-
         const reqStart = appointmentDateTime;
         const reqEnd = new Date(reqStart.getTime() + requestedDuration * 60000);
 
-        // Get the specific day of week relative to SP Timezone
         const zonedDate = utcToZonedTime(reqStart, TIMEZONE);
-        const dayOfWeek = zonedDate.getDay(); // 0-6
+        const dayOfWeek = zonedDate.getDay();
 
         const schedule = pro.professionalProfile?.schedules.find(s => s.dayOfWeek === dayOfWeek);
 
@@ -265,7 +251,6 @@ exports.createAppointment = async (req, res) => {
             return res.status(400).json({ message: 'O profissional não atende neste dia.' });
         }
 
-        // Helper: Create UTC Date from a time string "HH:MM" on the REQUESTED DATE (in SP context)
         const createZonedTime = (timeStr) => {
             return zonedTimeToUtc(`${date}T${timeStr}:00`, TIMEZONE);
         };
@@ -273,26 +258,19 @@ exports.createAppointment = async (req, res) => {
         const workStart = createZonedTime(schedule.startTime);
         const workEnd = createZonedTime(schedule.endTime);
 
-        // Strict work hours check
-        // Note: We use < and > to allow booking exactly at start time, but not ending exactly at end time if it pushes over?
-        // Actually usually [Start, End) or [Start, End]. Let's match reqEnd <= workEnd.
         if (reqStart < workStart || reqEnd > workEnd) {
             return res.status(400).json({ message: 'Horário fora do expediente do profissional.' });
         }
 
-        // Break Check
         if (schedule.breakStart && schedule.breakEnd) {
             const breakStart = createZonedTime(schedule.breakStart);
             const breakEnd = createZonedTime(schedule.breakEnd);
 
-            // Overlap: Start < BreakEnd AND End > BreakStart
             if (reqStart < breakEnd && reqEnd > breakStart) {
                 return res.status(400).json({ message: 'O horário selecionado conflita com o intervalo de pausa do profissional.' });
             }
         }
 
-        // Existing Appointments Check
-        // Range: Entire day in UTC corresponding to the SP day
         const dayStartUTC = zonedTimeToUtc(`${date}T00:00:00`, TIMEZONE);
         const dayEndUTC = zonedTimeToUtc(`${date}T23:59:59`, TIMEZONE);
 
@@ -318,9 +296,7 @@ exports.createAppointment = async (req, res) => {
         });
 
         const hasConflict = dayAppointments.some(app => {
-            const appStart = new Date(app.date); // Postgres returns UTC
-
-            // Calculate effective duration
+            const appStart = new Date(app.date);
             let appDuration = app.service?.duration || 30;
             if (app.order && app.order.items && app.order.items.length > 0) {
                 const serviceItems = app.order.items.filter(i => i.type === 'SERVICE' && i.service);
@@ -328,30 +304,19 @@ exports.createAppointment = async (req, res) => {
                     appDuration = serviceItems.reduce((sum, item) => sum + (item.service.duration * item.quantity), 0);
                 }
             }
-
             const appEnd = new Date(appStart.getTime() + appDuration * 60000);
-
-            // Conflict: StartA < EndB && EndA > StartB
             return (reqStart < appEnd && reqEnd > appStart);
         });
 
-        if (hasConflict) {
-            if (isSqueezeIn) {
-                console.log('Squeeze-in allowed despite conflict.');
-            } else {
-                return res.status(400).json({ message: 'Este horário já foi preenchido. Por favor, escolha outro.' });
-            }
+        if (hasConflict && !isSqueezeIn) {
+            return res.status(400).json({ message: 'Este horário já foi preenchido. Por favor, escolha outro.' });
         }
 
-        // 4. Create Appointment & Order via Transaction
-        console.log(`[Transaction] Starting for Client: ${clientId}, Pro: ${professionalId}, Date: ${date} ${time}`);
         const result = await prisma.$transaction(async (tx) => {
-            // Map payment method
             let method = 'CASH';
             if (paymentMethod === 'SUBSCRIPTION') method = 'SUBSCRIPTION';
             else if (paymentMethod === 'ONLINE') method = 'ONLINE';
 
-            // Create Appointment
             const appointment = await tx.appointment.create({
                 data: {
                     date: appointmentDateTime,
@@ -367,12 +332,9 @@ exports.createAppointment = async (req, res) => {
                 }
             });
 
-            // --- PACKAGE / SUBSCRIPTION USAGE ---
             if (method === 'SUBSCRIPTION') {
                 if (!clientId) throw new Error('Cliente não identificado para uso de assinatura.');
 
-                // Fetch Active Subscription for this Barbershop
-                // We look for any active subscription from this client in this shop
                 const activeSub = await tx.clientSubscription.findFirst({
                     where: {
                         clientId: clientId,
@@ -381,43 +343,27 @@ exports.createAppointment = async (req, res) => {
                         endDate: { gte: new Date() }
                     },
                     include: { plan: true },
-                    orderBy: { endDate: 'desc' } // Get the one ending latest if multiple
+                    orderBy: { endDate: 'desc' }
                 });
 
-                if (!activeSub) {
-                    throw new Error('Você não possui uma assinatura ativa nesta barbearia.');
-                }
+                if (!activeSub) throw new Error('Você não possui uma assinatura ativa nesta barbearia.');
+                if (activeSub.remainingCuts <= 0) throw new Error('Você atingiu o limite de cortes do seu plano atual.');
 
-                // Check Cuts
-                if (activeSub.remainingCuts <= 0) {
-                    throw new Error('Você atingiu o limite de cortes do seu plano atual.');
-                }
-
-                // Update Subscription (Decrement Cuts)
                 await tx.clientSubscription.update({
                     where: { id: activeSub.id },
-                    data: {
-                        remainingCuts: { decrement: 1 }
-                    }
+                    data: { remainingCuts: { decrement: 1 } }
                 });
 
-                // Link Appointment to Subscription
-                // We need to add `clientSubscriptionId` to Appointment if not already in data
-                // The update to Appointment is tricky inside transaction after creation if we didn't pass it.
-                // Actually, we can update the appointment instance or just rely on the side-effect.
-                // Better: Update the appointment we just created to link it.
                 await tx.appointment.update({
                     where: { id: appointment.id },
                     data: { clientSubscriptionId: activeSub.id }
                 });
             }
 
-            // Calculate Totals
             const serviceTotal = servicesToBook.reduce((sum, s) => sum + Number(s.price), 0);
             const productsTotal = productItems.reduce((sum, p) => sum + Number(p.price), 0);
             let totalVal = serviceTotal + productsTotal;
 
-            // Check for Pending No-Show Fees
             const pendingFees = await tx.noShowRecord.findMany({
                 where: { clientId, barbershopId: service.barbershopId, status: 'PENDING' }
             });
@@ -432,7 +378,6 @@ exports.createAppointment = async (req, res) => {
                 }
             }
 
-            // Create Order
             const order = await tx.order.create({
                 data: {
                     appointmentId: appointment.id,
@@ -480,14 +425,12 @@ exports.createAppointment = async (req, res) => {
 
         const { appointment, order } = result;
 
-        // 5. Trigger Syncs (Best Effort)
         try {
             await googleCalendarService.syncAppointmentToGoogle(appointment.id);
         } catch (syncErr) {
             console.error('[Sync] Google Calendar Error:', syncErr.message);
         }
 
-        // --- Notification Trigger (Professional) ---
         try {
             await notificationController.createNotification({
                 userId: professionalId,
@@ -496,70 +439,51 @@ exports.createAppointment = async (req, res) => {
                 type: 'appointment',
                 appointmentId: appointment.id
             });
-        } catch (e) {
-            console.error('Falha ao criar notificação interna (Pro):', e.message);
-        }
+        } catch (e) { console.error('Falha Pro Notify:', e.message); }
 
-        // --- Notification for Client (In-App) ---
         if (clientId) {
             try {
-                const targetUser = await prisma.user.findUnique({ where: { id: clientId } });
-                if (targetUser) {
+                const targetClient = await prisma.client.findUnique({ where: { id: clientId } });
+                if (targetClient) {
                     await notificationController.createNotification({
-                        userId: clientId,
+                        clientId: clientId,
                         title: 'Agendamento Confirmado',
                         message: `Seu horário para ${service.name} está confirmado para ${format(appointmentDateTime, 'dd/MM HH:mm')}.`,
                         type: 'appointment',
                         appointmentId: appointment.id
                     });
                 }
-            } catch (e) { console.error('Falha ao notificar cliente:', e.message); }
+            } catch (e) { console.error('Falha Client Notify:', e.message); }
         }
 
-        // --- Event Driven Notification ---
         setImmediate(async () => {
             try {
                 const fullApp = await prisma.appointment.findUnique({
                     where: { id: appointment.id },
                     include: { client: true, service: true, professional: true, barbershop: true }
                 });
-
                 if (fullApp) {
                     const eventBus = require('../services/events/eventBus');
                     eventBus.emit('APPOINTMENT_CREATED', fullApp);
                 }
-            } catch (err) {
-                console.error('[EventBus] Failed to emit creation event:', err.message);
-            }
+            } catch (err) { console.error('EventBus Error:', err.message); }
         });
-        // ---------------------------------
-
-        const responseUser = currentUser ? { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role } : null;
 
         res.status(201).json({
             appointment_id: appointment.id,
             status: appointment.status === 'CONFIRMED' ? 'confirmado' : 'pendente',
-            mensagem: appointment.status === 'CONFIRMED' ? 'Agendamento realizado com sucesso' : 'Agendamento pré-reservado. Aguardando pagamento.',
+            mensagem: appointment.status === 'CONFIRMED' ? 'Agendamento realizado com sucesso' : 'Agendamento em processamento',
             order_id: order.id,
             appointment,
             order,
             token: createdToken,
-            user: responseUser,
+            user: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
             isGuest: !req.user
         });
     } catch (error) {
-        // Detailed logging
         console.error('------- CRITICAL APPOINTMENT ERROR -------');
-        console.error('Message:', error.message);
-        console.error('Stack:', error.stack);
-        if (error.code) console.error('Prisma Code:', error.code);
-        if (error.meta) console.error('Prisma Meta:', error.meta);
-        console.error('------------------------------------------');
-
-        res.status(500).json({
-            message: 'Ocorreu um erro interno ao processar seu agendamento. Por favor, tente novamente ou contate o suporte.',
-            debug: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        console.error(error);
+        res.status(500).json({ message: 'Erro interno ao processar agendamento.' });
     }
 };
 
@@ -709,6 +633,35 @@ exports.updateAppointmentStatus = async (req, res) => {
         // --- Emit Update Event for Automation ---
         const eventBus = require('../services/events/eventBus');
         eventBus.emit('APPOINTMENT_UPDATED', { appointment, oldStatus: curApp.status });
+
+        // --- In-App Notifications for Client ---
+        if (appointment.clientId && status !== curApp.status) {
+            try {
+                let title = '';
+                let message = '';
+
+                if (status === 'CONFIRMED') {
+                    title = 'Agendamento Confirmado';
+                    message = `Seu horário para ${appointment.service?.name} foi confirmado.`;
+                } else if (status === 'CANCELLED' && req.user.role !== 'CLIENT') {
+                    title = 'Agendamento Cancelado';
+                    message = `Infelizmente seu agendamento para ${appointment.service?.name} teve que ser cancelado pelo estabelecimento.`;
+                } else if (status === 'COMPLETED') {
+                    title = 'Serviço Concluído';
+                    message = `Obrigado pela preferência! Avalie seu atendimento.`;
+                }
+
+                if (title) {
+                    await notificationController.createNotification({
+                        clientId: appointment.clientId,
+                        title,
+                        message,
+                        type: 'appointment',
+                        appointmentId: appointment.id
+                    });
+                }
+            } catch (e) { console.error('Error notifying client of update:', e.message); }
+        }
         // ----------------------------------------
 
         // HANDLE PAYMENT ON COMPLETION (If provided)

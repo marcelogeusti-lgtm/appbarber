@@ -84,25 +84,30 @@ export default function HistoryPage() {
 
     // 2. Then, bucket them for Tabs
     const now = new Date();
-    // Set to start of day for safer comparison if we want to show everything from today
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Start of today in local time for comparison
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const scheduled = filteredByShop.filter(a => {
         const appDate = new Date(a.date);
-        return (a.status === 'PENDING' || a.status === 'CONFIRMED' || a.status === 'SCHEDULED') &&
-            appDate >= today;
-    }).sort((a, b) => new Date(a.date) - new Date(b.date)); // Ascending for upcoming
+        // Upcoming: Status is active AND (is today or in the future)
+        const isActiveStatus = ['PENDING', 'CONFIRMED', 'SCHEDULED'].includes(a.status);
+        const isTodayOrFuture = appDate >= startOfToday;
+
+        return isActiveStatus && isTodayOrFuture;
+    }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const completed = filteredByShop.filter(a => {
         const appDate = new Date(a.date);
-        return a.status === 'COMPLETED' ||
-            ((a.status === 'PENDING' || a.status === 'CONFIRMED') && appDate < today);
-    }).sort((a, b) => new Date(b.date) - new Date(a.date)); // Descending for history
+        // Completed: Explicit status OR (is active status but date has passed)
+        const isExplicitlyCompleted = a.status === 'COMPLETED';
+        const isPastActive = ['PENDING', 'CONFIRMED', 'SCHEDULED'].includes(a.status) && appDate < startOfToday;
+
+        return isExplicitlyCompleted || isPastActive;
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const cancelled = filteredByShop.filter(a =>
-        a.status === 'CANCELLED' || a.status === 'NO_SHOW'
-    ).sort((a, b) => new Date(b.date) - new Date(a.date)); // Descending for history
-
+        ['CANCELLED', 'NO_SHOW'].includes(a.status)
+    ).sort((a, b) => new Date(b.date) - new Date(a.date));
     // 3. Determine what to show based on Active Tab
     const listToShow = activeTab === 'scheduled' ? scheduled : activeTab === 'completed' ? completed : cancelled;
 
