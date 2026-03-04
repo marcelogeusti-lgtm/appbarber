@@ -24,6 +24,7 @@ export default function HistoryPage() {
     const fetchAppointments = async () => {
         try {
             const res = await api.get('/appointments/me');
+            console.log(`[DEBUG] Received ${res.data.length} appointments for ${user.email}`);
             setAppointments(res.data);
 
             // Extract unique shops for filter

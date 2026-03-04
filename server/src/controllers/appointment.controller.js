@@ -502,8 +502,12 @@ exports.getMyAppointments = async (req, res) => {
                 where: { authUserId },
                 select: { id: true }
             });
-            clientIds = allProfiles.map(p => p.id);
+            const linkedIds = allProfiles.map(p => p.id);
+            // Union of both to be absolutely safe
+            clientIds = [...new Set([userId, ...linkedIds])];
         }
+
+        console.log(`[DEBUG] Fetching appointments for ClientIDs: ${clientIds.join(', ')} (AuthUser: ${authUserId})`);
 
         // As Client
         const bookings = await prisma.appointment.findMany({
