@@ -16,10 +16,13 @@ function ClientLayoutContent({ children }) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-    // ROLE GUARD: Prevent non-clients (e.g. Pros) from using this layout
+    // ROLE GUARD: Redirect only if we explicitly want to block someone, 
+    // but here we just ensure they have a profile. 
+    // Professionals/Admins can also be clients, so we don't block them.
     useEffect(() => {
-        if (!loading && user && user.role !== 'CLIENT') {
-            router.push('/login');
+        if (!loading && user) {
+            // No strict block here anymore to allow Multi-Role access.
+            // If we needed a specific check, it would be here.
         }
     }, [user, loading, router]);
 

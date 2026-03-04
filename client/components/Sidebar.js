@@ -93,7 +93,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 ${isCollapsed ? 'md:w-16' : 'md:w-64'}
             `}>
                 {/* Header */}
-                <div className={`border-b border-border flex items-center transition-all duration-300 relative ${isCollapsed ? 'justify-center p-4' : 'justify-between p-6'}`}>
+                <div className={`border-b border-border flex items-center transition-all duration-300 relative ${isCollapsed ? 'justify-center p-4' : 'justify-between p-6 mb-2'}`}>
                     <div className="flex items-center gap-3 w-full justify-center md:justify-start">
                         {!isCollapsed ? (
                             <img
@@ -123,6 +123,34 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                         <X className="w-6 h-6" />
                     </button>
                 </div>
+
+                {/* Barbershop Switcher - If Owner/Admin with multiple shops */}
+                {!isCollapsed && user?.ownedBarbershops?.length > 1 && (
+                    <div className="px-6 mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label className="text-[10px] font-black text-primary/70 uppercase tracking-[0.2em] block mb-2.5 ml-0.5">Unidade Ativa</label>
+                        <div className="relative group">
+                            <select
+                                value={barbershop?.id}
+                                onChange={(e) => {
+                                    const shop = user.ownedBarbershops.find(s => s.id === e.target.value);
+                                    if (shop) {
+                                        const newUser = { ...user, barbershopId: shop.id, barbershop: shop };
+                                        localStorage.setItem('user', JSON.stringify(newUser));
+                                        window.location.reload();
+                                    }
+                                }}
+                                className="w-full bg-card/50 backdrop-blur-sm border border-border rounded-xl pl-3 pr-10 py-2.5 text-xs font-bold text-foreground outline-none focus:border-primary transition-all cursor-pointer appearance-none hover:bg-accent/50 shadow-inner"
+                            >
+                                {user.ownedBarbershops.map(shop => (
+                                    <option key={shop.id} value={shop.id}>{shop.name}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-hover:text-primary transition-colors">
+                                <ChevronDown className="w-4 h-4" />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Navigation */}
                 <nav className={`flex-1 overflow-y-auto py-4 px-3 space-y-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 ${isLocked ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
