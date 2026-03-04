@@ -367,13 +367,20 @@ exports.listOrders = async (req, res) => {
     try {
         const { barbershopId } = req.query;
 
+        console.log(`[DEBUG] Listing orders for BarbershopID: ${barbershopId}`);
+
         const orders = await prisma.order.findMany({
             where: {
                 barbershopId: barbershopId
             },
+            take: 100, // Safety limit for Render OOM
             include: {
-                client: true,
-                professional: true,
+                client: {
+                    select: { id: true, name: true, phone: true }
+                },
+                professional: {
+                    select: { id: true, name: true }
+                },
                 items: true
             },
             orderBy: { createdAt: 'desc' }

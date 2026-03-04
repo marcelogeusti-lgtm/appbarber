@@ -490,31 +490,43 @@ exports.createAppointment = async (req, res) => {
 exports.getMyAppointments = async (req, res) => {
     try {
         const userId = req.user.id;
-        const authUserId = req.user.authUserId;
+        const authUserId = req.user.authUserId || (req.user.role !== 'CLIENT' ? req.user.authUserId : null);
 
-        // If we have an authUserId (which we should for logged in users), 
-        // find ALL client profiles linked to this account.
-        // This handles legacy profiles created before registration.
+        console.log(`[DEBUG] getMyAppointments: RequestUserID=${userId}, Role=${req.user.role}, AuthUserID=${authUserId}`);
+
         let clientIds = [userId];
 
-        if (authUserId) {
+        // Ensure we fetch all linked client IDs for the user found via any route
+        if (authUserId || userId) {
             const allProfiles = await prisma.client.findMany({
-                where: { authUserId },
-                select: { id: true }
+                where: {
+                    OR: [
+                        { authUserId: authUserId },
+                        { id: userId },
+                        { authUserId: userId } // Case where user.id is the authUserId
+                    ]
+                },
+                select: { id: true, name: true }
             });
             const linkedIds = allProfiles.map(p => p.id);
-            // Union of both to be absolutely safe
-            clientIds = [...new Set([userId, ...linkedIds])];
+            clientIds = [...new Set([...clientIds, ...linkedIds])];
         }
 
-        console.log(`[DEBUG] Fetching appointments for ClientIDs: ${clientIds.join(', ')} (AuthUser: ${authUserId})`);
+        console.log(`[DEBUG] Resolved ClientIDs for search: ${clientIds.join(', ')}`);
 
         // As Client
         const bookings = await prisma.appointment.findMany({
             where: { clientId: { in: clientIds } },
-            include: { professional: { select: { name: true } }, service: true, barbershop: true },
+            include: {
+                professional: { select: { name: true } },
+                service: true,
+                barbershop: true,
+                review: true
+            },
             orderBy: { date: 'desc' }
         });
+
+        console.log(`[DEBUG] Found ${bookings.length} bookings for IDs: ${clientIds.join(', ')}`);
 
         res.json(bookings);
     } catch (error) {
