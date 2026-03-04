@@ -66,7 +66,7 @@ export default function ProfileSidebar() {
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
-                                <item.icon className={`replace_file_content_placeholder_1w-5 h-5 transition-colors relative z-10 ${isActive ? 'text-primary' : 'text-slate-500 group-hover:text-primary'}`} strokeWidth={isActive ? 2 : 1.5} />
+                                <item.icon className={`w-5 h-5 transition-colors relative z-10 ${isActive ? 'text-primary' : 'text-slate-500 group-hover:text-primary'}`} strokeWidth={isActive ? 2 : 1.5} />
                                 <span className="text-sm font-bold relative z-10">{item.label}</span>
                                 {isActive && <div className="absolute right-4 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />}
                             </Link>

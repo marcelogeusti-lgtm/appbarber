@@ -1,3 +1,10 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Save, User, Mail, Phone, ChevronLeft, Loader2, Camera, Trash2 } from 'lucide-react';
+import api from '../../../../lib/clientApi';
+import { useClientAuth } from '../../../../contexts/ClientAuthContext';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function EditProfilePage() {
