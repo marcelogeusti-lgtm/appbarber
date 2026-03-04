@@ -1,0 +1,5 @@
+--- MARCELO ACCOUNTS ---
+ID: 8a539e51-72f5-44ea-8416-da107fadf8a3 | Email: marcelogeusti@gmail.com | ClientID: 9e464e88-b1d5-4bad-8a4c-793838904ead | UserID: ff550352-540a-4fd4-a1a5-55cb7c61a54f
+
+--- MARCELO CLIENT PROFILES ---
+ID: 9e464e88-b1d5-4bad-8a4c-793838904ead | Name: Marcelo Geusti | authUID: 8a539e51-72f5-44ea-8416-da107fadf8a3 | AuthEmail: marcelogeusti@gmail.com

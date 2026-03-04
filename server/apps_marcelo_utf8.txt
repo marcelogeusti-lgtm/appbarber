@@ -1,0 +1,75 @@
+Marcelo has 74 appointments.
+ID: 4fc2f97b-e01f-4908-9e09-3f9c145914e9 | Date: 2026-03-07T20:30:00.000Z | Status: CANCELLED | Shop: NextApp
+ID: 22a2a3fe-1fad-4fa7-bcee-5497080ed4bf | Date: 2026-03-07T18:00:00.000Z | Status: CANCELLED | Shop: NextApp
+ID: 4baac351-6a28-48be-b9ec-2cbd259acd5e | Date: 2026-03-05T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 8e1cd28f-f072-4094-ba04-b44f97c3bba2 | Date: 2026-03-04T13:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: c44ab716-059a-4c17-916a-f5b98d77ea4b | Date: 2026-03-04T13:00:00.000Z | Status: CONFIRMED | Shop: Corte conexão barbearia escola
+ID: d388a628-668e-49d6-92e4-3200af6c0897 | Date: 2026-03-04T12:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: ea8f633a-0880-4566-bfa2-bc62c89cfbba | Date: 2026-03-04T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 23b3c821-ac1c-4cfc-b2a2-e610038c9833 | Date: 2026-03-04T12:00:00.000Z | Status: CONFIRMED | Shop: Corte conexão barbearia escola
+ID: 6201db26-39a8-49c9-94e9-8d3785c93af7 | Date: 2026-03-04T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 3b6be4f6-fe66-4183-99cd-9df03e2fab89 | Date: 2026-03-03T16:30:00.000Z | Status: CONFIRMED | Shop: Corte conexão barbearia escola
+ID: 5829378a-9b32-4497-ae7c-e6c71eb9d613 | Date: 2026-02-28T12:00:00.000Z | Status: CONFIRMED | Shop: Corte conexão barbearia escola
+ID: 2a6d901d-16fa-49cb-996f-6d4fc267649f | Date: 2026-02-28T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 557bc313-996e-4aa3-a213-8e8931b39d1c | Date: 2026-02-28T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 7c2a473d-9856-48fe-8ea6-b69a17dc3b69 | Date: 2026-02-27T14:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 494bea69-3bc2-4e6a-8f65-7c66b681dbd1 | Date: 2026-02-27T13:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 2867647d-c2a1-45a1-89e1-92585eeb2568 | Date: 2026-02-27T13:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 1ad876f3-4622-42bc-adab-114faa379ff1 | Date: 2026-02-27T13:00:00.000Z | Status: CONFIRMED | Shop: Corte conexão barbearia escola
+ID: 98d647c6-db68-4071-a933-c0d4afab1980 | Date: 2026-02-27T12:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 343eca5d-5a86-402e-8017-0e6a6df20b91 | Date: 2026-02-27T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 48108a48-cf18-4910-ab01-ef8066bbc9ae | Date: 2026-02-27T12:00:00.000Z | Status: CONFIRMED | Shop: Corte conexão barbearia escola
+ID: fa42e95a-f7e9-4699-9762-7aa90d1838f7 | Date: 2026-02-26T14:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: bf9c3333-810d-427a-96f0-ed632d39e35f | Date: 2026-02-26T14:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: ef7c943e-0c64-4744-83d9-7901d9555d2f | Date: 2026-02-26T13:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 0a8bf370-8775-45f4-a156-2eec31a79031 | Date: 2026-02-26T13:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 826d20d9-ad64-4b1b-afe7-a50542f3f9e3 | Date: 2026-02-26T13:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 15447200-ac9d-4add-9400-d5e6e34d767e | Date: 2026-02-26T13:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: f082c020-5797-4ac7-ac79-a287493cbaf5 | Date: 2026-02-26T13:00:00.000Z | Status: CANCELLED | Shop: NextApp
+ID: b4b4423c-c515-424b-9706-1ddd4bfba93c | Date: 2026-02-26T12:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 650b0c72-6a48-4b02-82ac-da4bcf70ae43 | Date: 2026-02-26T12:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: ee5e0be4-a4ec-4093-a483-2af3d0b600c1 | Date: 2026-02-26T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: bf7fa7f0-3266-4992-8307-73c6a7ade6fa | Date: 2026-02-26T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: fd0ca0d9-4488-42c2-9cec-5afc6e491159 | Date: 2026-02-25T12:00:00.000Z | Status: CANCELLED | Shop: NextApp
+ID: 8af11498-068b-4db4-b170-118d3a71117c | Date: 2026-02-20T13:30:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 5cb30ede-44d4-4ad6-a73c-01c3dd7cbb65 | Date: 2026-02-20T13:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: ac92b9d8-2123-4fe4-9b87-d2232133fcc3 | Date: 2026-02-20T12:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 6cf44369-5b7f-4753-a7d6-a79d83d79c6f | Date: 2026-02-19T13:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 175755c6-f635-454b-b8c9-66ff4fa906f3 | Date: 2026-02-19T12:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 12633a9c-a92e-406c-8fed-aa44bb2e53c4 | Date: 2026-02-19T12:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 6c660dae-b6f2-4cd0-8850-75d8afe726b0 | Date: 2026-02-19T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 84af3a19-a7ff-42e4-b7dd-4702b030a886 | Date: 2026-02-14T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 4b0195ca-1fa4-4ad0-b549-a6a7de89944c | Date: 2026-02-14T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 1e02faa4-36f3-4ff9-a790-102472be5395 | Date: 2026-02-13T17:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: ff2c24f1-83fc-4283-9a5d-2bf30da7927d | Date: 2026-02-13T16:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 51ca98e2-69f1-4613-a6fa-5c215b4d0731 | Date: 2026-02-13T14:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 776666cd-466d-4ce9-aa0d-c0a87c99dca4 | Date: 2026-02-13T13:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: c8c7df57-06ca-4d31-b75f-b9705246b429 | Date: 2026-02-13T13:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 3ba49f6c-b593-41b8-95c9-c4039efebd06 | Date: 2026-02-13T12:30:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 742a7600-11bd-4083-8705-bd4a79bb4c02 | Date: 2026-02-13T12:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 5e4787c8-30e5-42cb-a4c0-9e3cf6252d59 | Date: 2026-02-12T16:30:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: c5a51e0a-c99c-4b08-8993-44e1b5bb36fb | Date: 2026-02-12T13:30:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: be2a9a34-5ea7-4da5-b36a-2dc5e780eeb8 | Date: 2026-02-12T12:30:00.000Z | Status: CANCELLED | Shop: NextApp
+ID: 40271a29-8778-4fe9-99a4-8bd87facc132 | Date: 2026-02-12T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 9cd674a0-baa7-4b8b-85c8-de02c2cd1c1f | Date: 2026-02-12T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 3099ec57-8c49-4673-9bc0-a2a4216f3e59 | Date: 2026-02-12T12:00:00.000Z | Status: COMPLETED | Shop: NextApp
+ID: 524c2fb4-8db8-4af4-8111-a69c8b0b6347 | Date: 2026-02-11T17:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 361bceb6-b245-41e5-b2da-63b868626e2c | Date: 2026-02-11T13:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 9f9b4ecc-6cd7-4167-8841-e4c419444332 | Date: 2026-02-11T13:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 8e0bd896-992b-4e67-abc4-450a0772e1e1 | Date: 2026-02-11T12:30:00.000Z | Status: CANCELLED | Shop: NextApp
+ID: b7875d07-e28f-4683-b8f0-60d35371f46c | Date: 2026-02-10T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 8ebd58b4-4ad0-4853-9130-59aa2c04ec78 | Date: 2026-02-05T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 638c54c4-19c1-44eb-903e-f767b995dc51 | Date: 2026-01-29T19:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 467ab1ec-f6c5-413d-801e-40e23cd3e6ee | Date: 2026-01-29T19:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 5cb896a1-fc6c-4e98-b252-791846695663 | Date: 2026-01-29T18:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: d84648ff-8445-44a8-9c15-f20f68751e3a | Date: 2026-01-29T18:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 1445a8d1-c2a4-4e77-a792-1b5de86c1a30 | Date: 2026-01-29T17:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 78118583-70cf-4f58-aa8e-0f3c39808cb9 | Date: 2026-01-29T16:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 5e7165c4-a2d2-44f3-9f62-8da81d134ca7 | Date: 2026-01-29T16:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 1c319334-2c9e-49c9-b3b5-fbb89eae9228 | Date: 2026-01-29T14:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: b5dc665e-f6c1-4b13-95fe-143a93474d9d | Date: 2026-01-29T14:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 20ceac4c-b438-4f37-9af8-c3009a76af64 | Date: 2026-01-29T13:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 29196bdc-cbbf-4c5a-9f27-c3347fe52937 | Date: 2026-01-29T13:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: c8f51399-13c9-4813-9605-fe9cf835634a | Date: 2026-01-29T12:30:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: fc63d62e-8c19-4b90-bd0d-edab15ba7083 | Date: 2026-01-29T12:00:00.000Z | Status: CONFIRMED | Shop: NextApp
+ID: 785c6cc5-2d7a-416f-90c7-7abb0a6ffcba | Date: 2026-01-28T12:00:00.000Z | Status: COMPLETED | Shop: NextApp

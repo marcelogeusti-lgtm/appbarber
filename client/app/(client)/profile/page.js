@@ -287,6 +287,13 @@ export default function ProfileMenuPage() {
         );
     }
 
+    // If logged in, potentially redirect or show mobile menu
+    useEffect(() => {
+        if (user && window.innerWidth >= 1024) {
+            router.replace('/profile/edit');
+        }
+    }, [user, router]);
+
     const menuSections = [
         {
             items: [
