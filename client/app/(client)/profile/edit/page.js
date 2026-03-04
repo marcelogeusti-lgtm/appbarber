@@ -1,10 +1,4 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Save, User, Mail, Phone, ChevronLeft, Loader2, Camera, Trash2 } from 'lucide-react';
-import api from '../../../../lib/clientApi';
-import { useClientAuth } from '../../../../contexts/ClientAuthContext';
-import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function EditProfilePage() {
     const router = useRouter();
@@ -95,156 +89,183 @@ export default function EditProfilePage() {
         </div>
     );
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                staggerChildren: 0.1,
+                duration: 0.5
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, x: -10 },
+        visible: { opacity: 1, x: 0 }
+    };
+
     return (
-        <div className="animate-in fade-in duration-500">
-            {/* Mobile Header (Hidden on Desktop because of Sidebar) */}
-            <div className="flex items-center gap-4 mb-10 lg:hidden">
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="flex flex-col gap-10"
+        >
+            {/* Mobile Header */}
+            <div className="flex items-center gap-4 lg:hidden">
                 <button onClick={() => router.back()} className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition">
                     <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <h1 className="text-xl font-black text-white">Meus Dados</h1>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-12">
+            <div className="flex flex-col lg:flex-row gap-16">
                 {/* Left side: Avatar */}
-                <div className="flex flex-col items-center">
-                    <div className="relative group cursor-pointer w-32 h-32 lg:w-40 lg:h-40">
+                <motion.div variants={itemVariants} className="flex flex-col items-center">
+                    <div className="relative group cursor-pointer w-32 h-32 lg:w-48 lg:h-48">
                         <input
                             type="file"
                             accept="image/*"
                             className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer"
                             onChange={handleAvatarChange}
                         />
-                        <div className="w-full h-full rounded-full border-4 border-slate-900 overflow-hidden bg-slate-900 shadow-2xl transition-transform group-hover:scale-105">
+                        <div className="w-full h-full rounded-full border-4 border-white/5 overflow-hidden bg-[#0A0A0B] shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-[1.02] relative">
                             {formData.avatarUrl ? (
                                 <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
-                                    <User className="w-16 h-16" />
+                                <div className="w-full h-full flex items-center justify-center bg-slate-900 text-slate-700">
+                                    <User className="w-20 h-20" />
                                 </div>
                             )}
+                            <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors" />
                         </div>
-                        <div className="absolute bottom-2 right-2 p-2.5 bg-primary rounded-full border-4 border-[#050505] shadow-lg group-hover:scale-110 transition-transform">
-                            <Camera className="w-5 h-5 text-white" />
+                        <div className="absolute bottom-2 right-2 p-3 bg-primary rounded-full border-4 border-[#050505] shadow-2xl group-hover:scale-110 transition-transform z-20">
+                            <Camera className="w-6 h-6 text-white" />
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Right side: Form */}
                 <div className="flex-1">
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="grid gap-6">
+                    <form onSubmit={handleSubmit} className="space-y-10">
+                        <div className="grid gap-8">
                             {/* Nome Completo */}
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                                    Nome completo <span className="text-red-500">*</span>
+                            <motion.div variants={itemVariants} className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                                    Nome completo <span className="text-primary">*</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    placeholder="Seu nome"
-                                    className="w-full bg-[#111111] border border-white/5 rounded-2xl py-4 px-5 text-sm text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition outline-none"
-                                    required
-                                />
-                            </div>
-
-                            {/* Data de Nascimento */}
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                                    Data de nascimento
-                                </label>
-                                <input
-                                    type="date"
-                                    name="birthDate"
-                                    value={formData.birthDate}
-                                    onChange={handleChange}
-                                    className="w-full bg-[#111111] border border-white/5 rounded-2xl py-4 px-5 text-sm text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition outline-none [color-scheme:dark]"
-                                />
-                            </div>
-
-                            {/* Celular com Flag */}
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                                    Celular <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative flex items-center">
-                                    <div className="absolute left-4 flex items-center gap-2 pr-3 border-r border-white/10 select-none">
-                                        <img src="https://flagcdn.com/w20/br.png" alt="BR" className="w-5 h-auto rounded-sm" />
-                                        <span className="text-xs font-bold text-slate-400">+55</span>
-                                    </div>
+                                <div className="relative group">
                                     <input
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
                                         onChange={handleChange}
-                                        placeholder="(00) 00000-0000"
-                                        className="w-full bg-[#111111] border border-white/5 rounded-2xl py-4 pl-24 pr-5 text-sm text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition outline-none"
+                                        placeholder="Seu nome"
+                                        className="w-full bg-[#0A0A0B]/50 backdrop-blur-md border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all outline-none group-hover:border-white/10"
                                         required
                                     />
+                                    <div className="absolute bottom-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-primary/0 to-transparent group-focus-within:via-primary/50 transition-all" />
                                 </div>
+                            </motion.div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Data de Nascimento */}
+                                <motion.div variants={itemVariants} className="space-y-3">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                                        Data de nascimento
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="birthDate"
+                                        value={formData.birthDate}
+                                        onChange={handleChange}
+                                        className="w-full bg-[#0A0A0B]/50 backdrop-blur-md border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:border-primary/50 transition-all outline-none [color-scheme:dark]"
+                                    />
+                                </motion.div>
+
+                                {/* Celular */}
+                                <motion.div variants={itemVariants} className="space-y-3">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                                        Celular <span className="text-primary">*</span>
+                                    </label>
+                                    <div className="relative flex items-center group">
+                                        <div className="absolute left-6 flex items-center gap-2 pr-4 border-r border-white/5 select-none">
+                                            <img src="https://flagcdn.com/w20/br.png" alt="BR" className="w-5 h-auto rounded-[2px]" />
+                                            <span className="text-xs font-black text-slate-400">+55</span>
+                                        </div>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            placeholder="(00) 00000-0000"
+                                            className="w-full bg-[#0A0A0B]/50 backdrop-blur-md border border-white/5 rounded-2xl py-5 pl-28 pr-6 text-sm text-white focus:border-primary/50 transition-all outline-none group-hover:border-white/10"
+                                            required
+                                        />
+                                    </div>
+                                </motion.div>
                             </div>
 
                             {/* Gênero */}
-                            <div className="space-y-3">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                            <motion.div variants={itemVariants} className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
                                     Gênero
                                 </label>
-                                <div className="flex flex-col gap-3 ml-1">
+                                <div className="flex flex-wrap gap-4">
                                     {[
                                         { id: 'Masculino', label: 'Masculino' },
                                         { id: 'Feminino', label: 'Feminino' },
                                         { id: 'Outros', label: 'Outros' }
                                     ].map((option) => (
-                                        <label key={option.id} className="flex items-center gap-3 cursor-pointer group">
-                                            <div className="relative flex items-center justify-center">
-                                                <input
-                                                    type="radio"
-                                                    name="gender"
-                                                    value={option.id}
-                                                    checked={formData.gender === option.id}
-                                                    onChange={handleChange}
-                                                    className="peer appearance-none w-5 h-5 rounded-full border-2 border-slate-800 checked:border-primary transition-all cursor-pointer"
-                                                />
-                                                <div className="absolute w-2.5 h-2.5 bg-primary rounded-full scale-0 peer-checked:scale-100 transition-transform duration-200" />
+                                        <label key={option.id} className="cursor-pointer group flex-1 min-w-[120px]">
+                                            <input
+                                                type="radio"
+                                                name="gender"
+                                                value={option.id}
+                                                checked={formData.gender === option.id}
+                                                onChange={handleChange}
+                                                className="hidden peer"
+                                            />
+                                            <div className="w-full bg-[#0A0A0B]/50 border border-white/5 rounded-2xl py-4 px-2 text-center transition-all peer-checked:bg-primary/10 peer-checked:border-primary/50 group-hover:border-white/10">
+                                                <span className={`text-[11px] font-black uppercase tracking-widest transition-colors ${formData.gender === option.id ? 'text-primary' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                                                    {option.label}
+                                                </span>
                                             </div>
-                                            <span className={`text-sm font-medium transition-colors ${formData.gender === option.id ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`}>
-                                                {option.label}
-                                            </span>
                                         </label>
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
                         </div>
 
-                        <div className="pt-6 space-y-6">
+                        <motion.div variants={itemVariants} className="pt-4 space-y-8">
                             <button
                                 type="submit"
                                 disabled={saving || uploading}
-                                className="w-full bg-primary hover:bg-primary/90 text-white font-black py-4 rounded-2xl text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95 flex items-center justify-center gap-3"
+                                className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.3em] transition-all shadow-[0_10px_30px_rgba(var(--primary-rgb),0.3)] disabled:opacity-50 active:scale-[0.98] flex items-center justify-center gap-3 relative overflow-hidden group/btn"
                             >
-                                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Salvar'}
+                                <div className="absolute inset-0 bg-white/10 translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-300" />
+                                <span className="relative z-10">{saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Salvar Alterações'}</span>
                             </button>
 
                             <div className="flex justify-center">
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        if (confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.')) {
-                                            // Handle account deletion logic if available
+                                        if (confirm('Tem certeza que deseja excluir sua conta?')) {
                                             toast.error('Funcionalidade em desenvolvimento.');
                                         }
                                     }}
-                                    className="text-red-500/60 hover:text-red-500 text-[10px] font-black uppercase tracking-[0.1em] transition-colors underline underline-offset-4"
+                                    className="text-slate-600 hover:text-red-500/80 text-[9px] font-black uppercase tracking-[0.2em] transition-all hover:tracking-[0.3em]"
                                 >
-                                    Excluir conta
+                                    Desativar minha conta
                                 </button>
                             </div>
-                        </div>
+                        </motion.div>
                     </form>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
