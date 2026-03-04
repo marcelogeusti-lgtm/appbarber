@@ -44,15 +44,25 @@ function ClientLayoutContent({ children }) {
 
                     {/* Center: Desktop Nav */}
                     <nav className="hidden md:flex items-center gap-8">
-                        {tabs.map((tab) => (
-                            <Link
-                                key={tab.href}
-                                href={tab.href}
-                                className={`text-sm font-bold uppercase tracking-widest transition-colors ${pathname === tab.href ? 'text-primary' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                {tab.name}
-                            </Link>
-                        ))}
+                        {tabs.map((tab) => {
+                            const isActive = pathname === tab.href;
+                            const handleClick = (e) => {
+                                if (!user && tab.name === 'Agendamentos') {
+                                    e.preventDefault();
+                                    openLoginModal();
+                                }
+                            };
+                            return (
+                                <Link
+                                    key={tab.href}
+                                    href={tab.href}
+                                    onClick={handleClick}
+                                    className={`text-sm font-bold uppercase tracking-widest transition-colors ${isActive ? 'text-primary' : 'text-slate-400 hover:text-white'}`}
+                                >
+                                    {tab.name}
+                                </Link>
+                            );
+                        })}
                     </nav>
 
                     <div className="flex items-center gap-4">
@@ -115,10 +125,17 @@ function ClientLayoutContent({ children }) {
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = pathname === tab.href;
+                            const handleClick = (e) => {
+                                if (!user && tab.name === 'Agendamentos') {
+                                    e.preventDefault();
+                                    openLoginModal();
+                                }
+                            };
                             return (
                                 <Link
                                     key={tab.href}
                                     href={tab.href}
+                                    onClick={handleClick}
                                     className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
                                     <Icon className={`w-6 h-6 mb-1 ${isActive ? 'fill-current' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
@@ -135,7 +152,7 @@ function ClientLayoutContent({ children }) {
                         >
                             <User className="w-6 h-6 mb-1" strokeWidth={2} />
                             <span className="text-[9px] font-black uppercase tracking-widest opacity-70">
-                                {user ? 'Conta' : 'Perfil'}
+                                {user ? 'Conta' : 'Entrar'}
                             </span>
                         </button>
                     </div>
