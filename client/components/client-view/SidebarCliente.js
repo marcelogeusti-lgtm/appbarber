@@ -14,7 +14,7 @@ export default function SidebarCliente({ isOpen, onClose }) {
 
     const menuItems = [
         { icon: Home, label: 'Início', href: '/home' },
-        { icon: Calendar, label: 'Meus Agendamentos', href: '/appointments' },
+        { icon: Calendar, label: 'Meus Agendamentos', href: '/agendamentos' },
         { icon: Heart, label: 'Favoritos', href: '/favorites' },
         { icon: CreditCard, label: 'Meus Cartões', href: '/cards' },
         { icon: UserPlus, label: 'Assinaturas', href: '/subscriptions' },

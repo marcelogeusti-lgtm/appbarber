@@ -231,7 +231,7 @@ function AppointmentCard({ app, onCancel, showCancel }) {
             <div className="space-y-4 mb-8 bg-[#0A0A0A] p-6 rounded-[2rem] border border-white/5">
                 <div className="flex items-center gap-4">
                     <div className="p-2 bg-white/5 rounded-xl">
-                        <User className="w-4 h-4 text-primary" />
+                        <UserIcon className="w-4 h-4 text-primary" />
                     </div>
                     <div>
                         <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Profissional</p>
