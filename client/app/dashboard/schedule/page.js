@@ -151,9 +151,8 @@ export default function SchedulePage() {
     };
 
     const getFilteredAppointments = (date) => {
-        const dStr = format(date, 'yyyy-MM-dd');
         return appointments.filter(a => {
-            const sameDay = a.date.startsWith(dStr);
+            const sameDay = isSameDay(new Date(a.date), date);
             const samePro = selectedPro === 'all' || a.professionalId === selectedPro;
             return sameDay && samePro;
         });

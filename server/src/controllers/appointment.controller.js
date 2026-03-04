@@ -9,7 +9,7 @@ const saasPlans = require('../config/saasPlans');
 const notificationController = require('../controllers/notification.controller');
 const whatsappNotifier = require('../services/notificationService/whatsappNotifier');
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
-const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
+const { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } = require('date-fns-tz');
 const FeatureFlagService = require('../services/FeatureFlagService');
 const TIMEZONE = 'America/Sao_Paulo';
 
@@ -435,7 +435,7 @@ exports.createAppointment = async (req, res) => {
             await notificationController.createNotification({
                 userId: professionalId,
                 title: 'Novo Agendamento',
-                message: `Novo agendamento com ${currentUser?.name || guestName} para ${format(appointmentDateTime, 'dd/MM HH:mm')}`,
+                message: `Novo agendamento com ${currentUser?.name || guestName} para ${formatInTimeZone(appointmentDateTime, TIMEZONE, 'dd/MM HH:mm')}`,
                 type: 'appointment',
                 appointmentId: appointment.id
             });
@@ -448,7 +448,7 @@ exports.createAppointment = async (req, res) => {
                     await notificationController.createNotification({
                         clientId: clientId,
                         title: 'Agendamento Confirmado',
-                        message: `Seu horário para ${service.name} está confirmado para ${format(appointmentDateTime, 'dd/MM HH:mm')}.`,
+                        message: `Seu horário para ${service.name} está confirmado para ${formatInTimeZone(appointmentDateTime, TIMEZONE, 'dd/MM HH:mm')}.`,
                         type: 'appointment',
                         appointmentId: appointment.id
                     });
@@ -640,15 +640,16 @@ exports.updateAppointmentStatus = async (req, res) => {
                 let title = '';
                 let message = '';
 
+                const appTime = formatInTimeZone(new Date(appointment.date), TIMEZONE, 'HH:mm');
                 if (status === 'CONFIRMED') {
                     title = 'Agendamento Confirmado';
-                    message = `Seu horário para ${appointment.service?.name} foi confirmado.`;
+                    message = `Seu horário para ${appointment.service?.name} às ${appTime} foi confirmado.`;
                 } else if (status === 'CANCELLED' && req.user.role !== 'CLIENT') {
                     title = 'Agendamento Cancelado';
-                    message = `Infelizmente seu agendamento para ${appointment.service?.name} teve que ser cancelado pelo estabelecimento.`;
+                    message = `Infelizmente seu agendamento para ${appointment.service?.name} às ${appTime} teve que ser cancelado pelo estabelecimento.`;
                 } else if (status === 'COMPLETED') {
                     title = 'Serviço Concluído';
-                    message = `Obrigado pela preferência! Avalie seu atendimento.`;
+                    message = `Obrigado pela preferência! O serviço de ${appointment.service?.name} foi concluído.`;
                 }
 
                 if (title) {
