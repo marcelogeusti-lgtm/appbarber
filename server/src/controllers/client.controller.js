@@ -229,17 +229,22 @@ exports.getClientDetails = async (req, res) => {
 exports.updateClientProfile = async (req, res) => {
     try {
         const clientId = req.user.id; // From Client Token
-        const { name, phone, birthDate, gender, avatarUrl } = req.body;
+        let { name, phone, birthDate, gender, avatarUrl } = req.body;
 
         // Validations
         if (!clientId) return res.status(401).json({ message: 'Unauthorized' });
+
+        // sanitize phone: remove non-numeric
+        if (phone) {
+            phone = phone.replace(/\D/g, '');
+        }
 
         // Parse birthDate if string
         let formattedBirthDate = null;
         if (birthDate) {
             formattedBirthDate = new Date(birthDate);
             if (isNaN(formattedBirthDate.getTime())) {
-                formattedBirthDate = null; // or throw error
+                formattedBirthDate = null;
             }
         }
 

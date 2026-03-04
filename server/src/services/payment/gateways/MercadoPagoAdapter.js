@@ -12,19 +12,29 @@ class MercadoPagoAdapter extends GatewayAdapter {
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
         try {
+            // Payer Info
+            const identification = customer.document || customer.identification?.number || payer?.identification?.number;
+            const identificationType = customer.identification?.type || payer?.identification?.type || 'CPF';
+
             // Payload for /v1/payments API (Standard & Better for Pix/Cards)
             const payload = {
                 transaction_amount: parseFloat(amount),
                 description: description || 'Serviço Barbearia',
-                external_reference: externalId,
+                external_reference: externalId?.toString(),
                 notification_url: `${process.env.BACKEND_URL}/api/webhooks/mercadopago`,
                 payer: {
-                    email: customer.email || 'guest@example.com',
-                    first_name: customer.name?.split(' ')[0] || 'Cliente',
-                    last_name: customer.name?.split(' ').slice(1).join(' ') || 'Visitante',
-                    identification: identification || payer?.identification
+                    email: customer.email || payer?.email || 'guest@example.com',
+                    first_name: customer.name?.split(' ')[0] || payer?.first_name || 'Cliente',
+                    last_name: customer.name?.split(' ').slice(1).join(' ') || payer?.last_name || 'Visitante',
                 }
             };
+
+            if (identification) {
+                payload.payer.identification = {
+                    type: identificationType,
+                    number: identification.replace(/\D/g, '')
+                };
+            }
 
             if (method === 'PIX') {
                 payload.payment_method_id = 'pix';
@@ -128,19 +138,27 @@ class MercadoPagoAdapter extends GatewayAdapter {
             const payload = {
                 reason: plan.name,
                 auto_recurring: {
-                    frequency: plan.validityDays >= 365 ? 1 : plan.validityDays >= 30 ? 1 : plan.validityDays,
-                    frequency_type: plan.validityDays >= 365 ? 'months' : plan.validityDays >= 30 ? 'months' : 'days', // Ajuste básico, ideal é configurar isso no plano
+                    frequency: 1,
+                    frequency_type: 'months',
                     transaction_amount: parseFloat(plan.price),
                     currency_id: 'BRL'
                 },
-                back_url: 'https://seusite.com/sucesso', // Placeholder
-                external_reference: plan.id
+                back_url: process.env.FRONTEND_URL || 'https://seusite.com/sucesso',
+                external_reference: plan.id.toString()
             };
 
-            // Ajuste fino para mensal (30 dias) -> 1 month
-            if (plan.validityDays === 30) {
+            // Enhanced frequency mapping based on validityDays
+            if (plan.validityDays >= 365) {
                 payload.auto_recurring.frequency = 1;
                 payload.auto_recurring.frequency_type = 'months';
+                payload.auto_recurring.repetitions = 12; // Example for annual
+            } else if (plan.validityDays === 30) {
+                payload.auto_recurring.frequency = 1;
+                payload.auto_recurring.frequency_type = 'months';
+            } else if (plan.validityDays > 0) {
+                // For flexible days, use days
+                payload.auto_recurring.frequency = plan.validityDays;
+                payload.auto_recurring.frequency_type = 'days';
             }
 
             const response = await axios.post(`${this.apiUrl}/preapproval_plan`, payload, {

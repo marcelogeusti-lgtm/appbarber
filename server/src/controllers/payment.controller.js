@@ -160,7 +160,11 @@ exports.createPixPayment = async (req, res) => {
                 name: payerUser?.name || appointment.client.name || 'Cliente',
                 email: payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com',
                 phone: payerUser?.phone || appointment.client.phone || '00000000000',
-                document: cpf.replace(/\D/g, '')
+                document: cpf.replace(/\D/g, ''),
+                identification: {
+                    type: 'CPF',
+                    number: cpf.replace(/\D/g, '')
+                }
             };
 
             // 5. Call Gateway
@@ -284,8 +288,15 @@ exports.createCardPayment = async (req, res) => {
             }
         });
 
-        const customerName = payerUser?.name || appointment.client.name || 'Cliente';
-        const customerEmail = payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com';
+        const customerData = {
+            name: customerName,
+            email: customerEmail,
+            phone: payerUser?.phone || appointment.client.phone,
+            identification: {
+                type: 'CPF',
+                number: (payerUser?.cpf || payerUser?.document || '').replace(/\D/g, '')
+            }
+        };
 
         try {
             // 2. Call Payment Orchestrator (Mercado Pago / Stripe)
@@ -294,18 +305,17 @@ exports.createCardPayment = async (req, res) => {
                 method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
                 description: `Agendamento #${appointment.id.slice(0, 8)}`,
                 barbershopId: appointment.barbershopId,
-                customer: {
-                    name: customerName,
-                    email: customerEmail,
-                    phone: payerUser?.phone || appointment.client.phone
-                },
+                customer: customerData,
                 externalId: pendingPayment.id,
                 // Card Details
                 token,
                 installments: installments || 1,
                 issuerId,
                 paymentMethodId,
-                payer: payer || { email: customerEmail }
+                payer: payer || {
+                    email: customerEmail,
+                    identification: customerData.identification
+                }
             });
 
             // 3. Update Payment Record

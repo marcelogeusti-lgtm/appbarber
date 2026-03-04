@@ -113,6 +113,7 @@ model Client {
   favorites      FavoriteBarbershop[]
   
   points         Int      @default(0)
+  addresses      ClientAddress[]
 }
 
 model GatewayCustomer {
@@ -1057,4 +1058,25 @@ model NotificationTemplate {
   updatedAt    DateTime @updatedAt
 
   @@unique([barbershopId, type])
+}
+
+model ClientAddress {
+  id           String   @id @default(uuid())
+  clientId     String
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  zipCode      String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  country      String   @default("Brasil")
+  
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([clientId])
 }

@@ -51,6 +51,7 @@ app.use('/api/commissions', require('./routes/commission.routes'));
 app.use('/api/orders', orderRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/stock', stockRoutes);
+app.use('/api/addresses', require('./routes/address.routes'));
 app.use('/api/clients', require('./routes/client.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 

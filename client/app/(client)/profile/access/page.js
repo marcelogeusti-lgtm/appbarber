@@ -11,14 +11,14 @@ export default function AccessPage() {
             icon: Mail,
             label: 'E-mail e Senha',
             value: user?.email || 'Não vinculado',
-            connected: !!user?.email,
+            connected: !!user?.email, // In a more complex setup, check provider field
             desc: 'Método padrão de acesso à sua conta.'
         },
         {
             icon: Globe,
             label: 'Google',
-            value: 'Vinculado',
-            connected: true, // Assuming Google if avatar is from them or provider logic
+            value: user?.avatarUrl?.includes('googleusercontent') ? 'Conectado' : 'Não vinculado',
+            connected: !!user?.avatarUrl?.includes('googleusercontent'),
             desc: 'Acesse rapidamente usando sua conta Google.'
         },
     ];

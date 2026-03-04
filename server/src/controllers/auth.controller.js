@@ -454,6 +454,38 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const authUserId = req.user.authUserId;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Senha atual e nova senha são obrigatórias.' });
+        }
+
+        const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+        if (!authUser || !authUser.password) {
+            return res.status(400).json({ message: 'Usuário não encontrado ou usa login social.' });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, authUser.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Senha atual incorreta.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.authUser.update({
+            where: { id: authUserId },
+            data: { password: hashedPassword }
+        });
+
+        res.json({ message: 'Senha alterada com sucesso!' });
+    } catch (error) {
+        console.error('Change Password Error:', error);
+        res.status(500).json({ message: 'Erro ao alterar senha.' });
+    }
+};
+
 exports.getMe = async (req, res) => {
     try {
         // ... (Existing getMe logic to be updated if needed)
