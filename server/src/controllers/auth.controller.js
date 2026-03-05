@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { generateUniqueSlug } = require('../utils/slugGenerator');
 const emailProvider = require('../services/communication/providers/EmailProvider');
 const whatsappService = require('../services/communication/WhatsAppService');
+const eventBus = require('../services/events/eventBus');
 
 // Helper para gerar código de 6 dígitos
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -495,29 +496,13 @@ exports.forgotPassword = async (req, res) => {
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
         const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-        // Send Email
-        const emailSent = await emailProvider.sendEmail(
-            email,
-            'Recuperação de Senha - NEXT',
-            `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; rounded: 10px;">
-                <h2 style="color: #00e676;">Recuperação de Senha</h2>
-                <p>Olá,</p>
-                <p>Recebemos uma solicitação para redefinir a senha da sua conta no NEXT.</p>
-                <p>Para prosseguir, clique no botão abaixo:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetLink}" style="background-color: #00e676; color: black; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Redefinir Minha Senha</a>
-                </div>
-                <p>Se você não solicitou isso, por favor ignore este e-mail. O link expira em 1 hora.</p>
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-                <p style="font-size: 12px; color: #888;">Equipe NEXT</p>
-            </div>
-            `
-        );
-
-        if (!emailSent) {
-            console.log(`[AUTH] Simulated Reset Link for ${email}: ${resetLink}`);
-        }
+        // Send Email using EVENT BUS instead of direct HTML injection
+        eventBus.emit('PASSWORD_RESET_REQUEST', {
+            email: email,
+            resetLink: resetLink,
+            resetCode: resetToken.substring(resetToken.length - 6).toUpperCase(), // Fake numeric
+            userId: authUser.id
+        });
 
         res.status(200).json({ message: 'Email de recuperação enviado.' });
 

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento Cancelado</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f4f5;
+            margin: 0;
+            padding: 0;
+            color: #18181b;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #ef4444;
+            padding: 32px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 40px 32px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #3f3f46;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .detail-label {
+            font-size: 13px;
+            color: #ef4444;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #7f1d1d;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+        }
+
+        .footer {
+            background-color: #f4f4f5;
+            padding: 24px;
+            text-align: center;
+            border-top: 1px solid #e4e4e7;
+        }
+
+        .footer p {
+            margin: 0;
+            font-size: 14px;
+            color: #71717a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❌ Agendamento Cancelado</h1>
+        </div>
+        <div class="content">
+            <p class="greeting">Olá <strong>{{cliente}}</strong>,</p>
+            <p style="color: #52525b; margin-bottom: 24px; line-height: 1.6;">O seu agendamento na
+                <strong>{{barbershop}}</strong> foi cancelado com sucesso.</p>
+
+            <div class="card">
+                <span class="detail-label">Serviço Cancelado</span>
+                <p class="detail-value">{{service}} com {{barber}}</p>
+
+                <span class="detail-label">Data e Hora Original</span>
+                <p class="detail-value" style="margin-bottom: 0;">{{date}} às {{time}}</p>
+            </div>
+
+            <p style="color: #71717a; font-size: 14px; text-align: center;">
+                Esperamos ver você de volta em breve. Acesse o aplicativo para agendar um novo horário.
+            </p>
+        </div>
+        <div class="footer">
+            <p>Este é um e-mail automático enviado pelo sistema AppBarber. Por favor, não responda.</p>
+        </div>
+    </div>
+</body>
+
+</html>

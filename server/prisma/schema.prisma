@@ -253,11 +253,23 @@ model Notification {
   message String
   type    String // appointment, payment, order, system
   isRead  Boolean @default(false)
+  status  String  @default("PENDING") // PENDING, SENT, FAILED
 
   appointmentId String?
   orderId       String?
 
   createdAt DateTime @default(now())
+}
+
+model EmailLog {
+  id           String   @id @default(uuid())
+  userId       String?  // Could be Client ID or User ID (Pro)
+  email        String
+  subject      String
+  provider     String   @default("DEFAULT")
+  status       String   @default("PENDING") // PENDING, SENT, FAILED
+  errorMessage String?  @db.Text
+  createdAt    DateTime @default(now())
 }
 
 model Barbershop {

@@ -2,6 +2,8 @@ const eventBus = require('../events/eventBus');
 const whatsappService = require('../communication/WhatsAppService');
 const internalNotifier = require('./internalNotifier');
 const pushService = require('./PushNotificationService');
+const emailService = require('./EmailService');
+const prisma = require('../../lib/prisma');
 
 console.log('[NotificationService] Initializing listeners...');
 
@@ -9,15 +11,25 @@ console.log('[NotificationService] Initializing listeners...');
 eventBus.on('APPOINTMENT_CREATED', async (payload) => {
     console.log(`[NotificationService] Event Received: APPOINTMENT_CREATED for ID ${payload.id}`);
 
+    // Create central Notification Record
+    try {
+        await prisma.notification.create({
+            data: {
+                clientId: payload.client.id,
+                userId: payload.professionalId, // Professional linked
+                title: 'Agendamento Confirmado',
+                message: `${payload.service.name} em ${new Date(payload.date).toLocaleDateString('pt-BR')} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+                type: 'appointment_created',
+                appointmentId: payload.id
+            }
+        });
+    } catch (e) { console.error('Error saving notification', e) }
+
     // 1. Internal Notification (Critical - should always fire)
     try {
         await internalNotifier.createAppointmentNotification(payload);
 
         // --- Push Notification (FCM) ---
-        // We notify the professional about the new appointment
-        // We need to find the AuthUser ID linked to the professional User
-        const prisma = require('../../lib/prisma');
-
         const professionalUser = await prisma.user.findUnique({
             where: { id: payload.professionalId },
             select: { authUserId: true }
@@ -46,11 +58,53 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
     } catch (err) {
         console.error('[NotificationService] WhatsApp Notification Failed:', err);
     }
+
+    // 3. Email Notification (Async)
+    try {
+        // Obter email do client linked by authUser
+        const clientWithEmail = await prisma.client.findUnique({
+            where: { id: payload.client.id },
+            include: { authUser: true }
+        });
+
+        if (clientWithEmail?.authUser?.email) {
+            const dateObj = new Date(payload.date);
+            emailService.sendTemplateEmail({
+                to: clientWithEmail.authUser.email,
+                subject: 'Seu agendamento foi confirmado',
+                template: 'appointment-confirmation',
+                userId: clientWithEmail.id,
+                data: {
+                    cliente: payload.client.name,
+                    barbershop: payload.barbershop.name,
+                    service: payload.service.name,
+                    barber: payload.professional?.name || 'Profissional',
+                    date: dateObj.toLocaleDateString('pt-BR'),
+                    time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    address: payload.barbershop?.address || 'Endereço não informado'
+                }
+            }); // Nao aguarda (async-fire-and-forget background job shape)
+        }
+    } catch (err) {
+        console.error('[NotificationService] Email Dispatch error:', err);
+    }
 });
 
 // Event: APPOINTMENT_REMINDER
 eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
     console.log(`[NotificationService] Event Received: APPOINTMENT_REMINDER for ID ${payload.id}`);
+
+    try {
+        await prisma.notification.create({
+            data: {
+                clientId: payload.client.id,
+                title: 'Lembrete de Horário',
+                message: `Seu horário para ${payload.service.name} é hoje!`,
+                type: 'appointment_reminder',
+                appointmentId: payload.id
+            }
+        });
+    } catch (e) { }
 
     try {
         await internalNotifier.createReminderNotification(payload);
@@ -76,14 +130,51 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
     } catch (err) {
         console.error('[NotificationService] WhatsApp Reminder Failed:', err);
     }
+
+    // 3. Email Notification
+    try {
+        const clientWithEmail = await prisma.client.findUnique({
+            where: { id: payload.client.id },
+            include: { authUser: true }
+        });
+
+        if (clientWithEmail?.authUser?.email) {
+            const dateObj = new Date(payload.date);
+            emailService.sendTemplateEmail({
+                to: clientWithEmail.authUser.email,
+                subject: 'Lembrete do seu agendamento hoje!',
+                template: 'appointment-reminder',
+                userId: clientWithEmail.id,
+                data: {
+                    cliente: payload.client.name,
+                    barbershop: payload.barbershop.name,
+                    service: payload.service.name,
+                    time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    address: payload.barbershop?.address || 'Endereço não informado'
+                }
+            });
+        }
+    } catch (err) { console.error('Email reminder error', err); }
 });
 
 // Event: APPOINTMENT_UPDATED (Cancellation, etc)
 eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
     if (appointment.status === 'CANCELLED') {
-        // Notify the OTHER party
-        // If status changed to CANCELLED, we notify the professional OR the client
 
+        try {
+            await prisma.notification.create({
+                data: {
+                    clientId: appointment.clientId,
+                    userId: appointment.professionalId,
+                    title: 'Agendamento Cancelado',
+                    message: `Cancelamento: ${appointment.service?.name} em ${new Date(appointment.date).toLocaleDateString('pt-BR')}`,
+                    type: 'appointment_cancelled',
+                    appointmentId: appointment.id
+                }
+            });
+        } catch (e) { }
+
+        // Notify the OTHER party
         // 1. Notify Professional (if cancelled by system/client)
         const professionalUser = await prisma.user.findUnique({
             where: { id: appointment.professionalId },
@@ -103,7 +194,130 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
                 body: `Seu agendamento para ${appointment.service?.name} na ${appointment.barbershop?.name} foi cancelado.`,
                 url: '/appointments'
             });
+
+            // Dispatch Email async
+            try {
+                const clientWithEmail = await prisma.client.findUnique({
+                    where: { id: appointment.clientId },
+                    include: { authUser: true }
+                });
+                if (clientWithEmail?.authUser?.email) {
+                    const dateObj = new Date(appointment.date);
+                    emailService.sendTemplateEmail({
+                        to: clientWithEmail.authUser.email,
+                        subject: 'Agendamento Cancelado',
+                        template: 'appointment-cancelled',
+                        userId: clientWithEmail.id,
+                        data: {
+                            cliente: clientWithEmail.name,
+                            barbershop: appointment.barbershop?.name || 'Barbearia',
+                            service: appointment.service?.name || 'Serviço',
+                            barber: appointment.professional?.name || 'Profissional',
+                            date: dateObj.toLocaleDateString('pt-BR'),
+                            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                        }
+                    });
+                }
+            } catch (e) { console.error('Error email emit cancel', e) }
         }
+    }
+});
+
+// Event: PAYMENT_CONFIRMED
+eventBus.on('PAYMENT_CONFIRMED', async (payload) => {
+    console.log(`[NotificationService] Event Received: PAYMENT_CONFIRMED for Order ${payload.orderId || payload.id}`);
+    try {
+        await prisma.notification.create({
+            data: {
+                clientId: payload.clientId,
+                title: 'Pagamento Confirmado',
+                message: `Recebemos seu pagamento no valor de R$ ${payload.amount}`,
+                type: 'payment_confirmed',
+                orderId: payload.orderId || payload.id
+            }
+        });
+
+        const clientData = await prisma.client.findUnique({
+            where: { id: payload.clientId },
+            include: { authUser: true }
+        });
+
+        if (clientData?.authUser?.email) {
+            emailService.sendTemplateEmail({
+                to: clientData.authUser.email,
+                subject: 'Pagamento Confirmado',
+                template: 'payment-confirmed',
+                userId: clientData.id,
+                data: {
+                    amount: payload.amount.toString(),
+                    description: payload.description || 'Sua fatura do AppBarber',
+                    paymentMethod: payload.paymentMethod || 'Sistema de Pagamento',
+                    transactionId: payload.transactionId || payload.id || 'N/A',
+                    date: new Date().toLocaleDateString('pt-BR')
+                }
+            });
+        }
+    } catch (err) {
+        console.error('[NotificationService] Payment notification error:', err);
+    }
+});
+
+// Event: INVOICE_CREATED
+eventBus.on('INVOICE_CREATED', async (payload) => {
+    // payload ex: { barbershopUserEmail, dueDate, amount, description, paymentLink, invoiceId, barbershopName, userId }
+    try {
+        await prisma.notification.create({
+            data: {
+                userId: payload.userId,
+                title: 'Nova Fatura Gerada',
+                message: `Fatura AppBarber gerada p/ vencimento ${payload.dueDate}`,
+                type: 'invoice_created'
+            }
+        });
+
+        if (payload.barbershopUserEmail) {
+            emailService.sendTemplateEmail({
+                to: payload.barbershopUserEmail,
+                subject: `Fatura #${payload.invoiceId} Gerada`,
+                template: 'invoice-created',
+                userId: payload.userId,
+                data: {
+                    dueDate: payload.dueDate,
+                    amount: payload.amount,
+                    description: payload.description || 'Assinatura',
+                    paymentLink: payload.paymentLink,
+                    invoiceId: payload.invoiceId,
+                    barbershop: payload.barbershopName
+                }
+            });
+        }
+    } catch (err) { }
+});
+
+// Event: PASSWORD_RESET_REQUEST
+eventBus.on('PASSWORD_RESET_REQUEST', async (payload) => {
+    try {
+        await prisma.notification.create({
+            data: {
+                userId: payload.userId, // Can be authUser ID if generic, or linked user. Schema might need to allow authUserId or we just log it conceptually.
+                title: 'Recuperação de Senha',
+                message: `Um código de recuperação foi gerado.`,
+                type: 'system'
+            }
+        });
+
+        emailService.sendTemplateEmail({
+            to: payload.email,
+            subject: 'Recuperação de Senha - AppBarber',
+            template: 'password-reset',
+            userId: payload.userId,
+            data: {
+                resetCode: payload.resetCode,
+                resetLink: payload.resetLink
+            }
+        });
+    } catch (err) {
+        console.error('[NotificationService] Password reset notification error:', err);
     }
 });
 
