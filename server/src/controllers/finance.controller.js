@@ -1,6 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { startOfDay, endOfDay, eachDayOfInterval, format } = require('date-fns');
-const prisma = new PrismaClient();
 
 // Dashboard Financeiro Completo
 exports.getFinancialDashboard = async (req, res) => {

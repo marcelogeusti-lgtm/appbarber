@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { utcToZonedTime, zonedTimeToUtc, format } = require('date-fns-tz');
 const { addMinutes, isBefore, startOfDay, endOfDay, parse, addDays } = require('date-fns');
 const FeatureFlagService = require('../services/FeatureFlagService');

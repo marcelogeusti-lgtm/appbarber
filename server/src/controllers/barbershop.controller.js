@@ -1,10 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const saasPlans = require('../config/saasPlans');
 const { generateUniqueSlug, slugify } = require('../utils/slugGenerator');
 
 // Public: Search Barbershops
-exports.searchBarbershops = async (req, res) => {
+const searchBarbershops = async (req, res) => {
     try {
         const { term, type, city, lat, lng } = req.query; // type: NAME, CITY, NEARBY
 
@@ -53,13 +52,27 @@ exports.searchBarbershops = async (req, res) => {
                     take: 1,
                     where: { active: true },
                     select: { id: true, name: true, price: true }
-                },
-                reviews: {
-                    select: { rating: true }
                 }
             },
             take: 24
         });
+
+        // Optimization: Fetch ratings in a separate aggregated query to avoid overhead of many review records
+        const shopIds = barbershops.map(s => s.id);
+        const ratingsData = await prisma.review.groupBy({
+            by: ['barbershopId'],
+            where: { barbershopId: { in: shopIds } },
+            _avg: { rating: true },
+            _count: { rating: true }
+        });
+
+        const ratingsMap = ratingsData.reduce((acc, curr) => {
+            acc[curr.barbershopId] = {
+                avg: curr._avg.rating?.toFixed(1) || "5.0",
+                count: curr._count.rating || 0
+            };
+            return acc;
+        }, {});
 
         // Post-processing for Distance and Reviews
         let results = barbershops.map(shop => {
@@ -68,16 +81,14 @@ exports.searchBarbershops = async (req, res) => {
                 distance = calculateDistance(parseFloat(lat), parseFloat(lng), shop.latitude, shop.longitude);
             }
 
-            let averageRating = "5.0";
-            let totalReviews = 0;
-            if (shop.reviews && shop.reviews.length > 0) {
-                totalReviews = shop.reviews.length;
-                const sum = shop.reviews.reduce((acc, curr) => acc + curr.rating, 0);
-                averageRating = (sum / totalReviews).toFixed(1);
-            }
+            const ratingInfo = ratingsMap[shop.id] || { avg: "5.0", count: 0 };
 
-            const { reviews, ...safeShop } = shop;
-            return { ...safeShop, distance, averageRating, totalReviews }; // distance in km
+            return {
+                ...shop,
+                distance,
+                averageRating: ratingInfo.avg,
+                totalReviews: ratingInfo.count
+            };
         });
 
         // 4. Sort by Distance if 'NEARBY'
@@ -95,6 +106,101 @@ exports.searchBarbershops = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// Recommended for You logic
+const getRecommendedBarbershops = async (req, res) => {
+    try {
+        const { lat, lng } = req.query;
+        const userLat = lat ? parseFloat(lat) : null;
+        const userLng = lng ? parseFloat(lng) : null;
+
+        // 1. Fetch all active shops with basic data and creation date
+        const barbershops = await prisma.barbershop.findMany({
+            where: { subscriptionStatus: 'ACTIVE' },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                address: true,
+                logoUrl: true,
+                latitude: true,
+                longitude: true,
+                createdAt: true
+            }
+        });
+
+        // 2. Fetch ratings stats for sorting
+        const ratingsData = await prisma.review.groupBy({
+            by: ['barbershopId'],
+            _avg: { rating: true },
+            _count: { rating: true }
+        });
+
+        const ratingsMap = ratingsData.reduce((acc, curr) => {
+            acc[curr.barbershopId] = {
+                avg: curr._avg.rating || 0,
+                count: curr._count.rating || 0
+            };
+            return acc;
+        }, {});
+
+        // 3. Filter by distance (15km) and prepare for sorting
+        let recommended = barbershops.map(shop => {
+            let distance = null;
+            if (userLat && userLng && shop.latitude && shop.longitude) {
+                distance = calculateDistance(userLat, userLng, shop.latitude, shop.longitude);
+            }
+
+            const ratingInfo = ratingsMap[shop.id] || { avg: 0, count: 0 };
+
+            return {
+                ...shop,
+                distance,
+                averageRating: ratingInfo.avg,
+                totalReviews: ratingInfo.count,
+                hasRealReviews: ratingInfo.count > 0
+            };
+        });
+
+        // Apply 15km filter if location is available
+        if (userLat && userLng) {
+            recommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
+        }
+
+        // 4. Sorting Logic
+        recommended.sort((a, b) => {
+            // Priority 1: Real Ratings
+            if (a.hasRealReviews && !b.hasRealReviews) return -1;
+            if (!a.hasRealReviews && b.hasRealReviews) return 1;
+
+            if (a.hasRealReviews && b.hasRealReviews) {
+                // Both have reviews: Sort by Avg Rating (DESC)
+                if (b.averageRating !== a.averageRating) {
+                    return b.averageRating - a.averageRating;
+                }
+                // Tie-breaker: Total Reviews count (DESC)
+                return b.totalReviews - a.totalReviews;
+            }
+
+            // Priority 2: No reviews - Created Date (ASC - Older first)
+            return new Date(a.createdAt) - new Date(b.createdAt);
+        });
+
+        // Limit to 10
+        const finalResults = recommended.slice(0, 10).map(shop => ({
+            ...shop,
+            averageRating: shop.hasRealReviews ? shop.averageRating.toFixed(1) : null
+        }));
+
+        res.json(finalResults);
+    } catch (error) {
+        console.error('Recommended Error:', error);
+        res.status(500).json({ message: 'Erro ao buscar recomendações.' });
+    }
+};
+
+exports.searchBarbershops = searchBarbershops;
+exports.getRecommendedBarbershops = getRecommendedBarbershops;
 
 // Helper: Haversine Formula for distance
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -441,11 +547,33 @@ exports.getMyFavorites = async (req, res) => {
 
         const favs = await prisma.favoriteBarbershop.findMany({
             where: { clientId: client.id },
-            include: { barbershop: true }
+            include: {
+                barbershop: {
+                    include: {
+                        reviews: { select: { rating: true } }
+                    }
+                }
+            }
         });
 
-        res.json(favs.map(f => f.barbershop));
+        const results = favs.map(f => {
+            const shop = f.barbershop;
+            let averageRating = "5.0";
+            let totalReviews = 0;
+
+            if (shop.reviews && shop.reviews.length > 0) {
+                totalReviews = shop.reviews.length;
+                const sum = shop.reviews.reduce((acc, curr) => acc + curr.rating, 0);
+                averageRating = (sum / totalReviews).toFixed(1);
+            }
+
+            const { reviews, ...safeShop } = shop;
+            return { ...safeShop, averageRating, totalReviews };
+        });
+
+        res.json(results);
     } catch (error) {
+        console.error('Get My Favorites Error:', error);
         res.status(500).json({ message: 'Erro ao buscar favoritos.' });
     }
 };

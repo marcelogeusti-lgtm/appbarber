@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const TransactionService = require('../services/TransactionService');
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const PaymentService = require('../services/payment/PaymentService');

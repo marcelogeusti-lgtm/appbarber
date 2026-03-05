@@ -1,6 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const bcrypt = require('bcryptjs');
-const prisma = new PrismaClient();
 
 // Get Professional Profile (with Schedule and Services)
 exports.getProfessional = async (req, res) => {

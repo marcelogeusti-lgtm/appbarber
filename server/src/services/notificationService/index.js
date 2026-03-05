@@ -16,8 +16,7 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
         // --- Push Notification (FCM) ---
         // We notify the professional about the new appointment
         // We need to find the AuthUser ID linked to the professional User
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = require('../../lib/prisma');
 
         const professionalUser = await prisma.user.findUnique({
             where: { id: payload.professionalId },

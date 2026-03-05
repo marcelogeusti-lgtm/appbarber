@@ -7,8 +7,7 @@ const { protect } = require('../middlewares/auth.middleware');
 // Google Calendar Auth URL
 router.get('/google/auth-url', protect, async (req, res) => {
     try {
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = require('../lib/prisma');
 
         // Find professional profile linked to current user
         const professional = await prisma.professional.findUnique({
@@ -55,8 +54,7 @@ router.get('/whatsapp/status', protect, async (req, res) => {
 router.post('/push/subscribe', protect, async (req, res) => {
     try {
         const { subscription } = req.body;
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = require('../lib/prisma');
 
         await prisma.pushSubscription.upsert({
             where: { endpoint: subscription.endpoint },

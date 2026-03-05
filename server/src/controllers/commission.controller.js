@@ -1,6 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { startOfDay, endOfDay } = require('date-fns');
-const prisma = new PrismaClient();
 
 // Relatório de Comissões por Barbeiro
 exports.getCommissionsReport = async (req, res) => {

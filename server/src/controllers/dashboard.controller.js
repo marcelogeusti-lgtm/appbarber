@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 exports.getDashboardStats = async (req, res) => {
     try {
@@ -51,13 +50,12 @@ exports.getDashboardStats = async (req, res) => {
                 _sum: { total: true }
             }),
             // Simpler unique clients via Prisma groupBy (much faster than giant queryRaw UNION)
-            prisma.appointment.groupBy({
-                by: ['clientId'],
+            prisma.client.count({
                 where: {
-                    barbershopId,
-                    client: { active: true } // Ensure active
-                },
-            }).then(clients => clients.length),
+                    appointments: { some: { barbershopId } },
+                    active: true
+                }
+            }),
 
             // Open Commands Count
             prisma.order.count({ where: { barbershopId, status: 'OPEN' } })

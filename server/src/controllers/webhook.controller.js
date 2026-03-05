@@ -1,6 +1,5 @@
 const PaymentService = require('../services/payment/PaymentService');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 exports.handleWebhook = async (req, res) => {
     const { gateway } = req.params;

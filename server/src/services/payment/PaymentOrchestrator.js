@@ -41,8 +41,7 @@ class PaymentOrchestrator {
             // Let's rely on finding the GatewayCustomer record.
         }
 
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = require('../../lib/prisma');
 
         // If paying with saved card (token provided)
         if (token && params.clientId) {
@@ -195,8 +194,7 @@ class PaymentOrchestrator {
         // Get credentials (will handle null ID -> Platform creds)
         const credentials = await this.getGatewayConfig(barbershopId, gatewayToUse);
 
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = require('../../lib/prisma');
 
         // 1. Ensure Customer Exists in Gateway (Scoped to context)
         // Find existing for this scope
@@ -275,8 +273,7 @@ class PaymentOrchestrator {
     }
 
     async getPaymentByExternalId(externalId) {
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = require('../../lib/prisma');
 
         const payment = await prisma.payment.findFirst({
             where: { externalId }
@@ -321,8 +318,7 @@ class PaymentOrchestrator {
     }
 
     async getGatewayConfig(barbershopId, gatewayName) {
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = require('../../lib/prisma');
         const crypto = require('../../utils/crypto');
 
         let credentials = {};

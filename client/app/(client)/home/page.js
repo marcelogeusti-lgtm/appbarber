@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ChevronRight, Star, MapPin, Bell, Search as SearchIcon, Heart, History, Calendar, Clock, User as UserIcon } from 'lucide-react';
+import { Search, ChevronRight, ChevronLeft, Star, MapPin, Bell, Search as SearchIcon, Heart, History, Calendar, Clock, User as UserIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '../../../lib/clientApi';
 import { useClientAuth } from '../../../contexts/ClientAuthContext';
@@ -14,6 +14,7 @@ export default function ClientHome() {
     const [lastAppointment, setLastAppointment] = useState(null);
     const [lastAccess, setLastAccess] = useState([]);
     const [currentSlide, setCurrentSlide] = useState(0);
+    const carouselRef = useRef(null);
     const router = useRouter();
 
     const slides = [
@@ -49,28 +50,36 @@ export default function ClientHome() {
             }
         }
 
+        // Initial fetch without location (Immediate)
+        fetchData();
+
+        // Then try to get location for specialized results
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    console.log("[GEOLOCATION SUCCESS]", position.coords);
                     fetchData(position.coords.latitude, position.coords.longitude);
                 },
-                () => fetchData()
+                (error) => {
+                    console.warn("[GEOLOCATION ERROR/DENIED]", error.message);
+                }
             );
-        } else {
-            fetchData();
         }
     }, [user]);
 
     const fetchData = async (lat = null, lng = null) => {
         try {
-            setLoadingData(true);
+            // Only show loader if we don't have barbershops yet
+            if (barbershops.length === 0) {
+                setLoadingData(true);
+            }
 
             // Prepare promises for parallel fetching
             const promises = [];
 
             // 1. Recommended Barbershops
-            let searchUrl = '/barbershops/search';
-            if (lat && lng) searchUrl += `?lat=${lat}&lng=${lng}&type=NEARBY`;
+            let searchUrl = '/barbershops/recommended';
+            if (lat && lng) searchUrl += `?lat=${lat}&lng=${lng}`;
             promises.push(api.get(searchUrl));
 
             // 2. Favorites and Appointments (only if user is logged in)
@@ -79,37 +88,31 @@ export default function ClientHome() {
                 promises.push(api.get('/appointments/me'));
             }
 
-            const results = await Promise.all(promises);
+            const results = await Promise.allSettled(promises);
+
+            // Helper to get value from settled promise
+            const getValue = (idx) => results[idx]?.status === 'fulfilled' ? results[idx].value.data : null;
+
+            const searchDataRaw = getValue(0) || [];
+            const favoritesData = getValue(1) || [];
+            const appointmentsData = getValue(2) || [];
+
             console.log("[HOME DATA DEBUG]", {
-                recommendations: results[0]?.data?.length,
-                favorites: results[1]?.data?.length,
-                appointments: results[2]?.data?.length,
+                recommendations: searchDataRaw.length,
+                favorites: favoritesData.length,
+                appointments: appointmentsData.length,
                 user: user?.id
             });
 
             // Process recommendations
-            let searchData = results[0].data || [];
-            if (lat && lng) {
-                searchData = searchData
-                    .filter(shop => shop.distance !== null && shop.distance <= 15) // Filter by 15km
-                    .sort((a, b) => parseFloat(b.averageRating || 0) - parseFloat(a.averageRating || 0)); // Sort by rating
-            } else {
-                searchData = searchData
-                    .sort((a, b) => parseFloat(b.averageRating || 0) - parseFloat(a.averageRating || 0)); // Sort by rating
-            }
-            setBarbershops(searchData);
+            setBarbershops(searchDataRaw);
 
             // Process user-specific data
-            if (user && results.length > 1) {
-                setFavorites(results[1].data || []);
-                const appointments = results[2].data || [];
-                if (appointments.length > 0) {
-                    console.log("[APPOINTMENTS FOUND]", appointments.length);
-                    // Get most recent (future if available, else most recent past)
-                    const sorted = [...appointments].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (user) {
+                setFavorites(favoritesData);
+                if (appointmentsData.length > 0) {
+                    const sorted = [...appointmentsData].sort((a, b) => new Date(b.date) - new Date(a.date));
                     setLastAppointment(sorted[0]);
-                } else {
-                    console.log("[NO APPOINTMENTS FOUND]");
                 }
             }
         } catch (err) {
@@ -143,6 +146,16 @@ export default function ClientHome() {
 
         // Navigate
         router.push(`/${shop.slug}`);
+    };
+
+    const scrollCarousel = (direction) => {
+        if (carouselRef.current) {
+            const scrollAmount = 320; // Approx card width + gap
+            carouselRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
     };
 
     const formatDate = () => {
@@ -196,17 +209,36 @@ export default function ClientHome() {
                         <div className="flex items-center gap-3">
                             <h2 className="text-xl font-black text-white uppercase tracking-tight italic">Recomendados para você</h2>
                         </div>
+                        {barbershops.length > 0 && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => scrollCarousel('left')}
+                                    className="p-3 bg-[#0A0A0B] border border-white/5 rounded-full hover:border-primary/50 transition-all text-white/50 hover:text-white"
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => scrollCarousel('right')}
+                                    className="p-3 bg-[#0A0A0B] border border-white/5 rounded-full hover:border-primary/50 transition-all text-white/50 hover:text-white"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div
+                        ref={carouselRef}
+                        className="flex overflow-x-auto gap-8 pb-8 no-scrollbar snap-x scroll-smooth -mx-5 px-5"
+                    >
                         {loadingData ? (
                             Array(3).fill(0).map((_, i) => (
-                                <div key={i} className="h-64 w-full bg-[#0A0A0B] animate-pulse rounded-[2.5rem] border border-white/5" />
+                                <div key={i} className="h-64 min-w-[300px] bg-[#0A0A0B] animate-pulse rounded-[2.5rem] border border-white/5" />
                             ))
                         ) : barbershops.length > 0 ? barbershops.map(shop => (
                             <div
                                 key={shop.id || shop._id}
-                                className="bg-[#0A0A0B] border border-white/5 rounded-[2.5rem] p-6 flex flex-col gap-6 hover:border-primary/30 transition-all group cursor-pointer active:scale-[0.98] shadow-xl"
+                                className="min-w-[300px] md:min-w-[340px] snap-center bg-[#0A0A0B] border border-white/5 rounded-[2.5rem] p-6 flex flex-col gap-6 hover:border-primary/30 transition-all group cursor-pointer active:scale-[0.98] shadow-xl"
                                 onClick={() => handleVisitShop(shop)}
                             >
                                 <div className="flex items-center justify-between">
@@ -222,10 +254,18 @@ export default function ClientHome() {
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-1.5">
-                                        <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-xl flex items-center gap-1.5 border border-white/10">
-                                            <Star className="w-3 h-3 text-primary fill-current" />
-                                            <span className="text-[10px] font-black text-white">{shop.averageRating || "5.0"}</span>
-                                        </div>
+                                        {shop.averageRating && (
+                                            <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-xl flex items-center gap-1.5 border border-white/10">
+                                                <Star className="w-3 h-3 text-primary fill-current" />
+                                                <span className="text-[10px] font-black text-white">{shop.averageRating}</span>
+                                            </div>
+                                        )}
+                                        {shop.distance !== null && (
+                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                                                <MapPin className="w-3 h-3" />
+                                                {shop.distance} km
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -234,15 +274,18 @@ export default function ClientHome() {
                                     <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest truncate">
                                         {shop.address || 'Endereço não informado'}
                                     </p>
+                                    {shop.totalReviews > 0 && (
+                                        <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest italic">{shop.totalReviews} avaliações</p>
+                                    )}
                                 </div>
 
                                 <button className="w-full py-4 bg-white/5 border border-white/5 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] group-hover:bg-primary group-hover:text-black transition-all flex items-center justify-center gap-2">
-                                    Ver Perfil <ChevronRight className="w-3 h-3" />
+                                    Agendar <ChevronRight className="w-3 h-3" />
                                 </button>
                             </div>
                         )) : !loadingData && (
-                            <div className="col-span-full py-12 bg-[#0A0A0B] border border-white/5 rounded-[2.5rem] text-center border-dashed">
-                                <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Nenhuma recomendação no momento</p>
+                            <div className="w-full py-12 bg-[#0A0A0B] border border-white/5 rounded-[2.5rem] text-center border-dashed">
+                                <p className="text-slate-500 text-xs font-black uppercase tracking-widest italic">Nenhuma barbearia encontrada em até 15km.</p>
                             </div>
                         )}
                     </div>
@@ -317,7 +360,7 @@ export default function ClientHome() {
                                             <img src={shop.logoUrl || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
                                             <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
                                                 <Star className="w-2 h-2 text-primary fill-current" />
-                                                <span className="text-[7px] font-black text-white">5.0</span>
+                                                <span className="text-[7px] font-black text-white">{shop.averageRating || "5.0"}</span>
                                             </div>
                                         </div>
                                         <div className="min-w-0">
@@ -362,7 +405,7 @@ export default function ClientHome() {
                                             <img src={shop.logoUrl || "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
                                             <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
                                                 <Star className="w-2 h-2 text-primary fill-current" />
-                                                <span className="text-[7px] font-black text-white">5.0</span>
+                                                <span className="text-[7px] font-black text-white">{shop.averageRating || "5.0"}</span>
                                             </div>
                                         </div>
                                         <div className="min-w-0">
