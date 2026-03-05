@@ -3,8 +3,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { generateUniqueSlug } = require('../utils/slugGenerator');
 const emailProvider = require('../services/communication/providers/EmailProvider');
-const speakeasy = require('speakeasy');
-const qrcode = require('qrcode');
+const whatsappService = require('../services/communication/WhatsAppService');
+
+// Helper para gerar código de 6 dígitos
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const generateToken = (user, authUser) => {
     const barbershopId = user.workedBarbershopId ||
@@ -156,22 +158,63 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Credenciais inválidas.' });
         }
 
-        // --- 2FA Check ---
+        // --- 2FA Check (OTP via Email/SMS) ---
         if (authUser.twoFactorEnabled) {
             const { mfaToken } = req.body;
+
             if (!mfaToken) {
-                return res.status(202).json({ message: '2FA_REQUIRED', authUserId: authUser.id });
+                // Generate and send code
+                const otp = generateOTP();
+                const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+                await prisma.authUser.update({
+                    where: { id: authUser.id },
+                    data: {
+                        twoFactorCode: otp,
+                        twoFactorExpires: expires
+                    }
+                });
+
+                const method = authUser.twoFactorMethod || 'EMAIL';
+                const message = `Seu código de acesso ao AppBarber é: ${otp}. Válido por 10 minutos.`;
+
+                if (method === 'EMAIL') {
+                    await emailProvider.sendEmail(authUser.email, 'Código de Autenticação - AppBarber', `
+                        <div style="font-family: sans-serif; padding: 20px;">
+                            <h2>Código de Acesso</h2>
+                            <p>Seu código é: <strong style="font-size: 24px; color: #00e676;">${otp}</strong></p>
+                            <p>Este código expira em 10 minutos e apenas pode ser usado uma vez.</p>
+                        </div>
+                    `);
+                } else if (method === 'SMS') {
+                    // Try to get phone from Client or User profile
+                    const phone = authUser.client?.phone || authUser.user?.workedBarbershop?.phone || authUser.user?.ownedBarbershops?.[0]?.phone;
+                    if (phone) {
+                        await whatsappService.sendText(phone, message);
+                    }
+                }
+
+                return res.status(202).json({
+                    message: '2FA_REQUIRED',
+                    authUserId: authUser.id,
+                    method: method
+                });
             }
 
-            const verified = speakeasy.totp.verify({
-                secret: authUser.twoFactorSecret,
-                encoding: 'base32',
-                token: mfaToken
+            // Verify the provided token
+            if (authUser.twoFactorCode !== mfaToken || !authUser.twoFactorExpires) {
+                return res.status(400).json({ message: 'Código de verificação incorreto.' });
+            }
+
+            if (new Date() > authUser.twoFactorExpires) {
+                return res.status(400).json({ message: 'Código expirado. Solicite um novo.' });
+            }
+
+            // Consume token
+            await prisma.authUser.update({
+                where: { id: authUser.id },
+                data: { twoFactorCode: null, twoFactorExpires: null }
             });
-
-            if (!verified) {
-                return res.status(400).json({ message: 'Código de verificação inválido.' });
-            }
         }
 
         // --- CONTEXT CHECKS ---
@@ -589,60 +632,92 @@ exports.getMe = async (req, res) => {
     }
 };
 
-// --- 2FA ENDPOINTS --- //
+// --- 2FA ENDPOINTS (Email/SMS OTP) --- //
 
-exports.generate2FA = async (req, res) => {
+exports.setup2FA = async (req, res) => {
     try {
         const authUserId = req.user.authUserId;
-        const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+        const { method } = req.body; // 'EMAIL' or 'SMS'
+
+        if (method !== 'EMAIL' && method !== 'SMS') {
+            return res.status(400).json({ message: 'Método inválido.' });
+        }
+
+        const authUser = await prisma.authUser.findUnique({
+            where: { id: authUserId },
+            include: { client: true, user: true }
+        });
 
         if (!authUser) {
             return res.status(404).json({ message: 'Usuário não encontrado.' });
         }
 
-        const secret = speakeasy.generateSecret({
-            name: `BarberApp (${authUser.email})`,
-            length: 20
+        const otp = generateOTP();
+        const expires = new Date(Date.now() + 10 * 60 * 1000);
+
+        await prisma.authUser.update({
+            where: { id: authUserId },
+            data: {
+                twoFactorCode: otp,
+                twoFactorExpires: expires,
+                twoFactorMethod: method // Save the chosen method temporarily to evaluate in enable2FA
+            }
         });
 
-        qrcode.toDataURL(secret.otpauth_url, (err, dataUrl) => {
-            if (err) {
-                return res.status(500).json({ message: 'Erro ao gerar QRCode.' });
+        const message = `Seu código de ativação do 2FA no AppBarber é: ${otp}. Válido por 10 minutos.`;
+
+        if (method === 'EMAIL') {
+            await emailProvider.sendEmail(authUser.email, 'Ativação de 2FA - AppBarber', `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2>Ativação de Segurança</h2>
+                    <p>Seu código é: <strong style="font-size: 24px; color: #00e676;">${otp}</strong></p>
+                    <p>Informe este código na tela de configuração para concluir a ativação.</p>
+                </div>
+            `);
+        } else if (method === 'SMS') {
+            const phone = authUser.client?.phone || authUser.user?.workedBarbershop?.phone || authUser.user?.ownedBarbershops?.[0]?.phone;
+            if (!phone) {
+                return res.status(400).json({ message: 'Nenhum telefone cadastrado para envio de SMS.' });
             }
-            res.json({
-                secret: secret.base32,
-                qrcode: dataUrl
-            });
-        });
+            await whatsappService.sendText(phone, message);
+        }
+
+        res.json({ message: `Código enviado por ${method}.` });
     } catch (error) {
-        console.error('generate2FA Error:', error);
-        res.status(500).json({ message: 'Erro interno.' });
+        console.error('setup2FA Error:', error);
+        res.status(500).json({ message: 'Erro ao configurar 2FA.' });
     }
 };
 
 exports.enable2FA = async (req, res) => {
     try {
-        const { token, secret } = req.body;
+        const { token } = req.body;
         const authUserId = req.user.authUserId;
 
-        const verified = speakeasy.totp.verify({
-            secret: secret,
-            encoding: 'base32',
-            token: token
+        const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+
+        if (!authUser || !authUser.twoFactorCode) {
+            return res.status(400).json({ message: 'Nenhuma solicitação de 2FA pendente.' });
+        }
+
+        if (authUser.twoFactorCode !== token) {
+            return res.status(400).json({ message: 'Código de verificação incorreto.' });
+        }
+
+        if (new Date() > authUser.twoFactorExpires) {
+            return res.status(400).json({ message: 'Código expirado. Solicite um novo.' });
+        }
+
+        await prisma.authUser.update({
+            where: { id: authUserId },
+            data: {
+                twoFactorEnabled: true,
+                twoFactorCode: null,
+                twoFactorExpires: null
+            }
         });
 
-        if (verified) {
-            await prisma.authUser.update({
-                where: { id: authUserId },
-                data: {
-                    twoFactorEnabled: true,
-                    twoFactorSecret: secret
-                }
-            });
-            return res.json({ message: 'Autenticação em duas etapas ativada com sucesso.' });
-        } else {
-            return res.status(400).json({ message: 'Código inválido.' });
-        }
+        return res.json({ message: 'Autenticação em duas etapas ativada com sucesso.', method: authUser.twoFactorMethod });
     } catch (error) {
         console.error('enable2FA Error:', error);
         res.status(500).json({ message: 'Erro ao ativar 2FA.' });
@@ -657,7 +732,9 @@ exports.disable2FA = async (req, res) => {
             where: { id: authUserId },
             data: {
                 twoFactorEnabled: false,
-                twoFactorSecret: null
+                twoFactorMethod: null,
+                twoFactorCode: null,
+                twoFactorExpires: null
             }
         });
 
@@ -673,7 +750,8 @@ exports.getAuthStatus = async (req, res) => {
         const authUserId = req.user.authUserId;
         const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
         res.json({
-            twoFactorEnabled: authUser?.twoFactorEnabled || false
+            twoFactorEnabled: authUser?.twoFactorEnabled || false,
+            twoFactorMethod: authUser?.twoFactorMethod || null
         });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao buscar status de segurança.' });

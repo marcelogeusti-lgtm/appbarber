@@ -43,6 +43,12 @@ export default function AuthPage() {
     // Login State
     const [loginData, setLoginData] = useState({ email: '', password: '' });
 
+    // 2FA State
+    const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+    const [twoFactorMethod, setTwoFactorMethod] = useState('');
+    const [authUserId, setAuthUserId] = useState(null);
+    const [mfaToken, setMfaToken] = useState('');
+
     // Register State
     const [registerData, setRegisterData] = useState({
         name: '',
@@ -57,7 +63,20 @@ export default function AuthPage() {
         setLoading(true);
         setError('');
         try {
-            const res = await api.post('/auth/login', { ...loginData, context: 'PRO' });
+            const payload = { ...loginData, context: 'PRO' };
+            if (twoFactorRequired) {
+                payload.mfaToken = mfaToken;
+            }
+
+            const res = await api.post('/auth/login', payload);
+
+            if (res.status === 202 && res.data.message === '2FA_REQUIRED') {
+                setTwoFactorRequired(true);
+                setAuthUserId(res.data.authUserId);
+                setTwoFactorMethod(res.data.method);
+                setLoading(false);
+                return;
+            }
 
             const userData = {
                 ...res.data.user,
@@ -209,54 +228,100 @@ export default function AuthPage() {
 
                         {activeTab === 'login' ? (
                             <form className="space-y-5" onSubmit={handleLoginSubmit}>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">E-mail</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
-                                        placeholder="seu@email.com"
-                                        value={loginData.email}
-                                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                                    />
-                                </div>
+                                {twoFactorRequired ? (
+                                    <div className="space-y-5 animate-in fade-in duration-300">
+                                        <div className="text-center mb-6">
+                                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Check className="w-8 h-8 text-primary" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-zinc-900 mb-2">Verificação em 2 Etapas</h3>
+                                            <p className="text-sm text-zinc-500">
+                                                Enviamos um código de 6 dígitos via <strong>{twoFactorMethod === 'EMAIL' ? 'E-mail' : 'SMS/WhatsApp'}</strong>.
+                                            </p>
+                                        </div>
 
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center ml-1">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Senha</label>
-                                        <a href="/forgot-password" className="text-xs text-primary hover:underline">Esqueceu?</a>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1 text-center block">Código de Acesso</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                maxLength="6"
+                                                className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-4 text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all text-center text-3xl font-mono tracking-[0.5em]"
+                                                placeholder="000 000"
+                                                value={mfaToken}
+                                                onChange={(e) => setMfaToken(e.target.value.replace(/\D/g, ''))}
+                                            />
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleLoginSubmit}
+                                            disabled={loading || mfaToken.length !== 6}
+                                            className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all hover:scale-[1.02] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                                        >
+                                            {loading ? 'Verificando...' : 'Confirmar e Entrar'}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => { setTwoFactorRequired(false); setMfaToken(''); }}
+                                            className="w-full text-center text-sm text-zinc-500 hover:text-zinc-900 mt-4 outline-none"
+                                        >
+                                            Cancelar
+                                        </button>
                                     </div>
-                                    <input
-                                        type="password"
-                                        required
-                                        className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
-                                        placeholder="••••••••"
-                                        value={loginData.password}
-                                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                                    />
-                                </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">E-mail</label>
+                                            <input
+                                                type="email"
+                                                required
+                                                className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+                                                placeholder="seu@email.com"
+                                                value={loginData.email}
+                                                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                                            />
+                                        </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all hover:scale-[1.02] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading ? 'Entrando...' : 'Acessar Painel'}
-                                </button>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center ml-1">
+                                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Senha</label>
+                                                <a href="/forgot-password" className="text-xs text-primary hover:underline">Esqueceu?</a>
+                                            </div>
+                                            <input
+                                                type="password"
+                                                required
+                                                className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3.5 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+                                                placeholder="••••••••"
+                                                value={loginData.password}
+                                                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                                            />
+                                        </div>
 
-                                <div className="relative my-8">
-                                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-100"></div></div>
-                                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-zinc-400">Ou entre com</span></div>
-                                </div>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all hover:scale-[1.02] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {loading ? 'Entrando...' : 'Acessar Painel'}
+                                        </button>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button type="button" onClick={() => handleSocialLogin('google')} className="flex items-center justify-center gap-2 py-3 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors text-zinc-700 text-sm font-medium shadow-sm">
-                                        <GoogleIcon /> Google
-                                    </button>
-                                    <button type="button" onClick={() => handleSocialLogin('facebook')} className="flex items-center justify-center gap-2 py-3 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors text-zinc-700 text-sm font-medium shadow-sm">
-                                        <FacebookIcon /> Facebook
-                                    </button>
-                                </div>
+                                        <div className="relative my-8">
+                                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-100"></div></div>
+                                            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-zinc-400">Ou entre com</span></div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button type="button" onClick={() => handleSocialLogin('google')} className="flex items-center justify-center gap-2 py-3 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors text-zinc-700 text-sm font-medium shadow-sm">
+                                                <GoogleIcon /> Google
+                                            </button>
+                                            <button type="button" onClick={() => handleSocialLogin('facebook')} className="flex items-center justify-center gap-2 py-3 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors text-zinc-700 text-sm font-medium shadow-sm">
+                                                <FacebookIcon /> Facebook
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </form>
                         ) : (
                             <form className="space-y-4" onSubmit={handleRegisterSubmit}>

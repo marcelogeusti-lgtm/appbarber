@@ -51,6 +51,11 @@ export default function ProfileMenuPage() {
     const [localLoading, setLocalLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // 2FA State
+    const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+    const [twoFactorMethod, setTwoFactorMethod] = useState('');
+    const [mfaToken, setMfaToken] = useState('');
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#050505] flex items-center justify-center text-primary">
@@ -63,8 +68,16 @@ export default function ProfileMenuPage() {
         e.preventDefault();
         setError('');
         setLocalLoading(true);
-        const result = await login(email, password);
+        const result = await login(email, password, twoFactorRequired ? mfaToken : null);
+
         if (!result?.success) {
+            if (result?.requires2FA) {
+                setTwoFactorRequired(true);
+                setTwoFactorMethod(result.method);
+                setLocalLoading(false);
+                return;
+            }
+
             setError(result?.message || 'Erro ao realizar login');
             setLocalLoading(false);
         }
@@ -144,46 +157,90 @@ export default function ProfileMenuPage() {
 
                         {activeTab === 'login' ? (
                             <form onSubmit={handleLoginSubmit} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider">Email ou telefone</label>
-                                    <div className="relative group">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
-                                        <input
-                                            type="text"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
-                                            placeholder="Seu email"
-                                            required
-                                        />
-                                    </div>
-                                </div>
+                                {twoFactorRequired ? (
+                                    <div className="space-y-4 animate-in fade-in duration-300">
+                                        <div className="text-center mb-4">
+                                            <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                                            </div>
+                                            <p className="text-sm text-slate-300">
+                                                Código enviado por <strong>{twoFactorMethod === 'EMAIL' ? 'E-mail' : 'SMS/WhatsApp'}</strong>.
+                                            </p>
+                                        </div>
 
-                                <div className="space-y-1.5">
-                                    <div className="flex justify-between items-center ml-1">
-                                        <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Senha</label>
-                                        <button type="button" onClick={openForgotPasswordModal} className="text-[10px] text-primary hover:underline">Esqueceu?</button>
-                                    </div>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
-                                        <input
-                                            type="password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
-                                            placeholder="••••••••"
-                                            required
-                                        />
-                                    </div>
-                                </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider text-center block">Código de Acesso</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                maxLength="6"
+                                                className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-4 px-4 text-center text-2xl font-mono tracking-[0.5em] text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition"
+                                                placeholder="000 000"
+                                                value={mfaToken}
+                                                onChange={(e) => setMfaToken(e.target.value.replace(/\D/g, ''))}
+                                            />
+                                        </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={localLoading}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-sm"
-                                >
-                                    {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Acessar Painel'}
-                                </button>
+                                        <button
+                                            type="submit"
+                                            disabled={localLoading || mfaToken.length !== 6}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-sm"
+                                        >
+                                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar e Entrar'}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => { setTwoFactorRequired(false); setMfaToken(''); }}
+                                            className="w-full text-center text-[11px] text-slate-500 hover:text-slate-300 mt-2 outline-none"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider">Email ou telefone</label>
+                                            <div className="relative group">
+                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                                <input
+                                                    type="text"
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                                    placeholder="Seu email"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <div className="flex justify-between items-center ml-1">
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Senha</label>
+                                                <button type="button" onClick={openForgotPasswordModal} className="text-[10px] text-primary hover:underline">Esqueceu?</button>
+                                            </div>
+                                            <div className="relative group">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                                <input
+                                                    type="password"
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                                    placeholder="••••••••"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={localLoading}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-sm"
+                                        >
+                                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Acessar Painel'}
+                                        </button>
+                                    </>
+                                )}
                             </form>
                         ) : (
                             <form onSubmit={handleRegisterSubmit} className="space-y-3">

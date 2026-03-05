@@ -13,8 +13,8 @@ router.post('/reset-password', require('../controllers/auth.controller').resetPa
 router.get('/me', protect, getMe);
 
 // --- 2FA & Security ---
-const { generate2FA, enable2FA, disable2FA, getAuthStatus, getSessions, revokeSession } = require('../controllers/auth.controller');
-router.get('/2fa/generate', protect, generate2FA);
+const { setup2FA, enable2FA, disable2FA, getAuthStatus, getSessions, revokeSession } = require('../controllers/auth.controller');
+router.post('/2fa/setup-request', protect, setup2FA);
 router.post('/2fa/enable', protect, enable2FA);
 router.post('/2fa/disable', protect, disable2FA);
 router.get('/status', protect, getAuthStatus);

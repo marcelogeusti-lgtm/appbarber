@@ -41,9 +41,21 @@ export function ClientAuthProvider({ children }) {
         setLoading(false);
     };
 
-    const login = async (email, password) => {
+    const login = async (email, password, mfaToken = null) => {
         try {
-            const res = await api.post('/auth/login', { email, password, context: 'CLIENT' });
+            const payload = { email, password, context: 'CLIENT' };
+            if (mfaToken) payload.mfaToken = mfaToken;
+
+            const res = await api.post('/auth/login', payload);
+
+            if (res.status === 202 && res.data.message === '2FA_REQUIRED') {
+                return {
+                    success: false,
+                    requires2FA: true,
+                    authUserId: res.data.authUserId,
+                    method: res.data.method
+                };
+            }
 
             // Backend now handles context checks, but double check here
             if (res.data.user.role !== 'CLIENT' && !res.data.user.authUserId) { // authUserId check for Loose Client

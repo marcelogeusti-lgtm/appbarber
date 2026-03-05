@@ -81,8 +81,10 @@ model AuthUser {
   fcmTokens FcmToken[]
   sessions  Session[]
 
-  twoFactorEnabled Boolean @default(false)
-  twoFactorSecret  String?
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorMethod  String? // 'EMAIL' or 'SMS'
+  twoFactorCode    String? // Temporary OTP code
+  twoFactorExpires DateTime? // OTP Expiration
 }
 
 model Session {

@@ -1,5 +1,5 @@
 'use client';
-import { ShieldCheck, Key, Smartphone, Lock, ChevronRight, X, Loader2, CheckCircle2, QrCode, MonitorSmartphone, Trash2, LogOut } from 'lucide-react';
+import { ShieldCheck, Key, Smartphone, Lock, ChevronRight, X, Loader2, CheckCircle2, QrCode, MonitorSmartphone, Trash2, LogOut, Mail, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import api from '../../../../lib/clientApi';
@@ -13,7 +13,7 @@ export default function SecurityPage() {
     const [loading, setLoading] = useState(true);
     const [changing, setChanging] = useState(false);
 
-    const [authStatus, setAuthStatus] = useState({ twoFactorEnabled: false });
+    const [authStatus, setAuthStatus] = useState({ twoFactorEnabled: false, twoFactorMethod: null });
 
     const [passwords, setPasswords] = useState({
         currentPassword: '',
@@ -22,7 +22,8 @@ export default function SecurityPage() {
     });
 
     // 2FA state
-    const [twoFactorData, setTwoFactorData] = useState(null);
+    const [twoFactorStep, setTwoFactorStep] = useState(1); // 1 = Choose method, 2 = Verify Code
+    const [selectedMethod, setSelectedMethod] = useState(null); // 'EMAIL' or 'SMS'
     const [twoFactorCode, setTwoFactorCode] = useState('');
 
     // Sessions state
@@ -68,15 +69,25 @@ export default function SecurityPage() {
     };
 
     // --- 2FA Functions ---
-    const open2FAModal = async () => {
+    const open2FAModal = () => {
         setShow2FAModal(true);
-        if (!authStatus.twoFactorEnabled && !twoFactorData) {
-            try {
-                const res = await api.get('/auth/2fa/generate');
-                setTwoFactorData(res.data);
-            } catch (error) {
-                toast.error('Erro ao gerar código 2FA.');
-            }
+        setTwoFactorStep(1);
+        setTwoFactorCode('');
+        setSelectedMethod(null);
+    };
+
+    const handleSetupRequest = async (method) => {
+        setSelectedMethod(method);
+        setChanging(true);
+        try {
+            await api.post('/auth/2fa/setup-request', { method });
+            toast.success(`Código enviado por ${method === 'EMAIL' ? 'E-mail' : 'WhatsApp/SMS'}.`);
+            setTwoFactorStep(2);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Erro ao solicitar código.');
+            setSelectedMethod(null);
+        } finally {
+            setChanging(false);
         }
     };
 
@@ -84,12 +95,9 @@ export default function SecurityPage() {
         e.preventDefault();
         setChanging(true);
         try {
-            await api.post('/auth/2fa/enable', {
-                token: twoFactorCode,
-                secret: twoFactorData.secret
-            });
+            const res = await api.post('/auth/2fa/enable', { token: twoFactorCode });
             toast.success('2FA ativado com sucesso!');
-            setAuthStatus({ twoFactorEnabled: true });
+            setAuthStatus({ twoFactorEnabled: true, twoFactorMethod: res.data.method });
             setShow2FAModal(false);
             setTwoFactorCode('');
         } catch (error) {
@@ -105,8 +113,7 @@ export default function SecurityPage() {
         try {
             await api.post('/auth/2fa/disable');
             toast.success('2FA desativado com sucesso.');
-            setAuthStatus({ twoFactorEnabled: false });
-            setTwoFactorData(null);
+            setAuthStatus({ twoFactorEnabled: false, twoFactorMethod: null });
             setShow2FAModal(false);
         } catch (error) {
             toast.error('Erro ao desativar 2FA.');
@@ -168,7 +175,7 @@ export default function SecurityPage() {
         },
         {
             icon: Smartphone, title: 'Verificação em Duas Etapas',
-            desc: 'Adicione uma camada extra de segurança ao seu acesso.',
+            desc: 'Receba um código por E-mail ou SMS sempre que for logar.',
             action: authStatus.twoFactorEnabled ? 'Gerenciar' : 'Configurar',
             active: authStatus.twoFactorEnabled,
             onClick: open2FAModal
@@ -302,7 +309,7 @@ export default function SecurityPage() {
                     </div>
                 )}
 
-                {/* --- 2FA Modal --- */}
+                {/* --- 2FA OTP Modal --- */}
                 {show2FAModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 overflow-y-auto pt-24 pb-24">
                         <motion.div
@@ -327,7 +334,9 @@ export default function SecurityPage() {
                                     </div>
                                     <div>
                                         <p className="text-white font-bold text-lg mb-2">2FA Ativado com sucesso</p>
-                                        <p className="text-slate-500 text-sm max-w-[280px] mx-auto leading-relaxed text-balance">Sua conta está mais segura com a camada de verificação extra gerada pelo seu aplicativo autenticador.</p>
+                                        <p className="text-slate-500 text-sm max-w-[280px] mx-auto leading-relaxed text-balance">
+                                            Sua conta está segura. Autenticação configurada via <strong>{authStatus.twoFactorMethod === 'EMAIL' ? 'E-mail' : 'WhatsApp/SMS'}</strong>.
+                                        </p>
                                     </div>
                                     <button
                                         onClick={handleDisable2FA} disabled={changing}
@@ -338,44 +347,83 @@ export default function SecurityPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-8 mt-8">
-                                    <p className="text-slate-500 text-sm leading-relaxed text-balance">Escaneie o QRCode abaixo com um aplicativo de autenticação (ex: Google Authenticator, Authy, 1Password).</p>
+                                    <p className="text-slate-500 text-sm leading-relaxed text-balance">
+                                        Adicione uma camada extra de segurança à sua conta exigindo um código de 6 dígitos temporário no login.
+                                    </p>
 
-                                    {twoFactorData ? (
-                                        <div className="flex flex-col items-center gap-6">
-                                            <div className="p-4 bg-white rounded-3xl w-max mx-auto shadow-[0_0_50px_rgba(255,255,255,0.05)]">
-                                                <img src={twoFactorData.qrcode} alt="QR Code" className="w-48 h-48" />
-                                            </div>
+                                    {twoFactorStep === 1 && (
+                                        <div className="space-y-4">
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Escolha como receber os códigos:</p>
 
-                                            <div className="space-y-4 w-full">
-                                                <div className="text-center">
-                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Se preferir, insira o código manual</p>
-                                                    <code className="text-primary font-mono bg-primary/10 px-6 py-3 rounded-2xl text-sm border border-primary/20 block tracking-widest">
-                                                        {twoFactorData.secret}
-                                                    </code>
-                                                </div>
-
-                                                <form onSubmit={handleEnable2FA} className="space-y-6 pt-6 mt-4 border-t border-white/5">
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Código do Autenticador</label>
-                                                        <input
-                                                            type="text" required maxLength="6" placeholder="000 000"
-                                                            value={twoFactorCode}
-                                                            onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                                                            className="w-full bg-white/5 border border-white/5 rounded-2xl py-6 px-6 text-center text-3xl font-mono tracking-[0.5em] text-white focus:border-primary/50 outline-none placeholder:text-slate-800 focus:bg-primary/5 transition-all"
-                                                        />
+                                            <button
+                                                onClick={() => handleSetupRequest('EMAIL')} disabled={changing}
+                                                className="w-full flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-left group"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors">
+                                                        <Mail className="w-5 h-5" />
                                                     </div>
-                                                    <button
-                                                        type="submit" disabled={changing || twoFactorCode.length !== 6}
-                                                        className="w-full bg-primary text-white font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.3em] transition-all hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2 h-16"
-                                                    >
-                                                        {changing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar e Ativar 2FA'}
-                                                    </button>
-                                                </form>
-                                            </div>
+                                                    <div>
+                                                        <p className="text-white font-bold text-sm">Via E-mail</p>
+                                                        <p className="text-xs text-slate-500">Enviar para seu e-mail cadastrado.</p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-primary" />
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleSetupRequest('SMS')} disabled={changing}
+                                                className="w-full flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-left group"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors">
+                                                        <MessageSquare className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-white font-bold text-sm">Via WhatsApp / SMS</p>
+                                                        <p className="text-xs text-slate-500">Enviar para seu telefone cadastrado.</p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-primary" />
+                                            </button>
+
+                                            {changing && (
+                                                <div className="flex justify-center pt-4">
+                                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                                </div>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center p-10">
-                                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                    )}
+
+                                    {twoFactorStep === 2 && (
+                                        <div className="space-y-6">
+                                            <div className="text-center">
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Código enviado</p>
+                                                <p className="text-sm text-white">Insira o código enviado por <strong>{selectedMethod === 'EMAIL' ? 'E-mail' : 'WhatsApp/SMS'}</strong> para finalizar a ativação.</p>
+                                            </div>
+                                            <form onSubmit={handleEnable2FA} className="space-y-6">
+                                                <div className="space-y-2">
+                                                    <input
+                                                        type="text" required maxLength="6" placeholder="000 000"
+                                                        value={twoFactorCode}
+                                                        onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                                                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-6 px-6 text-center text-3xl font-mono tracking-[0.5em] text-white focus:border-primary/50 outline-none placeholder:text-slate-800 focus:bg-primary/5 transition-all outline-none"
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="submit" disabled={changing || twoFactorCode.length !== 6}
+                                                    className="w-full bg-primary text-white font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.3em] transition-all hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2 h-16"
+                                                >
+                                                    {changing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar e Ativar 2FA'}
+                                                </button>
+
+                                                <button
+                                                    type="button" onClick={() => setTwoFactorStep(1)}
+                                                    className="w-full text-zinc-500 text-xs hover:text-white transition-colors py-2"
+                                                >
+                                                    Retornar à escolha
+                                                </button>
+                                            </form>
                                         </div>
                                     )}
                                 </div>
@@ -453,4 +501,3 @@ export default function SecurityPage() {
         </motion.div>
     );
 }
-
