@@ -37,7 +37,7 @@ exports.createAddress = async (req, res) => {
         const clientId = req.user.id;
         const { zipCode, street, number, complement, neighborhood, city, state, isDefault } = req.body;
 
-        if (!zipCode || !street || !number || !neighborhood || !city || !state) {
+        if (!zipCode || !street || typeof number === 'undefined' || !neighborhood || !city || !state) {
             return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
         }
 
@@ -81,6 +81,10 @@ exports.updateAddress = async (req, res) => {
         });
 
         if (!existingAddress) return res.status(404).json({ message: 'Endereço não encontrado.' });
+
+        if (typeof zipCode === 'undefined' || typeof street === 'undefined' || typeof number === 'undefined' || typeof neighborhood === 'undefined' || typeof city === 'undefined' || typeof state === 'undefined') {
+            return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
+        }
 
         if (isDefault && !existingAddress.isDefault) {
             await prisma.clientAddress.updateMany({

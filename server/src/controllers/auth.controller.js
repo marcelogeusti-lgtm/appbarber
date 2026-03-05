@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { generateUniqueSlug } = require('../utils/slugGenerator');
 const emailProvider = require('../services/communication/providers/EmailProvider');
+const speakeasy = require('speakeasy');
+const qrcode = require('qrcode');
 
 const generateToken = (user, authUser) => {
     const barbershopId = user.workedBarbershopId ||
@@ -154,6 +156,24 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Credenciais inválidas.' });
         }
 
+        // --- 2FA Check ---
+        if (authUser.twoFactorEnabled) {
+            const { mfaToken } = req.body;
+            if (!mfaToken) {
+                return res.status(202).json({ message: '2FA_REQUIRED', authUserId: authUser.id });
+            }
+
+            const verified = speakeasy.totp.verify({
+                secret: authUser.twoFactorSecret,
+                encoding: 'base32',
+                token: mfaToken
+            });
+
+            if (!verified) {
+                return res.status(400).json({ message: 'Código de verificação inválido.' });
+            }
+        }
+
         // --- CONTEXT CHECKS ---
 
         // 1. Pro Context Login
@@ -169,6 +189,18 @@ exports.login = async (req, res) => {
             // Populate legacy fields for frontend compatibility
             const barbershopId = user.workedBarbershopId || user.barbershopId || (user.ownedBarbershops?.[0]?.id);
             const barbershopSlug = (user.ownedBarbershops?.[0]?.slug) || (user.workedBarbershop?.slug);
+
+            // Create Session
+            const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
+            const ipAddress = req.ip || req.connection.remoteAddress;
+            await prisma.session.create({
+                data: {
+                    authUserId: authUser.id,
+                    token: token,
+                    deviceInfo: userAgent,
+                    ipAddress: ipAddress
+                }
+            });
 
             return res.json({
                 token,
@@ -198,6 +230,18 @@ exports.login = async (req, res) => {
 
         const client = authUser.client;
         const token = generateClientToken(client, authUser);
+
+        // Create Session
+        const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
+        const ipAddress = req.ip || req.connection.remoteAddress;
+        await prisma.session.create({
+            data: {
+                authUserId: authUser.id,
+                token: token,
+                deviceInfo: userAgent,
+                ipAddress: ipAddress
+            }
+        });
 
         return res.json({
             token,
@@ -311,6 +355,17 @@ exports.socialLogin = async (req, res) => {
             const barbershopId = user.workedBarbershopId || user.barbershopId || user.ownedBarbershops?.[0]?.id;
             const barbershopSlug = user.ownedBarbershops?.[0]?.slug || user.workedBarbershop?.slug;
 
+            const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
+            const ipAddress = req.ip || req.connection.remoteAddress;
+            await prisma.session.create({
+                data: {
+                    authUserId: authUser.id,
+                    token: token,
+                    deviceInfo: userAgent,
+                    ipAddress: ipAddress
+                }
+            });
+
             return res.json({
                 token,
                 user: {
@@ -346,6 +401,17 @@ exports.socialLogin = async (req, res) => {
 
             const client = authUser.client;
             const token = generateClientToken(client, authUser);
+
+            const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
+            const ipAddress = req.ip || req.connection.remoteAddress;
+            await prisma.session.create({
+                data: {
+                    authUserId: authUser.id,
+                    token: token,
+                    deviceInfo: userAgent,
+                    ipAddress: ipAddress
+                }
+            });
 
             return res.json({
                 token,
@@ -522,3 +588,156 @@ exports.getMe = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
+// --- 2FA ENDPOINTS --- //
+
+exports.generate2FA = async (req, res) => {
+    try {
+        const authUserId = req.user.authUserId;
+        const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+
+        if (!authUser) {
+            return res.status(404).json({ message: 'Usuário não encontrado.' });
+        }
+
+        const secret = speakeasy.generateSecret({
+            name: `BarberApp (${authUser.email})`,
+            length: 20
+        });
+
+        qrcode.toDataURL(secret.otpauth_url, (err, dataUrl) => {
+            if (err) {
+                return res.status(500).json({ message: 'Erro ao gerar QRCode.' });
+            }
+            res.json({
+                secret: secret.base32,
+                qrcode: dataUrl
+            });
+        });
+    } catch (error) {
+        console.error('generate2FA Error:', error);
+        res.status(500).json({ message: 'Erro interno.' });
+    }
+};
+
+exports.enable2FA = async (req, res) => {
+    try {
+        const { token, secret } = req.body;
+        const authUserId = req.user.authUserId;
+
+        const verified = speakeasy.totp.verify({
+            secret: secret,
+            encoding: 'base32',
+            token: token
+        });
+
+        if (verified) {
+            await prisma.authUser.update({
+                where: { id: authUserId },
+                data: {
+                    twoFactorEnabled: true,
+                    twoFactorSecret: secret
+                }
+            });
+            return res.json({ message: 'Autenticação em duas etapas ativada com sucesso.' });
+        } else {
+            return res.status(400).json({ message: 'Código inválido.' });
+        }
+    } catch (error) {
+        console.error('enable2FA Error:', error);
+        res.status(500).json({ message: 'Erro ao ativar 2FA.' });
+    }
+};
+
+exports.disable2FA = async (req, res) => {
+    try {
+        const authUserId = req.user.authUserId;
+
+        await prisma.authUser.update({
+            where: { id: authUserId },
+            data: {
+                twoFactorEnabled: false,
+                twoFactorSecret: null
+            }
+        });
+
+        res.json({ message: 'Autenticação em duas etapas desativada.' });
+    } catch (error) {
+        console.error('disable2FA Error:', error);
+        res.status(500).json({ message: 'Erro interno.' });
+    }
+};
+
+exports.getAuthStatus = async (req, res) => {
+    try {
+        const authUserId = req.user.authUserId;
+        const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+        res.json({
+            twoFactorEnabled: authUser?.twoFactorEnabled || false
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao buscar status de segurança.' });
+    }
+}
+
+// --- SESSION ENDPOINTS --- //
+
+exports.getSessions = async (req, res) => {
+    try {
+        const authUserId = req.user.authUserId;
+
+        // Clean old sessions over 30 days
+        await prisma.session.deleteMany({
+            where: {
+                authUserId,
+                lastActive: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+            }
+        });
+
+        const authHeader = req.headers.authorization;
+        const currentToken = authHeader ? authHeader.split(' ')[1] : null;
+
+        let sessions = await prisma.session.findMany({
+            where: { authUserId },
+            orderBy: { lastActive: 'desc' }
+        });
+
+        sessions = sessions.map(session => ({
+            id: session.id,
+            deviceInfo: session.deviceInfo,
+            ipAddress: session.ipAddress,
+            lastActive: session.lastActive,
+            isCurrent: session.token === currentToken
+        }));
+
+        res.json(sessions);
+    } catch (error) {
+        console.error('getSessions Error:', error);
+        res.status(500).json({ message: 'Erro ao carregar sessões.' });
+    }
+};
+
+exports.revokeSession = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const authUserId = req.user.authUserId;
+
+        const session = await prisma.session.findUnique({ where: { id: sessionId } });
+
+        if (!session) {
+            return res.status(404).json({ message: 'Sessão não encontrada.' });
+        }
+
+        if (session.authUserId !== authUserId) {
+            return res.status(403).json({ message: 'Não autorizado.' });
+        }
+
+        await prisma.session.delete({ where: { id: sessionId } });
+        res.json({ message: 'Sessão desconectada com sucesso.' });
+    } catch (error) {
+        console.error('revokeSession Error:', error);
+        res.status(500).json({ message: 'Erro ao desconectar sessão.' });
+    }
+};
+
+// ... Helper functions need to be defined (generateToken, generateClientToken) ...

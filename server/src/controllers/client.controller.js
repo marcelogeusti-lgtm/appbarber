@@ -241,7 +241,9 @@ exports.updateClientProfile = async (req, res) => {
         // Parse birthDate if string
         let formattedBirthDate = null;
         if (birthDate) {
-            formattedBirthDate = new Date(birthDate);
+            // Append T12:00:00Z to avoid timezone day shift when converting from YYYY-MM-DD
+            const normalizeDate = birthDate.includes('T') ? birthDate : `${birthDate}T12:00:00Z`;
+            formattedBirthDate = new Date(normalizeDate);
             if (isNaN(formattedBirthDate.getTime())) {
                 formattedBirthDate = null;
             }
