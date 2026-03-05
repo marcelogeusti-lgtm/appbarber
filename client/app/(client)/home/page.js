@@ -10,6 +10,7 @@ export default function ClientHome() {
     const { user, loading: authLoading } = useClientAuth();
     const [loadingData, setLoadingData] = useState(true);
     const [barbershops, setBarbershops] = useState([]);
+    const [usingFallback, setUsingFallback] = useState(false);
     const [favorites, setFavorites] = useState([]);
     const [lastAppointment, setLastAppointment] = useState(null);
     const [lastAccess, setLastAccess] = useState([]);
@@ -106,6 +107,9 @@ export default function ClientHome() {
 
             // Process recommendations
             setBarbershops(searchDataRaw);
+            // Check if any shop has usingFallback flag
+            const hasFallback = searchDataRaw.some(shop => shop.usingFallback);
+            setUsingFallback(hasFallback);
 
             // Process user-specific data
             if (user) {
@@ -206,8 +210,11 @@ export default function ClientHome() {
                 {/* 1. SEÇÃO DE RECOMENDADOS (TOPO) */}
                 <div className="space-y-8 mb-20">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-1">
                             <h2 className="text-xl font-black text-white uppercase tracking-tight italic">Recomendados para você</h2>
+                            {usingFallback && !loadingData && (
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Nenhuma barbearia em 15km. Exibindo principais barbearias da plataforma:</p>
+                            )}
                         </div>
                         {barbershops.length > 0 && (
                             <div className="flex gap-2">

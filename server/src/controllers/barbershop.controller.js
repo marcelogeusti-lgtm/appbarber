@@ -163,12 +163,21 @@ const getRecommendedBarbershops = async (req, res) => {
         });
 
         // Apply 15km filter if location is available
+        let filteredRecommended = [...recommended];
+        let usingFallback = false;
+
         if (userLat && userLng) {
-            recommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
+            filteredRecommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
+
+            // Fallback: If strict 15km filtering yields 0 results, show top global recommendations instead of empty list
+            if (filteredRecommended.length === 0) {
+                filteredRecommended = [...recommended];
+                usingFallback = true;
+            }
         }
 
         // 4. Sorting Logic
-        recommended.sort((a, b) => {
+        filteredRecommended.sort((a, b) => {
             // Priority 1: Real Ratings
             if (a.hasRealReviews && !b.hasRealReviews) return -1;
             if (!a.hasRealReviews && b.hasRealReviews) return 1;
@@ -187,9 +196,10 @@ const getRecommendedBarbershops = async (req, res) => {
         });
 
         // Limit to 10
-        const finalResults = recommended.slice(0, 10).map(shop => ({
+        const finalResults = filteredRecommended.slice(0, 10).map(shop => ({
             ...shop,
-            averageRating: shop.hasRealReviews ? shop.averageRating.toFixed(1) : null
+            averageRating: shop.hasRealReviews ? shop.averageRating.toFixed(1) : null,
+            usingFallback // Add flag to let frontend know
         }));
 
         res.json(finalResults);
