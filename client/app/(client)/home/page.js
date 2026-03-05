@@ -28,7 +28,7 @@ export default function ClientHome() {
             text: "Descubra os melhores profissionais da sua região"
         },
         {
-            image: "https://images.unsplash.com/photo-1621605815841-2cd6066f4e33?q=80&w=2070&auto=format&fit=crop",
+            image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=2074&auto=format&fit=crop",
             text: "Corte de cabelo, barba e tratamentos exclusivos"
         }
     ];
