@@ -178,6 +178,7 @@ exports.login = async (req, res) => {
             const { mfaToken } = req.body;
 
             if (!mfaToken) {
+                console.log(`[AUTH] 2FA required for user ${authUser.email}. Generating OTP...`);
                 const otp = generateOTP();
                 const expires = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -190,6 +191,7 @@ exports.login = async (req, res) => {
                 });
 
                 const method = authUser.twoFactorMethod || 'EMAIL';
+                console.log(`[AUTH] 2FA Method: ${method}. Emitting event...`);
 
                 // Emit event for NotificationService
                 eventBus.emit('AUTH_2FA_CODE', {
@@ -199,6 +201,8 @@ exports.login = async (req, res) => {
                     phone: authUser.client?.phone || authUser.user?.phone,
                     userId: authUser.id
                 });
+
+                console.log(`[AUTH] 2FA Event emitted successfully.`);
 
                 return res.status(202).json({
                     message: '2FA_REQUIRED',
@@ -522,6 +526,9 @@ exports.setup2FA = async (req, res) => {
             data: { twoFactorCode: otp, twoFactorExpires: expires, twoFactorMethod: method }
         });
 
+        const listeners = eventBus.listenerCount('AUTH_2FA_CODE');
+        console.log(`[AUTH] setup2FA: Emitting AUTH_2FA_CODE for ${authUser.email}. Listeners: ${listeners}`);
+
         eventBus.emit('AUTH_2FA_CODE', {
             email: authUser.email,
             otp: otp,
@@ -530,6 +537,7 @@ exports.setup2FA = async (req, res) => {
             userId: authUser.id
         });
 
+        console.log(`[AUTH] setup2FA: Event emitted. Returned response.`);
         res.json({ message: `Código enviado por ${method}.` });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao configurar 2FA.' });
