@@ -12,6 +12,13 @@ class WhatsAppProvider {
         this.status = 'DISCONNECTED';
         this.authDir = path.resolve(__dirname, '../../../../auth_info_baileys');
 
+        // Do NOT run Baileys in production — it requires QR scan + persistent filesystem.
+        // In production, WhatsApp is handled via Evolution API (external service).
+        if (process.env.NODE_ENV === 'production') {
+            console.log('[WhatsAppProvider] Production environment detected. Baileys disabled. Use Evolution API for WhatsApp.');
+            return;
+        }
+
         if (!fs.existsSync(this.authDir)) {
             fs.mkdirSync(this.authDir, { recursive: true });
         }

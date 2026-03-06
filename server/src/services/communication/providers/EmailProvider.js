@@ -1,35 +1,38 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 class EmailProvider {
     constructor() {
-        // Configure using environment variables
-        // If variables strictly not set, it might fail silently or log error
-        // For production, suggest user to provide SMTP
-        this.transporter = nodemailer.createTransport({
-            service: 'gmail', // Or customizable
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
+        if (!process.env.RESEND_API_KEY) {
+            console.error('[EmailProvider] CRITICAL: RESEND_API_KEY is not set. All emails will be dropped!');
+        }
+        this.resend = new Resend(process.env.RESEND_API_KEY);
+        // Default from address — can be overridden per email
+        this.defaultFrom = process.env.EMAIL_FROM || 'AppBarber <noreply@appbarber.com.br>';
     }
 
     async sendEmail(to, subject, html) {
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-            console.warn('Email credentials not set. Skipping email.');
+        if (!process.env.RESEND_API_KEY) {
+            console.warn('[EmailProvider] RESEND_API_KEY not set. Skipping email to:', to);
             return false;
         }
 
         try {
-            await this.transporter.sendMail({
-                from: process.env.EMAIL_USER,
+            const { data, error } = await this.resend.emails.send({
+                from: this.defaultFrom,
                 to,
                 subject,
                 html
             });
+
+            if (error) {
+                console.error('[EmailProvider] Resend API error:', error);
+                return false;
+            }
+
+            console.log(`[EmailProvider] Email sent successfully to ${to}. ID: ${data?.id}`);
             return true;
         } catch (error) {
-            console.error('Error sending email:', error);
+            console.error('[EmailProvider] Exception sending email to', to, ':', error.message);
             return false;
         }
     }
