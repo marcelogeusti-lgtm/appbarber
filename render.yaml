@@ -27,6 +27,6 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        sync: false
+        value: AppBarber <onboarding@resend.dev>
       - key: FRONTEND_URL
         sync: false
