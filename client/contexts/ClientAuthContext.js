@@ -19,7 +19,7 @@ export function ClientAuthProvider({ children }) {
         checkSession();
     }, []);
 
-    const checkSession = async () => {
+    const refreshUser = async () => {
         const storedToken = localStorage.getItem('clientToken');
         if (storedToken) {
             try {
@@ -40,6 +40,8 @@ export function ClientAuthProvider({ children }) {
         }
         setLoading(false);
     };
+
+    const checkSession = refreshUser;
 
     const login = async (email, password, mfaToken = null) => {
         try {
@@ -181,6 +183,7 @@ export function ClientAuthProvider({ children }) {
             googleLogin,
             facebookLogin,
             logout,
+            refreshUser,
             isLoginModalOpen,
             openLoginModal,
             closeLoginModal,

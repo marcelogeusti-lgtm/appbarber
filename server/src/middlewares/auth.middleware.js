@@ -13,7 +13,17 @@ exports.protect = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // { id, role, barbershopId }
+        req.user = decoded; // { id, role, authUserId, barbershopId }
+
+        // Update lastActive asynchronously to not block the request
+        if (decoded.authUserId) {
+            const prisma = require('../lib/prisma');
+            prisma.session.updateMany({
+                where: { authUserId: decoded.authUserId, token: token },
+                data: { lastActive: new Date() }
+            }).catch(err => console.error('[AUTH] Failed to update session activity:', err.message));
+        }
+
         next();
     } catch (error) {
         console.error(`[AUTH] Token verification failed for ${req.headers.authorization?.substring(0, 15)}... :`, error.message);

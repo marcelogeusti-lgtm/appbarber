@@ -9,6 +9,25 @@ const eventBus = require('../services/events/eventBus');
 // Helper para gerar código de 6 dígitos
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+// Helper functions
+const createSession = async (req, authUserId, token) => {
+    try {
+        const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
+        const ipAddress = req.ip || req.connection.remoteAddress || '0.0.0.0';
+
+        await prisma.session.create({
+            data: {
+                authUserId,
+                token,
+                deviceInfo: userAgent,
+                ipAddress
+            }
+        });
+    } catch (error) {
+        console.error('[AUTH] Failed to create session:', error.message);
+    }
+};
+
 const generateToken = (user, authUser) => {
     const barbershopId = user.workedBarbershopId ||
         user.barbershopId ||
@@ -74,37 +93,31 @@ exports.register = async (req, res) => {
                 });
 
                 // AUTO-CREATE PROFESSIONAL PROFILE
-                // This ensures the owner is also a professional from the start.
                 await tx.professional.create({
                     data: {
                         userId: user.id,
                         showInApp: true,
                         showPublicly: true,
-                        position: 'Administrador / Barbeiro', // Default position
-                        bio: 'Profissional principal.' // Optional default
+                        position: 'Administrador / Barbeiro',
+                        bio: 'Profissional principal.'
                     }
                 });
 
                 return { user, barbershop, authUser };
             });
 
-            // [FIX] Ensure token has barbershopId by providing the relationship manually
             const userForToken = {
                 ...result.user,
                 ownedBarbershops: [result.barbershop]
             };
 
             const token = generateToken(userForToken, result.authUser);
+            await createSession(req, result.authUser.id, token);
 
-            // Return user with ownedBarbershops populated so frontend validation works immediately
-            const userWithShop = userForToken;
-
-            return res.status(201).json({ token, user: userWithShop, barbershop: result.barbershop });
+            return res.status(201).json({ token, user: userForToken, barbershop: result.barbershop });
         }
 
         // 3. CLIENT Registration (Default)
-        // Ensure no conflict with Barbers? (AuthUser check covers it)
-
         const result = await prisma.$transaction(async (tx) => {
             const authUser = await tx.authUser.create({
                 data: { email, password: hashedPassword, provider: 'EMAIL' }
@@ -122,8 +135,9 @@ exports.register = async (req, res) => {
             return { client, authUser };
         });
 
-        // Generate Client Token
         const token = generateClientToken(result.client, result.authUser);
+        await createSession(req, result.authUser.id, token);
+
         return res.status(201).json({ token, user: result.client, role: 'CLIENT' });
 
     } catch (error) {
@@ -134,7 +148,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        const { email, password, context } = req.body; // context: 'CLIENT' or 'PRO'
+        const { email, password, context } = req.body;
 
         const authUser = await prisma.authUser.findUnique({
             where: { email },
@@ -159,14 +173,13 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Credenciais inválidas.' });
         }
 
-        // --- 2FA Check (OTP via Email/SMS) ---
+        // --- 2FA Check ---
         if (authUser.twoFactorEnabled) {
             const { mfaToken } = req.body;
 
             if (!mfaToken) {
-                // Generate and send code
                 const otp = generateOTP();
-                const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+                const expires = new Date(Date.now() + 10 * 60 * 1000);
 
                 await prisma.authUser.update({
                     where: { id: authUser.id },
@@ -177,23 +190,15 @@ exports.login = async (req, res) => {
                 });
 
                 const method = authUser.twoFactorMethod || 'EMAIL';
-                const message = `Seu código de acesso ao AppBarber é: ${otp}. Válido por 10 minutos.`;
 
-                if (method === 'EMAIL') {
-                    await emailProvider.sendEmail(authUser.email, 'Código de Autenticação - AppBarber', `
-                        <div style="font-family: sans-serif; padding: 20px;">
-                            <h2>Código de Acesso</h2>
-                            <p>Seu código é: <strong style="font-size: 24px; color: #00e676;">${otp}</strong></p>
-                            <p>Este código expira em 10 minutos e apenas pode ser usado uma vez.</p>
-                        </div>
-                    `);
-                } else if (method === 'SMS') {
-                    // Try to get phone from Client or User profile
-                    const phone = authUser.client?.phone || authUser.user?.workedBarbershop?.phone || authUser.user?.ownedBarbershops?.[0]?.phone;
-                    if (phone) {
-                        await whatsappService.sendText(phone, message);
-                    }
-                }
+                // Emit event for NotificationService
+                eventBus.emit('AUTH_2FA_CODE', {
+                    email: authUser.email,
+                    otp: otp,
+                    method: method,
+                    phone: authUser.client?.phone || authUser.user?.phone,
+                    userId: authUser.id
+                });
 
                 return res.status(202).json({
                     message: '2FA_REQUIRED',
@@ -202,7 +207,6 @@ exports.login = async (req, res) => {
                 });
             }
 
-            // Verify the provided token
             if (authUser.twoFactorCode !== mfaToken || !authUser.twoFactorExpires) {
                 return res.status(400).json({ message: 'Código de verificação incorreto.' });
             }
@@ -211,40 +215,24 @@ exports.login = async (req, res) => {
                 return res.status(400).json({ message: 'Código expirado. Solicite um novo.' });
             }
 
-            // Consume token
             await prisma.authUser.update({
                 where: { id: authUser.id },
                 data: { twoFactorCode: null, twoFactorExpires: null }
             });
         }
 
-        // --- CONTEXT CHECKS ---
-
-        // 1. Pro Context Login
         if (context === 'PRO') {
             if (!authUser.user) {
-                // If it's a client trying to access Pro
                 return res.status(403).json({ message: 'Esta conta não possui acesso profissional.' });
             }
 
             const user = authUser.user;
             const token = generateToken(user, authUser);
 
-            // Populate legacy fields for frontend compatibility
             const barbershopId = user.workedBarbershopId || user.barbershopId || (user.ownedBarbershops?.[0]?.id);
             const barbershopSlug = (user.ownedBarbershops?.[0]?.slug) || (user.workedBarbershop?.slug);
 
-            // Create Session
-            const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
-            const ipAddress = req.ip || req.connection.remoteAddress;
-            await prisma.session.create({
-                data: {
-                    authUserId: authUser.id,
-                    token: token,
-                    deviceInfo: userAgent,
-                    ipAddress: ipAddress
-                }
-            });
+            await createSession(req, authUser.id, token);
 
             return res.json({
                 token,
@@ -254,17 +242,10 @@ exports.login = async (req, res) => {
             });
         }
 
-        // 2. Client Context Login (Default)
-        // STRICT CONTEXT: If context is CLIENT, we ONLY return Client data.
-        // If the user is a Pro, we DO NOT BLOCK. We just check if they have a Client profile.
-        // If not, we create one automatically (because they might want to cut their hair too!).
-
         if (!authUser.client) {
-            // Auto-create Client profile for existing AuthUser (even if Pro)
-            // This enables Multi-Role support
             const newClient = await prisma.client.create({
                 data: {
-                    name: authUser.user ? authUser.user.name : 'Novo Cliente', // Inherit name if Pro
+                    name: authUser.user ? authUser.user.name : 'Novo Cliente',
                     authUserId: authUser.id,
                     theme: 'dark'
                 }
@@ -275,17 +256,7 @@ exports.login = async (req, res) => {
         const client = authUser.client;
         const token = generateClientToken(client, authUser);
 
-        // Create Session
-        const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
-        const ipAddress = req.ip || req.connection.remoteAddress;
-        await prisma.session.create({
-            data: {
-                authUserId: authUser.id,
-                token: token,
-                deviceInfo: userAgent,
-                ipAddress: ipAddress
-            }
-        });
+        await createSession(req, authUser.id, token);
 
         return res.json({
             token,
@@ -298,25 +269,14 @@ exports.login = async (req, res) => {
     }
 };
 
-// ... Helper functions need to be defined (generateToken, generateClientToken) ...
-// For this edit I'll add them at the top or assume they are helper functions in the file
-// I will rewrite the top of the file in a separate step or just include them if I can.
-// Since I'm replacing the body, I can't easily add top-level functions unless I replace the whole file.
-// I'll replace the whole file in next step or use 'write_to_file' if I want to be clean.
-
-
-// Social Login (Google/Facebook)
 exports.socialLogin = async (req, res) => {
     try {
         const { email, name, provider, providerId, avatarUrl, context } = req.body;
-
-        console.log(`[AUTH] Social Login attempt: ${email} via ${provider} (Context: ${context})`);
 
         if (!email || !provider) {
             return res.status(400).json({ message: 'Email e Provider são obrigatórios' });
         }
 
-        // 1. Find or Create AuthUser
         let authUser = await prisma.authUser.findUnique({
             where: { email },
             include: {
@@ -328,7 +288,6 @@ exports.socialLogin = async (req, res) => {
         });
 
         if (!authUser) {
-            console.log(`[AUTH] Creating new AuthUser for social login`);
             authUser = await prisma.authUser.create({
                 data: {
                     email,
@@ -339,16 +298,13 @@ exports.socialLogin = async (req, res) => {
             });
         }
 
-        // 2. Handle Profiles based on Context
         if (context === 'PRO') {
-            // If the user doesn't have a professional profile, create one (and a barbershop)
             if (!authUser.user) {
-                console.log(`[AUTH] Creating new Pro User + Barbershop`);
                 const result = await prisma.$transaction(async (tx) => {
                     const newUser = await tx.user.create({
                         data: {
                             name: name || 'Barbeiro',
-                            email, // Legacy field
+                            email,
                             role: 'ADMIN',
                             authUserId: authUser.id,
                             avatarUrl: avatarUrl
@@ -385,7 +341,6 @@ exports.socialLogin = async (req, res) => {
                     workedBarbershop: null
                 };
             } else if (avatarUrl && !authUser.user.avatarUrl) {
-                // Persistent fix: If existing pro has no photo, but social provider has one, save it.
                 await prisma.user.update({
                     where: { id: authUser.user.id },
                     data: { avatarUrl }
@@ -399,32 +354,17 @@ exports.socialLogin = async (req, res) => {
             const barbershopId = user.workedBarbershopId || user.barbershopId || user.ownedBarbershops?.[0]?.id;
             const barbershopSlug = user.ownedBarbershops?.[0]?.slug || user.workedBarbershop?.slug;
 
-            const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
-            const ipAddress = req.ip || req.connection.remoteAddress;
-            await prisma.session.create({
-                data: {
-                    authUserId: authUser.id,
-                    token: token,
-                    deviceInfo: userAgent,
-                    ipAddress: ipAddress
-                }
-            });
+            await createSession(req, authUser.id, token);
 
             return res.json({
                 token,
-                user: {
-                    ...user, // Spreading user includes relations like ownedBarbershops
-                    email: authUser.email,
-                    role: user.role
-                },
+                user: { ...user, email: authUser.email, role: user.role },
                 barbershopId,
                 barbershopSlug
             });
 
         } else {
-            // Context: CLIENT (or default)
             if (!authUser.client) {
-                console.log(`[AUTH] Creating new Client profile`);
                 const newClient = await prisma.client.create({
                     data: {
                         name: name || 'Cliente',
@@ -435,7 +375,6 @@ exports.socialLogin = async (req, res) => {
                 });
                 authUser.client = newClient;
             } else if (avatarUrl && !authUser.client.avatarUrl) {
-                // Persistent fix: If existing client has no photo, but social provider has one, save it.
                 await prisma.client.update({
                     where: { id: authUser.client.id },
                     data: { avatarUrl }
@@ -446,94 +385,60 @@ exports.socialLogin = async (req, res) => {
             const client = authUser.client;
             const token = generateClientToken(client, authUser);
 
-            const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
-            const ipAddress = req.ip || req.connection.remoteAddress;
-            await prisma.session.create({
-                data: {
-                    authUserId: authUser.id,
-                    token: token,
-                    deviceInfo: userAgent,
-                    ipAddress: ipAddress
-                }
-            });
+            await createSession(req, authUser.id, token);
 
             return res.json({
                 token,
-                user: {
-                    ...client,
-                    role: 'CLIENT',
-                    email: authUser.email
-                }
+                user: { ...client, role: 'CLIENT', email: authUser.email }
             });
         }
 
     } catch (error) {
         console.error('Social Login Error:', error);
-        res.status(500).json({ message: 'Erro no login social. Tente novamente.' });
+        res.status(500).json({ message: 'Erro no login social.' });
     }
 };
 
-
-// Forgot Password
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
         const authUser = await prisma.authUser.findUnique({ where: { email } });
         if (!authUser) {
-            // Security: Don't leak if email exists or not
             return res.status(200).json({ message: 'Se o email existir, enviamos o link.' });
         }
 
-        // Generate Token
         const resetToken = jwt.sign(
             { id: authUser.id, purpose: 'RESET_PASSWORD' },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
 
-        // Build reset link
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
         const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-        // Send Email using EVENT BUS instead of direct HTML injection
         eventBus.emit('PASSWORD_RESET_REQUEST', {
             email: email,
             resetLink: resetLink,
-            resetCode: resetToken.substring(resetToken.length - 6).toUpperCase(), // Fake numeric
+            resetCode: resetToken.substring(resetToken.length - 6).toUpperCase(),
             userId: authUser.id
         });
 
         res.status(200).json({ message: 'Email de recuperação enviado.' });
-
     } catch (error) {
         console.error('Forgot Password Error:', error);
-        res.status(500).json({ message: 'Erro ao processar solicitação.' });
+        res.status(500).json({ message: 'Erro ao processar.' });
     }
 };
 
-// Reset Password
 exports.resetPassword = async (req, res) => {
     try {
         const { token, password } = req.body;
+        if (!token || !password) return res.status(400).json({ message: 'Campos obrigatórios.' });
 
-        if (!token || !password) {
-            return res.status(400).json({ message: 'Token e nova senha são obrigatórios.' });
-        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.purpose !== 'RESET_PASSWORD') return res.status(400).json({ message: 'Token inválido.' });
 
-        // Verify Token
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET);
-        } catch (err) {
-            return res.status(400).json({ message: 'Token inválido ou expirado.' });
-        }
-
-        if (decoded.purpose !== 'RESET_PASSWORD') {
-            return res.status(400).json({ message: 'Token inválido.' });
-        }
-
-        // Update Password
         const hashedPassword = await bcrypt.hash(password, 10);
         await prisma.authUser.update({
             where: { id: decoded.id },
@@ -541,10 +446,8 @@ exports.resetPassword = async (req, res) => {
         });
 
         res.json({ message: 'Senha redefinida com sucesso!' });
-
     } catch (error) {
-        console.error('Reset Password Error:', error);
-        res.status(500).json({ message: 'Erro ao redefinir senha.' });
+        res.status(400).json({ message: 'Token expirado ou inválido.' });
     }
 };
 
@@ -553,46 +456,29 @@ exports.changePassword = async (req, res) => {
         const { currentPassword, newPassword } = req.body;
         const authUserId = req.user.authUserId;
 
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ message: 'Senha atual e nova senha são obrigatórias.' });
-        }
-
         const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
-        if (!authUser || !authUser.password) {
-            return res.status(400).json({ message: 'Usuário não encontrado ou usa login social.' });
-        }
+        if (!authUser || !authUser.password) return res.status(400).json({ message: 'Login social não permite alterar senha aqui.' });
 
         const isMatch = await bcrypt.compare(currentPassword, authUser.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Senha atual incorreta.' });
-        }
+        if (!isMatch) return res.status(400).json({ message: 'Senha atual incorreta.' });
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await prisma.authUser.update({
-            where: { id: authUserId },
-            data: { password: hashedPassword }
-        });
+        await prisma.authUser.update({ where: { id: authUserId }, data: { password: hashedPassword } });
 
         res.json({ message: 'Senha alterada com sucesso!' });
     } catch (error) {
-        console.error('Change Password Error:', error);
         res.status(500).json({ message: 'Erro ao alterar senha.' });
     }
 };
 
 exports.getMe = async (req, res) => {
     try {
-        // ... (Existing getMe logic to be updated if needed)
-        // If req.user is from Client Token, it has id=ClientUUID
-        // If req.user is from Pro Token, it has id=UserUUID
-
         if (req.user.role === 'CLIENT') {
             const client = await prisma.client.findUnique({
                 where: { id: req.user.id },
                 include: { authUser: true }
             });
             if (!client) return res.status(404).json({ message: 'Client not found' });
-
             res.json({
                 id: client.id,
                 name: client.name,
@@ -603,10 +489,9 @@ exports.getMe = async (req, res) => {
                 authUserId: client.authUserId
             });
         } else {
-            // Pro Logic (Existing)
             const user = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                include: { professionalProfile: true, ownedBarbershops: true }
+                include: { professional: true, ownedBarbershops: true }
             });
             if (!user) return res.status(404).json({ message: 'User not found' });
             user.password = undefined;
@@ -617,59 +502,36 @@ exports.getMe = async (req, res) => {
     }
 };
 
-// --- 2FA ENDPOINTS (Email/SMS OTP) --- //
-
 exports.setup2FA = async (req, res) => {
     try {
         const authUserId = req.user.authUserId;
-        const { method } = req.body; // 'EMAIL' or 'SMS'
+        const { method } = req.body;
 
-        if (method !== 'EMAIL' && method !== 'SMS') {
-            return res.status(400).json({ message: 'Método inválido.' });
-        }
+        if (method !== 'EMAIL' && method !== 'SMS') return res.status(400).json({ message: 'Método inválido.' });
 
         const authUser = await prisma.authUser.findUnique({
             where: { id: authUserId },
             include: { client: true, user: true }
         });
 
-        if (!authUser) {
-            return res.status(404).json({ message: 'Usuário não encontrado.' });
-        }
-
         const otp = generateOTP();
         const expires = new Date(Date.now() + 10 * 60 * 1000);
 
         await prisma.authUser.update({
             where: { id: authUserId },
-            data: {
-                twoFactorCode: otp,
-                twoFactorExpires: expires,
-                twoFactorMethod: method // Save the chosen method temporarily to evaluate in enable2FA
-            }
+            data: { twoFactorCode: otp, twoFactorExpires: expires, twoFactorMethod: method }
         });
 
-        const message = `Seu código de ativação do 2FA no AppBarber é: ${otp}. Válido por 10 minutos.`;
-
-        if (method === 'EMAIL') {
-            await emailProvider.sendEmail(authUser.email, 'Ativação de 2FA - AppBarber', `
-                <div style="font-family: sans-serif; padding: 20px;">
-                    <h2>Ativação de Segurança</h2>
-                    <p>Seu código é: <strong style="font-size: 24px; color: #00e676;">${otp}</strong></p>
-                    <p>Informe este código na tela de configuração para concluir a ativação.</p>
-                </div>
-            `);
-        } else if (method === 'SMS') {
-            const phone = authUser.client?.phone || authUser.user?.workedBarbershop?.phone || authUser.user?.ownedBarbershops?.[0]?.phone;
-            if (!phone) {
-                return res.status(400).json({ message: 'Nenhum telefone cadastrado para envio de SMS.' });
-            }
-            await whatsappService.sendText(phone, message);
-        }
+        eventBus.emit('AUTH_2FA_CODE', {
+            email: authUser.email,
+            otp: otp,
+            method: method,
+            phone: authUser.client?.phone || authUser.user?.phone,
+            userId: authUser.id
+        });
 
         res.json({ message: `Código enviado por ${method}.` });
     } catch (error) {
-        console.error('setup2FA Error:', error);
         res.status(500).json({ message: 'Erro ao configurar 2FA.' });
     }
 };
@@ -680,102 +542,67 @@ exports.enable2FA = async (req, res) => {
         const authUserId = req.user.authUserId;
 
         const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
-
-        if (!authUser || !authUser.twoFactorCode) {
-            return res.status(400).json({ message: 'Nenhuma solicitação de 2FA pendente.' });
-        }
-
-        if (authUser.twoFactorCode !== token) {
-            return res.status(400).json({ message: 'Código de verificação incorreto.' });
-        }
-
-        if (new Date() > authUser.twoFactorExpires) {
-            return res.status(400).json({ message: 'Código expirado. Solicite um novo.' });
-        }
+        if (!authUser || authUser.twoFactorCode !== token) return res.status(400).json({ message: 'Código incorreto.' });
+        if (new Date() > authUser.twoFactorExpires) return res.status(400).json({ message: 'Código expirado.' });
 
         await prisma.authUser.update({
             where: { id: authUserId },
-            data: {
-                twoFactorEnabled: true,
-                twoFactorCode: null,
-                twoFactorExpires: null
-            }
+            data: { twoFactorEnabled: true, twoFactorCode: null, twoFactorExpires: null }
         });
 
-        return res.json({ message: 'Autenticação em duas etapas ativada com sucesso.', method: authUser.twoFactorMethod });
+        res.json({ message: '2FA ativado!', method: authUser.twoFactorMethod });
     } catch (error) {
-        console.error('enable2FA Error:', error);
         res.status(500).json({ message: 'Erro ao ativar 2FA.' });
     }
 };
 
 exports.disable2FA = async (req, res) => {
     try {
-        const authUserId = req.user.authUserId;
-
         await prisma.authUser.update({
-            where: { id: authUserId },
-            data: {
-                twoFactorEnabled: false,
-                twoFactorMethod: null,
-                twoFactorCode: null,
-                twoFactorExpires: null
-            }
+            where: { id: req.user.authUserId },
+            data: { twoFactorEnabled: false, twoFactorMethod: null }
         });
-
-        res.json({ message: 'Autenticação em duas etapas desativada.' });
+        res.json({ message: '2FA desativado.' });
     } catch (error) {
-        console.error('disable2FA Error:', error);
-        res.status(500).json({ message: 'Erro interno.' });
+        res.status(500).json({ message: 'Erro.' });
     }
 };
 
 exports.getAuthStatus = async (req, res) => {
     try {
-        const authUserId = req.user.authUserId;
-        const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+        const authUser = await prisma.authUser.findUnique({ where: { id: req.user.authUserId } });
         res.json({
             twoFactorEnabled: authUser?.twoFactorEnabled || false,
             twoFactorMethod: authUser?.twoFactorMethod || null
         });
     } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar status de segurança.' });
+        res.status(500).json({ message: 'Erro.' });
     }
-}
-
-// --- SESSION ENDPOINTS --- //
+};
 
 exports.getSessions = async (req, res) => {
     try {
         const authUserId = req.user.authUserId;
-
-        // Clean old sessions over 30 days
         await prisma.session.deleteMany({
-            where: {
-                authUserId,
-                lastActive: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-            }
+            where: { authUserId, lastActive: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }
         });
 
         const authHeader = req.headers.authorization;
-        const currentToken = authHeader ? authHeader.split(' ')[1] : null;
+        const currentToken = authHeader?.split(' ')[1];
 
-        let sessions = await prisma.session.findMany({
+        const sessions = await prisma.session.findMany({
             where: { authUserId },
             orderBy: { lastActive: 'desc' }
         });
 
-        sessions = sessions.map(session => ({
-            id: session.id,
-            deviceInfo: session.deviceInfo,
-            ipAddress: session.ipAddress,
-            lastActive: session.lastActive,
-            isCurrent: session.token === currentToken
-        }));
-
-        res.json(sessions);
+        res.json(sessions.map(s => ({
+            id: s.id,
+            deviceInfo: s.deviceInfo,
+            ipAddress: s.ipAddress,
+            lastActive: s.lastActive,
+            isCurrent: s.token === currentToken
+        })));
     } catch (error) {
-        console.error('getSessions Error:', error);
         res.status(500).json({ message: 'Erro ao carregar sessões.' });
     }
 };
@@ -783,24 +610,12 @@ exports.getSessions = async (req, res) => {
 exports.revokeSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        const authUserId = req.user.authUserId;
-
         const session = await prisma.session.findUnique({ where: { id: sessionId } });
-
-        if (!session) {
-            return res.status(404).json({ message: 'Sessão não encontrada.' });
-        }
-
-        if (session.authUserId !== authUserId) {
-            return res.status(403).json({ message: 'Não autorizado.' });
-        }
+        if (!session || session.authUserId !== req.user.authUserId) return res.status(403).json({ message: 'Não autorizado.' });
 
         await prisma.session.delete({ where: { id: sessionId } });
-        res.json({ message: 'Sessão desconectada com sucesso.' });
+        res.json({ message: 'Sessão encerrada.' });
     } catch (error) {
-        console.error('revokeSession Error:', error);
-        res.status(500).json({ message: 'Erro ao desconectar sessão.' });
+        res.status(500).json({ message: 'Erro.' });
     }
 };
-
-// ... Helper functions need to be defined (generateToken, generateClientToken) ...

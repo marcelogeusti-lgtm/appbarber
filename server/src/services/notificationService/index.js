@@ -321,6 +321,31 @@ eventBus.on('PASSWORD_RESET_REQUEST', async (payload) => {
     }
 });
 
+// Event: AUTH_2FA_CODE
+eventBus.on('AUTH_2FA_CODE', async (payload) => {
+    // payload: { email, otp, method, phone, userId }
+    console.log(`[NotificationService] Event Received: AUTH_2FA_CODE for ${payload.email}`);
+
+    if (payload.method === 'EMAIL') {
+        emailService.sendTemplateEmail({
+            to: payload.email,
+            subject: 'Código de Verificação - AppBarber',
+            template: 'auth-otp',
+            userId: payload.userId,
+            data: {
+                otp: payload.otp
+            }
+        });
+    } else if (payload.method === 'SMS' && payload.phone) {
+        try {
+            const message = `Seu código de acesso ao AppBarber é: ${payload.otp}. Válido por 10 minutos.`;
+            await whatsappService.sendText(payload.phone, message);
+        } catch (err) {
+            console.error('[NotificationService] SMS 2FA delivery failed:', err);
+        }
+    }
+});
+
 module.exports = {
     init: () => console.log('[NotificationService] Module active.')
 };
