@@ -27,6 +27,6 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: AppBarber <onboarding@resend.dev>
+        value: AppBarber <nao-responda@corteconexao.com.br>
       - key: FRONTEND_URL
         sync: false
