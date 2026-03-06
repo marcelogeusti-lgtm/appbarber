@@ -2,12 +2,14 @@ const { Resend } = require('resend');
 
 class EmailProvider {
     constructor() {
+        this.resend = null;
         if (!process.env.RESEND_API_KEY) {
             console.error('[EmailProvider] CRITICAL: RESEND_API_KEY is not set. All emails will be dropped!');
+        } else {
+            this.resend = new Resend(process.env.RESEND_API_KEY);
         }
-        this.resend = new Resend(process.env.RESEND_API_KEY);
         // Default from address — can be overridden per email
-        this.defaultFrom = process.env.EMAIL_FROM || 'AppBarber <noreply@appbarber.com.br>';
+        this.defaultFrom = process.env.EMAIL_FROM || 'Next App <noreply@corteconexao.com.br>';
     }
 
     async sendEmail(to, subject, html) {
