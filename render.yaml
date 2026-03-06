@@ -25,7 +25,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: RESEND_API_KEY
-        sync: false
+        value: re_ZyLeoAXN_957RG3K7ijmKeQ7skrezz7zN
       - key: EMAIL_FROM
         value: '"Next App" <nao-responda@corteconexao.com.br>'
       - key: FRONTEND_URL
