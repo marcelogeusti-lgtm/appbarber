@@ -459,7 +459,19 @@ exports.createAppointment = async (req, res) => {
             try {
                 const fullApp = await prisma.appointment.findUnique({
                     where: { id: appointment.id },
-                    include: { client: true, service: true, professional: true, barbershop: true }
+                    include: {
+                        client: { include: { authUser: { select: { email: true } } } },
+                        service: true,
+                        professional: true,
+                        barbershop: true,
+                        order: {
+                            include: {
+                                items: {
+                                    include: { product: true, service: true }
+                                }
+                            }
+                        }
+                    }
                 });
                 if (fullApp) {
                     const eventBus = require('../services/events/eventBus');

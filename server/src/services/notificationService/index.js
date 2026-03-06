@@ -61,29 +61,42 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
 
     // 3. Email Notification (Async)
     try {
-        // Obter email do client linked by authUser
-        const clientWithEmail = await prisma.client.findUnique({
-            where: { id: payload.client.id },
-            include: { authUser: true }
-        });
+        const clientEmail = payload.client?.authUser?.email || payload.client?.email;
 
-        if (clientWithEmail?.authUser?.email) {
+        if (clientEmail) {
             const dateObj = new Date(payload.date);
+
+            // Format Products HTML if any
+            let productsHtml = '';
+            if (payload.order && payload.order.items) {
+                const products = payload.order.items.filter(i => i.type === 'PRODUCT');
+                if (products.length > 0) {
+                    productsHtml = '<div style="margin-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px;">';
+                    productsHtml += '<p style="margin-bottom: 5px; color: #94a3b8; font-size: 14px;">Produtos Adicionais:</p>';
+                    products.forEach(p => {
+                        productsHtml += `<div class="detail-item"><span class="label">${p.product?.name || 'Produto'} (x${p.quantity})</span><span class="value">R$ ${Number(p.total).toFixed(2)}</span></div>`;
+                    });
+                    productsHtml += '</div>';
+                }
+            }
+
             emailService.sendTemplateEmail({
-                to: clientWithEmail.authUser.email,
-                subject: 'Seu agendamento foi confirmado',
+                to: clientEmail,
+                subject: 'Confirmação de Agendamento - Next App',
                 template: 'appointment-confirmation',
-                userId: clientWithEmail.id,
+                userId: payload.clientId,
                 data: {
-                    cliente: payload.client.name,
-                    barbershop: payload.barbershop.name,
-                    service: payload.service.name,
-                    barber: payload.professional?.name || 'Profissional',
+                    clientName: payload.client.name,
+                    barbershopName: payload.barbershop?.name || 'Nossa Barbearia',
+                    serviceName: payload.service?.name || 'Serviço',
+                    barberName: payload.professional?.name || 'Profissional',
                     date: dateObj.toLocaleDateString('pt-BR'),
                     time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                    address: payload.barbershop?.address || 'Endereço não informado'
+                    productsHtml: productsHtml,
+                    totalPrice: Number(payload.order?.total || payload.service?.price || 0).toFixed(2)
                 }
-            }); // Nao aguarda (async-fire-and-forget background job shape)
+            });
+            console.log(`[NotificationService] Appointment Confirmation Email sent to ${clientEmail}`);
         }
     } catch (err) {
         console.error('[NotificationService] Email Dispatch error:', err);
