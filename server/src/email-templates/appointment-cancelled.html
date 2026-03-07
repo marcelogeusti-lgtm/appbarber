@@ -4,54 +4,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendamento Cancelado</title>
+    <title>Agendamento Cancelado - Next App</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f4f5;
+            font-family: 'Inter', -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, helvetica, arial, sans-serif;
+            background-color: #0f172a;
             margin: 0;
             padding: 0;
-            color: #18181b;
+            color: #ffffff;
         }
 
         .container {
             max-width: 600px;
             margin: 40px auto;
-            background-color: #ffffff;
-            border-radius: 12px;
+            background-color: #1e293b;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .header {
-            background-color: #ef4444;
-            padding: 32px;
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            padding: 40px 20px;
             text-align: center;
-            color: #ffffff;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
         }
 
         .content {
             padding: 40px 32px;
         }
 
+        .footer {
+            padding: 30px;
+            background-color: #111827;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
         .greeting {
             font-size: 18px;
-            color: #3f3f46;
+            color: #f8fafc;
             margin-bottom: 24px;
         }
 
         .card {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.05);
+            border-radius: 16px;
             padding: 24px;
             margin-bottom: 24px;
+            border: 1px solid rgba(239, 68, 68, 0.1);
         }
 
         .detail-label {
@@ -66,22 +68,14 @@
 
         .detail-value {
             font-size: 16px;
-            color: #7f1d1d;
+            color: #f8fafc;
             font-weight: 600;
             margin: 0 0 16px 0;
         }
 
-        .footer {
-            background-color: #f4f4f5;
-            padding: 24px;
-            text-align: center;
-            border-top: 1px solid #e4e4e7;
-        }
-
         .footer p {
             margin: 0;
-            font-size: 14px;
-            color: #71717a;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -89,12 +83,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>❌ Agendamento Cancelado</h1>
+            <img src="{{logoUrl}}" alt="Next App" height="40"
+                style="display: block; margin: 0 auto; max-height: 40px; width: auto;">
         </div>
         <div class="content">
-            <p class="greeting">Olá <strong>{{cliente}}</strong>,</p>
-            <p style="color: #52525b; margin-bottom: 24px; line-height: 1.6;">O seu agendamento na
-                <strong>{{barbershop}}</strong> foi cancelado com sucesso.</p>
+            <h2 style="color: #f8fafc; margin-top: 0; text-align: center;">❌ Agendamento Cancelado</h2>
+            <p class="greeting">Olá, <strong>{{cliente}}</strong>!</p>
+            <p style="color: #cbd5e1; margin-bottom: 24px; line-height: 1.6;">O seu agendamento na
+                <strong>{{barbershop}}</strong> foi cancelado.</p>
 
             <div class="card">
                 <span class="detail-label">Serviço Cancelado</span>
@@ -104,12 +100,12 @@
                 <p class="detail-value" style="margin-bottom: 0;">{{date}} às {{time}}</p>
             </div>
 
-            <p style="color: #71717a; font-size: 14px; text-align: center;">
+            <p style="color: #94a3b8; font-size: 14px; text-align: center;">
                 Esperamos ver você de volta em breve. Acesse o aplicativo para agendar um novo horário.
             </p>
         </div>
         <div class="footer">
-            <p>Este é um e-mail automático enviado pelo sistema AppBarber. Por favor, não responda.</p>
+            <p>&copy; 2026 Next App Cloud. Todos os direitos reservados.</p>
         </div>
     </div>
 </body>

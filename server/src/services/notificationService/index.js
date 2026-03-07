@@ -93,7 +93,8 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
                     date: dateObj.toLocaleDateString('pt-BR'),
                     time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
                     productsHtml: productsHtml,
-                    totalPrice: Number(payload.order?.total || payload.service?.price || 0).toFixed(2)
+                    totalPrice: Number(payload.order?.total || payload.service?.price || 0).toFixed(2),
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                 }
             });
             console.log(`[NotificationService] Appointment Confirmation Email sent to ${clientEmail}`);
@@ -163,7 +164,8 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
                     barbershop: payload.barbershop.name,
                     service: payload.service.name,
                     time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                    address: payload.barbershop?.address || 'Endereço não informado'
+                    address: payload.barbershop?.address || 'Endereço não informado',
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                 }
             });
         }
@@ -227,7 +229,8 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
                             service: appointment.service?.name || 'Serviço',
                             barber: appointment.professional?.name || 'Profissional',
                             date: dateObj.toLocaleDateString('pt-BR'),
-                            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                            logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                         }
                     });
                 }
@@ -266,7 +269,8 @@ eventBus.on('PAYMENT_CONFIRMED', async (payload) => {
                     description: payload.description || 'Sua fatura do AppBarber',
                     paymentMethod: payload.paymentMethod || 'Sistema de Pagamento',
                     transactionId: payload.transactionId || payload.id || 'N/A',
-                    date: new Date().toLocaleDateString('pt-BR')
+                    date: new Date().toLocaleDateString('pt-BR'),
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                 }
             });
         }
@@ -300,7 +304,8 @@ eventBus.on('INVOICE_CREATED', async (payload) => {
                     description: payload.description || 'Assinatura',
                     paymentLink: payload.paymentLink,
                     invoiceId: payload.invoiceId,
-                    barbershop: payload.barbershopName
+                    barbershop: payload.barbershopName,
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                 }
             });
         }
@@ -326,7 +331,8 @@ eventBus.on('PASSWORD_RESET_REQUEST', async (payload) => {
             userId: payload.userId,
             data: {
                 resetCode: payload.resetCode,
-                resetLink: payload.resetLink
+                resetLink: payload.resetLink,
+                logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
             }
         });
     } catch (err) {
@@ -350,7 +356,8 @@ eventBus.on('AUTH_2FA_CODE', async (payload) => {
                 template: 'auth-otp',
                 userId: payload.userId,
                 data: {
-                    otp: payload.otp
+                    otp: payload.otp,
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                 }
             });
             console.log(`[NotificationService] 2FA Email sent successfully to ${payload.email}`);

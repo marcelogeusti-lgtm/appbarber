@@ -1,50 +1,117 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lembrete de Agendamento</title>
+  <title>Lembrete de Agendamento - Next App</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f4f5; margin: 0; padding: 0; color: #18181b; }
-    .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    .header { background-color: #3b82f6; padding: 32px; text-align: center; color: #ffffff; }
-    .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
-    .content { padding: 40px 32px; }
-    .greeting { font-size: 18px; color: #3f3f46; margin-bottom: 24px; }
-    .card { background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
-    .detail-label { font-size: 13px; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 4px; display: block; }
-    .detail-value { font-size: 18px; color: #1e3a8a; font-weight: 600; margin: 0 0 16px 0; }
-    .footer { background-color: #f4f4f5; padding: 24px; text-align: center; border-top: 1px solid #e4e4e7; }
-    .footer p { margin: 0; font-size: 14px; color: #71717a; }
+    body {
+      font-family: 'Inter', -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, helvetica, arial, sans-serif;
+      background-color: #0f172a;
+      margin: 0;
+      padding: 0;
+      color: #ffffff;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #1e293b;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .footer {
+      padding: 30px;
+      background-color: #111827;
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .greeting {
+      font-size: 18px;
+      color: #f8fafc;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .detail-label {
+      font-size: 13px;
+      color: #3b82f6;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .detail-value {
+      font-size: 18px;
+      color: #f8fafc;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+    }
+
+    .footer p {
+      margin: 0;
+      line-height: 1.5;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
-      <h1>⏰ Lembrete de Horário</h1>
+      <img src="{{logoUrl}}" alt="Next App" height="40"
+        style="display: block; margin: 0 auto; max-height: 40px; width: auto;">
     </div>
     <div class="content">
-      <p class="greeting">Olá <strong>{{cliente}}</strong>,</p>
-      <p style="color: #52525b; margin-bottom: 24px; line-height: 1.6;">Este é um lembrete do seu agendamento, que acontece <strong>hoje!</strong></p>
-      
+      <h2 style="color: #f8fafc; margin-top: 0; text-align: center;">⏰ Lembrete de Horário</h2>
+      <p class="greeting">Olá, <strong>{{cliente}}</strong>!</p>
+      <p style="color: #cbd5e1; margin-bottom: 24px; line-height: 1.6;">Este é um lembrete do seu agendamento, que
+        acontece <strong>hoje!</strong></p>
+
       <div class="card">
         <span class="detail-label">Serviço</span>
         <p class="detail-value">{{service}} na {{barbershop}}</p>
-        
+
         <span class="detail-label">Horário</span>
-        <p class="detail-value" style="font-size: 24px;">{{time}}</p>
+        <p class="detail-value" style="font-size: 28px; color: #3b82f6;">{{time}}</p>
 
         <span class="detail-label">Local</span>
-        <p class="detail-value" style="font-size: 14px; font-weight: 500;">{{address}}</p>
+        <p class="detail-value" style="font-size: 14px; font-weight: 500; color: #94a3b8; margin-bottom: 0;">{{address}}
+        </p>
       </div>
-      
-      <p style="color: #71717a; font-size: 14px; text-align: center;">
-        Por favor, tente chegar com 5 minutos de antecedência. Em caso de imprevistos, avise diretamente pelo WhatsApp do estabelecimento.
+
+      <p style="color: #94a3b8; font-size: 14px; text-align: center;">
+        Recomendamos chegar com 5 minutos de antecedência. Em caso de imprevistos, avise diretamente pelo app.
       </p>
     </div>
     <div class="footer">
-      <p>Este é um e-mail automático enviado pelo sistema AppBarber. Por favor, não responda.</p>
+      <p>&copy; 2026 Next App Cloud. Todos os direitos reservados.</p>
     </div>
   </div>
 </body>
+
 </html>
