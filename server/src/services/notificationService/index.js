@@ -1,3 +1,4 @@
+const eventBus = require('../events/eventBus');
 const whatsappService = require('../communication/WhatsAppService');
 const pushService = require('./PushNotificationService');
 const emailService = require('./EmailService');
