@@ -18,7 +18,7 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
                 clientId: payload.client.id,
                 userId: payload.professionalId, // Professional linked
                 title: 'Agendamento Confirmado',
-                message: `${payload.service.name} em ${new Date(payload.date).toLocaleDateString('pt-BR')} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+                message: `${payload.service.name} em ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
                 type: 'appointment_created',
                 appointmentId: payload.id
             }
@@ -37,7 +37,7 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
 
         if (professionalUser?.authUserId) {
             await pushService.sendToUser(professionalUser.authUserId, '📅 Novo Agendamento!', {
-                body: `${payload.client.name} marcou ${payload.service.name} para ${new Date(payload.date).toLocaleDateString('pt-BR')} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+                body: `${payload.client.name} marcou ${payload.service.name} para ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
                 url: '/dashboard/appointments'
             });
         }
@@ -51,8 +51,8 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
         await whatsappService.sendTemplate(payload.client.phone, 'CONFIRMATION', {
             clientName: payload.client.name,
             barbershopName: payload.barbershop.name,
-            date: dateObj.toLocaleDateString('pt-BR'),
-            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            date: dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
             serviceName: payload.service.name
         });
     } catch (err) {
@@ -90,8 +90,8 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
                     barbershopName: payload.barbershop?.name || 'Nossa Barbearia',
                     serviceName: payload.service?.name || 'Serviço',
                     barberName: payload.professional?.name || 'Profissional',
-                    date: dateObj.toLocaleDateString('pt-BR'),
-                    time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    date: dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+                    time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
                     productsHtml: productsHtml,
                     totalPrice: Number(payload.order?.total || payload.service?.price || 0).toFixed(2),
                     logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
@@ -126,7 +126,7 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
         // --- Push Notification (FCM) to Client ---
         if (payload.client?.authUserId) {
             await pushService.sendToUser(payload.client.authUserId, '⏰ Lembrete de Agendamento', {
-                body: `Seu horário para ${payload.service.name} na ${payload.barbershop.name} é em 1 hora (${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}).`,
+                body: `Seu horário para ${payload.service.name} na ${payload.barbershop.name} é em 1 hora (${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}).`,
                 url: '/appointments'
             });
         }
@@ -139,7 +139,7 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
         await whatsappService.sendTemplate(payload.client.phone, 'REMINDER', {
             clientName: payload.client.name,
             barbershopName: payload.barbershop.name,
-            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
         });
     } catch (err) {
         console.error('[NotificationService] WhatsApp Reminder Failed:', err);
@@ -163,7 +163,7 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
                     cliente: payload.client.name,
                     barbershop: payload.barbershop.name,
                     service: payload.service.name,
-                    time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
                     address: payload.barbershop?.address || 'Endereço não informado',
                     logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                 }
@@ -182,7 +182,7 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
                     clientId: appointment.clientId,
                     userId: appointment.professionalId,
                     title: 'Agendamento Cancelado',
-                    message: `Cancelamento: ${appointment.service?.name} em ${new Date(appointment.date).toLocaleDateString('pt-BR')}`,
+                    message: `Cancelamento: ${appointment.service?.name} em ${new Date(appointment.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
                     type: 'appointment_cancelled',
                     appointmentId: appointment.id
                 }
@@ -198,7 +198,7 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
 
         if (professionalUser?.authUserId) {
             await pushService.sendToUser(professionalUser.authUserId, '❌ Agendamento Cancelado', {
-                body: `O agendamento de ${appointment.client?.name || 'Cliente'} para ${new Date(appointment.date).toLocaleDateString('pt-BR')} foi cancelado.`,
+                body: `O agendamento de ${appointment.client?.name || 'Cliente'} para ${new Date(appointment.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} foi cancelado.`,
                 url: '/dashboard/appointments'
             });
         }
@@ -206,7 +206,7 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
         // 2. Notify Client (if cancelled by professional/system)
         if (appointment.client?.authUserId) {
             await pushService.sendToUser(appointment.client.authUserId, '❌ Agendamento Cancelado', {
-                body: `Seu agendamento para ${appointment.service?.name} na ${appointment.barbershop?.name} foi cancelado.`,
+                body: `Seu agendamento para ${appointment.service?.name} na ${appointment.barbershop?.name} foi cancelado para ${new Date(appointment.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(appointment.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}.`,
                 url: '/appointments'
             });
 
@@ -228,8 +228,8 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
                             barbershop: appointment.barbershop?.name || 'Barbearia',
                             service: appointment.service?.name || 'Serviço',
                             barber: appointment.professional?.name || 'Profissional',
-                            date: dateObj.toLocaleDateString('pt-BR'),
-                            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                            date: dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+                            time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
                             logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                         }
                     });
@@ -269,7 +269,7 @@ eventBus.on('PAYMENT_CONFIRMED', async (payload) => {
                     description: payload.description || 'Sua fatura do AppBarber',
                     paymentMethod: payload.paymentMethod || 'Sistema de Pagamento',
                     transactionId: payload.transactionId || payload.id || 'N/A',
-                    date: new Date().toLocaleDateString('pt-BR'),
+                    date: new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
                     logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
                 }
             });

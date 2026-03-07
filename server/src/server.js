@@ -1,3 +1,4 @@
+process.env.TZ = "America/Sao_Paulo";
 require('dotenv').config();
 const app = require('./app');
 const prisma = require('./lib/prisma');
