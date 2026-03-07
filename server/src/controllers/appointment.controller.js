@@ -430,72 +430,51 @@ exports.createAppointment = async (req, res) => {
             console.error('[Sync] Google Calendar Error:', syncErr.message);
         }
 
+    } catch (syncErr) {
+        console.error('[Sync] Google Calendar Error:', syncErr.message);
+    }
+
+    setImmediate(async () => {
         try {
-            await notificationController.createNotification({
-                userId: professionalId,
-                title: 'Novo Agendamento',
-                message: `Novo agendamento com ${currentUser?.name || guestName} para ${formatInTimeZone(appointmentDateTime, TIMEZONE, 'dd/MM HH:mm')}`,
-                type: 'appointment',
-                appointmentId: appointment.id
-            });
-        } catch (e) { console.error('Falha Pro Notify:', e.message); }
-
-        if (clientId) {
-            try {
-                const targetClient = await prisma.client.findUnique({ where: { id: clientId } });
-                if (targetClient) {
-                    await notificationController.createNotification({
-                        clientId: clientId,
-                        title: 'Agendamento Confirmado',
-                        message: `Seu horário para ${service.name} está confirmado para ${formatInTimeZone(appointmentDateTime, TIMEZONE, 'dd/MM HH:mm')}.`,
-                        type: 'appointment',
-                        appointmentId: appointment.id
-                    });
-                }
-            } catch (e) { console.error('Falha Client Notify:', e.message); }
-        }
-
-        setImmediate(async () => {
-            try {
-                const fullApp = await prisma.appointment.findUnique({
-                    where: { id: appointment.id },
-                    include: {
-                        client: { include: { authUser: { select: { email: true } } } },
-                        service: true,
-                        professional: true,
-                        barbershop: true,
-                        order: {
-                            include: {
-                                items: {
-                                    include: { product: true, service: true }
-                                }
+            const fullApp = await prisma.appointment.findUnique({
+                where: { id: appointment.id },
+                include: {
+                    client: { include: { authUser: { select: { email: true } } } },
+                    service: true,
+                    professional: true,
+                    barbershop: true,
+                    order: {
+                        include: {
+                            items: {
+                                include: { product: true, service: true }
                             }
                         }
                     }
-                });
-                if (fullApp) {
-                    const eventBus = require('../services/events/eventBus');
-                    eventBus.emit('APPOINTMENT_CREATED', fullApp);
                 }
-            } catch (err) { console.error('EventBus Error:', err.message); }
-        });
+            });
+            if (fullApp) {
+                const eventBus = require('../services/events/eventBus');
+                eventBus.emit('APPOINTMENT_CREATED', fullApp);
+            }
+        } catch (err) { console.error('EventBus Error:', err.message); }
+    });
 
-        res.status(201).json({
-            appointment_id: appointment.id,
-            status: appointment.status === 'CONFIRMED' ? 'confirmado' : 'pendente',
-            mensagem: appointment.status === 'CONFIRMED' ? 'Agendamento realizado com sucesso' : 'Agendamento em processamento',
-            order_id: order.id,
-            appointment,
-            order,
-            token: createdToken,
-            user: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
-            isGuest: !req.user
-        });
-    } catch (error) {
-        console.error('------- CRITICAL APPOINTMENT ERROR -------');
-        console.error(error);
-        res.status(500).json({ message: 'Erro interno ao processar agendamento.' });
-    }
+    res.status(201).json({
+        appointment_id: appointment.id,
+        status: appointment.status === 'CONFIRMED' ? 'confirmado' : 'pendente',
+        mensagem: appointment.status === 'CONFIRMED' ? 'Agendamento realizado com sucesso' : 'Agendamento em processamento',
+        order_id: order.id,
+        appointment,
+        order,
+        token: createdToken,
+        user: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
+        isGuest: !req.user
+    });
+} catch (error) {
+    console.error('------- CRITICAL APPOINTMENT ERROR -------');
+    console.error(error);
+    res.status(500).json({ message: 'Erro interno ao processar agendamento.' });
+}
 };
 
 exports.getMyAppointments = async (req, res) => {
@@ -660,37 +639,6 @@ exports.updateAppointmentStatus = async (req, res) => {
         // --- Emit Update Event for Automation ---
         const eventBus = require('../services/events/eventBus');
         eventBus.emit('APPOINTMENT_UPDATED', { appointment, oldStatus: curApp.status });
-
-        // --- In-App Notifications for Client ---
-        if (appointment.clientId && status !== curApp.status) {
-            try {
-                let title = '';
-                let message = '';
-
-                const appTime = formatInTimeZone(new Date(appointment.date), TIMEZONE, 'HH:mm');
-                if (status === 'CONFIRMED') {
-                    title = 'Agendamento Confirmado';
-                    message = `Seu horário para ${appointment.service?.name} às ${appTime} foi confirmado.`;
-                } else if (status === 'CANCELLED' && req.user.role !== 'CLIENT') {
-                    title = 'Agendamento Cancelado';
-                    message = `Infelizmente seu agendamento para ${appointment.service?.name} às ${appTime} teve que ser cancelado pelo estabelecimento.`;
-                } else if (status === 'COMPLETED') {
-                    title = 'Serviço Concluído';
-                    message = `Obrigado pela preferência! O serviço de ${appointment.service?.name} foi concluído.`;
-                }
-
-                if (title) {
-                    await notificationController.createNotification({
-                        clientId: appointment.clientId,
-                        title,
-                        message,
-                        type: 'appointment',
-                        appointmentId: appointment.id
-                    });
-                }
-            } catch (e) { console.error('Error notifying client of update:', e.message); }
-        }
-        // ----------------------------------------
 
         // HANDLE PAYMENT ON COMPLETION (If provided)
         if (status === 'COMPLETED' && req.body.paymentMethod && req.body.paymentMethod !== 'ONLINE') {

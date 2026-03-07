@@ -169,17 +169,43 @@ exports.markAllAsRead = async (req, res) => {
 // Helper function to create notification (internal use)
 exports.createNotification = async ({ userId, clientId, title, message, type, appointmentId, orderId }) => {
     try {
-        await prisma.notification.create({
-            data: {
-                userId,
-                clientId,
-                title,
-                message,
-                type,
-                appointmentId,
-                orderId
-            }
-        });
+        const createTasks = [];
+
+        // If it's for a professional/user
+        if (userId) {
+            createTasks.push(
+                prisma.notification.create({
+                    data: {
+                        userId,
+                        title,
+                        message,
+                        type,
+                        appointmentId,
+                        orderId
+                    }
+                })
+            );
+        }
+
+        // If it's for a client
+        if (clientId) {
+            createTasks.push(
+                prisma.notification.create({
+                    data: {
+                        clientId,
+                        title,
+                        message,
+                        type,
+                        appointmentId,
+                        orderId
+                    }
+                })
+            );
+        }
+
+        if (createTasks.length > 0) {
+            await Promise.all(createTasks);
+        }
 
         // TODO: Emit Socket event if needed
         // if (global.io) { global.io.to(userId || clientId).emit('new_notification', ...); }

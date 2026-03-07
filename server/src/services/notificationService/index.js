@@ -11,19 +11,29 @@ console.log('[NotificationService] Initializing listeners...');
 eventBus.on('APPOINTMENT_CREATED', async (payload) => {
     console.log(`[NotificationService] Event Received: APPOINTMENT_CREATED for ID ${payload.id}`);
 
-    // Create central Notification Record
+    // Create Notification Record for Professional
     try {
         await prisma.notification.create({
             data: {
-                clientId: payload.client.id,
-                userId: payload.professionalId, // Professional linked
-                title: 'Agendamento Confirmado',
-                message: `${payload.service.name} em ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
-                type: 'appointment_created',
+                userId: payload.professionalId,
+                title: 'Novo Agendamento',
+                message: `${payload.client.name} marcou ${payload.service.name} em ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
+                type: 'appointment',
                 appointmentId: payload.id
             }
         });
-    } catch (e) { console.error('Error saving notification', e) }
+
+        // Create Notification Record for Client
+        await prisma.notification.create({
+            data: {
+                clientId: payload.client.id,
+                title: 'Agendamento Confirmado',
+                message: `Seu horário para ${payload.service.name} na ${payload.barbershop.name} foi confirmado para ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
+                type: 'appointment',
+                appointmentId: payload.id
+            }
+        });
+    } catch (e) { console.error('Error saving notifications', e) }
 
     // 1. Internal Notification (Critical - should always fire)
     try {
@@ -177,17 +187,28 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
     if (appointment.status === 'CANCELLED') {
 
         try {
+            // Notify Professional
             await prisma.notification.create({
                 data: {
-                    clientId: appointment.clientId,
                     userId: appointment.professionalId,
                     title: 'Agendamento Cancelado',
-                    message: `Cancelamento: ${appointment.service?.name} em ${new Date(appointment.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
-                    type: 'appointment_cancelled',
+                    message: `O agendamento de ${appointment.client?.name || 'Cliente'} em ${new Date(appointment.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} foi cancelado.`,
+                    type: 'appointment',
                     appointmentId: appointment.id
                 }
             });
-        } catch (e) { }
+
+            // Notify Client (if not already handled by controller)
+            await prisma.notification.create({
+                data: {
+                    clientId: appointment.clientId,
+                    title: 'Agendamento Cancelado',
+                    message: `Seu agendamento para ${appointment.service?.name} na ${appointment.barbershop?.name} foi cancelado.`,
+                    type: 'appointment',
+                    appointmentId: appointment.id
+                }
+            });
+        } catch (e) { console.error('Error saving cancellation notification', e) }
 
         // Notify the OTHER party
         // 1. Notify Professional (if cancelled by system/client)
@@ -236,6 +257,19 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
                 }
             } catch (e) { console.error('Error email emit cancel', e) }
         }
+    } else if (appointment.status === 'COMPLETED') {
+        try {
+            // Create Notification Record for Client
+            await prisma.notification.create({
+                data: {
+                    clientId: appointment.clientId,
+                    title: 'Serviço Concluído',
+                    message: `Obrigado pela preferência! Seu serviço de ${appointment.service?.name} foi concluído com sucesso. Até a próxima!`,
+                    type: 'appointment',
+                    appointmentId: appointment.id
+                }
+            });
+        } catch (e) { console.error('Error saving completion notification', e) }
     }
 });
 
