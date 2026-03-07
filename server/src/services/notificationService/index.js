@@ -1,6 +1,4 @@
-const eventBus = require('../events/eventBus');
 const whatsappService = require('../communication/WhatsAppService');
-const internalNotifier = require('./internalNotifier');
 const pushService = require('./PushNotificationService');
 const emailService = require('./EmailService');
 const prisma = require('../../lib/prisma');
@@ -11,35 +9,40 @@ console.log('[NotificationService] Initializing listeners...');
 eventBus.on('APPOINTMENT_CREATED', async (payload) => {
     console.log(`[NotificationService] Event Received: APPOINTMENT_CREATED for ID ${payload.id}`);
 
-    // Create Notification Record for Professional
     try {
-        await prisma.notification.create({
-            data: {
-                userId: payload.professionalId,
-                title: 'Novo Agendamento',
-                message: `${payload.client.name} marcou ${payload.service.name} em ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
-                type: 'appointment',
-                appointmentId: payload.id
-            }
-        });
+        const dateObj = new Date(payload.date);
+        const dateStr = dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 
-        // Create Notification Record for Client
-        await prisma.notification.create({
-            data: {
-                clientId: payload.client.id,
-                title: 'Agendamento Confirmado',
-                message: `Seu horário para ${payload.service.name} na ${payload.barbershop.name} foi confirmado para ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
-                type: 'appointment',
-                appointmentId: payload.id
-            }
-        });
-    } catch (e) { console.error('Error saving notifications', e) }
+        // 1. Create Notification Record for Professional (Barber)
+        if (payload.professionalId) {
+            await prisma.notification.create({
+                data: {
+                    userId: payload.professionalId,
+                    title: 'Novo Agendamento Confirmado',
+                    message: `Novo agendamento para ${dateStr} às ${timeStr}.`,
+                    type: 'appointment',
+                    appointmentId: payload.id
+                }
+            }).catch(e => console.error('Error saving pro notification', e));
+        }
 
-    // 1. Internal Notification (Critical - should always fire)
+        // 2. Create Notification Record for Client
+        if (payload.client?.id || payload.clientId) {
+            await prisma.notification.create({
+                data: {
+                    clientId: payload.client?.id || payload.clientId,
+                    title: 'Agendamento Confirmado',
+                    message: `Seu horário para ${payload.service?.name || 'Serviço'} na ${payload.barbershop?.name || 'Barbearia'} foi confirmado para ${dateStr} às ${timeStr}`,
+                    type: 'appointment',
+                    appointmentId: payload.id
+                }
+            }).catch(e => console.error('Error saving client notification', e));
+        }
+    } catch (e) { console.error('Error in notification record creation flow', e) }
+
+    // 2. Push Notification (FCM) to Professional
     try {
-        await internalNotifier.createAppointmentNotification(payload);
-
-        // --- Push Notification (FCM) ---
         const professionalUser = await prisma.user.findUnique({
             where: { id: payload.professionalId },
             select: { authUserId: true }
@@ -47,23 +50,23 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
 
         if (professionalUser?.authUserId) {
             await pushService.sendToUser(professionalUser.authUserId, '📅 Novo Agendamento!', {
-                body: `${payload.client.name} marcou ${payload.service.name} para ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
+                body: `${payload.client?.name || 'Cliente'} marcou ${payload.service?.name || 'Serviço'} para ${new Date(payload.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} às ${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`,
                 url: '/dashboard/appointments'
             });
         }
     } catch (err) {
-        console.error('[NotificationService] Internal/Push Notification Failed:', err);
+        console.error('[NotificationService] Push Notification Failed:', err);
     }
 
-    // 2. WhatsApp Notification (Best Effort - fail safe)
+    // 3. WhatsApp Notification (Best Effort)
     try {
         const dateObj = new Date(payload.date);
-        await whatsappService.sendTemplate(payload.client.phone, 'CONFIRMATION', {
-            clientName: payload.client.name,
-            barbershopName: payload.barbershop.name,
+        await whatsappService.sendTemplate(payload.client?.phone, 'CONFIRMATION', {
+            clientName: payload.client?.name || 'Cliente',
+            barbershopName: payload.barbershop?.name || 'Barbearia',
             date: dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
             time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
-            serviceName: payload.service.name
+            serviceName: payload.service?.name || 'Serviço'
         });
     } catch (err) {
         console.error('[NotificationService] WhatsApp Notification Failed:', err);
@@ -119,19 +122,21 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
     console.log(`[NotificationService] Event Received: APPOINTMENT_REMINDER for ID ${payload.id}`);
 
     try {
-        await prisma.notification.create({
-            data: {
-                clientId: payload.client.id,
-                title: 'Lembrete de Horário',
-                message: `Seu horário para ${payload.service.name} é hoje!`,
-                type: 'appointment_reminder',
-                appointmentId: payload.id
-            }
-        });
-    } catch (e) { }
+        if (payload.client?.id || payload.clientId) {
+            await prisma.notification.create({
+                data: {
+                    clientId: payload.client?.id || payload.clientId,
+                    title: 'Lembrete de Horário ⏰',
+                    message: `Seu horário para ${payload.service?.name || 'seu serviço'} é hoje!`,
+                    type: 'appointment_reminder',
+                    appointmentId: payload.id
+                }
+            }).catch(e => console.error('Error saving client reminder notification', e));
+        }
+    } catch (e) { console.error('Error in reminder record creation flow', e) }
 
     try {
-        await internalNotifier.createReminderNotification(payload);
+        // --- Push Notification (FCM) to Client ---
 
         // --- Push Notification (FCM) to Client ---
         if (payload.client?.authUserId) {
@@ -187,28 +192,35 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
     if (appointment.status === 'CANCELLED') {
 
         try {
-            // Notify Professional
-            await prisma.notification.create({
-                data: {
-                    userId: appointment.professionalId,
-                    title: 'Agendamento Cancelado',
-                    message: `O agendamento de ${appointment.client?.name || 'Cliente'} em ${new Date(appointment.date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} foi cancelado.`,
-                    type: 'appointment',
-                    appointmentId: appointment.id
-                }
-            });
+            const dateObj = new Date(appointment.date);
+            const dateStr = dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
-            // Notify Client (if not already handled by controller)
-            await prisma.notification.create({
-                data: {
-                    clientId: appointment.clientId,
-                    title: 'Agendamento Cancelado',
-                    message: `Seu agendamento para ${appointment.service?.name} na ${appointment.barbershop?.name} foi cancelado.`,
-                    type: 'appointment',
-                    appointmentId: appointment.id
-                }
-            });
-        } catch (e) { console.error('Error saving cancellation notification', e) }
+            // 1. Notify Professional
+            if (appointment.professionalId) {
+                await prisma.notification.create({
+                    data: {
+                        userId: appointment.professionalId,
+                        title: 'Agendamento Cancelado',
+                        message: `O agendamento de ${appointment.client?.name || 'um cliente'} em ${dateStr} foi cancelado.`,
+                        type: 'appointment',
+                        appointmentId: appointment.id
+                    }
+                }).catch(e => console.error('Error saving pro cancellation notification', e));
+            }
+
+            // 2. Notify Client
+            if (appointment.clientId) {
+                await prisma.notification.create({
+                    data: {
+                        clientId: appointment.clientId,
+                        title: 'Agendamento Cancelado',
+                        message: `Seu agendamento para ${appointment.service?.name || 'seu serviço'} na ${appointment.barbershop?.name || 'barbearia'} foi cancelado.`,
+                        type: 'appointment',
+                        appointmentId: appointment.id
+                    }
+                }).catch(e => console.error('Error saving client cancellation notification', e));
+            }
+        } catch (e) { console.error('Error in cancellation record creation flow', e) }
 
         // Notify the OTHER party
         // 1. Notify Professional (if cancelled by system/client)
@@ -259,17 +271,19 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
         }
     } else if (appointment.status === 'COMPLETED') {
         try {
-            // Create Notification Record for Client
-            await prisma.notification.create({
-                data: {
-                    clientId: appointment.clientId,
-                    title: 'Serviço Concluído',
-                    message: `Obrigado pela preferência! Seu serviço de ${appointment.service?.name} foi concluído com sucesso. Até a próxima!`,
-                    type: 'appointment',
-                    appointmentId: appointment.id
-                }
-            });
-        } catch (e) { console.error('Error saving completion notification', e) }
+            if (appointment.clientId) {
+                // Create Notification Record for Client
+                await prisma.notification.create({
+                    data: {
+                        clientId: appointment.clientId,
+                        title: 'Serviço Concluído ✅',
+                        message: `Obrigado pela preferência! Seu serviço de ${appointment.service?.name || 'beleza'} foi concluído. Até a próxima!`,
+                        type: 'appointment',
+                        appointmentId: appointment.id
+                    }
+                }).catch(e => console.error('Error saving completion notification', e));
+            }
+        } catch (e) { console.error('Error in completion record creation flow', e) }
     }
 });
 
