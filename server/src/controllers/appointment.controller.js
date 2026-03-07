@@ -430,51 +430,47 @@ exports.createAppointment = async (req, res) => {
             console.error('[Sync] Google Calendar Error:', syncErr.message);
         }
 
-    } catch (syncErr) {
-        console.error('[Sync] Google Calendar Error:', syncErr.message);
-    }
-
-    setImmediate(async () => {
-        try {
-            const fullApp = await prisma.appointment.findUnique({
-                where: { id: appointment.id },
-                include: {
-                    client: { include: { authUser: { select: { email: true } } } },
-                    service: true,
-                    professional: true,
-                    barbershop: true,
-                    order: {
-                        include: {
-                            items: {
-                                include: { product: true, service: true }
+        setImmediate(async () => {
+            try {
+                const fullApp = await prisma.appointment.findUnique({
+                    where: { id: appointment.id },
+                    include: {
+                        client: { include: { authUser: { select: { email: true } } } },
+                        service: true,
+                        professional: true,
+                        barbershop: true,
+                        order: {
+                            include: {
+                                items: {
+                                    include: { product: true, service: true }
+                                }
                             }
                         }
                     }
+                });
+                if (fullApp) {
+                    const eventBus = require('../services/events/eventBus');
+                    eventBus.emit('APPOINTMENT_CREATED', fullApp);
                 }
-            });
-            if (fullApp) {
-                const eventBus = require('../services/events/eventBus');
-                eventBus.emit('APPOINTMENT_CREATED', fullApp);
-            }
-        } catch (err) { console.error('EventBus Error:', err.message); }
-    });
+            } catch (err) { console.error('EventBus Error:', err.message); }
+        });
 
-    res.status(201).json({
-        appointment_id: appointment.id,
-        status: appointment.status === 'CONFIRMED' ? 'confirmado' : 'pendente',
-        mensagem: appointment.status === 'CONFIRMED' ? 'Agendamento realizado com sucesso' : 'Agendamento em processamento',
-        order_id: order.id,
-        appointment,
-        order,
-        token: createdToken,
-        user: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
-        isGuest: !req.user
-    });
-} catch (error) {
-    console.error('------- CRITICAL APPOINTMENT ERROR -------');
-    console.error(error);
-    res.status(500).json({ message: 'Erro interno ao processar agendamento.' });
-}
+        res.status(201).json({
+            appointment_id: appointment.id,
+            status: appointment.status === 'CONFIRMED' ? 'confirmado' : 'pendente',
+            mensagem: appointment.status === 'CONFIRMED' ? 'Agendamento realizado com sucesso' : 'Agendamento em processamento',
+            order_id: order.id,
+            appointment,
+            order,
+            token: createdToken,
+            user: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
+            isGuest: !req.user
+        });
+    } catch (error) {
+        console.error('------- CRITICAL APPOINTMENT ERROR -------');
+        console.error(error);
+        res.status(500).json({ message: 'Erro interno ao processar agendamento.' });
+    }
 };
 
 exports.getMyAppointments = async (req, res) => {
