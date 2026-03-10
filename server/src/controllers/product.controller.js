@@ -5,6 +5,9 @@ exports.createProduct = async (req, res) => {
     try {
         const { name, description, price, costPrice, stock, barbershopId, active, imageUrl, isFeatured } = req.body;
 
+        // --- DO NOT MODIFY: CRITICAL FOR PRODUCT PERSISTENCE ---
+        // This block handles numeric parsing and validation. 
+        // Modifying this without careful testing may cause products to stop saving.
         if (!name || price === undefined || !barbershopId) {
             return res.status(400).json({ message: 'Name, price and barbershopId are required' });
         }

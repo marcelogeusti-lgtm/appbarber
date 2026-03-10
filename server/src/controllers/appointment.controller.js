@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const financialService = require('../services/FinancialService');
 const googleCalendarService = require('../services/communication/GoogleCalendarService');
 const axios = require('axios');
 const { format, addMinutes, isBefore } = require('date-fns');
@@ -605,8 +606,22 @@ exports.updateAppointmentStatus = async (req, res) => {
         const { status } = req.body; // CONFIRMED, COMPLETED, CANCELLED
 
         // 1. Fetch current appointment Check Security
-        const curApp = await prisma.appointment.findUnique({ where: { id } });
+        const curApp = await prisma.appointment.findUnique({
+            where: { id },
+            include: { order: true }
+        });
         if (!curApp) return res.status(404).json({ message: 'Agendamento não encontrado' });
+
+        // --- SECURITY LOCK: PROTECT COMPLETED/PAID APPOINTMENTS ---
+        // Once completed or paid, the appointment should be locked to prevent financial inconsistencies.
+        if (curApp.status === 'COMPLETED' || curApp.paymentStatus === 'PAID') {
+            // Only allow specialized adjustments if needed, but block basic status changes
+            if (status !== curApp.status) {
+                return res.status(403).json({
+                    message: 'Este agendamento já foi concluído ou pago e está bloqueado para alterações de status. Contate o administrador para estornos.'
+                });
+            }
+        }
 
         // 2. Client Cancellation Logic
         if (req.user.role === 'CLIENT') {
@@ -636,125 +651,85 @@ exports.updateAppointmentStatus = async (req, res) => {
         const eventBus = require('../services/events/eventBus');
         eventBus.emit('APPOINTMENT_UPDATED', { appointment, oldStatus: curApp.status });
 
-        // HANDLE PAYMENT ON COMPLETION (If provided)
-        if (status === 'COMPLETED' && req.body.paymentMethod && req.body.paymentMethod !== 'ONLINE') {
-            // Create Payment Record for Local Payment
-            const { paymentMethod, paidAmount } = req.body;
-            const amount = paidAmount || appointment.service.price;
-
-            // Check if already paid to avoid duplicates
-            if (appointment.paymentStatus !== 'PAID') {
-                // 1. Create Payment
-                await prisma.payment.create({
-                    data: {
-                        gateway: 'MANUAL', // or LOCAL
-                        method: paymentMethod, // CASH, CREDIT_CARD, DEBIT_CARD, PIX
-                        status: 'paid',
-                        amount: amount,
-                        userId: appointment.clientId, // Client paying
-                        barbershopId: appointment.barbershopId,
-                        appointmentId: appointment.id,
-                        orderId: appointment.order?.id, // If order exists
-                        paidAt: new Date()
-                    }
-                });
-
-                // 2. Update Appointment Payment Status
-                await prisma.appointment.update({
-                    where: { id: id },
-                    data: {
-                        paymentStatus: 'PAID',
-                        paymentMethod: paymentMethod // Record final method used
-                    }
-                });
-
-                // 2b. Sync Order Status
-                if (appointment.order?.id) {
-                    await prisma.order.update({
-                        where: { id: appointment.order.id },
-                        data: {
-                            status: 'CLOSED',
-                            paymentStatus: 'PAID',
-                            paymentMethod: paymentMethod,
-                            paidAt: new Date()
-                        }
-                    });
-                }
-
-                // 3. Create Transaction (Cash Flow)
-                await prisma.transaction.create({
-                    data: {
-                        description: `Recebimento Agendamento #${appointment.id.slice(0, 6)}`,
-                        amount: amount,
-                        type: 'INCOME',
-                        category: 'Serviço',
-                        barbershopId: appointment.barbershopId,
-                        appointmentId: appointment.id,
-                        // date: defaults to now
-                    }
-                });
-            }
-        }
-
-        // Trigger Commission Calculation on COMPLETED
+        // --- FINANCIAL SYNC: HANDLE PAYMENT AND COMMISSIONS ON COMPLETION ---
         if (status === 'COMPLETED') {
             try {
-                const service = appointment.service;
-                const proId = appointment.professionalId;
-                const servicePrice = Number(service.price);
+                // Ensure payment is processed
+                const paymentMethod = req.body.paymentMethod || appointment.paymentMethod || 'CASH';
+                const paidAmount = req.body.paidAmount || Number(appointment.order?.total || appointment.service.price);
 
-                // Check for override
-                const override = service.commissionOverrides?.find(o => o.professionalId === proId);
+                await prisma.$transaction(async (tx) => {
+                    // 1. Create Payment if not already PAID
+                    if (appointment.paymentStatus !== 'PAID') {
+                        await tx.payment.create({
+                            data: {
+                                gateway: 'MANUAL',
+                                method: paymentMethod,
+                                status: 'paid',
+                                amount: paidAmount,
+                                userId: appointment.clientId,
+                                barbershopId: appointment.barbershopId,
+                                appointmentId: appointment.id,
+                                orderId: appointment.order?.id,
+                                paidAt: new Date()
+                            }
+                        });
 
-                let commType = override ? override.type : service.commissionType;
-                let commValue = override ? Number(override.value) : Number(service.commissionValue);
+                        // 2. Update status in db
+                        await tx.appointment.update({
+                            where: { id: id },
+                            data: { paymentStatus: 'PAID', paymentMethod }
+                        });
 
-                let calculatedAmount = 0;
-                if (commType === 'PERCENTAGE') {
-                    calculatedAmount = servicePrice * (commValue / 100);
-                } else {
-                    calculatedAmount = commValue;
-                }
+                        if (appointment.order?.id) {
+                            await tx.order.update({
+                                where: { id: appointment.order.id },
+                                data: {
+                                    status: 'CLOSED',
+                                    paymentStatus: 'PAID',
+                                    paymentMethod,
+                                    paidAt: new Date()
+                                }
+                            });
+                        }
 
-                // Check if commission already exists for this appointment
-                const existingComm = await prisma.commission.findFirst({
-                    where: { appointmentId: id }
+                        // 3. Central Transaction (Financial Engine)
+                        await financialService.recordIncome({
+                            amount: paidAmount,
+                            description: `Recebimento: ${appointment.service.name} (#${appointment.id.slice(0, 6)})`,
+                            category: 'Serviço',
+                            barbershopId: appointment.barbershopId,
+                            appointmentId: appointment.id,
+                            orderId: appointment.order?.id,
+                            professionalId: appointment.professionalId,
+                            paymentMethod: paymentMethod,
+                            origin: appointment.paymentMethod === 'ONLINE' ? 'ONLINE' : 'PRESENCIAL'
+                        });
+                    }
+
+                    // 4. Process Commissions (Financial Engine)
+                    // This will check each item in the order and create the respective commissions
+                    await financialService.processCommissions(appointment.id, tx);
                 });
 
-                if (!existingComm && calculatedAmount > 0) {
-                    await prisma.commission.create({
-                        data: {
-                            barberId: proId,
-                            barbershopId: appointment.barbershopId,
-                            appointmentId: id,
-                            type: 'SERVICE',
-                            description: `Comissão: ${service.name} (${appointment.client?.name})`,
-                            amount: calculatedAmount,
-                            percentage: commType === 'PERCENTAGE' ? commValue : null,
-                            status: 'PENDING'
-                        }
-                    });
-                }
-
-                // --- LOYALTY POINTS INCREMENT ---
+                // --- LOYALTY POINTS (Optional) ---
                 const loyaltyProgram = await prisma.loyaltyProgram.findUnique({
                     where: { barbershopId: appointment.barbershopId }
                 });
 
                 if (loyaltyProgram && loyaltyProgram.active && appointment.clientId) {
-                    const pointsToGain = Math.floor(Number(service.price) * (loyaltyProgram.pointsPerReal || 0));
+                    const pointsToGain = Math.floor(Number(appointment.service.price) * (loyaltyProgram.pointsPerReal || 0));
                     if (pointsToGain > 0) {
                         await prisma.client.update({
                             where: { id: appointment.clientId },
-                            data: {
-                                points: { increment: pointsToGain }
-                            }
+                            data: { points: { increment: pointsToGain } }
                         });
-                        console.log(`[Loyalty] Client ${appointment.clientId} gained ${pointsToGain} points.`);
                     }
                 }
+
             } catch (err) {
-                console.error('Error calculating commission:', err);
+                console.error('[FinancialSync] Error processing completion:', err);
+                // We don't want to crash the whole request if loyalty fails, but financial engine errors are tracked in logs
             }
         }
 

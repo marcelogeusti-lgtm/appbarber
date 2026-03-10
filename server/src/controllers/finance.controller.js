@@ -251,30 +251,28 @@ exports.getFinancialStats = async (req, res) => {
             });
         });
 
-        // Comissões (Calculadas ou lidas da tabela Commission - se já existirem)
-        // Para consistência com o que acabamos de implementar, ideal seria ler da tabela Commission.
-        // Mas como acabamos de criar a tabela, dados antigos não estarão lá. Manter estimativa para dados antigos?
-        // Vamos tentar ler commissions reais se possível, mas por enquanto manter lógica de cálculo para garantir display.
-
-        const commissions = {};
-
-        orders.forEach(order => {
-            const proName = order.professional?.name || 'Desconhecido';
-            // Calcular comissão baseada nos itens de serviço da ordem
-            const orderServiceTotal = order.items
-                .filter(i => i.type === 'SERVICE')
-                .reduce((sum, i) => sum + i.total, 0);
-
-            const proPercent = order.professional?.commissionPercent || 50;
-            const commissionValue = (orderServiceTotal * proPercent) / 100;
-
-            commissions[proName] = (commissions[proName] || 0) + commissionValue;
+        // Comissões Reais (Lidas da tabela Commission)
+        const commissionsRecords = await prisma.commission.findMany({
+            where: {
+                barbershopId,
+                createdAt: {
+                    gte: startOfDay(start),
+                    lte: endOfDay(end)
+                }
+            }
         });
 
-        const totalCommissions = Object.values(commissions).reduce((acc, curr) => acc + curr, 0);
+        const totalCommissions = commissionsRecords.reduce((acc, curr) => acc + curr.amount, 0);
 
-        // Lucro Líquido
-        const netProfit = (totalGrossRevenue) - totalCommissions - totalExpenses;
+        // Breakdown de comissões por profissional
+        const commissionsByPro = commissionsRecords.reduce((acc, curr) => {
+            // We'd need to link barber name here if we want names, but for summary we can just show total
+            return acc + curr.amount;
+        }, 0);
+
+        // Lucro Líquido Real: Baseado em todas as entradas e saídas (incluindo comissões pagas e outras despesas)
+        const netProfit = totalGrossRevenue - totalExpenses;
+        // Note: totalExpenses already includes paid commissions if they were recorded as Expense transactions.
 
         res.json({
             totalRevenue: totalGrossRevenue,

@@ -144,19 +144,54 @@ exports.payCommissions = async (req, res) => {
     try {
         const { barberId, barbershopId } = req.body;
 
-        await prisma.commission.updateMany({
+        // 1. Get total pending amount to record as expense
+        const pendingCommissions = await prisma.commission.findMany({
             where: {
                 barberId,
                 barbershopId,
                 status: 'PENDING'
-            },
-            data: {
-                status: 'PAID',
-                paidAt: new Date()
             }
         });
 
-        res.json({ message: 'Comissões pagas com sucesso' });
+        if (pendingCommissions.length === 0) {
+            return res.status(400).json({ message: 'Não há comissões pendentes para este profissional.' });
+        }
+
+        const totalToPay = pendingCommissions.reduce((sum, c) => sum + Number(c.amount), 0);
+
+        const result = await prisma.$transaction(async (tx) => {
+            // 2. Update status
+            await tx.commission.updateMany({
+                where: {
+                    barberId,
+                    barbershopId,
+                    status: 'PENDING'
+                },
+                data: {
+                    status: 'PAID',
+                    paidAt: new Date()
+                }
+            });
+
+            // 3. Create expense transaction
+            const pro = await tx.user.findUnique({ where: { id: barberId }, select: { name: true } });
+
+            await financialService.recordExpense({
+                amount: totalToPay,
+                description: `Pagamento Comissão: ${pro?.name || 'Profissional'}`,
+                category: 'Comissão',
+                barbershopId,
+                professionalId: barberId,
+                paymentMethod: 'CASH' // Default for payouts
+            });
+
+            return totalToPay;
+        });
+
+        res.json({
+            message: 'Comissões pagas com sucesso',
+            amountPaid: result
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
