@@ -7,7 +7,7 @@ import {
     ShoppingBag, Receipt, DollarSign, PieChart, Wallet,
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, ScrollText, MessageSquare,
-    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star
+    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3
 } from 'lucide-react';
 
 export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, onClose }) {
@@ -242,7 +242,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                                 className="w-8 h-8 mx-auto rounded-full object-cover border border-primary/30"
                             />
                         ) : (
-                            <div className="w-8 h-8 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold">
+                            <div className="w-8 h-8 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold uppercase">
                                 {user?.name?.[0]}
                             </div>
                         )
