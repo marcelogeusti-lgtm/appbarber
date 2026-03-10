@@ -155,7 +155,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 {/* Navigation */}
                 <nav className={`flex-1 overflow-y-auto py-4 px-3 space-y-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 ${isLocked ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
 
-                    {/* Principal */}
+                    {/* Principal - PROTECTED SECTION: DO NOT MODIFY NAVIGATION ORDER */}
                     <div className="space-y-1">
                         <MenuItem href="/dashboard" icon={LayoutDashboard} label="Visão Geral" />
                         <MenuItem href="/dashboard/owner" icon={BarChart3} label="Análise" />
@@ -201,7 +201,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                         <MenuItem href="/dashboard/settings" icon={Settings} label="Ajustes do Sistema" />
                     </MenuGroup>
 
-                    {/* Master Management - EXCLUSIVE for MASTER ACCOUNT */}
+                    {/* Master Management - PROTECTED SECTION: DO NOT REMOVE ROLE CHECKS */}
                     {(user?.role === 'SUPER_ADMIN' || user?.isMaster) && (
                         <>
                             <div className="h-px bg-primary/20 mx-2 my-2"></div>

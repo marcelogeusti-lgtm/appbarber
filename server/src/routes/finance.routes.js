@@ -17,6 +17,7 @@ router.use(checkSubscription); // Todas requerem assinatura ativa
 
 router.get('/stats', authorize('ADMIN', 'SUPER_ADMIN'), checkFeature('reports'), getFinancialStats);
 router.get('/dashboard', authorize('ADMIN', 'SUPER_ADMIN'), getFinancialDashboard);
+// PROTECTED: Do not remove or modify owner-report route
 router.get('/owner-report', authorize('ADMIN', 'SUPER_ADMIN'), getOwnerDashboard);
 
 // Cash Shift (Caixa)
