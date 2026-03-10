@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogIn, UserPlus, ArrowLeft, Check } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Scissors, ArrowRight, UserPlus, LogIn, ChevronRight, CheckCircle, ShieldCheck, ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../lib/api';
+import { safeSetItem } from '../../lib/storage';
 import { auth, googleProvider, facebookProvider } from '../../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
 
@@ -84,8 +85,8 @@ export default function AuthPage() {
                 barbershopSlug: res.data.barbershopSlug
             };
 
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(userData));
+            safeSetItem('token', res.data.token);
+            safeSetItem('user', JSON.stringify(userData));
             router.push('/dashboard');
         } catch (err) {
             console.error('Login error:', err);
@@ -123,8 +124,8 @@ export default function AuthPage() {
                 barbershopSlug: res.data.barbershopSlug
             };
 
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(userData));
+            safeSetItem('token', res.data.token);
+            safeSetItem('user', JSON.stringify(userData));
             router.push('/dashboard');
 
         } catch (err) {
@@ -145,8 +146,8 @@ export default function AuthPage() {
         try {
             const res = await api.post('/auth/register', registerData);
             const userData = { ...res.data.user, barbershopId: res.data.barbershop?.id };
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(userData));
+            safeSetItem('token', res.data.token);
+            safeSetItem('user', JSON.stringify(userData));
             router.push('/dashboard');
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao criar conta.');

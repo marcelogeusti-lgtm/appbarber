@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Search, ChevronRight, ChevronLeft, Star, MapPin, Bell, Search as SearchIcon, Heart, History, Calendar, Clock, User as UserIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '../../../lib/clientApi';
+import { safeSetItem } from '../../../lib/storage';
 import { useClientAuth } from '../../../contexts/ClientAuthContext';
 
 export default function ClientHome() {
@@ -146,7 +147,7 @@ export default function ClientHome() {
 
         // Keep last 10
         const limited = current.slice(0, 10);
-        localStorage.setItem('last_accessed_barbershops', JSON.stringify(limited));
+        safeSetItem('last_accessed_barbershops', JSON.stringify(limited));
 
         // Navigate
         router.push(`/${shop.slug}`);

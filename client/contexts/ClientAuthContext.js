@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '../lib/clientApi';
+import { safeSetItem } from '../lib/storage';
 import { auth, googleProvider, facebookProvider } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
 
@@ -28,7 +29,7 @@ export function ClientAuthProvider({ children }) {
                 if (res.data.role === 'CLIENT') {
                     setUser(res.data);
                     // Update stored user just in case
-                    localStorage.setItem('clientUser', JSON.stringify(res.data));
+                    safeSetItem('clientUser', JSON.stringify(res.data));
                 } else {
                     // Invalid role (e.g. Pro token leaking)
                     logout();
@@ -149,8 +150,8 @@ export function ClientAuthProvider({ children }) {
     };
 
     const persistSession = (token, userData) => {
-        localStorage.setItem('clientToken', token);
-        localStorage.setItem('clientUser', JSON.stringify(userData));
+        safeSetItem('clientToken', token);
+        safeSetItem('clientUser', JSON.stringify(userData));
         setUser(userData);
         setIsLoginModalOpen(false);
         setIsRegisterModalOpen(false);

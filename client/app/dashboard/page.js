@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../lib/api';
+import { safeGetItem } from '../../lib/storage';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
 
 export default function DashboardPage() {
@@ -15,9 +16,8 @@ export default function DashboardPage() {
     // Initial User Setup & Fresh Data Fetch
     useEffect(() => {
         const fetchFreshData = async () => {
-            const u = localStorage.getItem('user');
-            if (u) {
-                const parsedUser = JSON.parse(u);
+            const parsedUser = safeGetItem('user', true);
+            if (parsedUser) {
                 setUser(parsedUser);
 
                 // Try to find slug from local first for immediate render
