@@ -24,7 +24,7 @@ export default function HowItWorks() {
             <div className="container mx-auto px-4">
                 <div className="flex flex-col lg:flex-row justify-between items-end mb-16">
                     <div className="max-w-2xl">
-                        <h2 className="text-4xl font-bold text-white mb-4">Comece agora em 3 passos</h2>
+                        <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 tracking-tight">Comece agora em 3 passos</h2>
                         <p className="text-gray-400 text-lg">A simplicidade que você buscava.</p>
                     </div>
                 </div>

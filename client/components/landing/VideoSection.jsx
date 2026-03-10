@@ -9,7 +9,7 @@ export default function VideoSection() {
 
             <div className="container px-4 md:px-6">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-4 text-glow">
+                    <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4 text-glow">
                         Case de <span className="text-primary">Sucesso</span>
                     </h2>
                     <p className="text-muted-foreground text-lg max-w-[800px] mx-auto">

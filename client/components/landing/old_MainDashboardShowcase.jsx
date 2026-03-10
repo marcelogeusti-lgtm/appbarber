@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { TrendingUp, Users, Calendar, DollarSign } from 'lucide-react';
 
 export default function MainDashboardShowcase() {
@@ -7,12 +7,12 @@ export default function MainDashboardShowcase() {
             <div className="container mx-auto px-4 text-center">
 
                 <div className="max-w-3xl mx-auto mb-16">
-                    <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 leading-tight mb-6 tracking-tight">
+                    <h2 className="text-4xl lg:text-6xl font-black text-gray-900 leading-tight mb-6 tracking-tighter">
                         O Painel de Controle <br />
-                        <span className="text-primary">do Seu Império.</span>
+                        <span className="text-primary italic">do Seu Imp├®rio.</span>
                     </h2>
                     <p className="text-lg text-gray-500 font-medium">
-                        Uma interface limpa e poderosa. Tenha visão total do seu faturamento, agenda e desempenho da equipe em tempo real.
+                        Uma interface limpa e poderosa. Tenha vis├úo total do seu faturamento, agenda e desempenho da equipe em tempo real.
                     </p>
                 </div>
 
@@ -36,7 +36,7 @@ export default function MainDashboardShowcase() {
                             <DollarSign className="w-5 h-5 font-bold" />
                         </div>
                         <div className="text-left">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Mês</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total M├¬s</p>
                             <p className="text-lg font-black text-gray-900 leading-none">R$ 15.420</p>
                         </div>
                     </div>
@@ -55,10 +55,10 @@ export default function MainDashboardShowcase() {
                 {/* Stats Grid Under Image */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto mt-20">
                     {[
-                        { label: 'Lucro Líquido', val: 'R$ 8.240', color: 'green' },
+                        { label: 'Lucro L├¡quido', val: 'R$ 8.240', color: 'green' },
                         { label: 'Novos Clientes', val: '+ 42', color: 'blue' },
-                        { label: 'Ticket Médio', val: 'R$ 85,00', color: 'purple' },
-                        { label: 'Recorrência', val: '78%', color: 'orange' }
+                        { label: 'Ticket M├®dio', val: 'R$ 85,00', color: 'purple' },
+                        { label: 'Recorr├¬ncia', val: '78%', color: 'orange' }
                     ].map((stat, i) => (
                         <div key={i} className="text-center group">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">{stat.label}</p>

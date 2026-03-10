@@ -32,41 +32,44 @@ export default function Navbar() {
                 </Link>
 
                 {/* Desktop Menu */}
-                <div className="hidden md:flex items-center gap-6">
-                    <Link href="#features" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">Funcionalidades</Link>
-                    <Link href="#start" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">Como Começar</Link>
-                    <Link href="#pricing" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">Planos</Link>
-                    <Link href="#faq" className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">FAQ</Link>
+                <div className="hidden md:flex items-center gap-8">
+                    <Link href="#" className="font-bold text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors">Home</Link>
+                    <Link href="#start" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Sobre</Link>
+                    <Link href="#features" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Funções</Link>
+                    <Link href="#pricing" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Preços</Link>
+                    <Link href="#" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Blog</Link>
                 </div>
 
                 {/* Auth Buttons */}
-                <div className="hidden md:flex items-center gap-4">
-                    <Link
-                        href="/login"
-                        className="text-sm font-medium text-gray-600 hover:text-primary transition-colors"
-                    >
-                        Entrar (SaaS)
-                    </Link>
+                <div className="hidden md:flex items-center gap-6">
 
                     {user ? (
                         <Link href="/home">
-                            <button className="h-9 px-5 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
+                            <button className="h-10 px-6 bg-gray-900 hover:bg-black text-white text-[11px] uppercase tracking-widest font-black rounded-lg transition-all shadow-sm">
                                 Minha Conta
                             </button>
                         </Link>
                     ) : (
                         <>
-                            <button
-                                onClick={openLoginModal}
-                                className="text-sm font-medium text-gray-600 hover:text-primary transition-colors"
-                            >
-                                Login Cliente
-                            </button>
                             <Link href="/register">
-                                <button className="h-9 px-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-all shadow-sm">
+                                <button className="h-10 px-6 bg-transparent border-2 border-primary hover:bg-primary/5 text-primary text-[11px] uppercase tracking-widest font-black rounded-lg transition-all">
                                     Teste Grátis
                                 </button>
                             </Link>
+
+                            <Link
+                                href="/login"
+                                className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors"
+                            >
+                                Acessar
+                            </Link>
+
+                            <button
+                                onClick={openLoginModal}
+                                className="font-bold text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                            >
+                                Sou Cliente
+                            </button>
                         </>
                     )}
                 </div>

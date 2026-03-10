@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import {
     Users,
     Calendar,
@@ -15,32 +15,32 @@ const features = [
     {
         icon: Calendar,
         title: "Agenda Inteligente",
-        desc: "Gestão completa de horários com notificações automáticas via WhatsApp."
+        desc: "Gest├úo completa de hor├írios com notifica├º├Áes autom├íticas via WhatsApp."
     },
     {
         icon: TrendingUp,
         title: "Financeiro Pro",
-        desc: "Controle de fluxo de caixa, comissões de barbeiros e relatórios de lucro."
+        desc: "Controle de fluxo de caixa, comiss├Áes de barbeiros e relat├│rios de lucro."
     },
     {
         icon: MessageSquare,
         title: "WhatsApp Bot",
-        desc: "Agendamento automático 24h por dia sem precisar baixar apps."
+        desc: "Agendamento autom├ítico 24h por dia sem precisar baixar apps."
     },
     {
         icon: Heart,
-        title: "Fidelização de Elite",
-        desc: "Sistema de pontos e promoções para manter sua cadeira sempre cheia."
+        title: "Fideliza├º├úo de Elite",
+        desc: "Sistema de pontos e promo├º├Áes para manter sua cadeira sempre cheia."
     },
     {
         icon: Users,
-        title: "Gestão de Equipe",
-        desc: "Controle de permissões e performance individual de cada profissional."
+        title: "Gest├úo de Equipe",
+        desc: "Controle de permiss├Áes e performance individual de cada profissional."
     },
     {
         icon: Smartphone,
-        title: "Site Próprio",
-        desc: "Página de agendamento personalizada com a cara da sua barbearia."
+        title: "Site Pr├│prio",
+        desc: "P├ígina de agendamento personalizada com a cara da sua barbearia."
     }
 ];
 
@@ -50,12 +50,12 @@ export default function Features() {
             <div className="container mx-auto px-4">
 
                 <div className="text-center max-w-3xl mx-auto mb-20">
-                    <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-6 tracking-tight">
-                        Tudo que você precisa <br />
-                        <span className="text-primary">em um só lugar.</span>
+                    <h2 className="text-4xl lg:text-6xl font-black text-gray-900 mb-6 tracking-tighter uppercase italic">
+                        Tudo que voc├¬ precisa <br />
+                        <span className="text-primary italic">em um s├│ lugar.</span>
                     </h2>
                     <p className="text-gray-500 text-lg font-medium leading-relaxed">
-                        Esqueça as planilhas e o caderno. O NEXT consolida cada aspecto do seu negócio em uma interface limpa e intuitiva.
+                        Esque├ºa as planilhas e o caderno. O NEXT consolida cada aspecto do seu neg├│cio em uma interface limpa e intuitiva.
                     </p>
                 </div>
 
@@ -65,7 +65,7 @@ export default function Features() {
                             <div className="w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all mb-8 shadow-inner">
                                 <feature.icon className="w-7 h-7" />
                             </div>
-                            <h4 className="text-xl font-black text-gray-900 mb-4 uppercase tracking-tight">{feature.title}</h4>
+                            <h4 className="text-xl font-black text-gray-900 mb-4 uppercase tracking-tight italic">{feature.title}</h4>
                             <p className="text-gray-500 text-sm leading-relaxed font-medium">{feature.desc}</p>
                         </div>
                     ))}

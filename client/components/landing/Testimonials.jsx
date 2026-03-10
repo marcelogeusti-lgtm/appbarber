@@ -25,7 +25,7 @@ export default function Testimonials() {
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
                     <h2 className="text-sm font-bold text-primary uppercase tracking-widest mb-4">Depoimentos</h2>
-                    <h3 className="text-4xl font-bold text-white">Quem usa, recomenda.</h3>
+                    <h3 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">Quem usa, recomenda.</h3>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8">
@@ -34,7 +34,7 @@ export default function Testimonials() {
                             <div className="flex gap-1 mb-4">
                                 {[1, 2, 3, 4, 5].map(star => <Star key={star} className="w-4 h-4 text-yellow-500 fill-yellow-500" />)}
                             </div>
-                            <p className="text-gray-300 mb-6 italic leading-relaxed">"{t.text}"</p>
+                            <p className="text-gray-300 mb-6 leading-relaxed">"{t.text}"</p>
                             <div>
                                 <p className="text-white font-bold">{t.name}</p>
                                 <p className="text-xs text-primary font-bold uppercase tracking-wider">{t.role}</p>
