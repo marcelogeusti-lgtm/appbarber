@@ -142,12 +142,24 @@ exports.createProfessional = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password || '123456', 10);
 
+        // --- DO NOT MODIFY: CRITICAL FOR AUTHENTICATION ---
+        // This transaction ensures User and AuthUser are created together.
+        // Modifying this may break login functionality for new professionals.
         const result = await prisma.$transaction(async (tx) => {
-            // Prepare user data
+            // 1. Create AuthUser
+            const authUser = await tx.authUser.create({
+                data: {
+                    email: normalizedEmail,
+                    password: hashedPassword,
+                    provider: 'EMAIL'
+                }
+            });
+
+            // 2. Prepare user data
             const userData = {
                 name, nickname,
                 email: normalizedEmail,
-                password: hashedPassword,
+                password: hashedPassword, // Keep for legacy
                 phone: normalizedPhone,
                 landline: onlyNumbers(landline),
                 cpf: normalizedCpf,
@@ -158,7 +170,8 @@ exports.createProfessional = async (req, res) => {
                 notes, avatarUrl,
                 active: active !== undefined ? active : true,
                 workedBarbershopId: barbershopId,
-                role: role || 'BARBER'
+                role: role || 'BARBER',
+                authUserId: authUser.id
             };
 
             const user = await tx.user.create({ data: userData });
@@ -371,16 +384,33 @@ exports.deleteProfessional = async (req, res) => {
 
         // Perform Hard Delete (Permanently remove ALL data)
         await prisma.$transaction(async (tx) => {
+            // Helper to delete safely if model exists
+            const safeDeleteMany = async (model, where) => {
+                if (tx[model] && typeof tx[model].deleteMany === 'function') {
+                    await tx[model].deleteMany({ where });
+                }
+            };
+
+            // 0. Preliminary cleanup of relations linked to the User record (id)
+            await safeDeleteMany('notification', { userId: id });
+            await safeDeleteMany('payment', { userId: id });
+            await safeDeleteMany('subscriptionExternal', { userId: id });
+            await safeDeleteMany('auditLog', { actorId: id });
+            await safeDeleteMany('userSystemUpdateRead', { userId: id });
+            await safeDeleteMany('userCourse', { userId: id });
+            await safeDeleteMany('pushSubscription', { userId: id });
+            await safeDeleteMany('transaction', { professionalId: id });
+
             // 1. Delete Schedules
             if (pro.professionalProfile) {
-                await tx.schedule.deleteMany({ where: { professionalId: pro.professionalProfile.id } });
+                await safeDeleteMany('schedule', { professionalId: pro.professionalProfile.id });
             }
 
             // 2. Delete Commissions Overrides
-            await tx.professionalServiceCommission.deleteMany({ where: { professionalId: id } });
+            await safeDeleteMany('professionalServiceCommission', { professionalId: id });
 
             // 3. Delete waitlist entries
-            await tx.waitlist.deleteMany({ where: { professionalId: id } });
+            await safeDeleteMany('waitlist', { professionalId: id });
 
             // 4. Handle Appointments and Commissions
             // We MUST delete these to free up the professional.
@@ -393,29 +423,41 @@ exports.deleteProfessional = async (req, res) => {
 
             if (appIds.length > 0) {
                 // Delete NoShowRecords
-                await tx.noShowRecord.deleteMany({ where: { appointmentId: { in: appIds } } });
+                await safeDeleteMany('noShowRecord', { appointmentId: { in: appIds } });
                 // Delete PackageUsage
-                await tx.packageUsage.deleteMany({ where: { appointmentId: { in: appIds } } });
+                await safeDeleteMany('packageUsage', { appointmentId: { in: appIds } });
+
                 // Delete Notifications linked to these appointments
-                await tx.notification.deleteMany({ where: { appointmentId: { in: appIds } } });
+                await safeDeleteMany('notification', { appointmentId: { in: appIds } });
+                // Delete Payments linked to these appointments
+                await safeDeleteMany('payment', { appointmentId: { in: appIds } });
+                // Delete Transactions linked to these appointments
+                await safeDeleteMany('transaction', { appointmentId: { in: appIds } });
+
+                // Delete Orders linked to these appointments
+                const ordersToDel = await tx.order.findMany({ where: { appointmentId: { in: appIds } }, select: { id: true } });
+                const orderIdsToDel = ordersToDel.map(o => o.id);
+                if (orderIdsToDel.length > 0) {
+                    await safeDeleteMany('orderItem', { orderId: { in: orderIdsToDel } });
+                    await safeDeleteMany('order', { id: { in: orderIdsToDel } });
+                }
             }
 
             // Delete Commissions
-            await tx.commission.deleteMany({ where: { barberId: id } });
+            await safeDeleteMany('commission', { barberId: id });
 
             // Delete Appointments
-            await tx.appointment.deleteMany({ where: { professionalId: id } });
+            await safeDeleteMany('appointment', { professionalId: id });
 
-            // 5. Delete Orders (and their items if not cascaded)
-            // Assuming we want a complete wipe.
-            const proOrders = await tx.order.findMany({
+            // 5. Delete remaining Orders (and their items)
+            const remainingOrders = await tx.order.findMany({
                 where: { professionalId: id },
                 select: { id: true }
             });
-            const orderIds = proOrders.map(o => o.id);
-            if (orderIds.length > 0) {
-                await tx.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
-                await tx.order.deleteMany({ where: { id: { in: orderIds } } });
+            const remainingOrderIds = remainingOrders.map(o => o.id);
+            if (remainingOrderIds.length > 0) {
+                await safeDeleteMany('orderItem', { orderId: { in: remainingOrderIds } });
+                await safeDeleteMany('order', { id: { in: remainingOrderIds } });
             }
 
             // 6. Delete Professional Profile
@@ -424,16 +466,16 @@ exports.deleteProfessional = async (req, res) => {
             }
 
             // 7. Delete User and AuthUser
-            // If the user is an owner of a barbershop, we keep the User account but remove Pro status.
-            // Otherwise, we delete everything.
             const isOwner = await tx.barbershop.findFirst({ where: { ownerId: id } });
 
             if (isOwner) {
-                // Keep the owner but they are no longer a professional
-                // Role stays ADMIN (usually)
+                // Keep the owner but remove AuthUserId to "isolate" if needed, 
+                // or just keep it since they are still owner. 
+                // Currently, we don't delete owners here.
             } else {
                 // Staff: Full wipe
                 if (pro.authUserId) {
+                    // This will also delete User, Sessions, etc. due to onDelete: Cascade
                     await tx.authUser.delete({ where: { id: pro.authUserId } });
                 } else {
                     await tx.user.delete({ where: { id } });

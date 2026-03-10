@@ -3,15 +3,19 @@ const prisma = require('../lib/prisma');
 // Create Product
 exports.createProduct = async (req, res) => {
     try {
-        const { name, description, price, costPrice, stock, barbershopId, active } = req.body;
+        const { name, description, price, costPrice, stock, barbershopId, active, imageUrl, isFeatured } = req.body;
+
+        if (!name || price === undefined || !barbershopId) {
+            return res.status(400).json({ message: 'Name, price and barbershopId are required' });
+        }
 
         const product = await prisma.product.create({
             data: {
                 name,
                 description,
-                price: parseFloat(price),
-                costPrice: costPrice ? parseFloat(costPrice) : null,
-                stock: parseInt(stock),
+                price: parseFloat(price) || 0,
+                costPrice: (costPrice && costPrice !== '') ? parseFloat(costPrice) : null,
+                stock: stock ? parseInt(stock) : 0,
                 active: active !== undefined ? active : true,
                 imageUrl,
                 isFeatured: isFeatured || false,
@@ -21,8 +25,8 @@ exports.createProduct = async (req, res) => {
 
         res.status(201).json(product);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error creating product' });
+        console.error('Create Product error:', error);
+        res.status(500).json({ message: 'Error creating product: ' + error.message });
     }
 };
 
@@ -39,14 +43,14 @@ exports.getProducts = async (req, res) => {
         const products = await prisma.product.findMany({
             where: {
                 barbershopId,
-                active: true,
-                stock: { gt: 0 }
+                active: true
             },
             orderBy: { name: 'asc' }
         });
         res.json(products);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching products' });
+        console.error('Get Products error:', error);
+        res.status(500).json({ message: 'Error fetching products: ' + error.message });
     }
 };
 
@@ -61,9 +65,9 @@ exports.updateProduct = async (req, res) => {
             data: {
                 name,
                 description,
-                price: parseFloat(price),
-                costPrice: costPrice ? parseFloat(costPrice) : null,
-                stock: parseInt(stock),
+                price: price !== undefined ? parseFloat(price) : undefined,
+                costPrice: (costPrice !== undefined) ? (costPrice && costPrice !== '' ? parseFloat(costPrice) : null) : undefined,
+                stock: stock !== undefined ? parseInt(stock) : undefined,
                 active,
                 imageUrl,
                 isFeatured: isFeatured !== undefined ? isFeatured : undefined
@@ -72,7 +76,8 @@ exports.updateProduct = async (req, res) => {
 
         res.json(product);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating product' });
+        console.error('Update Product error:', error);
+        res.status(500).json({ message: 'Error updating product: ' + error.message });
     }
 };
 
