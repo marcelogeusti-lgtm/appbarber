@@ -10,6 +10,7 @@ import {
 export default function OwnerDashboardPage() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [startDate, setStartDate] = useState(new Date(new Date().setDate(1)).toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -20,8 +21,10 @@ export default function OwnerDashboardPage() {
     const fetchOwnerData = async () => {
         try {
             setLoading(true);
+            setError(null);
             const userStr = localStorage.getItem('user');
             if (!userStr) {
+                setError('Usuário não autenticado.');
                 setLoading(false);
                 return;
             }
@@ -29,25 +32,43 @@ export default function OwnerDashboardPage() {
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
             if (!bId) {
-                console.warn('No barbershopId found for analysis report');
+                setError('Nenhuma barbearia encontrada para este usuário.');
                 setLoading(false);
                 return;
             }
 
             const res = await api.get(`/finance/owner-report?barbershopId=${bId}&startDate=${startDate}&endDate=${endDate}`);
             setData(res.data || null);
-            setLoading(false);
         } catch (err) {
             console.error('Fetch Owner Data Error:', err);
+            setError(err.response?.data?.message || 'Erro ao carregar dados de análise.');
+        } finally {
             setLoading(false);
         }
     };
 
-    if (loading || !data) {
+    if (loading) {
         return <div className="p-8 text-center text-muted-foreground animate-pulse uppercase font-black tracking-widest text-xs">Acessando inteligência de negócio...</div>;
     }
 
+    if (error || !data) {
+        return (
+            <div className="p-12 flex flex-col items-center justify-center gap-4 text-center">
+                <BarChart3 className="w-12 h-12 text-muted-foreground/30" />
+                <h2 className="text-lg font-black text-foreground uppercase tracking-tight">Análise Indisponível</h2>
+                <p className="text-sm text-muted-foreground max-w-sm">{error || 'Nenhum dado encontrado para o período selecionado.'}</p>
+                <button onClick={fetchOwnerData} className="mt-2 px-6 py-2.5 bg-primary text-white font-bold text-xs rounded-xl hover:opacity-90 transition-opacity uppercase tracking-wider">
+                    Tentar Novamente
+                </button>
+            </div>
+        );
+    }
+
     const { kpis, rankings, charts } = data;
+    const professionals = rankings?.professionals || [];
+    const services = rankings?.services || [];
+    const clients = rankings?.clients || [];
+    const hourlyHeatmap = charts?.hourlyHeatmap || [];
 
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -147,7 +168,9 @@ export default function OwnerDashboardPage() {
                         <Award className="w-6 h-6 text-primary" /> Ranking por Lucro Gerado
                     </h3>
                     <div className="space-y-6">
-                        {rankings.professionals.map((pro, i) => (
+                        {professionals.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhum profissional com faturamento no período.</p>
+                        ) : professionals.map((pro, i) => (
                             <div key={i} className="flex items-center justify-between p-5 bg-muted/20 rounded-2xl border border-transparent hover:border-primary/20 transition-all hover:translate-x-1 duration-300">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-background rounded-2xl flex items-center justify-center font-black text-primary border border-border shadow-sm">
@@ -174,7 +197,9 @@ export default function OwnerDashboardPage() {
                 <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-soft">
                     <h3 className="text-xl font-black uppercase tracking-tighter text-foreground mb-8">Serviços Estrela</h3>
                     <div className="space-y-4">
-                        {rankings.services.slice(0, 5).map((s, i) => (
+                        {services.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhum serviço registrado no período.</p>
+                        ) : services.slice(0, 5).map((s, i) => (
                             <div key={i} className="p-4 bg-background rounded-2xl border border-border flex justify-between items-center group hover:border-primary transition-all">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{s.name}</p>
@@ -185,15 +210,17 @@ export default function OwnerDashboardPage() {
                         ))}
                     </div>
 
-                    <div className="mt-8 pt-8 border-t border-border">
-                        <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 flex items-center gap-4">
-                            <Zap className="w-6 h-6 text-primary animate-pulse" />
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-primary">Insight Inteligente</p>
-                                <p className="text-[10px] font-bold text-foreground mt-1">O serviço "{rankings.services[0]?.name}" representa {((rankings.services[0]?.revenue / kpis.monthlyRevenue) * 100).toFixed(0)}% do seu faturamento.</p>
+                    {services.length > 0 && (
+                        <div className="mt-8 pt-8 border-t border-border">
+                            <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 flex items-center gap-4">
+                                <Zap className="w-6 h-6 text-primary animate-pulse" />
+                                <div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-primary">Insight Inteligente</p>
+                                    <p className="text-[10px] font-bold text-foreground mt-1">O serviço &quot;{services[0]?.name}&quot; representa {((services[0]?.revenue / kpis.monthlyRevenue) * 100).toFixed(0)}% do seu faturamento.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
@@ -205,8 +232,8 @@ export default function OwnerDashboardPage() {
                     </h3>
                     <div className="flex items-end gap-1.5 h-48 pt-10 px-2">
                         {[9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(h => {
-                            const val = charts.hourlyHeatmap.find(x => x.hour === h)?.value || 0;
-                            const max = Math.max(...charts.hourlyHeatmap.map(x => x.value)) || 1;
+                            const val = hourlyHeatmap.find(x => x.hour === h)?.value || 0;
+                            const max = Math.max(...hourlyHeatmap.map(x => x.value), 1);
                             const height = (val / max) * 100;
                             return (
                                 <div key={h} className="flex-1 flex flex-col items-center group h-full justify-end">
@@ -228,7 +255,9 @@ export default function OwnerDashboardPage() {
                 <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-soft">
                     <h3 className="text-xl font-black uppercase tracking-tighter text-foreground mb-8">Clientes VIP (Top 5)</h3>
                     <div className="grid grid-cols-1 gap-3">
-                        {rankings.clients.slice(0, 5).map((c, i) => (
+                        {clients.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhum cliente com pedido fechado no período.</p>
+                        ) : clients.slice(0, 5).map((c, i) => (
                             <div key={i} className="flex items-center justify-between p-4 bg-background rounded-2xl border border-border group hover:border-yellow-500/30 transition-all">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${i === 0 ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/20' : 'bg-muted text-muted-foreground'}`}>
