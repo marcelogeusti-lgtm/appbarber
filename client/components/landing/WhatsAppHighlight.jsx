@@ -32,7 +32,7 @@ export default function WhatsAppHighlight() {
                                 <div className="bg-[#008069] p-4 pt-6 flex items-center justify-between shadow-md">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1 overflow-hidden">
-                                            <img src="/logos/logo_brand.svg" alt="Logo NEXT" className="w-[120%] h-[120%] object-contain" />
+                                            <img src="/logos/logo_icon.svg" alt="Logo NEXT" className="w-[120%] h-[120%] object-contain" />
                                         </div>
                                         <div>
                                             <p className="text-white font-black text-xs lowercase">@barbeariaNext</p>
