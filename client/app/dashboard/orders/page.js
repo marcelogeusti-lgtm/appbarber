@@ -80,33 +80,33 @@ export default function OrdersPage() {
     if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Sincronizando comandas...</div>;
 
     return (
-        <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
-                        <ShoppingBag className="w-8 h-8" />
+        <div className="space-y-6 pb-20">
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-border shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 sm:p-3 bg-primary/10 text-primary rounded-xl sm:rounded-2xl">
+                        <ShoppingBag className="w-5 h-5 sm:w-8 sm:h-8" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Comandas & Pedidos</h1>
-                        <p className="text-muted-foreground text-sm font-medium italic">Gerencie as comandas abertas e os fechamentos do dia.</p>
+                        <h1 className="text-xl sm:text-3xl font-black uppercase tracking-tighter text-foreground">Comandas & Pedidos</h1>
+                        <p className="text-muted-foreground text-xs sm:text-sm font-medium italic hidden sm:block">Gerencie as comandas abertas e os fechamentos do dia.</p>
                     </div>
                 </div>
                 <button
                     onClick={() => setIsCreating(true)}
-                    className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition active:scale-95"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground px-5 py-3 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition active:scale-95"
                 >
-                    <Plus className="w-4 h-4" /> Nova Comanda (Balcão)
+                    <Plus className="w-4 h-4" /> Nova Comanda
                 </button>
             </header>
 
             {/* Filters */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 {['ALL', 'OPEN', 'PAID'].map(f => (
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
-                        className={`px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap border ${filter === f
-                            ? 'bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20 scale-105'
+                        className={`px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap border ${filter === f
+                            ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-105'
                             : 'bg-card text-muted-foreground border-border hover:border-primary/30'
                             }`}
                     >
@@ -117,22 +117,22 @@ export default function OrdersPage() {
 
             {/* Quick Create Modal Overlay */}
             {isCreating && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-card w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border border-border animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-border flex justify-between items-center bg-muted/20">
-                            <h2 className="text-xl font-black uppercase text-foreground tracking-widest">Nova Comanda Rápida</h2>
-                            <button onClick={() => setIsCreating(false)} className="text-muted-foreground hover:text-destructive transition-colors">
-                                <X className="w-6 h-6" />
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                    <div className="bg-card w-full sm:max-w-lg rounded-t-3xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-border animate-in slide-in-from-bottom sm:zoom-in-95 duration-300">
+                        <div className="p-5 sm:p-8 border-b border-border flex justify-between items-center bg-muted/20">
+                            <h2 className="text-base sm:text-xl font-black uppercase text-foreground tracking-widest">Nova Comanda Rápida</h2>
+                            <button onClick={() => setIsCreating(false)} className="text-muted-foreground hover:text-destructive transition-colors p-1">
+                                <X className="w-5 h-5 sm:w-6 sm:h-6" />
                             </button>
                         </div>
-                        <form onSubmit={handleQuickCreate} className="p-8 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <form onSubmit={handleQuickCreate} className="p-5 sm:p-8 space-y-4 sm:space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Cliente</label>
                                     <input
                                         value={quickData.guestName}
                                         onChange={e => setQuickData({ ...quickData, guestName: e.target.value })}
-                                        className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
+                                        className="w-full p-3 sm:p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition text-sm"
                                         required
                                         placeholder="Nome"
                                     />
@@ -142,7 +142,7 @@ export default function OrdersPage() {
                                     <input
                                         value={quickData.phone}
                                         onChange={e => setQuickData({ ...quickData, phone: e.target.value })}
-                                        className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
+                                        className="w-full p-3 sm:p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition text-sm"
                                         required
                                         placeholder="(00) 00000-0000"
                                     />
@@ -154,7 +154,7 @@ export default function OrdersPage() {
                                 <select
                                     value={quickData.professionalId}
                                     onChange={e => setQuickData({ ...quickData, professionalId: e.target.value })}
-                                    className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition appearance-none"
+                                    className="w-full p-3 sm:p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition appearance-none text-sm"
                                     required
                                 >
                                     <option value="">Selecione um profissional</option>
@@ -169,7 +169,7 @@ export default function OrdersPage() {
                                 <select
                                     value={quickData.serviceId}
                                     onChange={e => setQuickData({ ...quickData, serviceId: e.target.value })}
-                                    className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition appearance-none"
+                                    className="w-full p-3 sm:p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition appearance-none text-sm"
                                     required
                                 >
                                     <option value="">Selecione o serviço</option>
@@ -179,11 +179,11 @@ export default function OrdersPage() {
                                 </select>
                             </div>
 
-                            <div className="flex gap-4 pt-4">
+                            <div className="flex gap-4 pt-2">
                                 <button
                                     type="submit"
                                     disabled={creatingLoading}
-                                    className="flex-1 bg-primary text-primary-foreground py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 disabled:opacity-50"
+                                    className="flex-1 bg-primary text-primary-foreground py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50"
                                 >
                                     {creatingLoading ? 'ABRINDO...' : 'ABRIR COMANDA AGORA'}
                                 </button>
@@ -194,25 +194,25 @@ export default function OrdersPage() {
             )}
 
             {/* Orders List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredOrders.map(order => (
                     <Link href={`/dashboard/orders/${order.id}`} key={order.id} className="block group">
-                        <div className="bg-card p-8 rounded-[2.5rem] border border-border hover:border-primary/50 transition-all relative group overflow-hidden flex flex-col h-full shadow-sm hover:shadow-xl hover:shadow-primary/5">
-                            <div className={`absolute top-0 right-0 px-6 py-2 ${order.status === 'OPEN' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'} font-black text-[8px] uppercase tracking-widest border-l border-b border-border/10`}>
+                        <div className="bg-card p-5 sm:p-8 rounded-2xl sm:rounded-[2.5rem] border border-border hover:border-primary/50 transition-all relative group overflow-hidden flex flex-col h-full shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                            <div className={`absolute top-0 right-0 px-4 py-2 ${order.status === 'OPEN' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'} font-black text-[8px] uppercase tracking-widest border-l border-b border-border/10`}>
                                 {order.status === 'OPEN' ? 'EM ABERTO' : 'LIQUIDADO'}
                             </div>
 
-                            <div className="mb-6">
-                                <h3 className="font-black text-xl text-foreground uppercase tracking-tight group-hover:text-primary transition-colors leading-tight">
+                            <div className="mb-4 sm:mb-6">
+                                <h3 className="font-black text-lg sm:text-xl text-foreground uppercase tracking-tight group-hover:text-primary transition-colors leading-tight">
                                     {order.client?.name || order.guestName || 'Venda Avulsa'}
                                 </h3>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-2">
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-1.5">
                                     <Calendar className="w-3 h-3" /> {new Date(order.createdAt).toLocaleDateString('pt-BR')}
                                 </p>
                             </div>
 
-                            <div className="flex items-center gap-3 mb-8 bg-muted/30 p-4 rounded-2xl border border-border/50">
-                                <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black text-primary border border-border text-lg shadow-inner">
+                            <div className="flex items-center gap-3 mb-5 sm:mb-8 bg-muted/30 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/50">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-background rounded-xl flex items-center justify-center font-black text-primary border border-border text-base shadow-inner">
                                     {(order.professional?.name || 'P').charAt(0)}
                                 </div>
                                 <div>
@@ -221,13 +221,13 @@ export default function OrdersPage() {
                                 </div>
                             </div>
 
-                            <div className="mt-auto flex justify-between items-end border-t border-border/50 pt-6">
+                            <div className="mt-auto flex justify-between items-end border-t border-border/50 pt-4">
                                 <div>
                                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Comanda</p>
-                                    <p className="text-2xl font-black text-primary uppercase tracking-tighter">R$ {parseFloat(order.total || 0).toFixed(2).replace('.', ',')}</p>
+                                    <p className="text-xl sm:text-2xl font-black text-primary uppercase tracking-tighter">R$ {parseFloat(order.total || 0).toFixed(2).replace('.', ',')}</p>
                                 </div>
                                 <div className="flex items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Detalhes</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Detalhes</span>
                                     <ClipboardList className="w-4 h-4" />
                                 </div>
                             </div>
@@ -237,9 +237,9 @@ export default function OrdersPage() {
             </div>
 
             {filteredOrders.length === 0 && (
-                <div className="text-center py-32 bg-card rounded-[3rem] border-2 border-dashed border-border shadow-inner">
-                    <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6 text-muted-foreground/30">
-                        <ShoppingBag className="w-10 h-10" />
+                <div className="text-center py-20 sm:py-32 bg-card rounded-2xl sm:rounded-[3rem] border-2 border-dashed border-border shadow-inner">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-muted-foreground/30">
+                        <ShoppingBag className="w-8 h-8 sm:w-10 sm:h-10" />
                     </div>
                     <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest italic">Nenhuma comanda encontrada no momento.</p>
                 </div>
