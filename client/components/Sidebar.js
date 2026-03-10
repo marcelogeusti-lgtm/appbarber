@@ -16,12 +16,12 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // State to manage collapsed groups
     const [expandedGroups, setExpandedGroups] = useState({
         cadastros: true,
         financeiro: true,
         gestao: true,
         vendas: true,
+        suporte: true,
         config: false
     });
 
@@ -186,7 +186,6 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     {/* Conteúdo (Cursos) */}
                     <MenuGroup title="Educação" id="educacao" icon={GraduationCap}>
                         <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Cursos" />
-                        <MenuItem href="/dashboard/tutorials" icon={PlayCircle} label="Tutoriais / Ajuda" />
                     </MenuGroup>
 
                     {/* Financeiro */}
@@ -198,6 +197,12 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     </MenuGroup>
 
                     <div className="h-px bg-border mx-2 my-2"></div>
+
+                    {/* Suporte & Ajuda */}
+                    <MenuGroup title="Suporte & Ajuda" id="suporte" icon={PlayCircle}>
+                        <MenuItem href="/dashboard/tutorials" icon={PlayCircle} label="Vídeos Tutoriais" />
+                        <MenuItem href="/dashboard/tutorials" icon={MessageCircle} label="Central de Ajuda" />
+                    </MenuGroup>
 
                     {/* Configurações */}
                     <MenuGroup title="Configurações" id="config" icon={Settings}>
@@ -211,6 +216,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             <MenuGroup title="Gestão Master (Exclusivo)" id="master" icon={Shield}>
                                 <MenuItem href="/dashboard/super-admin" icon={LayoutDashboard} label="Controle SaaS Global" badge="Master" />
                                 <MenuItem href="/dashboard/super-admin/courses" icon={GraduationCap} label="Configurar Cursos" badge="Master" />
+                                <MenuItem href="/dashboard/super-admin/tutorials" icon={PlayCircle} label="Gerenciar Tutoriais" badge="Master" />
                             </MenuGroup>
                         </>
                     )}
