@@ -293,6 +293,198 @@ exports.getFinancialStats = async (req, res) => {
     }
 };
 
+// --- MODO DONO: INTELIGÊNCIA DE NEGÓCIO ---
+exports.getOwnerDashboard = async (req, res) => {
+    try {
+        const { barbershopId, startDate, endDate } = req.query;
+        let where = {};
+        if (barbershopId) where.barbershopId = barbershopId;
+
+        const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));
+        const end = endDate ? new Date(endDate) : new Date();
+
+        const [transactions, orders, allClients] = await Promise.all([
+            prisma.transaction.findMany({
+                where: {
+                    ...where,
+                    date: { gte: startOfDay(start), lte: endOfDay(end) }
+                },
+                include: { professional: { select: { name: true } } }
+            }),
+            prisma.order.findMany({
+                where: {
+                    ...where,
+                    status: { in: ['CLOSED', 'PAID'] },
+                    updatedAt: { gte: startOfDay(start), lte: endOfDay(end) }
+                },
+                include: { items: true, client: true }
+            }),
+            prisma.client.findMany({ where })
+        ]);
+
+        // 1. KPIs Básicos
+        const totalRevenue = transactions.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
+        const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
+        const netProfit = totalRevenue - totalExpenses;
+        const ticketMedio = orders.length > 0 ? (totalRevenue / orders.length) : 0;
+
+        // 2. Retenção de Clientes
+        const clientVisitCount = orders.reduce((acc, o) => {
+            if (o.clientId) acc[o.clientId] = (acc[o.clientId] || 0) + 1;
+            return acc;
+        }, {});
+        const recurringClients = Object.values(clientVisitCount).filter(count => count > 1).length;
+        const totalClientsInPeriod = Object.keys(clientVisitCount).length;
+        const retentionRate = totalClientsInPeriod > 0 ? (recurringClients / totalClientsInPeriod) * 100 : 0;
+
+        // 3. Lucro por Profissional (Revenue - Commissions)
+        const proStock = {}; // { proId: { name, revenue, commission, net } }
+
+        // Revenue from Transactions (mapped to pros)
+        transactions.filter(t => t.type === 'INCOME' && t.professionalId).forEach(t => {
+            const id = t.professionalId;
+            if (!proStock[id]) proStock[id] = { name: t.professional?.name || 'Desconhecido', revenue: 0, commission: 0 };
+            proStock[id].revenue += Number(t.amount);
+        });
+
+        // Commissions from Transactions (mapped to pros as expense)
+        transactions.filter(t => t.type === 'EXPENSE' && t.category === 'Comissão' && t.professionalId).forEach(t => {
+            const id = t.professionalId;
+            if (!proStock[id]) proStock[id] = { name: t.professional?.name || 'Desconhecido', revenue: 0, commission: 0 };
+            proStock[id].commission += Number(t.amount);
+        });
+
+        const rankingPro = Object.values(proStock).map(p => ({
+            ...p,
+            net: p.revenue - p.commission
+        })).sort((a, b) => b.net - a.net);
+
+        // 4. Horários Mais Lucrativos (Heatmap data)
+        const hourlyRevenue = orders.reduce((acc, o) => {
+            const hour = new Date(o.updatedAt).getHours();
+            acc[hour] = (acc[hour] || 0) + Number(o.total);
+            return acc;
+        }, {});
+
+        // 5. Serviços Mais Rentáveis
+        const serviceStats = {};
+        orders.forEach(o => {
+            o.items.filter(i => i.type === 'SERVICE').forEach(i => {
+                const name = i.description || 'Serviço';
+                if (!serviceStats[name]) serviceStats[name] = { count: 0, revenue: 0 };
+                serviceStats[name].count += i.quantity;
+                serviceStats[name].revenue += Number(i.total);
+            });
+        });
+        const topServices = Object.entries(serviceStats).map(([name, s]) => ({ name, ...s })).sort((a, b) => b.revenue - a.revenue);
+
+        // 6. Clientes VIP (Top Spenders)
+        const clientRanking = orders.reduce((acc, o) => {
+            const name = o.client?.name || 'Avulso';
+            if (!acc[name]) acc[name] = 0;
+            acc[name] += Number(o.total);
+            return acc;
+        }, {});
+        const topClients = Object.entries(clientRanking).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount).slice(0, 10);
+
+        // 7. Previsão de Faturamento (Próximos 30 dias de agendamentos confirmados)
+        const futureApts = await prisma.appointment.findMany({
+            where: {
+                ...where,
+                status: 'CONFIRMED',
+                date: { gte: new Date(), lte: new Date(new Date().setDate(new Date().getDate() + 30)) }
+            },
+            include: { service: true }
+        });
+        const forecast = futureApts.reduce((sum, a) => sum + Number(a.service.price), 0);
+
+        // 8. Inteligência: Alertas Automáticos
+        const alerts = [];
+
+        // Alerta 1: Queda de Movimento (Comparar última semana vs penúltima)
+        const last7Days = transactions.filter(t => t.type === 'INCOME' && t.date >= new Date(new Date().setDate(new Date().getDate() - 7)));
+        const prev7To14Days = await prisma.transaction.findMany({
+            where: {
+                ...where,
+                type: 'INCOME',
+                date: {
+                    gte: new Date(new Date().setDate(new Date().getDate() - 14)),
+                    lte: new Date(new Date().setDate(new Date().getDate() - 7))
+                }
+            }
+        });
+        const revLast7 = last7Days.reduce((s, t) => s + Number(t.amount), 0);
+        const revPrev7 = prev7To14Days.reduce((s, t) => s + Number(t.amount), 0);
+
+        if (revPrev7 > 0 && revLast7 < revPrev7 * 0.8) {
+            alerts.push({
+                type: 'WARNING',
+                title: 'Queda de faturamento',
+                message: `O movimento caiu ${((1 - revLast7 / revPrev7) * 100).toFixed(0)}% em relação à semana passada.`
+            });
+        }
+
+        // Alerta 2: Cancelamentos Frequentes
+        const recentCancellations = await prisma.appointment.findMany({
+            where: {
+                ...where,
+                status: 'CANCELLED',
+                updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 7)) }
+            },
+            include: { professional: { select: { name: true } } }
+        });
+
+        const cancelByPro = recentCancellations.reduce((acc, a) => {
+            const name = a.professional?.name || 'Pro';
+            acc[name] = (acc[name] || 0) + 1;
+            return acc;
+        }, {});
+
+        Object.entries(cancelByPro).forEach(([name, count]) => {
+            if (count >= 3) {
+                alerts.push({
+                    type: 'DANGER',
+                    title: 'Foco em Cancelamentos',
+                    message: `O profissional ${name} teve ${count} cancelamentos nos últimos 7 dias.`
+                });
+            }
+        });
+
+        // Alerta 3: Horários Ociosos (ex: 14h sempre vazio)
+        if (Object.keys(hourlyRevenue).length > 0 && !hourlyRevenue[14]) {
+            alerts.push({
+                type: 'INFO',
+                title: 'Horário Ocioso',
+                message: 'O horário das 14h está sem faturamento neste período. Que tal uma promoção?'
+            });
+        }
+
+        res.json({
+            kpis: {
+                monthlyRevenue: totalRevenue,
+                estimatedProfit: netProfit,
+                ticketMedio,
+                retentionRate,
+                forecast
+            },
+            rankings: {
+                professionals: rankingPro,
+                services: topServices,
+                clients: topClients
+            },
+            charts: {
+                hourlyHeatmap: Object.entries(hourlyRevenue).map(([hour, value]) => ({ hour: parseInt(hour), value })),
+                revenueGrowth: []
+            },
+            alerts
+        });
+
+    } catch (error) {
+        console.error('Owner Dashboard Error:', error);
+        res.status(500).json({ message: 'Erro ao processar inteligência de negócio.' });
+    }
+};
+
 // --- Cash Shift (Caixa) Management ---
 
 exports.getCurrentShift = async (req, res) => {

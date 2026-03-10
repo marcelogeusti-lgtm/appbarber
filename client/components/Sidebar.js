@@ -158,6 +158,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     {/* Principal */}
                     <div className="space-y-1">
                         <MenuItem href="/dashboard" icon={LayoutDashboard} label="Visão Geral" />
+                        <MenuItem href="/dashboard/owner" icon={Star} label="Modo Dono ⭐" />
                         <MenuItem href="/dashboard/schedule" icon={Calendar} label="Agenda" />
                     </div>
 
