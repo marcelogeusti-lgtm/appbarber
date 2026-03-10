@@ -49,7 +49,7 @@ export default function OwnerDashboardPage() {
                 <div>
                     <div className="flex items-center gap-2 mb-2">
                         <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Modo Dono Ativado</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Análise Estratégica</span>
                     </div>
                     <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter leading-none">Gestão de Negócio</h1>
                     <p className="text-muted-foreground text-sm font-medium italic mt-2">Visão estratégica para maximizar lucros e crescimento.</p>
@@ -80,8 +80,8 @@ export default function OwnerDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {data.alerts.map((alert, i) => (
                         <div key={i} className={`p-5 rounded-2xl border-l-4 shadow-sm flex gap-4 items-start ${alert.type === 'DANGER' ? 'bg-red-500/5 border-red-500 text-red-500' :
-                                alert.type === 'WARNING' ? 'bg-yellow-500/5 border-yellow-500 text-yellow-500' :
-                                    'bg-blue-500/5 border-blue-500 text-blue-500'
+                            alert.type === 'WARNING' ? 'bg-yellow-500/5 border-yellow-500 text-yellow-500' :
+                                'bg-blue-500/5 border-blue-500 text-blue-500'
                             }`}>
                             <div className="p-2 rounded-xl bg-background/50">
                                 <Zap className="w-4 h-4" />
