@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { safeGetItem } from './storage';
 
 const getBaseUrl = () => {
     // Priority 1: Environment variable
@@ -29,7 +30,7 @@ api.interceptors.request.use((config) => {
     }
 
     if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token') || localStorage.getItem('clientToken');
+        const token = safeGetItem('token') || safeGetItem('clientToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }

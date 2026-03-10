@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import api from '../lib/api';
+import { safeGetItem, safeSetItem } from '../lib/storage';
 
 export default function ThemeToggle() {
     const [theme, setTheme] = useState('dark');
 
     useEffect(() => {
         // Init theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const savedTheme = safeGetItem('theme') || 'dark';
         setTheme(savedTheme);
         document.documentElement.setAttribute('data-theme', savedTheme);
     }, []);
@@ -16,7 +17,7 @@ export default function ThemeToggle() {
     const toggleTheme = async () => {
         const newTheme = theme === 'dark' ? 'light' : 'dark';
         setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
+        safeSetItem('theme', newTheme);
         document.documentElement.setAttribute('data-theme', newTheme);
 
         // Optional: Persist to backend if logged in

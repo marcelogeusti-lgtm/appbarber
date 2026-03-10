@@ -13,25 +13,30 @@ export const safeSetItem = (key, value) => {
     } catch (error) {
         console.error(`[Storage] Failed to save ${key}:`, error);
 
-        // Check for QuotaExceededError (different browsers use different names)
+        // Comprehensive check for QuotaExceededError
+        const errorMessage = (error.message || '').toLowerCase();
+        const errorName = (error.name || '');
+
         const isQuotaError =
-            error instanceof DOMException && (
-                // everything except Firefox
-                error.code === 22 ||
-                // Firefox
-                error.code === 1014 ||
-                // test name field too, because code might not be present
-                error.name === 'QuotaExceededError' ||
-                error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-            );
+            errorName === 'QuotaExceededError' ||
+            errorName === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+            error.code === 22 ||
+            error.code === 1014 ||
+            errorMessage.includes('quota') ||
+            errorMessage.includes('exceeded') ||
+            errorMessage.includes('limit');
 
         if (isQuotaError) {
-            // Throw a user-friendly error in Portuguese
-            throw new Error('Seu navegador está sem espaço ou em modo privado. Por favor, limpe o cache ou saia do modo anônimo para continuar.');
+            // Friendly message for the UI
+            const friendlyMessage = 'Seu navegador está sem espaço ou em modo privado. Por favor, limpe o cache ou saia do modo anônimo para continuar.';
+            // We throw a standardized error so the UI can catch it consistently
+            const quotaError = new Error(friendlyMessage);
+            quotaError.name = 'QuotaExceededError';
+            throw quotaError;
         }
 
-        // Re-throw other errors
-        throw error;
+        // For other errors, we just return false to avoid crashing the whole app
+        return false;
     }
 };
 
@@ -55,5 +60,14 @@ export const safeRemoveItem = (key) => {
         window.localStorage.removeItem(key);
     } catch (error) {
         console.error(`[Storage] Failed to remove ${key}:`, error);
+    }
+};
+
+export const safeClear = () => {
+    try {
+        if (typeof window === 'undefined') return;
+        window.localStorage.clear();
+    } catch (error) {
+        console.error(`[Storage] Failed to clear storage:`, error);
     }
 };

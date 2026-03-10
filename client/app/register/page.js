@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { UserPlus, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../lib/api';
+import { safeSetItem } from '../../lib/storage';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -31,11 +32,14 @@ export default function RegisterPage() {
         try {
             const res = await api.post('/auth/register', formData);
             const userData = { ...res.data.user, barbershopId: res.data.barbershop?.id };
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(userData));
+
+            safeSetItem('token', res.data.token);
+            safeSetItem('user', JSON.stringify(userData));
+
             router.push('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Erro ao criar conta.');
+            console.error('Register error:', err);
+            setError(err.response?.data?.message || err.message || 'Erro ao criar conta.');
         } finally {
             setLoading(false);
         }

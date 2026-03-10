@@ -9,6 +9,7 @@ import NewOrderModal from '../../components/NewOrderModal';
 import NewTransactionModal from '../../components/NewTransactionModal';
 
 import { SocketProvider } from '../../contexts/SocketContext';
+import { safeGetItem, safeRemoveItem, safeClear } from '../../lib/storage';
 
 export default function DashboardLayout({ children }) {
     const router = useRouter();
@@ -22,24 +23,24 @@ export default function DashboardLayout({ children }) {
     useEffect(() => {
         const checkAuth = () => {
             try {
-                const token = localStorage.getItem('token');
+                const token = safeGetItem('token');
                 if (!token) {
                     router.push('/login');
                     return;
                 }
 
-                const userData = localStorage.getItem('user');
+                const userData = safeGetItem('user');
                 if (userData) {
                     setUser(JSON.parse(userData));
                     setLoading(false);
                 } else {
                     // Token exists but no user data? Invalid state.
-                    localStorage.removeItem('token');
+                    safeClear();
                     router.push('/login');
                 }
             } catch (err) {
                 console.error('Error parsing user data in layout:', err);
-                localStorage.clear();
+                safeClear();
                 router.push('/login');
             }
         };
@@ -55,7 +56,7 @@ export default function DashboardLayout({ children }) {
     }, [user, router]);
 
     const logout = () => {
-        localStorage.clear();
+        safeClear();
         router.push('/login');
     };
 

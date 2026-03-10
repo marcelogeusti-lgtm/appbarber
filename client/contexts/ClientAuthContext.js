@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '../lib/clientApi';
-import { safeSetItem } from '../lib/storage';
+import { safeGetItem, safeSetItem, safeRemoveItem } from '../lib/storage';
 import { auth, googleProvider, facebookProvider } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
 
@@ -21,7 +21,7 @@ export function ClientAuthProvider({ children }) {
     }, []);
 
     const refreshUser = async () => {
-        const storedToken = localStorage.getItem('clientToken');
+        const storedToken = safeGetItem('clientToken');
         if (storedToken) {
             try {
                 // Verify with backend
@@ -159,9 +159,9 @@ export function ClientAuthProvider({ children }) {
     };
 
     const logout = () => {
-        localStorage.removeItem('clientToken');
-        localStorage.removeItem('clientUser');
-        localStorage.removeItem('user'); // Also clear generic user to prevent cross-pollution
+        safeRemoveItem('clientToken');
+        safeRemoveItem('clientUser');
+        safeRemoveItem('user'); // Also clear generic user to prevent cross-pollution
         setUser(null);
         // User stays on page, interface updates to logged-out state via context
     };

@@ -9,6 +9,7 @@ import {
     Store, CreditCard, UserCheck, ScrollText, MessageSquare,
     PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3
 } from 'lucide-react';
+import { safeSetItem } from '../lib/storage';
 
 export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, onClose }) {
     const pathname = usePathname();
@@ -135,7 +136,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                                     const shop = user.ownedBarbershops.find(s => s.id === e.target.value);
                                     if (shop) {
                                         const newUser = { ...user, barbershopId: shop.id, barbershop: shop };
-                                        localStorage.setItem('user', JSON.stringify(newUser));
+                                        safeSetItem('user', JSON.stringify(newUser));
                                         window.location.reload();
                                     }
                                 }}

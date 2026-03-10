@@ -15,6 +15,7 @@ import {
     Search as SearchIcon
 } from 'lucide-react';
 import api from '../../../lib/clientApi';
+import { safeGetItem, safeSetItem, safeRemoveItem } from '../../../lib/storage';
 
 export default function SubscriptionsPage() {
     const router = useRouter();
@@ -36,18 +37,23 @@ export default function SubscriptionsPage() {
     useEffect(() => {
         fetchData();
         // Check if returning from login to complete a subscription
-        const pendingPlanStr = localStorage.getItem('pending_subscription');
+        const pendingPlanStr = safeGetItem('pending_subscription');
         if (pendingPlanStr) {
-            const plan = JSON.parse(pendingPlanStr);
-            localStorage.removeItem('pending_subscription');
-            handleSubscribe(plan);
+            try {
+                const plan = JSON.parse(pendingPlanStr);
+                safeRemoveItem('pending_subscription');
+                handleSubscribe(plan);
+            } catch (e) {
+                console.error('Error parsing pending subscription', e);
+                safeRemoveItem('pending_subscription');
+            }
         }
     }, [barbershopIdParam]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('clientToken');
+            const token = safeGetItem('clientToken');
             if (!token) {
                 // Not logged in: we can skip my-active check
                 setLoading(false);
@@ -91,10 +97,10 @@ export default function SubscriptionsPage() {
     };
 
     const handleSubscribe = async (plan) => {
-        const token = localStorage.getItem('clientToken');
+        const token = safeGetItem('clientToken');
         if (!token) {
             // Unauthenticated: save context and redirect
-            localStorage.setItem('pending_subscription', JSON.stringify(plan));
+            safeSetItem('pending_subscription', JSON.stringify(plan));
             router.push(`/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
             return;
         }
