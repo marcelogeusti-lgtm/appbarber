@@ -81,21 +81,55 @@ export default function FinancialDashboardPage() {
                 <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-6">Faturamento Bruto no período selecionado</h3>
 
                 <div className="mb-8">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Total de receita bruta por dia</p>
-                    <div className="relative h-64 flex items-end gap-1">
-                        {data.revenueByDay.map((day, idx) => (
-                            <div key={idx} className="flex-1 flex flex-col items-center group">
-                                <div
-                                    className="w-full bg-gradient-to-t from-primary to-primary/80 rounded-t-lg transition-all hover:to-primary/60 cursor-pointer relative"
-                                    style={{ height: `${(day.value / (maxRevenue || 1)) * 100}%` }}
-                                >
-                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover px-2 py-1 rounded text-[10px] font-black text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-border">
-                                        R$ {day.value.toFixed(2)}
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 font-black uppercase">Total de receita bruta por dia</p>
+
+                    {/* --- DO NOT MODIFY: CRITICAL FOR CHART VISUALIZATION --- */}
+                    {/* This block handles the custom bar chart rendering, grid lines, and tooltips. */}
+                    {/* Modifying the scaling, colors, or markers logic may break the dashboard legibility. */}
+                    <div className="relative h-64 w-full">
+                        {/* Grid Lines */}
+                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                            {[0, 1, 2, 3, 4].map((i) => (
+                                <div key={i} className="w-full border-t border-white/5 h-0" />
+                            ))}
+                        </div>
+
+                        <div className="relative h-full flex items-end gap-1.5 pt-10">
+                            {data.revenueByDay.map((day, idx) => {
+                                const heightPercent = (day.value / (maxRevenue || 1)) * 100;
+                                const hasRevenue = day.value > 0;
+
+                                return (
+                                    <div key={idx} className="flex-1 flex flex-col items-center group h-full justify-end">
+                                        <div
+                                            className="w-full rounded-t-lg transition-all cursor-pointer relative"
+                                            style={{
+                                                height: hasRevenue ? `calc(${heightPercent}% + 4px)` : '0%',
+                                                backgroundColor: hasRevenue ? '#4F7CFF' : 'transparent',
+                                                boxShadow: hasRevenue ? '0 0 20px rgba(79, 124, 255, 0.2)' : 'none'
+                                            }}
+                                        >
+                                            {/* Top Marker (Dot) */}
+                                            {hasRevenue && (
+                                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-lg shadow-primary ring-4 ring-primary/20" />
+                                            )}
+
+                                            {/* Enhanced Tooltip */}
+                                            <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-popover p-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap border border-border shadow-2xl z-50 scale-90 group-hover:scale-100">
+                                                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter mb-1">{day.date}</p>
+                                                <p className="text-sm font-black text-primary">R$ {day.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                            </div>
+
+                                            {/* Hover Glow */}
+                                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-lg" />
+                                        </div>
+                                        <span className="text-[8px] font-bold text-muted-foreground mt-3 rotate-45 origin-left whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity uppercase tracking-tighter">
+                                            {day.date.split('/')[0]}/{day.date.split('/')[1]}
+                                        </span>
                                     </div>
-                                </div>
-                                <span className="text-[8px] font-bold text-muted-foreground mt-2">{day.date}</span>
-                            </div>
-                        ))}
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 
