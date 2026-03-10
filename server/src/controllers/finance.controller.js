@@ -303,7 +303,7 @@ exports.getOwnerDashboard = async (req, res) => {
         const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));
         const end = endDate ? new Date(endDate) : new Date();
 
-        const [transactions, orders, allClients] = await Promise.all([
+        const [transactions, orders] = await Promise.all([
             prisma.transaction.findMany({
                 where: {
                     ...where,
@@ -318,8 +318,7 @@ exports.getOwnerDashboard = async (req, res) => {
                     updatedAt: { gte: startOfDay(start), lte: endOfDay(end) }
                 },
                 include: { items: true, client: true }
-            }),
-            prisma.client.findMany({ where })
+            })
         ]);
 
         // 1. KPIs Básicos
