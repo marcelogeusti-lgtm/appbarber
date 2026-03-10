@@ -96,7 +96,7 @@ export default function CheckoutShowcase() {
 
                             <div className="relative">
                                 <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
-                                <div className="relative bg-white rounded-[2rem] p-8 shadow-2xl transform rotate-1 group-hover:rotate-0 transition-transform duration-500">
+                                <div className="relative bg-white rounded-[2rem] p-8 shadow-2xl transition-transform duration-500">
                                     <div className="flex items-center justify-between mb-8">
                                         <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
                                             <CreditCard className="w-6 h-6 text-primary" />

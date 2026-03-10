@@ -33,7 +33,7 @@ export default function Hero() {
                             O ecossistema definitivo para transformar seu negócio. Agendamento intuitivo, controle financeiro impecável e fidelização de elite.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                        <div className="flex flex-col sm:flex-row gap-4 mb-10">
                             <Link href="/register">
                                 <button className="w-full sm:w-auto px-8 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-2 group">
                                     Ativar Agora <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -44,6 +44,29 @@ export default function Hero() {
                                     Ver Planos
                                 </button>
                             </Link>
+                        </div>
+
+                        {/* Social Proof Avatars */}
+                        <div className="flex flex-wrap items-center gap-4 mb-12">
+                            <div className="flex -space-x-3">
+                                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100" alt="Barbeiro" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
+                                <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=100&h=100" alt="Barbeiro" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
+                                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=100&h=100" alt="Barbeiro" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100" alt="Barbeiro" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
+                                <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-50 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                                    +2k
+                                </div>
+                            </div>
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-1">
+                                    {[1, 2, 3, 4, 5].map((s) => (
+                                        <Star key={s} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                                    ))}
+                                </div>
+                                <p className="text-[11px] font-semibold text-gray-500 mt-1">
+                                    Junte-se a <span className="text-gray-900 font-bold">+2.000 barbeiros</span> cadastrados
+                                </p>
+                            </div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-8 border-t border-gray-50 pt-10">

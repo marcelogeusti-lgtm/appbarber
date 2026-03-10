@@ -7,7 +7,8 @@ import {
     ShoppingBag, Receipt, DollarSign, PieChart, Wallet,
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, ScrollText, MessageSquare,
-    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3
+    PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3,
+    PlayCircle
 } from 'lucide-react';
 import { safeSetItem } from '../lib/storage';
 
@@ -185,6 +186,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     {/* Conteúdo (Cursos) */}
                     <MenuGroup title="Educação" id="educacao" icon={GraduationCap}>
                         <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Cursos" />
+                        <MenuItem href="/dashboard/tutorials" icon={PlayCircle} label="Tutoriais / Ajuda" />
                     </MenuGroup>
 
                     {/* Financeiro */}
