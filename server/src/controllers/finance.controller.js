@@ -327,6 +327,7 @@ exports.getOwnerDashboard = async (req, res) => {
         const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
         const netProfit = totalRevenue - totalExpenses;
         const ticketMedio = orders.length > 0 ? (totalRevenue / orders.length) : 0;
+        const monthlyRevenue = totalRevenue || 0;
 
         // 2. Retenção de Clientes
         const clientVisitCount = orders.reduce((acc, o) => {
@@ -336,6 +337,7 @@ exports.getOwnerDashboard = async (req, res) => {
         const recurringClients = Object.values(clientVisitCount).filter(count => count > 1).length;
         const totalClientsInPeriod = Object.keys(clientVisitCount).length;
         const retentionRate = totalClientsInPeriod > 0 ? (recurringClients / totalClientsInPeriod) * 100 : 0;
+        const monthlyVisitRate = totalClientsInPeriod;
 
         // 3. Lucro por Profissional (Revenue - Commissions)
         const proStock = {}; // { proId: { name, revenue, commission, net } }
@@ -396,7 +398,7 @@ exports.getOwnerDashboard = async (req, res) => {
             },
             include: { service: true }
         });
-        const forecast = futureApts.reduce((sum, a) => sum + Number(a.service.price), 0);
+        const forecast = futureApts.reduce((sum, a) => sum + Number(a.service?.price || 0), 0);
 
         // 8. Inteligência: Alertas Automáticos
         const alerts = [];
@@ -461,11 +463,12 @@ exports.getOwnerDashboard = async (req, res) => {
 
         res.json({
             kpis: {
-                monthlyRevenue: totalRevenue,
+                monthlyRevenue,
                 estimatedProfit: netProfit,
                 ticketMedio,
                 retentionRate,
-                forecast
+                forecast,
+                visitCount: monthlyVisitRate
             },
             rankings: {
                 professionals: rankingPro,

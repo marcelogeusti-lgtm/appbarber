@@ -21,15 +21,24 @@ export default function OwnerDashboardPage() {
         try {
             setLoading(true);
             const userStr = localStorage.getItem('user');
-            if (!userStr) return;
+            if (!userStr) {
+                setLoading(false);
+                return;
+            }
             const user = JSON.parse(userStr);
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
+            if (!bId) {
+                console.warn('No barbershopId found for analysis report');
+                setLoading(false);
+                return;
+            }
+
             const res = await api.get(`/finance/owner-report?barbershopId=${bId}&startDate=${startDate}&endDate=${endDate}`);
-            setData(res.data);
+            setData(res.data || null);
             setLoading(false);
         } catch (err) {
-            console.error(err);
+            console.error('Fetch Owner Data Error:', err);
             setLoading(false);
         }
     };
