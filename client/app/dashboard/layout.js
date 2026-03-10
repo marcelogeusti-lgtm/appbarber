@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }) {
     const currentBarbershop = user?.barbershop || user?.workedBarbershop || user?.ownedBarbershops?.[0];
 
     const isSubscriptionActive = () => {
-        if (user?.role === 'CLIENT' || user?.role === 'SUPER_ADMIN') return true;
+        if (user?.role === 'CLIENT' || user?.role === 'SUPER_ADMIN' || user?.isMaster) return true;
         const shop = currentBarbershop;
 
         if (!shop) return false;

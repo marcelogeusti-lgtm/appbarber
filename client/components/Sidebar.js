@@ -202,7 +202,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     </MenuGroup>
 
                     {/* Master Management - EXCLUSIVE for MASTER ACCOUNT */}
-                    {user?.role === 'SUPER_ADMIN' && (
+                    {(user?.role === 'SUPER_ADMIN' || user?.isMaster) && (
                         <>
                             <div className="h-px bg-primary/20 mx-2 my-2"></div>
                             <MenuGroup title="Gestão Master (Exclusivo)" id="master" icon={Shield}>
@@ -242,7 +242,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                                 className="w-8 h-8 mx-auto rounded-full object-cover border border-primary/30"
                             />
                         ) : (
-                            <div className="w-8 h-8 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold uppercase">
+                            <div className="w-8 h-8 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold">
                                 {user?.name?.[0]}
                             </div>
                         )
