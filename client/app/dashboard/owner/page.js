@@ -48,7 +48,7 @@ export default function OwnerDashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                     <div className="flex items-center gap-2 mb-2">
-                        <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                        <BarChart3 className="w-5 h-5 text-primary" />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Análise Estratégica</span>
                     </div>
                     <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter leading-none">Gestão de Negócio</h1>

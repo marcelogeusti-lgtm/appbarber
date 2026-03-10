@@ -2,6 +2,7 @@ const express = require('express');
 const {
     getFinancialStats,
     getFinancialDashboard,
+    getOwnerDashboard,
     getCurrentShift,
     openShift,
     closeShift
