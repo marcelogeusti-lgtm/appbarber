@@ -3,12 +3,13 @@ const prisma = new PrismaClient();
 
 async function checkUser(email) {
     try {
-        const authUser = await prisma.authUser.findUnique({
-            where: { email },
-            include: { user: true }
+        const u = await prisma.user.findFirst({
+            where: { email }
         });
-        console.log('--- USER DATA ---');
-        console.log(JSON.stringify(authUser, null, 2));
+        console.log('--- USER ROLE ---');
+        console.log('Name:', u.name);
+        console.log('Role:', u.role);
+        console.log('isMaster:', u.isMaster);
     } catch (err) {
         console.error(err);
     } finally {
