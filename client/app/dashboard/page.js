@@ -77,6 +77,9 @@ export default function DashboardPage() {
         alert('Link copiado!');
     };
 
+    const shopName = user.barbershop?.name || user.ownedBarbershops?.[0]?.name || user.workedBarbershop?.name;
+    const greetingName = shopName || user.name;
+
     return (
         <div className="bg-background text-foreground space-y-6">
 
@@ -84,11 +87,11 @@ export default function DashboardPage() {
             <div className="bg-card rounded-xl p-6 border border-border flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-lg">
-                        {user.name?.[0]}
+                        {greetingName?.[0]}
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                            Olá, {user.name} <Scissors className="w-5 h-5 text-primary" />
+                            Olá, {greetingName}
                         </h1>
                         <div className="flex items-center gap-2 mt-0.5">
                             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
