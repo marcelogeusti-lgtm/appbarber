@@ -1,5 +1,5 @@
 'use client';
-import { TrendingUp, Calendar, Zap, Smartphone, Check, ArrowRight } from 'lucide-react';
+import { TrendingUp, Calendar, Zap, Smartphone, Check, ArrowRight, Star } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProductShowcase() {
@@ -7,13 +7,13 @@ export default function ProductShowcase() {
         {
             title: "Agenda Maestro: Controle Total",
             desc: "Visualize toda a sua operação em segundos. Arraste e solte agendamentos, gerencie profissionais e elimine o papel definitivamente.",
-            img: "/screenshots/dashboard_agenda_1772068437988.png",
+            isAgenda: true,
             features: ["Visão Diária/Semanal Pro", "Bloqueio de Horas Inteligente", "Sincronização Cloud"]
         },
         {
             title: "O Site da Sua Barbearia",
             desc: "Uma vitrine digital profissional que funciona 24h por dia. Seu cliente escolhe o serviço, o barbeiro e o horário sem precisar te ligar.",
-            img: "/screenshots/public_booking_page_1772068485163.png",
+            isBooking: true,
             features: ["Agendamento Online 24/7", "Totalmente Responsivo", "Link Personalizado"],
             reverse: true
         }
@@ -65,6 +65,24 @@ export default function ProductShowcase() {
                                         </li>
                                     ))}
                                 </ul>
+
+                                {section.isAgenda && (
+                                    <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 mb-10">
+                                        <div className="flex items-center gap-4 mb-2">
+                                            <div className="flex -space-x-2">
+                                                {[1, 2, 3].map(i => (
+                                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
+                                                ))}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-0.5">
+                                                    {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />)}
+                                                </div>
+                                                <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest mt-0.5">Nota 4.9/5 · 234 Avaliações</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <Link href="/register">
                                     <button className="flex items-center gap-2 text-xs font-black text-primary uppercase tracking-widest hover:gap-4 transition-all">

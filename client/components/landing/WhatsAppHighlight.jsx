@@ -52,7 +52,7 @@ export default function WhatsAppHighlight() {
                                     </div>
 
                                     <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] border border-gray-100 flex flex-col">
-                                        <p className="text-[12px] text-gray-800 font-medium">Fala pessoal! Queria agendar um degrade com o Marcelo hoje.</p>
+                                        <p className="text-[12px] text-gray-800 font-medium">Quero marcar um corte para hoje!</p>
                                         <span className="text-[9px] text-gray-400 self-end mt-1">11:02</span>
                                     </div>
 
@@ -60,12 +60,21 @@ export default function WhatsAppHighlight() {
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                                         <div className="flex items-center gap-2 mb-2">
                                             <div className="w-5 h-5 bg-[#008069] rounded-full flex items-center justify-center text-white">
-                                                <Check className="w-3 h-3" />
+                                                <Zap className="w-3 h-3 fill-current" />
                                             </div>
-                                            <p className="text-[10px] font-black text-[#128c7e] uppercase tracking-tighter">Confirmado em 0.4s</p>
+                                            <p className="text-[10px] font-black text-[#128c7e] uppercase tracking-tighter">Automação NEXT</p>
                                         </div>
-                                        <p className="text-[12px] text-gray-800 font-bold mb-1">Horário Reservado, Carlos! ✅</p>
-                                        <p className="text-[11px] text-gray-700 leading-tight">Separei as 15:30 para você. Seu lembrete será enviado 1h antes.</p>
+                                        <p className="text-[12px] text-gray-800 font-bold mb-2">Claro! Escolha um horário:</p>
+
+                                        <div className="grid grid-cols-2 gap-2 mb-3">
+                                            {['14:00', '15:30', '16:00', '17:30'].map(time => (
+                                                <div key={time} className="bg-white py-2 rounded-lg text-center text-[10px] font-black text-[#008069] border border-[#008069]/20">
+                                                    {time}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <p className="text-[11px] text-gray-700 leading-tight">Ao escolher, seu horário será reservado instantaneamente. 🚀</p>
                                         <span className="text-[9px] text-gray-400 self-end mt-2">11:02</span>
                                     </div>
                                 </div>

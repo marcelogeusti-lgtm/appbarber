@@ -46,6 +46,23 @@ export default function Hero() {
                             </Link>
                         </div>
 
+                        {/* Conversion Social Proof Bar */}
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-10 py-4 border-y border-gray-50">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-gray-900">+ 2.800</span>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Agendamentos</span>
+                            </div>
+                            <div className="w-px h-4 bg-gray-200 hidden sm:block" />
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-gray-900">+ R$ 320k</span>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Movimentados</span>
+                            </div>
+                            <div className="w-px h-4 bg-gray-200 hidden sm:block" />
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Crescendo com o NEXT</span>
+                            </div>
+                        </div>
+
                         {/* Social Proof Avatars */}
                         <div className="flex flex-wrap items-center gap-4 mb-12">
                             <div className="flex -space-x-3">
@@ -104,14 +121,36 @@ export default function Hero() {
                                     </div>
                                 </div>
 
-                                {/* Mockup Image */}
-                                <div className="rounded-[1.5rem] border border-gray-50 overflow-hidden bg-gray-50 relative">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/10 to-transparent pointer-events-none" />
-                                    <img
-                                        src="/screenshots/dashboard_main_1772068419823.png"
-                                        alt="Dashboard NEXT"
-                                        className="w-full h-auto"
-                                    />
+                                {/* Mockup Image - Replaced with Coded Dynamic Stats for higher conversion */}
+                                <div className="rounded-[1.5rem] border border-gray-50 overflow-hidden bg-gray-900 p-6 relative aspect-video flex flex-col justify-between">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-blue-600/10 pointer-events-none" />
+
+                                    <div className="relative z-10">
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Visão Geral Hoje</p>
+                                        <h3 className="text-2xl font-black text-white tracking-tight">R$ 1.280,00</h3>
+                                    </div>
+
+                                    <div className="relative z-10 grid grid-cols-2 gap-4">
+                                        <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Atendimentos</p>
+                                            <p className="text-lg font-black text-white">23</p>
+                                        </div>
+                                        <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Novos Clientes</p>
+                                            <p className="text-lg font-black text-white">184</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Abstract background bars to simulate dashboard */}
+                                    <div className="absolute bottom-0 right-0 p-6 opacity-20">
+                                        <div className="flex items-end gap-1 h-20">
+                                            <div className="w-2 h-8 bg-primary rounded-t-sm" />
+                                            <div className="w-2 h-14 bg-primary rounded-t-sm" />
+                                            <div className="w-2 h-10 bg-primary rounded-t-sm" />
+                                            <div className="w-2 h-20 bg-primary rounded-t-sm" />
+                                            <div className="w-2 h-16 bg-primary rounded-t-sm" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

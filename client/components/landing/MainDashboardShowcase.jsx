@@ -21,13 +21,42 @@ export default function MainDashboardShowcase() {
                     {/* Shadow/Glow Background */}
                     <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full scale-90 pointer-events-none" />
 
-                    {/* The Image Container */}
-                    <div className="relative z-10 rounded-[2.5rem] border border-gray-100 bg-white p-2 shadow-[0_50px_100px_rgba(0,0,0,0.1)] overflow-hidden">
-                        <img
-                            src="/screenshots/dashboard_main_1772068419823.png"
-                            alt="Dashboard Maestro NEXT"
-                            className="w-full h-auto rounded-[2rem]"
-                        />
+                    {/* The Image Container - Updated to Coded Metrics for conversion */}
+                    <div className="relative z-10 rounded-[2.5rem] border border-gray-100 bg-white p-8 shadow-[0_50px_100px_rgba(0,0,0,0.1)] flex flex-col items-center">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-primary" />
+
+                        <div className="w-full flex justify-between items-center mb-12">
+                            <div className="text-left">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Faturamento Mensal</p>
+                                <h3 className="text-4xl font-black text-gray-900 tracking-tighter">R$ 18.420,00</h3>
+                                <div className="flex items-center gap-1.5 text-green-500 mt-1">
+                                    <TrendingUp className="w-4 h-4" />
+                                    <span className="text-xs font-bold">+12.5% em relação ao mês anterior</span>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Ticket Médio</p>
+                                    <p className="text-xl font-black text-gray-900">R$ 64,00</p>
+                                </div>
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Recorrência</p>
+                                    <p className="text-xl font-black text-gray-900">84%</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Visual graph representation */}
+                        <div className="w-full h-48 flex items-end justify-between gap-4 px-4 mb-6">
+                            {[40, 65, 45, 90, 55, 75, 100].map((h, i) => (
+                                <div key={i} className="flex-1 bg-primary/10 rounded-t-xl relative group">
+                                    <div
+                                        className="absolute bottom-0 left-0 w-full bg-primary rounded-t-xl transition-all duration-1000"
+                                        style={{ height: `${h}%` }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Floating Badges */}
@@ -37,7 +66,7 @@ export default function MainDashboardShowcase() {
                         </div>
                         <div className="text-left">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Mês</p>
-                            <p className="text-lg font-black text-gray-900 leading-none">R$ 15.420</p>
+                            <p className="text-lg font-black text-gray-900 leading-none">R$ 18.420</p>
                         </div>
                     </div>
 
@@ -55,10 +84,10 @@ export default function MainDashboardShowcase() {
                 {/* Stats Grid Under Image */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto mt-20">
                     {[
-                        { label: 'Lucro Líquido', val: 'R$ 8.240', color: 'green' },
-                        { label: 'Novos Clientes', val: '+ 42', color: 'blue' },
-                        { label: 'Ticket Médio', val: 'R$ 85,00', color: 'purple' },
-                        { label: 'Recorrência', val: '78%', color: 'orange' }
+                        { label: 'Faturamento do Mês', val: 'R$ 18.420', color: 'green' },
+                        { label: 'Serviço Mais Vendido', val: 'Corte Masculino', color: 'blue' },
+                        { label: 'Ticket Médio', val: 'R$ 64,00', color: 'purple' },
+                        { label: 'Taxa de Retorno', val: '84%', color: 'orange' }
                     ].map((stat, i) => (
                         <div key={i} className="text-center group">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">{stat.label}</p>
