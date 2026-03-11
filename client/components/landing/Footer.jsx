@@ -1,5 +1,6 @@
 'use client';
 import { Scissors, Instagram, Facebook, Twitter, Apple, PlayCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Footer() {
     return (

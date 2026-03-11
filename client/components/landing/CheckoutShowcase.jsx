@@ -1,5 +1,5 @@
 'use client';
-import { Check, ArrowRight, User, Scissors, Calendar, CreditCard } from 'lucide-react';
+import { Check, ArrowRight, User, Scissors, Calendar, CreditCard, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 
 const STEPS = [
@@ -137,5 +137,3 @@ export default function CheckoutShowcase() {
         </section>
     );
 }
-
-import { ShoppingBag } from 'lucide-react';
