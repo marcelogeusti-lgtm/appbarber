@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const masterController = require('../controllers/master.controller');
 const contentController = require('../controllers/content.controller');
+const tutorialController = require('../controllers/tutorial.controller');
 const { protect: authMiddleware } = require('../middlewares/auth.middleware');
 
 // Middleware to ensure SUPER_ADMIN
@@ -33,6 +33,12 @@ router.delete('/admin/banners/:id', masterController.deleteBanner);
 router.get('/admin/updates', masterController.listUpdates);
 router.post('/admin/updates', masterController.createUpdate);
 router.delete('/admin/updates/:id', masterController.deleteUpdate);
+
+// Tutorials (Super Admin Management)
+router.get('/admin/tutorials', tutorialController.listAdmin);
+router.post('/admin/tutorials', tutorialController.create);
+router.put('/admin/tutorials/:id', tutorialController.update);
+router.delete('/admin/tutorials/:id', tutorialController.delete);
 
 // Dashboard Stats & Actions
 router.get('/admin/stats', masterController.getDashboardStats);

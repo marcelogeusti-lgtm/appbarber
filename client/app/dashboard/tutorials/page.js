@@ -1,8 +1,28 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlayCircle, Video, BookOpen, Star, Clock, ChevronRight, Search } from 'lucide-react';
+import api from '@/lib/api';
 
-// Fake Data for Tutorials
+// Helper to extract YouTube ID and thumbnail
+const getYoutubeInfo = (url) => {
+    if (!url) return { id: null, thumbnail: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&h=400' };
+
+    let videoId = null;
+    const youtubeRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(youtubeRegExp);
+
+    if (match && match[2].length === 11) {
+        videoId = match[2];
+    }
+
+    return {
+        id: videoId,
+        thumbnail: videoId
+            ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+            : 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&h=400'
+    };
+};
+
 const TUTORIAL_CATEGORIES = [
     { id: 'all', name: 'Todos os Vídeos' },
     { id: 'getting-started', name: 'Primeiros Passos' },
@@ -11,74 +31,33 @@ const TUTORIAL_CATEGORIES = [
     { id: 'marketing', name: 'Marketing & Vendas' }
 ];
 
-const TUTORIAL_VIDEOS = [
-    {
-        id: 1,
-        title: 'Como configurar seus primeiros serviços',
-        description: 'Aprenda a cadastrar serviços, definir preços, duração e comissões para sua equipe.',
-        duration: '04:15',
-        thumbnail: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=600&h=400',
-        category: 'getting-started',
-        isNew: true,
-    },
-    {
-        id: 2,
-        title: 'Dominando a Agenda Automática',
-        description: 'Veja como bloquear horários, aprovar agendamentos e lidar com encaixes.',
-        duration: '06:30',
-        thumbnail: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=600&h=400',
-        category: 'agenda',
-        isNew: false,
-    },
-    {
-        id: 3,
-        title: 'Configurando o Link de Pagamento (Pix/Cartão)',
-        description: 'Ative os pagamentos online para acabar com as faltas (No-Show) na sua barbearia no automático.',
-        duration: '05:45',
-        thumbnail: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=600&h=400',
-        category: 'financial',
-        isNew: true,
-    },
-    {
-        id: 4,
-        title: 'Como criar cupons de desconto',
-        description: 'Descubra como criar campanhas para atrair clientes nos dias mais parados da semana.',
-        duration: '03:20',
-        thumbnail: 'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=600&h=400',
-        category: 'marketing',
-        isNew: false,
-    },
-    {
-        id: 5,
-        title: 'Fechamento de Caixa Diário',
-        description: 'O passo a passo para fechar o caixa (Cash Shift) sem furos no final do dia.',
-        duration: '07:10',
-        thumbnail: 'https://images.unsplash.com/photo-1554461623-2895f87b3b3a?auto=format&fit=crop&w=600&h=400',
-        category: 'financial',
-        isNew: false,
-    },
-    {
-        id: 6,
-        title: 'Adicionando Profissionais e Comissões',
-        description: 'Cadastre seus barbeiros e defina a regra de split automático de pagamentos.',
-        duration: '08:05',
-        thumbnail: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&h=400',
-        category: 'getting-started',
-        isNew: false,
-    }
-];
-
 export default function TutorialsPage() {
+    const [videos, setVideos] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [playingVideo, setPlayingVideo] = useState(null);
 
-    const filteredVideos = TUTORIAL_VIDEOS.filter(video => {
-        const matchesCategory = activeCategory === 'all' || video.category === activeCategory;
-        const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            video.description.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+    useEffect(() => {
+        const fetchVideos = async () => {
+            try {
+                setLoading(true);
+                const response = await api.get('/tutorials', {
+                    params: {
+                        category: activeCategory,
+                        search: searchQuery
+                    }
+                });
+                setVideos(response.data);
+            } catch (error) {
+                console.error('Error fetching tutorials:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchVideos();
+    }, [activeCategory, searchQuery]);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -121,8 +100,8 @@ export default function TutorialsPage() {
                         key={category.id}
                         onClick={() => setActiveCategory(category.id)}
                         className={`px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${activeCategory === category.id
-                                ? 'bg-primary text-black shadow-[0_0_20px_rgba(77,114,228,0.3)]'
-                                : 'bg-[#0A0A0B] text-gray-400 border border-white/5 hover:border-white/20 hover:text-white'
+                            ? 'bg-primary text-black shadow-[0_0_20px_rgba(77,114,228,0.3)]'
+                            : 'bg-[#0A0A0B] text-gray-400 border border-white/5 hover:border-white/20 hover:text-white'
                             }`}
                     >
                         {category.name}
@@ -130,7 +109,7 @@ export default function TutorialsPage() {
                 ))}
             </div>
 
-            {/* Video Player Modal (Simulated) */}
+            {/* Video Player Modal */}
             {playingVideo && (
                 <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
                     <div className="w-full max-w-5xl bg-[#0A0A0B] rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl relative">
@@ -141,21 +120,24 @@ export default function TutorialsPage() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                         </button>
 
-                        {/* Fake Video Area */}
-                        <div className="aspect-video w-full bg-black relative flex items-center justify-center group overflow-hidden">
-                            <img src={playingVideo.thumbnail} alt="Ref" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-
-                            <div className="relative z-10 text-center">
-                                <PlayCircle className="w-20 h-20 text-primary mx-auto mb-4 opacity-80" />
-                                <p className="text-white font-bold tracking-widest uppercase text-xs">Simulação de Vídeo</p>
-                                <p className="text-gray-500 text-[10px] uppercase mt-2">{playingVideo.title}</p>
-                            </div>
-
-                            {/* Fake progress bar */}
-                            <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/10">
-                                <div className="h-full bg-primary w-1/3" />
-                            </div>
+                        <div className="aspect-video w-full bg-black">
+                            {getYoutubeInfo(playingVideo.url).id ? (
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    src={`https://www.youtube.com/embed/${getYoutubeInfo(playingVideo.url).id}?autoplay=1`}
+                                    title={playingVideo.title}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gray-900">
+                                    <Video className="w-16 h-16 text-gray-600 mb-4" />
+                                    <p className="text-white font-bold">Link de vídeo não compatível para embed direto.</p>
+                                    <a href={playingVideo.url} target="_blank" className="mt-4 text-primary underline">Assistir no site original</a>
+                                </div>
+                            )}
                         </div>
 
                         <div className="p-8">
@@ -164,7 +146,7 @@ export default function TutorialsPage() {
                                     {TUTORIAL_CATEGORIES.find(c => c.id === playingVideo.category)?.name}
                                 </span>
                                 <span className="text-gray-500 text-xs font-medium flex items-center gap-1">
-                                    <Clock className="w-3.5 h-3.5" /> {playingVideo.duration}
+                                    <Clock className="w-3.5 h-3.5" /> {playingVideo.duration || '00:00'}
                                 </span>
                             </div>
                             <h2 className="text-2xl font-bold text-white mb-2">{playingVideo.title}</h2>
@@ -175,9 +157,15 @@ export default function TutorialsPage() {
             )}
 
             {/* Video Grid */}
-            {filteredVideos.length > 0 ? (
+            {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredVideos.map((video) => (
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="aspect-video bg-white/5 animate-pulse rounded-[2rem]" />
+                    ))}
+                </div>
+            ) : videos.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {videos.map((video) => (
                         <div
                             key={video.id}
                             className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all cursor-pointer shadow-xl flex flex-col"
@@ -185,20 +173,14 @@ export default function TutorialsPage() {
                         >
                             <div className="relative aspect-video overflow-hidden">
                                 <img
-                                    src={video.thumbnail}
+                                    src={getYoutubeInfo(video.url).thumbnail}
                                     alt={video.title}
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
 
-                                {video.isNew && (
-                                    <div className="absolute top-4 left-4 bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-lg">
-                                        Novo
-                                    </div>
-                                )}
-
                                 <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur border border-white/10 text-white text-[10px] font-black px-2 py-1 rounded">
-                                    {video.duration}
+                                    {video.duration || '00:00'}
                                 </div>
 
                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -210,7 +192,7 @@ export default function TutorialsPage() {
 
                             <div className="p-6 flex flex-col flex-1">
                                 <p className="text-primary text-[10px] font-black uppercase tracking-widest mb-2">
-                                    {TUTORIAL_CATEGORIES.find(c => c.id === video.category)?.name}
+                                    {TUTORIAL_CATEGORIES.find(c => c.id === video.category)?.name || video.category}
                                 </p>
                                 <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                                     {video.title}
@@ -244,3 +226,4 @@ export default function TutorialsPage() {
         </div>
     );
 }
+

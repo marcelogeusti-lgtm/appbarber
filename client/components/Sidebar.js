@@ -22,6 +22,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
         gestao: true,
         vendas: true,
         suporte: true,
+        tutorial: true,
         config: false
     });
 
@@ -198,10 +199,9 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
 
                     <div className="h-px bg-border mx-2 my-2"></div>
 
-                    {/* Suporte & Ajuda */}
-                    <MenuGroup title="Suporte & Ajuda" id="suporte" icon={PlayCircle}>
+                    {/* Tutorial */}
+                    <MenuGroup title="Tutorial" id="tutorial" icon={PlayCircle}>
                         <MenuItem href="/dashboard/tutorials" icon={PlayCircle} label="Vídeos Tutoriais" />
-                        <MenuItem href="/dashboard/tutorials" icon={MessageCircle} label="Central de Ajuda" />
                     </MenuGroup>
 
                     {/* Configurações */}

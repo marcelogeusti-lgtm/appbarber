@@ -1,30 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlayCircle, Plus, Edit, Trash2, Search, Video, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Mock data (matches the consumer page for now)
-const INITIAL_VIDEOS = [
-    {
-        id: 1,
-        title: 'Como configurar seus primeiros serviços',
-        description: 'Aprenda a cadastrar serviços, definir preços, duração e comissões para sua equipe.',
-        duration: '04:15',
-        category: 'getting-started',
-        status: 'published'
-    },
-    {
-        id: 2,
-        title: 'Dominando a Agenda Automática',
-        description: 'Veja como bloquear horários, aprovar agendamentos e lidar com encaixes.',
-        duration: '06:30',
-        category: 'agenda',
-        status: 'published'
-    }
-];
+import api from '@/lib/api';
 
 export default function SuperAdminTutorials() {
-    const [videos, setVideos] = useState(INITIAL_VIDEOS);
+    const [videos, setVideos] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingVideo, setEditingVideo] = useState(null);
@@ -35,39 +17,83 @@ export default function SuperAdminTutorials() {
         description: '',
         url: '',
         category: 'getting-started',
-        duration: ''
+        duration: '',
+        status: 'published',
+        active: true
     });
+
+    const fetchVideos = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/admin/tutorials');
+            setVideos(response.data);
+        } catch (error) {
+            console.error('Error fetching tutorials:', error);
+            toast.error('Erro ao buscar tutoriais');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchVideos();
+    }, []);
 
     const handleOpenModal = (video = null) => {
         if (video) {
             setEditingVideo(video);
-            setFormData(video);
+            setFormData({
+                title: video.title,
+                description: video.description || '',
+                url: video.url,
+                category: video.category,
+                duration: video.duration || '',
+                status: video.status || 'published',
+                active: video.active !== undefined ? video.active : true
+            });
         } else {
             setEditingVideo(null);
-            setFormData({ title: '', description: '', url: '', category: 'getting-started', duration: '' });
+            setFormData({
+                title: '',
+                description: '',
+                url: '',
+                category: 'getting-started',
+                duration: '',
+                status: 'published',
+                active: true
+            });
         }
         setIsModalOpen(true);
     };
 
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
-        toast.promise(
-            new Promise(resolve => setTimeout(resolve, 1000)),
-            {
-                loading: 'Salvando tutorial...',
-                success: () => {
-                    setIsModalOpen(false);
-                    return editingVideo ? 'Tutorial atualizado com sucesso!' : 'Tutorial adicionado com sucesso!';
-                },
-                error: 'Erro ao salvar tutorial'
+        try {
+            if (editingVideo) {
+                await api.put(`/admin/tutorials/${editingVideo.id}`, formData);
+                toast.success('Tutorial atualizado com sucesso!');
+            } else {
+                await api.post('/admin/tutorials', formData);
+                toast.success('Tutorial adicionado com sucesso!');
             }
-        );
+            setIsModalOpen(false);
+            fetchVideos();
+        } catch (error) {
+            console.error('Error saving tutorial:', error);
+            toast.error('Erro ao salvar tutorial');
+        }
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (confirm('Tem certeza que deseja apagar este vídeo? Ele sairá imediatamente do ar para todos os clientes.')) {
-            setVideos(videos.filter(v => v.id !== id));
-            toast.success('Tutorial removido.');
+            try {
+                await api.delete(`/admin/tutorials/${id}`);
+                toast.success('Tutorial removido.');
+                fetchVideos();
+            } catch (error) {
+                console.error('Error deleting tutorial:', error);
+                toast.error('Erro ao excluir tutorial');
+            }
         }
     };
 
@@ -125,7 +151,13 @@ export default function SuperAdminTutorials() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {filteredVideos.map((video) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-12 text-center text-muted-foreground">
+                                        Carregando tutoriais...
+                                    </td>
+                                </tr>
+                            ) : filteredVideos.map((video) => (
                                 <tr key={video.id} className="hover:bg-muted/10 transition-colors">
                                     <td className="px-6 py-4 text-foreground">
                                         <div className="flex items-center gap-3">
@@ -144,12 +176,18 @@ export default function SuperAdminTutorials() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-muted-foreground">
-                                        {video.duration}
+                                        {video.duration || '--:--'}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="flex items-center gap-1.5 text-green-500 text-xs font-semibold">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Publicado
-                                        </span>
+                                        {video.active ? (
+                                            <span className="flex items-center gap-1.5 text-green-500 text-xs font-semibold">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Publicado
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1.5 text-gray-400 text-xs font-semibold">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Inativo
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
@@ -171,7 +209,7 @@ export default function SuperAdminTutorials() {
                                     </td>
                                 </tr>
                             ))}
-                            {filteredVideos.length === 0 && (
+                            {!loading && filteredVideos.length === 0 && (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-12 text-center text-muted-foreground">
                                         Nenhum vídeo encontrado.
@@ -258,6 +296,17 @@ export default function SuperAdminTutorials() {
                                 ></textarea>
                             </div>
 
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="active"
+                                    checked={formData.active}
+                                    onChange={e => setFormData({ ...formData, active: e.target.checked })}
+                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                                />
+                                <label htmlFor="active" className="text-sm text-foreground">Vídeo Disponível para Clientes</label>
+                            </div>
+
                             <div className="pt-4 flex justify-end gap-3 text-sm">
                                 <button
                                     type="button"
@@ -281,3 +330,4 @@ export default function SuperAdminTutorials() {
         </div>
     );
 }
+

@@ -8,6 +8,12 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
 // Enums
 enum Role {
   SUPER_ADMIN
@@ -1109,4 +1115,18 @@ model ClientAddress {
   updatedAt DateTime @updatedAt
 
   @@index([clientId])
+}
+
+model Tutorial {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  url         String   @db.Text
+  category    String
+  duration    String?
+  status      String   @default("published")
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
