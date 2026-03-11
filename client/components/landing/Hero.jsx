@@ -127,36 +127,14 @@ export default function Hero() {
                                     </div>
                                 </div>
 
-                                {/* Mockup Image - Replaced with Coded Dynamic Stats for higher conversion */}
-                                <div className="rounded-[1.5rem] border border-gray-50 overflow-hidden bg-gray-900 p-6 relative aspect-video flex flex-col justify-between">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-blue-600/10 pointer-events-none" />
-
-                                    <div className="relative z-10">
-                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Faturamento Hoje</p>
-                                        <h3 className="text-3xl font-black text-white tracking-tight">R$ 1.280,00</h3>
-                                    </div>
-
-                                    <div className="relative z-10 grid grid-cols-2 gap-4">
-                                        <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Atendimentos Hoje</p>
-                                            <p className="text-2xl font-black text-white">23</p>
-                                        </div>
-                                        <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Clientes Fidelizados</p>
-                                            <p className="text-2xl font-black text-white">184</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Abstract background bars to simulate dashboard */}
-                                    <div className="absolute bottom-0 right-0 p-6 opacity-20">
-                                        <div className="flex items-end gap-1 h-20">
-                                            <div className="w-2 h-8 bg-primary rounded-t-sm" />
-                                            <div className="w-2 h-14 bg-primary rounded-t-sm" />
-                                            <div className="w-2 h-10 bg-primary rounded-t-sm" />
-                                            <div className="w-2 h-20 bg-primary rounded-t-sm" />
-                                            <div className="w-2 h-16 bg-primary rounded-t-sm" />
-                                        </div>
-                                    </div>
+                                {/* Real Dashboard Screenshot */}
+                                <div className="rounded-[1.5rem] border border-gray-50 overflow-hidden bg-gray-900 relative aspect-video group/img">
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
+                                    <img 
+                                        src="/screenshots/dashboard-overview.png" 
+                                        alt="NexApp Dashboard Overview" 
+                                        className="w-full h-full object-cover object-top transition-transform duration-700 group-hover/img:scale-110"
+                                    />
                                 </div>
                             </div>
 

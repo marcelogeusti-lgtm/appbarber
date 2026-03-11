@@ -22,40 +22,23 @@ export default function MainDashboardShowcase() {
                     <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full scale-90 pointer-events-none" />
 
                     {/* The Image Container - Updated to Coded Metrics for conversion */}
-                    <div className="relative z-10 rounded-[2.5rem] border border-gray-100 bg-white p-8 shadow-[0_50px_100px_rgba(0,0,0,0.1)] flex flex-col items-center">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-primary" />
-
-                        <div className="w-full flex justify-between items-center mb-12">
-                            <div className="text-left">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Faturamento Mensal</p>
-                                <h3 className="text-4xl font-black text-gray-900 tracking-tighter">R$ 18.420,00</h3>
-                                <div className="flex items-center gap-1.5 text-green-500 mt-1">
-                                    <TrendingUp className="w-4 h-4" />
-                                    <span className="text-xs font-bold">+12.5% em relação ao mês anterior</span>
-                                </div>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Ticket Médio</p>
-                                    <p className="text-xl font-black text-gray-900">R$ 64,00</p>
-                                </div>
-                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Recorrência</p>
-                                    <p className="text-xl font-black text-gray-900">84%</p>
-                                </div>
-                            </div>
+                    {/* Laptop/Desktop Frame with Real Screenshot */}
+                    <div className="relative z-10 rounded-[2.5rem] border border-gray-100 bg-white p-2 lg:p-4 shadow-[0_50px_100px_rgba(0,0,0,0.1)] flex flex-col items-center">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-primary rounded-t-[2.5rem]" />
+                        
+                        {/* Realistic UI Header dots */}
+                        <div className="w-full flex justify-start gap-1.5 px-6 pt-4 pb-2 border-b border-gray-50 mb-2">
+                            <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                         </div>
 
-                        {/* Visual graph representation */}
-                        <div className="w-full h-48 flex items-end justify-between gap-4 px-4 mb-6">
-                            {[40, 65, 45, 90, 55, 75, 100].map((h, i) => (
-                                <div key={i} className="flex-1 bg-primary/10 rounded-t-xl relative group">
-                                    <div
-                                        className="absolute bottom-0 left-0 w-full bg-primary rounded-t-xl transition-all duration-1000"
-                                        style={{ height: `${h}%` }}
-                                    />
-                                </div>
-                            ))}
+                        <div className="rounded-[1.5rem] overflow-hidden border border-gray-50 bg-gray-900 relative">
+                            <img 
+                                src="/screenshots/dashboard-overview.png" 
+                                alt="Dashboard Central NexApp" 
+                                className="w-full h-auto shadow-2xl"
+                            />
                         </div>
                     </div>
 
