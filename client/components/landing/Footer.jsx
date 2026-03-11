@@ -5,6 +5,25 @@ export default function Footer() {
     return (
         <footer className="bg-[#050505] border-t border-white/5 pt-20 pb-10">
             <div className="container mx-auto px-4">
+                {/* Final Pitch Section */}
+                <div className="mb-24 text-center max-w-4xl mx-auto py-16 px-8 rounded-[3rem] bg-gradient-to-br from-gray-900 to-black border border-white/5 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] pointer-events-none" />
+                    <h2 className="text-3xl lg:text-5xl font-extrabold text-white mb-8 tracking-tight relative z-10">
+                        Sua barbearia pode funcionar sozinha <br />
+                        <span className="text-primary italic">enquanto você corta cabelo.</span>
+                    </h2>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
+                        <Link href="/register">
+                            <button className="px-10 py-5 bg-primary text-white text-base font-black uppercase tracking-widest rounded-2xl hover:bg-primary/90 transition-all shadow-[0_20px_40px_rgba(77,114,228,0.3)] hover:scale-105 active:scale-95">
+                                🚀 Começar grátis agora
+                            </button>
+                        </Link>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">
+                            Teste por 7 dias sem compromisso
+                        </p>
+                    </div>
+                </div>
+
                 <div className="grid md:grid-cols-4 gap-12 mb-16">
 
                     {/* Brand */}

@@ -108,7 +108,7 @@ eventBus.on('APPOINTMENT_CREATED', async (payload) => {
                     time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
                     productsHtml: productsHtml,
                     totalPrice: Number(payload.order?.total || payload.service?.price || 0).toFixed(2),
-                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://corteconexao.com.br'}/logos/logo_full.png`
                 }
             });
             console.log(`[NotificationService] Appointment Confirmation Email sent to ${clientEmail}`);
@@ -142,7 +142,7 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
         // --- Push Notification (FCM) to Client ---
         if (payload.client?.authUserId) {
             await pushService.sendToUser(payload.client.authUserId, '⏰ Lembrete de Agendamento', {
-                body: `Seu horário para ${payload.service.name} na ${payload.barbershop.name} é em 1 hora (${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}).`,
+                body: `Seu horário para ${payload.service.name} na ${payload.barbershop.name} é em 1 hour (${new Date(payload.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}).`,
                 url: '/appointments'
             });
         }
@@ -181,7 +181,7 @@ eventBus.on('APPOINTMENT_REMINDER', async (payload) => {
                     service: payload.service.name,
                     time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
                     address: payload.barbershop?.address || 'Endereço não informado',
-                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://corteconexao.com.br'}/logos/logo_full.png`
                 }
             });
         }
@@ -264,7 +264,7 @@ eventBus.on('APPOINTMENT_UPDATED', async ({ appointment, oldStatus }) => {
                             barber: appointment.professional?.name || 'Profissional',
                             date: dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
                             time: dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
-                            logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
+                            logoUrl: `${process.env.FRONTEND_URL || 'https://corteconexao.com.br'}/logos/logo_full.png`
                         }
                     });
                 }
@@ -319,7 +319,7 @@ eventBus.on('PAYMENT_CONFIRMED', async (payload) => {
                     paymentMethod: payload.paymentMethod || 'Sistema de Pagamento',
                     transactionId: payload.transactionId || payload.id || 'N/A',
                     date: new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://corteconexao.com.br'}/logos/logo_full.png`
                 }
             });
         }
@@ -354,7 +354,7 @@ eventBus.on('INVOICE_CREATED', async (payload) => {
                     paymentLink: payload.paymentLink,
                     invoiceId: payload.invoiceId,
                     barbershop: payload.barbershopName,
-                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://corteconexao.com.br'}/logos/logo_full.png`
                 }
             });
         }
@@ -381,7 +381,7 @@ eventBus.on('PASSWORD_RESET_REQUEST', async (payload) => {
             data: {
                 resetCode: payload.resetCode,
                 resetLink: payload.resetLink,
-                logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
+                logoUrl: `${process.env.FRONTEND_URL || 'https://corteconexao.com.br'}/logos/logo_full.png`
             }
         });
     } catch (err) {
@@ -406,7 +406,7 @@ eventBus.on('AUTH_2FA_CODE', async (payload) => {
                 userId: payload.userId,
                 data: {
                     otp: payload.otp,
-                    logoUrl: `${process.env.FRONTEND_URL || 'https://appbarber.vercel.app'}/logos/logo_full.png`
+                    logoUrl: `${process.env.FRONTEND_URL || 'https://corteconexao.com.br'}/logos/logo_full.png`
                 }
             });
             console.log(`[NotificationService] 2FA Email sent successfully to ${payload.email}`);

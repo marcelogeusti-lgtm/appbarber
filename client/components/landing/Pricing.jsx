@@ -62,11 +62,14 @@ export default function Pricing() {
 
                     {/* Diamond Pro */}
                     <div className="p-10 rounded-[3rem] bg-gray-900 border-2 border-primary flex flex-col relative scale-[1.05] z-10 shadow-[0_40px_100px_rgba(77,114,228,0.25)] overflow-hidden group">
+                        {/* Shine Effect */}
+                        <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-40 group-hover:animate-shine" />
+
                         {/* Glow Effect */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl -translate-y-1/2 translate-x-1/2" />
 
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-6 py-2 bg-primary rounded-full text-[10px] font-black text-white uppercase tracking-[0.3em] shadow-xl shadow-primary/40">
-                            Mais Assinado
+                            Recomendado para você
                         </div>
 
                         <div className="flex justify-between items-start mb-10">

@@ -21,45 +21,45 @@ export default function Hero() {
                             <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">O Futuro é NEXT</span>
                         </div>
 
-                        <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-900 leading-tight mb-6 tracking-tight">
-                            Gerencie sua <br />
-                            <span className="text-primary">Barbearia</span> de forma <br />
+                        <h1 className="text-4xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6 tracking-tight">
+                            Gerencie sua barbearia, <br />
+                            <span className="text-primary">aumente seus agendamentos</span> <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-indigo-600">
-                                simples & inteligente.
+                                e fature mais — tudo em um só sistema.
                             </span>
                         </h1>
 
-                        <p className="text-lg text-gray-500 mb-10 leading-relaxed max-w-lg">
-                            O ecossistema definitivo para transformar seu negócio. Agendamento intuitivo, controle financeiro impecável e fidelização de elite.
+                        <p className="text-xl text-gray-500 mb-10 leading-relaxed max-w-2xl font-medium">
+                            Agenda inteligente, pagamentos integrados e clientes automatizados no WhatsApp.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 mb-10">
                             <Link href="/register">
-                                <button className="w-full sm:w-auto px-8 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-2 group">
-                                    Ativar Agora <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                <button className="w-full sm:w-auto px-10 py-4 bg-gray-900 text-white text-base font-bold rounded-2xl hover:bg-black transition-all shadow-2xl shadow-gray-300 flex items-center justify-center gap-2 group">
+                                    🚀 Testar grátis <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>
                             <Link href="#pricing" scroll={true}>
-                                <button className="w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 text-sm font-semibold rounded-2xl border border-gray-200 hover:border-primary/30 hover:bg-gray-50 transition-all flex items-center justify-center">
-                                    Ver Planos
+                                <button className="w-full sm:w-auto px-10 py-4 bg-white text-gray-900 text-base font-bold rounded-2xl border border-gray-200 hover:border-primary/30 hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+                                    📅 Ver demonstração
                                 </button>
                             </Link>
                         </div>
 
-                        {/* Conversion Social Proof Bar */}
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-10 py-4 border-y border-gray-50">
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-gray-900">+ 2.800</span>
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Agendamentos</span>
+                        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mb-12 py-6 border-y border-gray-50">
+                            <div className="flex items-center gap-3">
+                                <span className="text-lg font-black text-gray-900 tracking-tighter">+ 3.200</span>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Agendamentos<br />realizados</span>
                             </div>
-                            <div className="w-px h-4 bg-gray-200 hidden sm:block" />
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-gray-900">+ R$ 320k</span>
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Movimentados</span>
+                            <div className="w-px h-6 bg-gray-100 hidden sm:block" />
+                            <div className="flex items-center gap-3">
+                                <span className="text-lg font-black text-gray-900 tracking-tighter">R$ 480k</span>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Movimentados<br />em serviços</span>
                             </div>
-                            <div className="w-px h-4 bg-gray-200 hidden sm:block" />
+                            <div className="w-px h-6 bg-gray-100 hidden sm:block" />
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Crescendo com o NEXT</span>
+                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Barbearias crescendo com o NEXT</span>
                             </div>
                         </div>
 
@@ -126,18 +126,18 @@ export default function Hero() {
                                     <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-blue-600/10 pointer-events-none" />
 
                                     <div className="relative z-10">
-                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Visão Geral Hoje</p>
-                                        <h3 className="text-2xl font-black text-white tracking-tight">R$ 1.280,00</h3>
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Faturamento Hoje</p>
+                                        <h3 className="text-3xl font-black text-white tracking-tight">R$ 1.280,00</h3>
                                     </div>
 
                                     <div className="relative z-10 grid grid-cols-2 gap-4">
-                                        <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10">
-                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Atendimentos</p>
-                                            <p className="text-lg font-black text-white">23</p>
+                                        <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Atendimentos Hoje</p>
+                                            <p className="text-2xl font-black text-white">23</p>
                                         </div>
-                                        <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10">
-                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Novos Clientes</p>
-                                            <p className="text-lg font-black text-white">184</p>
+                                        <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Clientes Fidelizados</p>
+                                            <p className="text-2xl font-black text-white">184</p>
                                         </div>
                                     </div>
 
