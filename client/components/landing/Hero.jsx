@@ -22,9 +22,10 @@ export default function Hero() {
                         </div>
 
                         <h1 className="text-4xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6 tracking-tight">
-                            Gerencie sua barbearia, <br />
-                            <span className="text-primary">aumente seus agendamentos</span> <br />
+                            Gerencie sua <br />
+                            <span className="text-primary italic">barbearia,</span> <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-indigo-600">
+                                aumente seus agendamentos <br />
                                 e fature mais — tudo em um só sistema.
                             </span>
                         </h1>

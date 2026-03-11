@@ -52,8 +52,8 @@ export default function WhatsAppHighlight() {
                                     </div>
 
                                     <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] border border-gray-100 flex flex-col">
-                                        <p className="text-[12px] text-gray-800 font-medium">Quero marcar um corte para hoje!</p>
-                                        <span className="text-[9px] text-gray-400 self-end mt-1">11:02</span>
+                                        <p className="text-[12px] text-gray-800 font-medium">Corte + Barba hoje às 15h?</p>
+                                        <span className="text-[9px] text-gray-400 self-end mt-1">10:45</span>
                                     </div>
 
                                     <div className="bg-[#dcf8c6] p-4 rounded-2xl rounded-tr-none shadow-sm max-w-[90%] ml-auto border border-green-200/50 flex flex-col relative overflow-hidden group">
@@ -62,20 +62,18 @@ export default function WhatsAppHighlight() {
                                             <div className="w-5 h-5 bg-[#008069] rounded-full flex items-center justify-center text-white">
                                                 <Zap className="w-3 h-3 fill-current" />
                                             </div>
-                                            <p className="text-[10px] font-black text-[#128c7e] uppercase tracking-tighter">Automação NEXT</p>
+                                            <p className="text-[10px] font-black text-[#128c7e] uppercase tracking-tighter">Horário reservado! ✅</p>
                                         </div>
-                                        <p className="text-[12px] text-gray-800 font-bold mb-2">Claro! Escolha um horário disponível:</p>
+                                        <p className="text-[12px] text-gray-800 font-bold mb-2">Seu agendamento foi confirmado automaticamente.</p>
 
-                                        <div className="grid grid-cols-2 gap-2 mb-3">
-                                            {['14:00', '15:30', '16:00', '17:30'].map((time, idx) => (
-                                                <div key={time} className={`py-2 rounded-lg text-center text-[10px] font-black border transition-all ${idx === 1 ? 'bg-[#008069] text-white border-[#008069]' : 'bg-white text-[#008069] border-[#008069]/20'}`}>
-                                                    {time}
-                                                </div>
-                                            ))}
+                                        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl border-l-4 border-[#008069] shadow-sm space-y-1 mb-2">
+                                            <p className="text-[10px] font-black text-[#008069] uppercase tracking-wider">Confirmação NEXT</p>
+                                            <p className="text-[11px] font-bold text-gray-900">Hoje às 15:00</p>
+                                            <p className="text-[9px] text-gray-500">Com Profissional Marcelo</p>
                                         </div>
 
-                                        <p className="text-[11px] text-gray-700 leading-tight">Ao selecionar o horário, sua reserva é confirmada instantaneamente. 🚀</p>
-                                        <span className="text-[9px] text-gray-400 self-end mt-2">11:02</span>
+                                        <p className="text-[11px] text-gray-700 leading-tight">Nos vemos em breve! 🚀</p>
+                                        <span className="text-[9px] text-gray-400 self-end mt-2">10:46</span>
                                     </div>
                                 </div>
 
@@ -96,16 +94,16 @@ export default function WhatsAppHighlight() {
                     <div className="max-w-xl order-1 lg:order-2">
                         <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-primary/5 rounded-full mb-8 border border-primary/10">
                             <MessageSquare className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-bold uppercase tracking-widest text-primary">Automação Inteligente</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-primary italic">Sincronização Instantânea</span>
                         </div>
 
                         <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 leading-tight mb-6 tracking-tight">
-                            Seu cliente agenda <br />
-                            <span className="text-primary">em segundos.</span>
+                            Onde seu cliente está, <br />
+                            <span className="text-primary italic">o NEXT também está.</span>
                         </h2>
 
                         <p className="text-lg text-gray-500 mb-10 leading-relaxed font-medium">
-                            Os clientes agendam sozinhos via WhatsApp ou Instagram, enquanto você foca no que realmente importa: o corte.
+                            Acabe com as interrupções para responder mensagens. O NEXT automatiza seu agendamento via WhatsApp, garantindo zero atrito e agenda lotada.
                         </p>
 
                         <div className="space-y-4 mb-12">
