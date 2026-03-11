@@ -46,7 +46,7 @@ const features = [
 
 export default function Features() {
     return (
-        <section className="py-24 bg-gray-50/50" id="features">
+        <section className="py-24 bg-white" id="features">
             <div className="container mx-auto px-4">
 
                 <div className="text-center max-w-3xl mx-auto mb-20">
@@ -61,7 +61,7 @@ export default function Features() {
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {features.map((feature, idx) => (
-                        <div key={idx} className="p-10 rounded-3xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all duration-300 group">
+                        <div key={idx} className="p-10 rounded-3xl bg-gray-50 border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all duration-300 group">
                             <div className="w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all mb-8 shadow-inner">
                                 <feature.icon className="w-7 h-7" />
                             </div>

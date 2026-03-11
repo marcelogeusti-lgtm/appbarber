@@ -46,7 +46,7 @@ export default function ToastActivity() {
                 }`}
         >
             {currentToast && (
-                <div className="bg-white rounded-2xl shadow-2xl p-4 pr-6 flex items-center gap-3 border border-gray-100 cursor-pointer hover:scale-105 transition-transform">
+                <div className="bg-gray-50 rounded-2xl shadow-2xl p-4 pr-6 flex items-center gap-3 border border-gray-200 cursor-pointer hover:scale-105 transition-transform">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentToast.bg}`}>
                         <currentToast.icon className={`w-5 h-5 ${currentToast.color}`} />
                     </div>

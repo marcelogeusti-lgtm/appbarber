@@ -51,7 +51,7 @@ export default function WhatsAppHighlight() {
                                         </div>
                                     </div>
 
-                                    <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] border border-gray-100 flex flex-col">
+                                    <div className="bg-gray-50 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] border border-gray-200 flex flex-col">
                                         <p className="text-[12px] text-gray-800 font-medium">Corte + Barba hoje às 15h?</p>
                                         <span className="text-[9px] text-gray-400 self-end mt-1">10:45</span>
                                     </div>
@@ -66,7 +66,7 @@ export default function WhatsAppHighlight() {
                                         </div>
                                         <p className="text-[12px] text-gray-800 font-bold mb-2">Seu agendamento foi confirmado automaticamente.</p>
 
-                                        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl border-l-4 border-[#008069] shadow-sm space-y-1 mb-2">
+                                        <div className="bg-gray-50/90 backdrop-blur-sm p-3 rounded-xl border-l-4 border-[#008069] shadow-sm space-y-1 mb-2">
                                             <p className="text-[10px] font-black text-[#008069] uppercase tracking-wider">Confirmação NEXT</p>
                                             <p className="text-[11px] font-bold text-gray-900">Hoje às 15:00</p>
                                             <p className="text-[9px] text-gray-500">Com Profissional Marcelo</p>
@@ -78,8 +78,8 @@ export default function WhatsAppHighlight() {
                                 </div>
 
                                 {/* Dynamic Input Mock */}
-                                <div className="p-4 bg-white/90 backdrop-blur-md border-t border-gray-100 flex gap-2">
-                                    <div className="flex-1 h-10 bg-gray-50 rounded-full border border-gray-200 px-4 flex items-center">
+                                <div className="p-4 bg-gray-50/90 backdrop-blur-md border-t border-gray-200 flex gap-2">
+                                    <div className="flex-1 h-10 bg-white rounded-full border border-gray-200 px-4 flex items-center">
                                         <span className="text-gray-300 text-xs">Escreva aqui...</span>
                                     </div>
                                     <div className="w-10 h-10 bg-[#008069] rounded-full flex items-center justify-center text-white">
@@ -112,7 +112,7 @@ export default function WhatsAppHighlight() {
                                 { title: 'Link de Agendamento Pro', desc: 'Seu cliente agenda em segundos, direto do WhatsApp ou Instagram.' },
                                 { title: 'Confirmação via Chat', desc: 'O sistema valida a disponibilidade e reserva o horário instantaneamente.' }
                             ].map((item, idx) => (
-                                <div key={idx} className="flex gap-4 p-5 rounded-2xl border border-gray-50 bg-white hover:border-primary/20 transition-all hover:shadow-2xl hover:shadow-gray-100 group">
+                                <div key={idx} className="flex gap-4 p-5 rounded-2xl border border-gray-200 bg-gray-50 hover:border-primary/20 transition-all hover:shadow-2xl hover:shadow-gray-100 group">
                                     <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
                                         <Zap className="w-5 h-5 fill-current" />
                                     </div>

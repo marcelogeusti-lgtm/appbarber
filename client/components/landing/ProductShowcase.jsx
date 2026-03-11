@@ -39,7 +39,7 @@ export default function ProductShowcase() {
                                 <div className="absolute inset-0 bg-primary/5 blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                 {section.isAgenda ? (
-                                    <div className="relative rounded-3xl border border-gray-100 overflow-hidden shadow-2xl bg-white p-6 transition-transform duration-700 group-hover:scale-[1.01]">
+                                    <div className="relative rounded-3xl border border-gray-100 overflow-hidden shadow-2xl bg-gray-50 p-6 transition-transform duration-700 group-hover:scale-[1.01]">
                                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-50">
                                             <h4 className="font-black text-gray-900 text-sm tracking-tight uppercase">Agenda de Hoje</h4>
                                             <div className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 rounded-full">

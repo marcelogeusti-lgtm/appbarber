@@ -38,7 +38,7 @@ export default function RollingNotificationFeed() {
                     <div
                         key={notif.id}
                         className={`
-                            p-2.5 bg-white border border-gray-100 rounded-xl shadow-sm
+                            p-2.5 bg-gray-50 border border-gray-100 rounded-xl shadow-sm
                             flex items-center gap-3 w-full
                             ${index === 0 ? 'animate-slide-in-push' : 'transition-all duration-500 ease-out'}
                             ${index === 3 ? 'animate-fade-out-bottom absolute w-full' : 'relative opacity-100'}

@@ -27,7 +27,7 @@ export default function Pricing() {
                 <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
 
                     {/* Autônomo */}
-                    <div className="p-10 rounded-[3rem] bg-white border border-gray-100 flex flex-col hover:border-primary/20 transition-all duration-500 group">
+                    <div className="p-10 rounded-[3rem] bg-gray-50 border border-gray-200 flex flex-col hover:border-primary/20 transition-all duration-500 group">
                         <div className="flex justify-between items-start mb-10">
                             <div>
                                 <h4 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Autônomo</h4>
@@ -105,7 +105,7 @@ export default function Pricing() {
                     </div>
 
                     {/* Empire */}
-                    <div className="p-10 rounded-[3rem] bg-white border border-gray-100 flex flex-col hover:border-gray-900/10 transition-all duration-500 group">
+                    <div className="p-10 rounded-[3rem] bg-gray-50 border border-gray-200 flex flex-col hover:border-gray-900/10 transition-all duration-500 group">
                         <div className="flex justify-between items-start mb-10">
                             <div>
                                 <h4 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Empire</h4>
