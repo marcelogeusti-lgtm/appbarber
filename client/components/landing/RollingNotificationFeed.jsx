@@ -2,14 +2,14 @@
 import { useState, useEffect } from 'react';
 
 const SERVICES = [
-    "João agendou Corte Degradê",
-    "Lucas agendou Corte Clássico",
-    "Pedro agendou Corte Social",
-    "Mateus agendou Low Fade",
-    "Carlos agendou Mid Fade",
-    "Rafael agendou Taper Fade",
-    "Felipe agendou Corte Executivo",
-    "André agendou Skin Fade"
+    "João – Corte Degradê agendado agora",
+    "Lucas – Corte Clássico agendado há 2 minutos",
+    "Rafael – Barba completa agendada",
+    "Mateus – Low Fade agendado há 5 minutos",
+    "Carlos – Mid Fade agendado agora",
+    "Felipe – Executivo agendado há 1 minuto",
+    "André – Skin Fade agendado agora",
+    "Pedro – Corte Social agendado há 3 minutos"
 ];
 
 export default function RollingNotificationFeed() {

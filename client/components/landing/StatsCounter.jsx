@@ -18,15 +18,15 @@ const Counter = ({ target, duration = 2000 }) => {
         requestAnimationFrame(animate);
     }, [target, duration]);
 
-    return <span>{count.toLocaleString()}</span>;
+    return <span>{count.toLocaleString('pt-BR')}</span>;
 };
 
 export default function StatsCounter() {
     const stats = [
-        { label: "Barbearias Conectadas", val: 127, icon: Users, color: "primary" },
-        { label: "Agendamentos Hoje", val: 842, icon: Calendar, color: "green" },
-        { label: "Serviços Realizados", val: 9420, icon: Scissors, color: "blue" },
-        { label: "Avaliações 5 Estrelas", val: 2431, icon: TrendingUp, color: "orange" }
+        { label: "Barbearias Conectadas", val: 1284, icon: Users, color: "primary" },
+        { label: "Agendamentos Hoje", val: 642, icon: Calendar, color: "green" },
+        { label: "Serviços Realizados", val: 18420, icon: Scissors, color: "blue" },
+        { label: "Clientes Ativos", val: 89000, icon: TrendingUp, color: "orange" }
     ];
 
     return (

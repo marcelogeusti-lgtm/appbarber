@@ -31,7 +31,7 @@ export default function Hero() {
                         </h1>
 
                         <p className="text-xl text-gray-500 mb-10 leading-relaxed max-w-2xl font-medium">
-                            Agenda inteligente, pagamentos integrados e clientes automatizados no WhatsApp.
+                            Agenda inteligente, controle financeiro completo e fidelização automática de clientes.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 mb-10">
@@ -47,20 +47,25 @@ export default function Hero() {
                             </Link>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mb-12 py-6 border-y border-gray-50">
-                            <div className="flex items-center gap-3">
-                                <span className="text-lg font-black text-gray-900 tracking-tighter">+ 3.200</span>
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Agendamentos<br />realizados</span>
+                        <div className="flex flex-wrap items-center gap-x-8 gap-y-4 mb-12 py-6 border-y border-gray-50">
+                            <div className="flex flex-col">
+                                <span className="text-xl font-black text-gray-900 tracking-tighter">+182.000</span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">Agendamentos<br />realizados</span>
                             </div>
-                            <div className="w-px h-6 bg-gray-100 hidden sm:block" />
-                            <div className="flex items-center gap-3">
-                                <span className="text-lg font-black text-gray-900 tracking-tighter">R$ 480k</span>
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Movimentados<br />em serviços</span>
+                            <div className="w-px h-8 bg-gray-100 hidden sm:block" />
+                            <div className="flex flex-col">
+                                <span className="text-xl font-black text-gray-900 tracking-tighter">+R$ 1.4M</span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">Em serviços<br />gerenciados</span>
                             </div>
-                            <div className="w-px h-6 bg-gray-100 hidden sm:block" />
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Barbearias crescendo com o NEXT</span>
+                            <div className="w-px h-8 bg-gray-100 hidden md:block" />
+                            <div className="flex flex-col">
+                                <span className="text-xl font-black text-gray-900 tracking-tighter">+2.300</span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">Barbeiros<br />cadastrados</span>
+                            </div>
+                            <div className="w-px h-8 bg-gray-100 hidden lg:block" />
+                            <div className="flex flex-col">
+                                <span className="text-xl font-black text-gray-900 tracking-tighter">+89.000</span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">Clientes<br />atendidos</span>
                             </div>
                         </div>
 
