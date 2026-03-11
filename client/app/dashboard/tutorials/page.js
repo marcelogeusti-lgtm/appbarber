@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { PlayCircle, Video, BookOpen, Star, Clock, ChevronRight, Search } from 'lucide-react';
-import api from '@/lib/api';
+import api from '../../../lib/api';
 
 // Helper to extract YouTube ID and thumbnail
 const getYoutubeInfo = (url) => {

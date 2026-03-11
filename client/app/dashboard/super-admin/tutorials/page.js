@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { PlayCircle, Plus, Edit, Trash2, Search, Video, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
-import api from '@/lib/api';
+import api from '../../../../lib/api';
 
 export default function SuperAdminTutorials() {
     const [videos, setVideos] = useState([]);
