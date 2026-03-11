@@ -253,8 +253,8 @@ function ManagementCard({ label, value, desc, icon: Icon, color = 'muted', trend
     return (
         <div className={`p-5 rounded-xl border transition-all hover:scale-[1.02] cursor-default ${colors[color]}`}>
             <div className="flex justify-between items-start mb-3">
-                <div className={`p-2 rounded-lg ${color === 'muted' ? 'bg-primary/10 text-primary' : 'bg-white/10 text-white'}`}>
-                    <Icon className="w-4 h-4" />
+                <div className={`p-2 rounded-lg ${color === 'muted' ? 'bg-primary/10 text-primary' : 'bg-foreground/10'}`}>
+                    <Icon className="w-4 h-4 opacity-90" />
                 </div>
                 {trend && (
                     <div className="flex items-center gap-1 bg-green-500/15 text-green-500 px-2 py-0.5 rounded-full">
@@ -263,9 +263,9 @@ function ManagementCard({ label, value, desc, icon: Icon, color = 'muted', trend
                     </div>
                 )}
             </div>
-            <p className={`text-[10px] font-semibold uppercase tracking-wider mb-1 ${color === 'muted' ? 'text-muted-foreground' : 'text-white/60'}`}>{label}</p>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider mb-1 ${color === 'muted' ? 'text-muted-foreground' : 'opacity-70'}`}>{label}</p>
             <p className="text-xl font-bold tracking-tight mb-1 leading-none">{value}</p>
-            <p className={`text-[10px] ${color === 'muted' ? 'text-muted-foreground/60' : 'text-white/40'}`}>{desc}</p>
+            <p className={`text-[10px] ${color === 'muted' ? 'text-muted-foreground/60' : 'opacity-60'}`}>{desc}</p>
         </div>
     );
 }
