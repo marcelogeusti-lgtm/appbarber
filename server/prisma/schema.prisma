@@ -8,6 +8,13 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+
+// Enums
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  BARBER
+  BARBER_CONSULTA
   CLIENT
 }
 
