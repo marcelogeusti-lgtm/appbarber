@@ -23,11 +23,8 @@ export default function Hero() {
 
                         <h1 className="text-4xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6 tracking-tight">
                             Gerencie sua <br />
-                            <span className="text-primary italic">barbearia,</span> <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-indigo-600">
-                                aumente seus agendamentos <br />
-                                e fature mais — tudo em um só sistema.
-                            </span>
+                            <span className="text-primary">Barbearia</span> de forma <br />
+                            <span className="text-primary">simples & inteligente.</span>
                         </h1>
 
                         <p className="text-xl text-gray-500 mb-10 leading-relaxed max-w-2xl font-medium">
@@ -37,12 +34,12 @@ export default function Hero() {
                         <div className="flex flex-col sm:flex-row gap-4 mb-10">
                             <Link href="/register">
                                 <button className="w-full sm:w-auto px-10 py-4 bg-gray-900 text-white text-base font-bold rounded-2xl hover:bg-black transition-all shadow-2xl shadow-gray-300 flex items-center justify-center gap-2 group">
-                                    🚀 Testar grátis <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    Testar grátis <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>
                             <Link href="#pricing" scroll={true}>
                                 <button className="w-full sm:w-auto px-10 py-4 bg-white text-gray-900 text-base font-bold rounded-2xl border border-gray-200 hover:border-primary/30 hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
-                                    📅 Ver demonstração
+                                    Ver demonstração
                                 </button>
                             </Link>
                         </div>

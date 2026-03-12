@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { randomUUID } = require('crypto');
+const { addDays, subDays, setHours, setMinutes, format } = require('date-fns');
 
 const DEMO_SLUG = 'next-demo-marketing';
 const OWNER_EMAIL = 'demo@corteconexao.com.br';
@@ -13,6 +14,13 @@ const SERVICES_DATA = [
     { name: 'Pigmentação', price: 25, duration: 30 },
     { name: 'Sombrancelha', price: 15, duration: 15 },
     { name: 'Combo VIP', price: 80, duration: 60 },
+];
+
+const PRODUCTS_DATA = [
+    { name: 'Pomada Efeito Matte', price: 45, costPrice: 20 },
+    { name: 'Óleo para Barba', price: 35, costPrice: 15 },
+    { name: 'Shampoo Mentolado', price: 55, costPrice: 25 },
+    { name: 'Gel Fixador Ultra', price: 25, costPrice: 10 },
 ];
 
 const BARBERS = [
@@ -41,8 +49,8 @@ async function wipeDemoData() {
         await prisma.commission.deleteMany({ where: { barbershopId: shop.id } });
         await prisma.waitlist.deleteMany({ where: { barbershopId: shop.id } });
         await prisma.service.deleteMany({ where: { barbershopId: shop.id } });
+        await prisma.product.deleteMany({ where: { barbershopId: shop.id } });
 
-        // Unlink staff
         await prisma.barbershop.update({
             where: { id: shop.id },
             data: { staff: { set: [] } }
@@ -63,7 +71,7 @@ async function wipeDemoData() {
 }
 
 function solveSubsetSum(targetSum, count, availablePrices) {
-    for (let attempts = 0; attempts < 10000; attempts++) {
+    for (let attempts = 0; attempts < 20000; attempts++) {
         let currentSum = 0;
         let selected = [];
         for (let i = 0; i < count; i++) {
@@ -73,8 +81,9 @@ function solveSubsetSum(targetSum, count, availablePrices) {
         }
         if (currentSum === targetSum) return selected;
     }
+    // Fallback simple
     let selected = [];
-    for (let i = 0; i < count; i++) selected.push(availablePrices[0]);
+    for (let i = 0; i < count; i++) selected.push(40); // Base price
     return selected;
 }
 
@@ -138,202 +147,249 @@ async function main() {
         createdServices.push(srv);
     }
 
-    console.log('Creating Clients...');
-    const createdClientsData = [];
-    for (let i = 0; i < 150; i++) {
-        createdClientsData.push({
-            id: randomUUID(),
-            name: `${getRandomName()} [DEMO]`,
-            phone: `119${Math.floor(10000000 + Math.random() * 89999999)}`,
+    console.log('Creating Products...');
+    const createdProducts = [];
+    for (const p of PRODUCTS_DATA) {
+        const prod = await prisma.product.create({
+            data: {
+                name: p.name,
+                price: p.price,
+                costPrice: p.costPrice,
+                stock: 50,
+                barbershopId: shop.id
+            }
         });
+        createdProducts.push(prod);
     }
-    await prisma.client.createMany({ data: createdClientsData });
-    const createdClients = await prisma.client.findMany({ where: { name: { contains: '[DEMO]' } } });
 
-    console.log('Generating Hardcoded Today Appointments...');
+    console.log('Creating Clients...');
+    const createdClients = [];
+    for (let i = 0; i < 150; i++) {
+        const cli = await prisma.client.create({
+            data: {
+                name: `${getRandomName()} [DEMO]`,
+                phone: `119${Math.floor(10000000 + Math.random() * 89999999)}`,
+            }
+        });
+        createdClients.push(cli);
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // --- TODAY SEED ---
+    console.log('Generating Today Appointments (Target: 38 appts, R$ 1280 base revenue)...');
+    
+    // 09:00 João Silva (Corte) com Marcelo
+    // 09:30 Carlos Souza (Corte + Barba) com Rafael
+    // 10:00 Pedro Santos (Barba) com Marcelo
+    // 10:30 Lucas Oliveira (Corte) com Rafael
     const marcelo = createdBarbers.find(b => b.name === 'Marcelo Maestro');
     const rafael = createdBarbers.find(b => b.name === 'Rafael Costa');
-
     const srvCorte = createdServices.find(s => s.name === 'Corte Clássico');
     const srvCorteBarba = createdServices.find(s => s.name === 'Corte + Barba');
     const srvBarba = createdServices.find(s => s.name === 'Barba Terapia');
 
     const hardcodedSlots = [
-        { time: '09:00', clientName: 'João Silva', service: srvCorte, barber: marcelo },
-        { time: '09:30', clientName: 'Carlos Souza', service: srvCorteBarba, barber: rafael },
-        { time: '10:00', clientName: 'Pedro Santos', service: srvBarba, barber: marcelo },
-        { time: '10:30', clientName: 'Lucas Oliveira', service: srvCorte, barber: rafael },
+        { time: '09:00', name: 'João Silva', service: srvCorte, barber: marcelo },
+        { time: '09:30', name: 'Carlos Souza', service: srvCorteBarba, barber: rafael },
+        { time: '10:00', name: 'Pedro Santos', service: srvBarba, barber: marcelo },
+        { time: '10:30', name: 'Lucas Oliveira', service: srvCorte, barber: rafael },
     ];
 
-    let hardcodedSum = 0;
-    for (const slot of hardcodedSlots) {
-        const date = new Date(today);
-        const [h, m] = slot.time.split(':');
-        date.setHours(parseInt(h), parseInt(m), 0, 0);
+    let currentSum = 0;
+    const TARGET_SUM = 1280;
+    const TARGET_COUNT = 38;
 
-        const cli = await prisma.client.create({ data: { name: slot.clientName + ' [DEMO]', phone: `119${Math.floor(10000000 + Math.random() * 89999999)}` } });
+    const availableServicePrices = createdServices.map(s => Number(s.price));
+    const chosenPrices = solveSubsetSum(TARGET_SUM - hardcodedSlots.reduce((a, b) => a + Number(b.service.price), 0), TARGET_COUNT - hardcodedSlots.length, availableServicePrices);
+
+    let hour = 9;
+    let min = 0;
+
+    for (let i = 0; i < TARGET_COUNT; i++) {
+        let slotData;
+        if (i < hardcodedSlots.length) {
+            slotData = hardcodedSlots[i];
+            const [h, m] = slotData.time.split(':');
+            hour = parseInt(h); min = parseInt(m);
+        } else {
+            const price = chosenPrices[i - hardcodedSlots.length];
+            const srv = createdServices.find(s => Number(s.price) === price) || createdServices[0];
+            const barber = createdBarbers[Math.floor(Math.random() * createdBarbers.length)];
+            const client = createdClients[i % createdClients.length];
+            slotData = { name: client.name, service: srv, barber: barber };
+            
+            min += 20; 
+            if (min >= 60) { min -= 60; hour++; }
+            if (hour > 19) hour = 9;
+        }
+
+        const date = setMinutes(setHours(today, hour), min);
+        const cli = i < hardcodedSlots.length ? await prisma.client.create({ data: { name: slotData.name + ' [DEMO]', phone: `119${Math.floor(10000000 + Math.random() * 89999999)}` } }) : createdClients[i % createdClients.length];
 
         const appt = await prisma.appointment.create({
             data: {
                 date,
                 status: 'COMPLETED',
                 clientId: cli.id,
-                professionalId: slot.barber.id,
-                serviceId: slot.service.id,
+                professionalId: slotData.barber.id,
+                serviceId: slotData.service.id,
                 barbershopId: shop.id,
                 paymentStatus: 'PAID'
+            }
+        });
+
+        // Commission
+        const commAmount = Number(slotData.service.price) * 0.5;
+        await prisma.commission.create({
+            data: {
+                barberId: slotData.barber.id,
+                barbershopId: shop.id,
+                appointmentId: appt.id,
+                type: 'SERVICE',
+                amount: commAmount,
+                percentage: 50,
+                status: 'PAID',
+                paidAt: date
             }
         });
 
         await prisma.transaction.create({
             data: {
-                description: `Atendimento - ${slot.service.name}`,
-                amount: slot.service.price,
+                description: `Serviço: ${slotData.service.name}`,
+                amount: slotData.service.price,
                 type: 'INCOME',
                 date,
                 barbershopId: shop.id,
-                appointmentId: appt.id
+                appointmentId: appt.id,
+                professionalId: slotData.barber.id
             }
         });
-
-        hardcodedSum += Number(slot.service.price);
     }
 
-    console.log(`Hardcoded Sum: R$ ${hardcodedSum}`);
+    // --- HISTORICAL DATA (30 DAYS) ---
+    console.log('Generating 30 days of historical data...');
+    for (let d = 30; d >= 1; d--) {
+        const curDate = subDays(today, d);
+        const factor = 1 + ((30 - d) / 30) * 0.4; // Growth curve
+        const count = Math.floor((15 + Math.random() * 15) * factor);
 
-    const TARGET_TODAY_SUM = 1280;
-    const TARGET_TODAY_COUNT = 38;
-    const remainingCount = TARGET_TODAY_COUNT - hardcodedSlots.length;
-    const remainingSum = TARGET_TODAY_SUM - hardcodedSum;
+        for (let i = 0; i < count; i++) {
+            const srv = createdServices[Math.floor(Math.random() * createdServices.length)];
+            const barber = createdBarbers[Math.floor(Math.random() * createdBarbers.length)];
+            const client = createdClients[Math.floor(Math.random() * (createdClients.length / 2))]; // Heavy reuse for first half to show retention
+            
+            const appointmentDate = setMinutes(setHours(curDate, 9 + Math.floor(i / 2)), (i % 2) * 30);
+            
+            const appt = await prisma.appointment.create({
+                data: {
+                    date: appointmentDate,
+                    status: 'COMPLETED',
+                    clientId: client.id,
+                    professionalId: barber.id,
+                    serviceId: srv.id,
+                    barbershopId: shop.id,
+                    paymentStatus: 'PAID'
+                }
+            });
 
-    console.log(`Generating remaining ${remainingCount} appointments to reach R$ ${remainingSum}...`);
+            // Service Commission
+            await prisma.commission.create({
+                data: {
+                    barberId: barber.id,
+                    barbershopId: shop.id,
+                    appointmentId: appt.id,
+                    type: 'SERVICE',
+                    amount: Number(srv.price) * 0.5,
+                    percentage: 50,
+                    status: 'PAID',
+                    paidAt: appointmentDate
+                }
+            });
 
-    const availablePrices = createdServices.map(s => Number(s.price));
-    const chosenPrices = solveSubsetSum(remainingSum, remainingCount, availablePrices);
+            // Income
+            await prisma.transaction.create({
+                data: {
+                    description: `Serviço: ${srv.name}`,
+                    amount: srv.price,
+                    type: 'INCOME',
+                    date: appointmentDate,
+                    barbershopId: shop.id,
+                    appointmentId: appt.id,
+                    professionalId: barber.id
+                }
+            });
 
-    const finalSum = chosenPrices.reduce((a, b) => a + b, 0);
-    console.log(`Matched subset sum for today: ${finalSum} (Diff: ${remainingSum - finalSum})`);
-
-    let hour = 11;
-    let min = 0;
-
-    const todayApptsData = [];
-    const todayTxnsData = [];
-
-    for (let i = 0; i < remainingCount; i++) {
-        const price = chosenPrices[i];
-        const srv = createdServices.find(s => Number(s.price) === price) || createdServices[0];
-        const barber = createdBarbers[Math.floor(Math.random() * createdBarbers.length)];
-        const client = createdClients[Math.floor(Math.random() * createdClients.length)];
-
-        const date = new Date(today);
-        date.setHours(hour, min, 0, 0);
-
-        min += 30;
-        if (min >= 60) {
-            min -= 60;
-            hour++;
+            // Upsell Product? (20% chance)
+            if (Math.random() < 0.2) {
+                const prod = createdProducts[Math.floor(Math.random() * createdProducts.length)];
+                await prisma.transaction.create({
+                    data: {
+                        description: `Venda Produto: ${prod.name}`,
+                        amount: prod.price,
+                        type: 'INCOME',
+                        date: appointmentDate,
+                        barbershopId: shop.id,
+                        professionalId: barber.id
+                    }
+                });
+                
+                // Product commission (10%)
+                await prisma.commission.create({
+                    data: {
+                        barberId: barber.id,
+                        barbershopId: shop.id,
+                        type: 'PRODUCT',
+                        amount: Number(prod.price) * 0.1,
+                        percentage: 10,
+                        status: 'PAID',
+                        paidAt: appointmentDate
+                    }
+                });
+            }
         }
 
-        const apptId = randomUUID();
-        todayApptsData.push({
-            id: apptId,
-            date,
-            status: 'COMPLETED',
-            clientId: client.id,
-            professionalId: barber.id,
-            serviceId: srv.id,
-            barbershopId: shop.id,
-            paymentStatus: 'PAID'
-        });
-
-        todayTxnsData.push({
-            id: randomUUID(),
-            description: `Atendimento - ${srv.name}`,
-            amount: i === remainingCount - 1 && finalSum !== remainingSum ? (price + (remainingSum - finalSum)) : price,
-            type: 'INCOME',
-            date,
-            barbershopId: shop.id,
-            appointmentId: apptId
+        // Daily Expenses
+        await prisma.transaction.create({
+            data: {
+                description: 'Despesas Fixas e Manutenção',
+                amount: 150 + Math.random() * 100,
+                type: 'EXPENSE',
+                category: 'Manutenção',
+                date: curDate,
+                barbershopId: shop.id
+            }
         });
     }
 
-    await prisma.appointment.createMany({ data: todayApptsData });
-    await prisma.transaction.createMany({ data: todayTxnsData });
+    // --- FUTURE DATA (7 DAYS) ---
+    console.log('Generating 7 days of future appointments...');
+    for (let d = 1; d <= 7; d++) {
+        const futDate = addDays(today, d);
+        const count = Math.floor(10 + Math.random() * 10); // ~50% occupancy
 
-    console.log('Generating Historic Data (Last 4 Weeks)...');
-
-    const historyApptsData = [];
-    const historyTxnsData = [];
-
-    const daysAgoStart = 28;
-    for (let d = daysAgoStart; d >= 1; d--) {
-        const curDate = new Date(today);
-        curDate.setDate(curDate.getDate() - d);
-
-        const factor = 1 + ((28 - d) / 28) * 0.3;
-
-        let numApps = Math.floor((15 + Math.random() * 10) * factor);
-        if (d <= 7) numApps = Math.floor(30 + Math.random() * 8);
-
-        let dailyRevenue = 0;
-
-        for (let i = 0; i < numApps; i++) {
+        for (let i = 0; i < count; i++) {
             const srv = createdServices[Math.floor(Math.random() * createdServices.length)];
             const barber = createdBarbers[Math.floor(Math.random() * createdBarbers.length)];
             const client = createdClients[Math.floor(Math.random() * createdClients.length)];
+            const appointmentDate = setMinutes(setHours(futDate, 9 + i), 0);
 
-            const date = new Date(curDate);
-            date.setHours(9 + Math.floor(i / 3), (i % 3) * 20, 0, 0);
-
-            const apptId = randomUUID();
-
-            historyApptsData.push({
-                id: apptId,
-                date,
-                status: 'COMPLETED',
-                clientId: client.id,
-                professionalId: barber.id,
-                serviceId: srv.id,
-                barbershopId: shop.id,
-                paymentStatus: 'PAID'
+            await prisma.appointment.create({
+                data: {
+                    date: appointmentDate,
+                    status: 'CONFIRMED',
+                    clientId: client.id,
+                    professionalId: barber.id,
+                    serviceId: srv.id,
+                    barbershopId: shop.id,
+                    paymentStatus: 'PENDING'
+                }
             });
-
-            historyTxnsData.push({
-                id: randomUUID(),
-                description: `Atendimento - ${srv.name}`,
-                amount: srv.price,
-                type: 'INCOME',
-                date,
-                barbershopId: shop.id,
-                appointmentId: apptId
-            });
-
-            dailyRevenue += Number(srv.price);
         }
-
-        const expenseTotal = dailyRevenue * 0.47 * (0.9 + Math.random() * 0.2);
-
-        historyTxnsData.push({
-            id: randomUUID(),
-            description: 'Despesas Operacionais e Comissões',
-            amount: expenseTotal,
-            type: 'EXPENSE',
-            category: 'Geral',
-            date: curDate,
-            barbershopId: shop.id
-        });
     }
 
-    console.log(`Bulk inserting ${historyApptsData.length} appointments and ${historyTxnsData.length} transactions...`);
-
-    await prisma.appointment.createMany({ data: historyApptsData });
-    await prisma.transaction.createMany({ data: historyTxnsData });
-
-    console.log('Seed completed successfully for Landing Page Mocks!');
+    console.log('Seed completed successfully for Marketing Mocks!');
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());

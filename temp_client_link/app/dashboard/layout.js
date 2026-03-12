@@ -1,0 +1,210 @@
+'use client';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { LogOut } from 'lucide-react';
+import Sidebar from '../../components/Sidebar';
+import TopBar from '../../components/TopBar';
+import CashierPanel from '../../components/CashierPanel';
+import NewOrderModal from '../../components/NewOrderModal';
+import NewTransactionModal from '../../components/NewTransactionModal';
+
+import { SocketProvider } from '../../contexts/SocketContext';
+import { safeGetItem, safeRemoveItem, safeClear } from '../../lib/storage';
+
+export default function DashboardLayout({ children }) {
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const [isCashierOpen, setIsCashierOpen] = useState(false);
+    const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
+    const [isTransactionOpen, setIsTransactionOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const checkAuth = () => {
+            try {
+                const token = safeGetItem('token');
+                if (!token) {
+                    router.push('/login');
+                    return;
+                }
+
+                const userData = safeGetItem('user');
+                if (userData) {
+                    setUser(JSON.parse(userData));
+                    setLoading(false);
+                } else {
+                    // Token exists but no user data? Invalid state.
+                    safeClear();
+                    router.push('/login');
+                }
+            } catch (err) {
+                console.error('Error parsing user data in layout:', err);
+                safeClear();
+                router.push('/login');
+            }
+        };
+
+        checkAuth();
+    }, [router]);
+
+    // PROTECT ADMIN ROUTES
+    useEffect(() => {
+        if (user?.role === 'CLIENT') {
+            router.push('/home');
+        }
+    }, [user, router]);
+
+    const logout = () => {
+        safeClear();
+        router.push('/login');
+    };
+
+    if (loading) {
+        return (
+            <div className="flex min-h-screen bg-background text-foreground font-sans">
+                {/* Skeleton Sidebar */}
+                <aside className="w-64 border-r border-border bg-card hidden lg:flex flex-col p-6 opacity-50 animate-pulse">
+                    <div className="w-24 h-8 bg-muted rounded-lg mb-10"></div>
+                    <div className="space-y-3 flex-1">
+                        {[1, 2, 3, 4, 5, 6].map(i => (
+                            <div key={i} className="w-full h-10 bg-muted rounded-xl"></div>
+                        ))}
+                    </div>
+                </aside>
+
+                <div className="flex-1 flex flex-col min-h-screen">
+                    {/* Skeleton TopBar */}
+                    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 md:px-8 opacity-50 animate-pulse">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-muted rounded-full"></div>
+                            <div className="space-y-2 hidden md:block">
+                                <div className="w-32 h-3 bg-muted rounded"></div>
+                                <div className="w-20 h-2 bg-muted rounded"></div>
+                            </div>
+                        </div>
+                        <div className="w-20 h-8 bg-muted rounded-lg"></div>
+                    </header>
+                    <main className="flex-1 p-6 md:p-8 flex items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </main>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) return null;
+
+    const currentBarbershop = user?.barbershop || user?.workedBarbershop || user?.ownedBarbershops?.[0];
+
+    const isSubscriptionActive = () => {
+        // PROTECTED: Master accounts and Super Admins are exempt from subscription locks
+        if (user?.role === 'SUPER_ADMIN' || user?.isMaster || user?.role === 'CLIENT') return true;
+        const shop = currentBarbershop;
+
+        if (!shop) return false;
+
+        // Allow ACTIVE or TRIAL
+        if (shop.subscriptionStatus === 'ACTIVE') return true;
+
+        if (shop.subscriptionStatus === 'TRIAL') {
+            // Optional: check date on frontend too, but backend is source of truth.
+            // For UX, we assume if it's TRIAL it's valid, or backend would return 403 on data fetch.
+            // But let's check if we have the date to show "Expired" message eventually.
+            if (shop.trialEndsAt) {
+                const now = new Date();
+                const trialEnd = new Date(shop.trialEndsAt);
+                return now < trialEnd;
+            }
+            return true; // If no date but status is TRIAL, assume valid (legacy/fallback)
+        }
+
+        return false;
+    };
+
+    const isLocked = !isSubscriptionActive();
+
+    return (
+        <SocketProvider>
+            <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20">
+                {/* Sidebar Component - Responsive */}
+                <Sidebar
+                    user={user}
+                    barbershop={currentBarbershop}
+                    isLocked={isLocked}
+                    logout={logout}
+                    isOpen={isMobileMenuOpen}
+                    onClose={() => setIsMobileMenuOpen(false)}
+                />
+
+                {/* Cashier Panel */}
+                <CashierPanel
+                    isOpen={isCashierOpen}
+                    onClose={() => setIsCashierOpen(false)}
+                    user={user}
+                    onOpenNewOrder={() => {
+                        setIsCashierOpen(false);
+                        setIsNewOrderOpen(true);
+                    }}
+                    onOpenNewExpense={() => {
+                        setIsCashierOpen(false);
+                        setIsTransactionOpen(true);
+                    }}
+                />
+
+                {/* New Order Modal */}
+                <NewOrderModal
+                    isOpen={isNewOrderOpen}
+                    onClose={() => setIsNewOrderOpen(false)}
+                    user={user}
+                />
+
+                {/* New Transaction Modal */}
+                <NewTransactionModal
+                    isOpen={isTransactionOpen}
+                    onClose={() => setIsTransactionOpen(false)}
+                    user={user}
+                    type="EXPENSE"
+                    onSuccess={() => {
+                        // Could trigger a refresh if we had a global context, but panel refreshes on open
+                    }}
+                />
+
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col min-h-screen relative w-full">
+                    <TopBar
+                        user={user}
+                        barbershop={currentBarbershop}
+                        isLocked={isLocked}
+                        onMobileMenuClick={() => setIsMobileMenuOpen(true)}
+                        onOpenCashier={() => setIsCashierOpen(true)}
+                    />
+
+                    <main className="flex-1 p-4 md:p-6 overflow-x-hidden relative">
+                        {isLocked ? (
+                            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+                                <div className="bg-card border border-border p-6 rounded-xl max-w-md w-full text-center shadow-soft">
+                                    <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-5">
+                                        <LogOut className="w-8 h-8 text-destructive" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-foreground mb-2">Assinatura Inativa</h2>
+                                    <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                                        Sua assinatura está inativa ou vencida. Para continuar utilizando os recursos administrativos, por favor regularize seu plano.
+                                    </p>
+                                    <button className="w-full bg-primary text-primary-foreground text-sm font-semibold py-3 rounded-lg shadow-sm hover:opacity-90 transition-opacity">
+                                        Regularizar Agora
+                                    </button>
+                                    <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+                                        Dúvidas? Entre em contato com o suporte.
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            children
+                        )}
+                    </main>
+                </div>
+            </div>
+        </SocketProvider>
+    );
+}
