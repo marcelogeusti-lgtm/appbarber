@@ -14,7 +14,6 @@ import CheckoutShowcase from '../components/landing/CheckoutShowcase';
 import Footer from '../components/landing/Footer';
 import SideSocialProof from '../components/landing/SideSocialProof';
 import ToastActivity from '../components/landing/ToastActivity';
-import FixedCTA from '../components/landing/FixedCTA';
 
 export default function Home() {
     const [hasMounted, setHasMounted] = useState(false);
@@ -31,7 +30,6 @@ export default function Home() {
         <main className="min-h-screen bg-white relative pb-20 md:pb-0 overflow-x-hidden">
             <SideSocialProof />
             <ToastActivity />
-            <FixedCTA />
             <Navbar />
 
             <Hero />

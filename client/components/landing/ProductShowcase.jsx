@@ -112,9 +112,9 @@ export default function ProductShowcase() {
                                     <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 mb-10">
                                         <div className="flex items-center gap-4 mb-2">
                                             <div className="flex -space-x-2">
-                                                {[1, 2, 3].map(i => (
-                                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
-                                                ))}
+                                                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=32&h=32" alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
+                                                <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=32&h=32" alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
+                                                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=32&h=32" alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-0.5">
