@@ -56,13 +56,13 @@ export default function DashboardPage() {
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
             const res = await api.get(`/dashboard/stats?barbershopId=${bId}`);
 
-            // SALES MODE OVERRIDE: If data is empty (fresh account), show impressive numbers for screenshots
             return {
-                revenue: res.data.revenueToday || 1280.00,
-                revenueTotal: res.data.revenueTotal || 480000.00,
-                appointments: res.data.appointmentsToday || 23,
-                clients: res.data.clientsTotal || 184,
-                revenueTrend: res.data.revenueTrend || 12.5
+                revenue: res.data.revenueToday || 0,
+                revenueTotal: res.data.revenueTotal || 0,
+                appointments: res.data.appointmentsToday || 0,
+                clients: res.data.clientsTotal || 0,
+                revenueTrend: res.data.revenueTrend || "0% vs ontem",
+                openCommands: res.data.openCommands || 0
             };
         },
         enabled: !!user,
