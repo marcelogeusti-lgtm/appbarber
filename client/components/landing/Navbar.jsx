@@ -33,11 +33,26 @@ export default function Navbar() {
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex items-center gap-8">
-                    <Link href="#" className="font-bold text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors">Home</Link>
-                    <Link href="#start" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Sobre</Link>
-                    <Link href="#features" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Funções</Link>
-                    <Link href="#pricing" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Preços</Link>
-                    <Link href="#" className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">Blog</Link>
+                    <Link href="#" className="group relative font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
+                        Home
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                    </Link>
+                    <Link href="#start" className="group relative font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
+                        Sobre
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                    </Link>
+                    <Link href="#features" className="group relative font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
+                        Funções
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                    </Link>
+                    <Link href="#pricing" className="group relative font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
+                        Preços
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                    </Link>
+                    <Link href="#" className="group relative font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
+                        Blog
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                    </Link>
                 </div>
 
                 {/* Auth Buttons */}
