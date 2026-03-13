@@ -538,8 +538,12 @@ exports.getProAppointments = async (req, res) => {
 // Admin: Get ALL Appointments for Barbershop
 exports.getAllAppointments = async (req, res) => {
     try {
-        const { barbershopId, start, end } = req.query;
+        const { barbershopId, start, end, page = 1, limit = 25 } = req.query;
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const p = parseInt(page);
+        const l = parseInt(limit);
+        const skip = (p - 1) * l;
 
         const where = { barbershopId };
 
@@ -551,17 +555,28 @@ exports.getAllAppointments = async (req, res) => {
             };
         }
 
-        const bookings = await prisma.appointment.findMany({
-            where,
-            include: {
-                client: { select: { name: true, phone: true } },
-                service: true,
-                professional: { select: { id: true, name: true } }
-            },
-            orderBy: { date: 'asc' }
-        });
+        const [total, bookings] = await Promise.all([
+            prisma.appointment.count({ where }),
+            prisma.appointment.findMany({
+                where,
+                include: {
+                    client: { select: { name: true, phone: true } },
+                    service: true,
+                    professional: { select: { id: true, name: true } }
+                },
+                orderBy: { date: 'asc' },
+                skip,
+                take: l
+            })
+        ]);
 
-        res.json(bookings);
+        res.json({
+            data: bookings,
+            total,
+            page: p,
+            limit: l,
+            totalPages: Math.ceil(total / l)
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching all appointments' });

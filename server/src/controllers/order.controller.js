@@ -364,28 +364,42 @@ exports.closeOrder = async (req, res) => {
 // List Orders
 exports.listOrders = async (req, res) => {
     try {
-        const { barbershopId } = req.query;
+        const { barbershopId, page = 1, limit = 25 } = req.query;
 
-        console.log(`[DEBUG] Listing orders for BarbershopID: ${barbershopId}`);
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        const orders = await prisma.order.findMany({
-            where: {
-                barbershopId: barbershopId
-            },
-            take: 100, // Safety limit for Render OOM
-            include: {
-                client: {
-                    select: { id: true, name: true, phone: true }
+        const p = parseInt(page);
+        const l = parseInt(limit);
+        const skip = (p - 1) * l;
+
+        const where = { barbershopId };
+
+        const [total, orders] = await Promise.all([
+            prisma.order.count({ where }),
+            prisma.order.findMany({
+                where,
+                include: {
+                    client: {
+                        select: { id: true, name: true, phone: true }
+                    },
+                    professional: {
+                        select: { id: true, name: true }
+                    },
+                    items: true
                 },
-                professional: {
-                    select: { id: true, name: true }
-                },
-                items: true
-            },
-            orderBy: { createdAt: 'desc' }
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: l
+            })
+        ]);
+
+        res.json({
+            data: orders,
+            total,
+            page: p,
+            limit: l,
+            totalPages: Math.ceil(total / l)
         });
-
-        res.json(orders);
     } catch (error) {
         console.error('List Orders Error:', error);
         res.status(500).json({ message: 'Erro ao listar comandas.' });

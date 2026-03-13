@@ -5,6 +5,7 @@ import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar, Plus,
 import api from '../../../lib/api';
 import ClientDetailsModal from '../../../components/ClientDetailsModal';
 import NewClientModal from '../../../components/NewClientModal';
+import Pagination from '@/components/ui/Pagination';
 
 export default function ClientsPage() {
     const queryClient = useQueryClient();
@@ -13,6 +14,10 @@ export default function ClientsPage() {
     const [isNewClientModalOpen, setIsNewClientModalOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
+
+    // Pagination States
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(25);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -28,15 +33,17 @@ export default function ClientsPage() {
         }
     }, []);
 
-    const { data: clients = [], isLoading } = useQuery({
-        queryKey: ['clients', barbershopId],
+    const { data: clientRes = { data: [], total: 0, totalPages: 0 }, isLoading } = useQuery({
+        queryKey: ['clients', barbershopId, page, limit],
         queryFn: async () => {
-            if (!barbershopId) return [];
-            const res = await api.get(`/clients?barbershopId=${barbershopId}`);
-            return Array.isArray(res.data) ? res.data : [];
+            if (!barbershopId) return { data: [], total: 0, totalPages: 0 };
+            const res = await api.get(`/clients?barbershopId=${barbershopId}&page=${page}&limit=${limit}`);
+            return res.data;
         },
         enabled: !!barbershopId,
     });
+
+    const clients = Array.isArray(clientRes.data) ? clientRes.data : [];
 
     const filteredClients = clients.filter(client =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

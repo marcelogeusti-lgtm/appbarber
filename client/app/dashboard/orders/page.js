@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { Plus, Search, ShoppingBag, Clock, XCircle, DollarSign, Calendar, ClipboardList, X } from 'lucide-react';
+import Pagination from '@/components/ui/Pagination';
 import Link from 'next/link';
 
 export default function OrdersPage() {
@@ -12,13 +13,19 @@ export default function OrdersPage() {
     // For "Quick Create"
     const [isCreating, setIsCreating] = useState(false);
     const [quickData, setQuickData] = useState({ guestName: '', phone: '', professionalId: '', serviceId: '' });
+
+    // Pagination States
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(25);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [professionals, setProfessionals] = useState([]);
     const [services, setServices] = useState([]);
     const [creatingLoading, setCreatingLoading] = useState(false);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [page, limit]);
 
     const fetchData = async () => {
         try {
@@ -28,12 +35,14 @@ export default function OrdersPage() {
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
             const [ordersRes, prosRes, servicesRes] = await Promise.all([
-                api.get(`/orders?barbershopId=${bId}`),
+                api.get(`/orders?barbershopId=${bId}&page=${page}&limit=${limit}`),
                 api.get(`/professionals?barbershopId=${bId}`),
                 api.get(`/services?barbershopId=${bId}`)
             ]);
 
-            setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+            setOrders(Array.isArray(ordersRes.data.data) ? ordersRes.data.data : []);
+            setTotalItems(ordersRes.data.total || 0);
+            setTotalPages(ordersRes.data.totalPages || 0);
             setProfessionals(Array.isArray(prosRes.data) ? prosRes.data : []);
             setServices(Array.isArray(servicesRes.data) ? servicesRes.data : []);
             setLoading(false);
@@ -234,6 +243,18 @@ export default function OrdersPage() {
                         </div>
                     </Link>
                 ))}
+            </div>
+
+            <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm mt-8">
+                <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    limit={limit}
+                    onPageChange={setPage}
+                    onLimitChange={(l) => { setLimit(l); setPage(1); }}
+                    label="comandas"
+                />
             </div>
 
             {filteredOrders.length === 0 && (

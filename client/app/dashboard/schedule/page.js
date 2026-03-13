@@ -3,13 +3,15 @@ import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle, XCircle } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, subDays } from 'date-fns';
+import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import SqueezeInModal from '../../../components/SqueezeInModal';
 import DayDetailsModal from '../../../components/DayDetailsModal';
 import EditModal from '../../../components/EditModal';
 import AppointmentDetailsModal from '../../../components/AppointmentDetailsModal';
 import NewOrderModal from '../../../components/NewOrderModal';
-import PrintButton from '../../../components/PrintButton';
+import Pagination from '@/components/ui/Pagination';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function SchedulePage() {
     const [appointments, setAppointments] = useState([]);
@@ -33,8 +35,20 @@ export default function SchedulePage() {
     const [barbershopId, setBarbershopId] = useState(null);
     const [barbershopName, setBarbershopName] = useState('Nossa Barbearia');
 
+    // Pagination States
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(25);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
     const fetchData = () => {
-        setLastFetchedMonth(null); // Triggers useEffect to reload
+        // This function is now more of a trigger for the main useEffect
+        // It will cause the useEffect to re-run and fetch data based on current viewMode
+        if (viewMode === 'day') {
+            fetchAppointments();
+        } else {
+            fetchAllAppointmentsInRange();
+        }
     };
 
     useEffect(() => {
@@ -42,21 +56,17 @@ export default function SchedulePage() {
     }, []);
 
     useEffect(() => {
-        const thisMonth = format(currentDate, 'yyyy-MM');
+        if (!barbershopId) return;
 
-        // Only fetch if we haven't fetched for this month's context yet
-        // This prevents reloading on every day change
-        if (thisMonth !== lastFetchedMonth) {
-            const start = startOfMonth(subMonths(currentDate, 1));
-            const end = endOfMonth(addMonths(currentDate, 1));
-
-            const startStr = start.toISOString();
-            const endStr = end.toISOString();
-
-            fetchAppointments(startStr, endStr);
-            setLastFetchedMonth(thisMonth);
+        // Reset page when date or view mode changes
+        // but we only paginate in 'day' view
+        if (viewMode === 'day') {
+            fetchAppointments();
+        } else {
+            // For week/month, we stick to the old bulk loading for now or a different strategy
+            fetchAllAppointmentsInRange();
         }
-    }, [currentDate, lastFetchedMonth]);
+    }, [currentDate, viewMode, barbershopId, page, limit]);
 
     const fetchResources = async () => {
         try {
@@ -88,28 +98,46 @@ export default function SchedulePage() {
         }
     };
 
-    const fetchAppointments = async (start, end) => {
+    const fetchAppointments = async () => {
+        setLoading(true);
         try {
-            // Only show full loading on first load or significant changes
-            // For background updates we might want a subtler indicator, but for now let's keep it responsive
-            if (!lastFetchedMonth) setLoading(true);
-
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const user = JSON.parse(userStr);
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
-            const appRes = await api.get(`/appointments`, {
-                params: {
-                    barbershopId: bId,
-                    start,
-                    end
-                }
-            });
-            setAppointments(appRes.data);
-            setLoading(false);
+            const start = startOfDay(currentDate).toISOString();
+            const end = endOfDay(currentDate).toISOString();
+
+            const res = await api.get(`/appointments/all?barbershopId=${bId}&start=${start}&end=${end}&page=${page}&limit=${limit}`);
+
+            setAppointments(res.data.data || []);
+            setTotalItems(res.data.total || 0);
+            setTotalPages(res.data.totalPages || 0);
         } catch (err) {
             console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchAllAppointmentsInRange = async () => {
+        setLoading(true);
+        try {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+
+            const start = startOfMonth(subMonths(currentDate, 1)).toISOString();
+            const end = endOfMonth(addMonths(currentDate, 1)).toISOString();
+
+            const res = await api.get(`/appointments/all?barbershopId=${bId}&start=${start}&end=${end}&limit=1000`);
+            setAppointments(res.data.data || []);
+            // setTotalItems(res.data.total || res.data.data?.length || 0); // Not needed for non-paginated views
+        } catch (err) {
+            console.error(err);
+        } finally {
             setLoading(false);
         }
     };
@@ -145,13 +173,15 @@ export default function SchedulePage() {
         }
     };
 
-    const next = () => {
+    const handleNext = () => {
+        setPage(1);
         if (viewMode === 'day') setCurrentDate(addDays(currentDate, 1));
         else if (viewMode === 'week') setCurrentDate(addDays(currentDate, 7));
         else setCurrentDate(addMonths(currentDate, 1));
     };
 
-    const prev = () => {
+    const handlePrev = () => {
+        setPage(1);
         if (viewMode === 'day') setCurrentDate(subDays(currentDate, 1));
         else if (viewMode === 'week') setCurrentDate(subDays(currentDate, 7));
         else setCurrentDate(subMonths(currentDate, 1));
@@ -264,7 +294,7 @@ export default function SchedulePage() {
 
                         {/* Date Navigation */}
                         <div className="flex items-center gap-3 bg-background p-2 rounded-2xl border border-border w-full sm:w-auto justify-between sm:justify-start">
-                            <button onClick={prev} className="p-2 hover:bg-muted rounded-xl transition shadow-sm"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
+                            <button onClick={handlePrev} className="p-2 hover:bg-muted rounded-xl transition shadow-sm"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
                             <div className="px-4 text-center min-w-[140px]">
                                 <p className="font-black text-xs text-foreground uppercase tracking-widest">
                                     {viewMode === 'day' ? format(currentDate, 'dd MMMM', { locale: ptBR }) :
@@ -272,7 +302,7 @@ export default function SchedulePage() {
                                             format(currentDate, 'MMMM yyyy', { locale: ptBR })}
                                 </p>
                             </div>
-                            <button onClick={next} className="p-2 hover:bg-muted rounded-xl transition shadow-sm"><ChevronRight className="w-5 h-5 text-muted-foreground" /></button>
+                            <button onClick={handleNext} className="p-2 hover:bg-muted rounded-xl transition shadow-sm"><ChevronRight className="w-5 h-5 text-muted-foreground" /></button>
                         </div>
                     </div>
                 </div>
@@ -284,7 +314,7 @@ export default function SchedulePage() {
                         {['day', 'week', 'month'].map(v => (
                             <button
                                 key={v}
-                                onClick={() => setViewMode(v)}
+                                onClick={() => { setViewMode(v); setPage(1); }} // Reset page on view mode change
                                 className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === v ? 'bg-card text-primary shadow-xl border border-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
                             >
                                 {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mês'}
@@ -330,7 +360,20 @@ export default function SchedulePage() {
             <div className="bg-card rounded-[2.5rem] border border-border shadow-2xl overflow-hidden min-h-[600px]">
                     {activeTab === 'appointments' && (
                         <>
-                            {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} barbershopName={barbershopName} />}
+                            {viewMode === 'day' && (
+                                <>
+                                    <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} barbershopName={barbershopName} />
+                                    <Pagination
+                                        currentPage={page}
+                                        totalPages={totalPages}
+                                        totalItems={totalItems}
+                                        limit={limit}
+                                        onPageChange={setPage}
+                                        onLimitChange={(l) => { setLimit(l); setPage(1); }}
+                                        label="agendamentos"
+                                    />
+                                </>
+                            )}
                             {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                         {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                     </>
@@ -494,7 +537,7 @@ function WaitlistView({ waitlist, professionals }) {
 function DayView({ appointments, professionals, selectedPro, onEdit, barbershopName }) {
     if (appointments.length === 0) return <EmptyState />;
 
-    // Sort logic here? 
+    // Sort logic here?
     // If not sorted, let's sort
     const sortedApps = [...appointments].sort((a, b) => new Date(a.date) - new Date(b.date));
 

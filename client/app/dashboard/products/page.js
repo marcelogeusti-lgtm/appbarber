@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { ShoppingBag, Plus, Trash2, Search, Package, AlertCircle, Edit } from 'lucide-react';
+import Pagination from '@/components/ui/Pagination';
 
 export default function ProductsPage() {
     const queryClient = useQueryClient();
@@ -14,6 +15,10 @@ export default function ProductsPage() {
     const [user, setUser] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
 
+    // Pagination States
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(25);
+
     useEffect(() => {
         const userStr = localStorage.getItem('user');
         if (userStr) {
@@ -24,15 +29,17 @@ export default function ProductsPage() {
         }
     }, []);
 
-    const { data: products = [], isLoading } = useQuery({
-        queryKey: ['products', barbershopId],
+    const { data: productRes = { data: [], total: 0, totalPages: 0 }, isLoading } = useQuery({
+        queryKey: ['products', barbershopId, page, limit],
         queryFn: async () => {
-            if (!barbershopId) return [];
-            const res = await api.get(`/products?barbershopId=${barbershopId}`);
-            return Array.isArray(res.data) ? res.data : [];
+            if (!barbershopId) return { data: [], total: 0, totalPages: 0 };
+            const res = await api.get(`/products?barbershopId=${barbershopId}&page=${page}&limit=${limit}`);
+            return res.data;
         },
         enabled: !!barbershopId,
     });
+
+    const products = Array.isArray(productRes.data) ? productRes.data : [];
 
     const handleCreateProduct = async (e) => {
         e.preventDefault();
@@ -263,12 +270,19 @@ export default function ProductsPage() {
                     </div>
                 ))}
 
-                {filteredProducts.length === 0 && !isAdding && (
-                    <div className="col-span-full py-20 text-center space-y-4 bg-card rounded-[3rem] border-2 border-dashed border-border">
-                        <Package className="w-12 h-12 text-muted-foreground mx-auto" />
-                        <p className="text-muted-foreground font-bold uppercase text-xs tracking-widest">Nenhum produto encontrado.</p>
-                    </div>
                 )}
+            </div>
+
+            <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm mt-8">
+                <Pagination
+                    currentPage={page}
+                    totalPages={productRes.totalPages}
+                    totalItems={productRes.total}
+                    limit={limit}
+                    onPageChange={setPage}
+                    onLimitChange={(l) => { setLimit(l); setPage(1); }}
+                    label="produtos"
+                />
             </div>
         </div>
     );

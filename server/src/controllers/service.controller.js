@@ -44,16 +44,33 @@ exports.createService = async (req, res) => {
 
 exports.getServices = async (req, res) => {
     try {
-        const { barbershopId } = req.query; // public or private access
+        const { barbershopId, page = 1, limit = 50 } = req.query; // Higher default for services
 
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        const services = await prisma.service.findMany({
-            where: { barbershopId, active: true },
-            include: { commissionOverrides: true }
-        });
+        const p = parseInt(page);
+        const l = parseInt(limit);
+        const skip = (p - 1) * l;
 
-        res.json(services);
+        const where = { barbershopId, active: true };
+
+        const [total, services] = await Promise.all([
+            prisma.service.count({ where }),
+            prisma.service.findMany({
+                where,
+                include: { commissionOverrides: true },
+                skip,
+                take: l
+            })
+        ]);
+
+        res.json({
+            data: services,
+            total,
+            page: p,
+            limit: l,
+            totalPages: Math.ceil(total / l)
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }

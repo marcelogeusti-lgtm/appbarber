@@ -36,21 +36,39 @@ exports.createProduct = async (req, res) => {
 // Get Products (with optional low stock warning)
 exports.getProducts = async (req, res) => {
     try {
-        const { barbershopId } = req.query;
+        const { barbershopId, page = 1, limit = 25 } = req.query;
 
         // Security: Prevent listing all products if no shop is specified
         if (!barbershopId) {
             return res.status(400).json({ message: 'Barbershop ID is required' });
         }
 
-        const products = await prisma.product.findMany({
-            where: {
-                barbershopId,
-                active: true
-            },
-            orderBy: { name: 'asc' }
+        const p = parseInt(page);
+        const l = parseInt(limit);
+        const skip = (p - 1) * l;
+
+        const where = {
+            barbershopId,
+            active: true
+        };
+
+        const [total, products] = await Promise.all([
+            prisma.product.count({ where }),
+            prisma.product.findMany({
+                where,
+                orderBy: { name: 'asc' },
+                skip,
+                take: l
+            })
+        ]);
+
+        res.json({
+            data: products,
+            total,
+            page: p,
+            limit: l,
+            totalPages: Math.ceil(total / l)
         });
-        res.json(products);
     } catch (error) {
         console.error('Get Products error:', error);
         res.status(500).json({ message: 'Error fetching products: ' + error.message });
