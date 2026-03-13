@@ -269,8 +269,6 @@ export default function ProductsPage() {
                         </div>
                     </div>
                 ))}
-
-                )}
             </div>
 
             <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm mt-8">
