@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '../../../../lib/api';
@@ -52,11 +52,11 @@ export default function OrderDetailsPage() {
 
             if (bId) {
                 const [prodRes, servRes] = await Promise.all([
-                    api.get(`/products?barbershopId=${bId}`),
-                    api.get(`/services?barbershopId=${bId}`)
+                    api.get(`/products?barbershopId=${bId}&limit=1000`),
+                    api.get(`/services?barbershopId=${bId}&limit=1000`)
                 ]);
-                setProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
-                setServices(Array.isArray(servRes.data) ? servRes.data : []);
+                setProducts(Array.isArray(prodRes.data) ? prodRes.data : (prodRes.data.data || []));
+                setServices(Array.isArray(servRes.data) ? servRes.data : (servRes.data.data || []));
             }
         } catch (err) {
             console.error("Error fetching resources", err);

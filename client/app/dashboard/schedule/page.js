@@ -79,13 +79,15 @@ export default function SchedulePage() {
             // Professionals
             if (professionals.length === 0) {
                 const proRes = await api.get(`/professionals?barbershopId=${bId}`);
-                setProfessionals(proRes.data);
+                // Professionals endpoint currently returns an array, but we'll be safe
+                setProfessionals(Array.isArray(proRes.data) ? proRes.data : (proRes.data.data || []));
             }
 
             // Services
             if (services.length === 0) {
-                const srvRes = await api.get(`/services?barbershopId=${bId}&active=true`);
-                setServices(srvRes.data);
+                // Fetch all active services for dropdowns/modals (using high limit)
+                const srvRes = await api.get(`/services?barbershopId=${bId}&active=true&limit=1000`);
+                setServices(Array.isArray(srvRes.data) ? srvRes.data : (srvRes.data.data || []));
             }
 
             // Barbershop Name
@@ -760,10 +762,11 @@ function AvailabilityView({ currentDate, professionals, selectedPro, barbershopI
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!barbershopId || services.length === 0) return;
+        const servicesList = Array.isArray(services) ? services : (services?.data || []);
+        if (!barbershopId || servicesList.length === 0) return;
 
         // Let's use the shortest service or the first service to get maximum granularity of 30min blocks
-        const targetService = services.find(s => s.duration === 30) || services[0];
+        const targetService = servicesList.find(s => s.duration === 30) || servicesList[0];
         if (!targetService) return;
 
         const fetchAvail = async () => {

@@ -33,8 +33,8 @@ export default function SqueezeInModal({ isOpen, onClose, services, professional
     const fetchClients = async () => {
         if (!barbershopId) return;
         try {
-            const res = await api.get(`/clients?barbershopId=${barbershopId}`);
-            setClients(res.data);
+            const res = await api.get(`/clients?barbershopId=${barbershopId}&limit=1000`);
+            setClients(Array.isArray(res.data) ? res.data : (res.data.data || []));
         } catch (error) {
             console.error('Erro ao buscar clientes:', error);
         }
@@ -152,7 +152,7 @@ export default function SqueezeInModal({ isOpen, onClose, services, professional
 
                             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Escolha a Especialidade:</p>
                             <div className="grid gap-3">
-                                {services.map(srv => (
+                                {(Array.isArray(services) ? services : (services?.data || [])).map(srv => (
                                     <button
                                         key={srv.id}
                                         onClick={() => handleServiceSelect(srv)}

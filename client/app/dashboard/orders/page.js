@@ -43,8 +43,8 @@ export default function OrdersPage() {
             setOrders(Array.isArray(ordersRes.data.data) ? ordersRes.data.data : []);
             setTotalItems(ordersRes.data.total || 0);
             setTotalPages(ordersRes.data.totalPages || 0);
-            setProfessionals(Array.isArray(prosRes.data) ? prosRes.data : []);
-            setServices(Array.isArray(servicesRes.data) ? servicesRes.data : []);
+            setProfessionals(Array.isArray(prosRes.data) ? prosRes.data : (prosRes.data.data || []));
+            setServices(Array.isArray(servicesRes.data) ? servicesRes.data : (servicesRes.data.data || []));
             setLoading(false);
         } catch (err) {
             console.error(err);

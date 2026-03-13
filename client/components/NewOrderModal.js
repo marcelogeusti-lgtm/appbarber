@@ -40,10 +40,10 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
         try {
             const [prosRes, servRes] = await Promise.all([
                 api.get(`/professionals?barbershopId=${shopId}`),
-                api.get(`/services?barbershopId=${shopId}&active=true`)
+                api.get(`/services?barbershopId=${shopId}&active=true&limit=1000`)
             ]);
-            setProfessionals(prosRes.data);
-            setServices(servRes.data);
+            setProfessionals(Array.isArray(prosRes.data) ? prosRes.data : (prosRes.data.data || []));
+            setServices(Array.isArray(servRes.data) ? servRes.data : (servRes.data.data || []));
         } catch (error) {
             console.error('Error fetching data for modal:', error);
         }
