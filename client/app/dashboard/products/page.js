@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { ShoppingBag, Plus, Trash2, Search, Package, AlertCircle, Edit } from 'lucide-react';
-import Pagination from '@/components/ui/Pagination';
+import Pagination from '../../../components/ui/Pagination';
 
 export default function ProductsPage() {
     const queryClient = useQueryClient();

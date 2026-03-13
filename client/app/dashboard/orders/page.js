@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { Plus, Search, ShoppingBag, Clock, XCircle, DollarSign, Calendar, ClipboardList, X } from 'lucide-react';
-import Pagination from '@/components/ui/Pagination';
+import Pagination from '../../../components/ui/Pagination';
 import Link from 'next/link';
 
 export default function OrdersPage() {

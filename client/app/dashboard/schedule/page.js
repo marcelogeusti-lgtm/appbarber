@@ -9,8 +9,8 @@ import DayDetailsModal from '../../../components/DayDetailsModal';
 import EditModal from '../../../components/EditModal';
 import AppointmentDetailsModal from '../../../components/AppointmentDetailsModal';
 import NewOrderModal from '../../../components/NewOrderModal';
-import Pagination from '@/components/ui/Pagination';
-import Skeleton from '@/components/ui/Skeleton';
+import Pagination from '../../../components/ui/Pagination';
+import Skeleton from '../../../components/ui/Skeleton';
 
 export default function SchedulePage() {
     const [appointments, setAppointments] = useState([]);

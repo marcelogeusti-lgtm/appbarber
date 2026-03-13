@@ -5,7 +5,7 @@ import { Search, User, Filter, MoreHorizontal, Eye, Mail, Phone, Calendar, Plus,
 import api from '../../../lib/api';
 import ClientDetailsModal from '../../../components/ClientDetailsModal';
 import NewClientModal from '../../../components/NewClientModal';
-import Pagination from '@/components/ui/Pagination';
+import Pagination from '../../../components/ui/Pagination';
 
 export default function ClientsPage() {
     const queryClient = useQueryClient();
