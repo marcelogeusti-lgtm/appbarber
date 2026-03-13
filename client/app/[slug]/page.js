@@ -177,10 +177,11 @@ export default function BarbershopPage() {
 
     async function loadProducts(id) {
         try {
-            const prodRes = await api.get(`/products?barbershopId=${id}`);
-            setProducts(prodRes.data);
+            const prodRes = await api.get(`/products?barbershopId=${id}&limit=1000`);
+            setProducts(Array.isArray(prodRes.data) ? prodRes.data : (prodRes.data.data || []));
         } catch (e) {
             console.error('Error loading products', e);
+            setProducts([]);
         }
     }
 
@@ -519,14 +520,14 @@ export default function BarbershopPage() {
             <div className="h-20"></div>
 
             {/* FEATURED CAROUSEL (SUGGESTIONS) */}
-            {(barbershop.services?.some(s => s.isFeatured) || products?.some(p => p.isFeatured)) && activeTab === 'servicos' && (
+            {((barbershop?.services && Array.isArray(barbershop.services) && barbershop.services.some(s => s.isFeatured)) || (products && Array.isArray(products) && products.some(p => p.isFeatured))) && activeTab === 'servicos' && (
                 <div className="mb-6 px-6">
                     <h3 className="text-white font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2">
                         <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                         Sugestões para você
                     </h3>
                     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
-                        {barbershop.services?.filter(s => s.isFeatured).map(service => (
+                        {Array.isArray(barbershop?.services) && barbershop.services.filter(s => s.isFeatured).map(service => (
                             <div key={`feat-svc-${service.id}`} onClick={() => handleServiceSelect(service)} className="min-w-[200px] snap-center bg-[#111] rounded-2xl p-4 border border-yellow-500/20 hover:border-yellow-500 cursor-pointer transition group">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase px-2 py-1 rounded-lg">Popular</div>
@@ -536,7 +537,7 @@ export default function BarbershopPage() {
                                 <p className="text-emerald-500 font-bold text-xs">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                             </div>
                         ))}
-                        {products?.filter(p => p.isFeatured).map(product => (
+                        {Array.isArray(products) && products.filter(p => p.isFeatured).map(product => (
                             <div key={`feat-prod-${product.id}`} className="min-w-[160px] snap-center bg-[#111] rounded-2xl p-4 border border-blue-500/20 hover:border-blue-500 cursor-pointer transition group">
                                 <div className="aspect-square bg-slate-900 rounded-xl mb-3 overflow-hidden">
                                     {product.imageUrl ? (

@@ -6,7 +6,9 @@ export default function ProductsTab({ products }) {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const formatCurrency = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-    if (!products || products.length === 0) {
+    const productsList = Array.isArray(products) ? products : (products?.data || []);
+
+    if (!productsList || productsList.length === 0) {
         return (
             <div className="text-center py-10 opacity-50">
                 <p className="text-sm font-bold uppercase tracking-widest">Nenhum produto disponível.</p>
@@ -17,7 +19,7 @@ export default function ProductsTab({ products }) {
     return (
         <>
             <div className="grid grid-cols-1 gap-3 pb-24">
-                {products.map(product => (
+                {productsList.map(product => (
                     <div
                         key={product.id}
                         onClick={() => setSelectedProduct(product)}
