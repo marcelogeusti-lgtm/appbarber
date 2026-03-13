@@ -208,6 +208,16 @@ export default function ClientsPage() {
                 </div>
             </div>
 
+            <Pagination
+                currentPage={page}
+                totalPages={clientRes.totalPages}
+                totalItems={clientRes.total}
+                limit={limit}
+                onPageChange={setPage}
+                onLimitChange={(l) => { setLimit(l); setPage(1); }}
+                label="clientes"
+            />
+
             {/* Details Modal */}
             <ClientDetailsModal
                 isOpen={!!selectedClient}

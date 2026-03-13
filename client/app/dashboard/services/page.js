@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { Plus, Trash2, Edit2, X, Scissors, Clock } from 'lucide-react';
+import Pagination from '../../../components/ui/Pagination';
 
 export default function ServicesPage() {
     const queryClient = useQueryClient();
@@ -12,6 +13,8 @@ export default function ServicesPage() {
     // User state for query dependency
     const [user, setUser] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(25);
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
@@ -24,14 +27,16 @@ export default function ServicesPage() {
     }, []);
 
     // Queries
-    const { data: services = [], isLoading: loadingServices } = useQuery({
-        queryKey: ['services', barbershopId],
+    const { data: servicesRes = { data: [], total: 0, totalPages: 0 }, isLoading: loadingServices } = useQuery({
+        queryKey: ['services', barbershopId, page, limit],
         queryFn: async () => {
-            const res = await api.get(`/services?barbershopId=${barbershopId}`);
+            const res = await api.get(`/services?barbershopId=${barbershopId}&page=${page}&limit=${limit}`);
             return res.data;
         },
         enabled: !!barbershopId,
     });
+
+    const services = Array.isArray(servicesRes.data) ? servicesRes.data : [];
 
     const { data: professionals = [] } = useQuery({
         queryKey: ['professionals', barbershopId],
@@ -344,6 +349,16 @@ export default function ServicesPage() {
                     </div>
                 ))}
             </div>
+
+            <Pagination
+                currentPage={page}
+                totalPages={servicesRes.totalPages}
+                totalItems={servicesRes.total}
+                limit={limit}
+                onPageChange={setPage}
+                onLimitChange={(l) => { setLimit(l); setPage(1); }}
+                label="serviços"
+            />
 
             {services.length === 0 && !isAdding && (
                 <div className="text-center py-32 bg-card rounded-[3rem] border-2 border-dashed border-border">

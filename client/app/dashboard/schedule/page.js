@@ -11,6 +11,7 @@ import AppointmentDetailsModal from '../../../components/AppointmentDetailsModal
 import NewOrderModal from '../../../components/NewOrderModal';
 import Pagination from '../../../components/ui/Pagination';
 import Skeleton from '../../../components/ui/Skeleton';
+import PrintButton from '../../../components/PrintButton';
 
 export default function SchedulePage() {
     const [appointments, setAppointments] = useState([]);
