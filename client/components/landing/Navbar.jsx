@@ -97,34 +97,49 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 p-6 shadow-xl animate-in slide-in-from-top-4">
-                    <div className="flex flex-col gap-5">
-                        <Link href="#features" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Funcionalidades</Link>
-                        <Link href="#start" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Como Começar</Link>
-                        <Link href="#pricing" onClick={() => setIsOpen(false)} className="text-base font-medium text-gray-600 hover:text-primary transition-colors">Planos</Link>
-                        <hr className="border-gray-50" />
-                        <Link href="/login" onClick={() => setIsOpen(false)} className="text-base font-semibold text-gray-900 text-center py-2">
-                            Entrar (Barbeiro)
-                        </Link>
-                        {user ? (
-                            <Link href="/home" onClick={() => setIsOpen(false)} className="text-base font-semibold text-gray-900 text-center py-2">
-                                Minha Conta (Cliente)
+                <div className="md:hidden fixed inset-x-0 top-[70px] bg-white border-b border-gray-100 p-6 shadow-2xl animate-in slide-in-from-top-2 duration-300">
+                    <div className="flex flex-col gap-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <Link href="#features" onClick={() => setIsOpen(false)} className="flex items-center justify-center p-4 rounded-xl bg-gray-50 text-[11px] font-bold uppercase tracking-widest text-gray-600 hover:text-primary transition-all">
+                                Funções
                             </Link>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={() => { setIsOpen(false); openLoginModal(); }}
-                                    className="text-base font-semibold text-gray-900 text-center py-2"
-                                >
-                                    Login Cliente
-                                </button>
-                                <Link href="/register" onClick={() => setIsOpen(false)}>
-                                    <button className="w-full bg-primary text-white font-bold py-3 rounded-lg shadow-sm">
-                                        Criar Conta Grátis
-                                    </button>
-                                </Link>
-                            </>
-                        )}
+                            <Link href="#pricing" onClick={() => setIsOpen(false)} className="flex items-center justify-center p-4 rounded-xl bg-gray-50 text-[11px] font-bold uppercase tracking-widest text-gray-600 hover:text-primary transition-all">
+                                Preços
+                            </Link>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 px-1">Acesso ao Sistema</p>
+                            
+                            <div className="flex flex-col gap-3">
+                                {user ? (
+                                    <Link href="/home" onClick={() => setIsOpen(false)}>
+                                        <button className="w-full py-4 bg-gray-900 text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg">
+                                            Minha Conta
+                                        </button>
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Link href="/login" onClick={() => setIsOpen(false)} className="flex items-center justify-center py-4 px-2 border-2 border-gray-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-gray-900">
+                                                Profissional
+                                            </Link>
+                                            <button
+                                                onClick={() => { setIsOpen(false); openLoginModal(); }}
+                                                className="flex items-center justify-center py-4 px-2 border-2 border-gray-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-primary"
+                                            >
+                                                Cliente
+                                            </button>
+                                        </div>
+                                        <Link href="/register" onClick={() => setIsOpen(false)}>
+                                            <button className="w-full py-4 bg-primary text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20">
+                                                Criar Conta Grátis
+                                            </button>
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
