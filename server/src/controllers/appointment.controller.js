@@ -452,6 +452,15 @@ exports.createAppointment = async (req, res) => {
                 if (fullApp) {
                     const eventBus = require('../services/events/eventBus');
                     eventBus.emit('APPOINTMENT_CREATED', fullApp);
+
+                    // Emit to Socket Room for the Barbershop
+                    try {
+                        const socket = require('../socket');
+                        const io = socket.getIO();
+                        if (io) {
+                            io.to(appointment.barbershopId).emit('new_appointment', fullApp);
+                        }
+                    } catch (sErr) { /* ignore */ }
                 }
             } catch (err) { console.error('EventBus Error:', err.message); }
         });

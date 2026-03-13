@@ -1,11 +1,14 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, X } from 'lucide-react';
 import api from '../lib/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useSocket } from '../contexts/SocketContext';
+import { useClientAuth } from '../contexts/ClientAuthContext';
 
 export default function NotificationCenter() {
+    const { user } = useClientAuth();
+    const socket = useSocket();
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -16,8 +19,8 @@ export default function NotificationCenter() {
         try {
             setLoading(true);
             const res = await api.get('/notifications?limit=20');
-            setNotifications(res.data.notifications);
-            setUnreadCount(res.data.unreadCount);
+            setNotifications(res.data.notifications || []);
+            setUnreadCount(res.data.unreadCount || 0);
         } catch (err) {
             console.error(err);
         } finally {
@@ -27,10 +30,23 @@ export default function NotificationCenter() {
 
     useEffect(() => {
         fetchNotifications();
-        // Optional: Poll every minute or use socket
-        const interval = setInterval(fetchNotifications, 60000);
-        return () => clearInterval(interval);
-    }, []);
+        
+        if (socket && user?.id) {
+            console.log('Joining notification room:', user.id);
+            socket.emit('join_room', user.id); // Assuming backend expects join_room for user-specific
+            
+            socket.on('new_notification', (notification) => {
+                setNotifications(prev => [notification, ...prev]);
+                setUnreadCount(prev => prev + 1);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off('new_notification');
+            }
+        };
+    }, [socket, user?.id]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

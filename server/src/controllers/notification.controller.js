@@ -170,6 +170,7 @@ exports.markAllAsRead = async (req, res) => {
 exports.createNotification = async ({ userId, clientId, title, message, type, appointmentId, orderId }) => {
     try {
         const createTasks = [];
+        const socket = require('../socket');
 
         // If it's for a professional/user
         if (userId) {
@@ -204,11 +205,19 @@ exports.createNotification = async ({ userId, clientId, title, message, type, ap
         }
 
         if (createTasks.length > 0) {
-            await Promise.all(createTasks);
+            const results = await Promise.all(createTasks);
+            
+            // Emit via Socket for real-time update
+            try {
+                const io = socket.getIO();
+                const targetId = userId || clientId;
+                if (targetId && io) {
+                    io.to(targetId).emit('new_notification', results[0]);
+                }
+            } catch (sErr) {
+                // Socket might not be active in some environments, don't crash
+            }
         }
-
-        // TODO: Emit Socket event if needed
-        // if (global.io) { global.io.to(userId || clientId).emit('new_notification', ...); }
     } catch (error) {
         console.error('Create notification error:', error);
     }

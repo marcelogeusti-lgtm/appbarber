@@ -8,7 +8,7 @@ import { useClientAuth } from '../../contexts/ClientAuthContext';
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const { user, openLoginModal } = useClientAuth();
+    const { user, loading, openLoginModal } = useClientAuth();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -57,35 +57,32 @@ export default function Navbar() {
 
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-6">
+                    <Link href="/register">
+                        <button className="h-10 px-6 bg-transparent border-2 border-primary hover:bg-primary/5 text-primary text-[11px] uppercase tracking-widest font-black rounded-lg transition-all">
+                            Teste Grátis
+                        </button>
+                    </Link>
 
-                    {user ? (
+                    <Link
+                        href="/login"
+                        className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors"
+                    >
+                        Acessar
+                    </Link>
+
+                    <button
+                        onClick={openLoginModal}
+                        className="font-bold text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                    >
+                        Sou Cliente
+                    </button>
+
+                    {user && (
                         <Link href="/home">
-                            <button className="h-10 px-6 bg-gray-900 hover:bg-black text-white text-[11px] uppercase tracking-widest font-black rounded-lg transition-all shadow-sm">
+                            <button className="h-10 px-6 bg-gray-900 hover:bg-black text-white text-[11px] uppercase tracking-widest font-black rounded-lg transition-all shadow-sm ml-2">
                                 Minha Conta
                             </button>
                         </Link>
-                    ) : (
-                        <>
-                            <Link href="/register">
-                                <button className="h-10 px-6 bg-transparent border-2 border-primary hover:bg-primary/5 text-primary text-[11px] uppercase tracking-widest font-black rounded-lg transition-all">
-                                    Teste Grátis
-                                </button>
-                            </Link>
-
-                            <Link
-                                href="/login"
-                                className="font-bold text-[11px] uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors"
-                            >
-                                Acessar
-                            </Link>
-
-                            <button
-                                onClick={openLoginModal}
-                                className="font-bold text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
-                            >
-                                Sou Cliente
-                            </button>
-                        </>
                     )}
                 </div>
 
@@ -112,31 +109,29 @@ export default function Navbar() {
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 px-1">Acesso ao Sistema</p>
                             
                             <div className="flex flex-col gap-3">
-                                {user ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Link href="/login" onClick={() => setIsOpen(false)} className="flex items-center justify-center py-4 px-2 border-2 border-gray-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-gray-900">
+                                        Profissional
+                                    </Link>
+                                    <button
+                                        onClick={() => { setIsOpen(false); openLoginModal(); }}
+                                        className="flex items-center justify-center py-4 px-2 border-2 border-gray-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-primary"
+                                    >
+                                        Cliente
+                                    </button>
+                                </div>
+                                <Link href="/register" onClick={() => setIsOpen(false)}>
+                                    <button className="w-full py-4 bg-primary text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20">
+                                        Criar Conta Grátis
+                                    </button>
+                                </Link>
+
+                                {user && (
                                     <Link href="/home" onClick={() => setIsOpen(false)}>
-                                        <button className="w-full py-4 bg-gray-900 text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg">
+                                        <button className="w-full py-4 bg-gray-900 text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg mt-2">
                                             Minha Conta
                                         </button>
                                     </Link>
-                                ) : (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <Link href="/login" onClick={() => setIsOpen(false)} className="flex items-center justify-center py-4 px-2 border-2 border-gray-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-gray-900">
-                                                Profissional
-                                            </Link>
-                                            <button
-                                                onClick={() => { setIsOpen(false); openLoginModal(); }}
-                                                className="flex items-center justify-center py-4 px-2 border-2 border-gray-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-primary"
-                                            >
-                                                Cliente
-                                            </button>
-                                        </div>
-                                        <Link href="/register" onClick={() => setIsOpen(false)}>
-                                            <button className="w-full py-4 bg-primary text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20">
-                                                Criar Conta Grátis
-                                            </button>
-                                        </Link>
-                                    </>
                                 )}
                             </div>
                         </div>

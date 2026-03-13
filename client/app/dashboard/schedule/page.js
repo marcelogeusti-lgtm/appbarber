@@ -66,7 +66,29 @@ export default function SchedulePage() {
             // For week/month, we stick to the old bulk loading for now or a different strategy
             fetchAllAppointmentsInRange();
         }
-    }, [currentDate, viewMode, barbershopId, page, limit]);
+
+        // Socket listener for real-time updates
+        if (socket && barbershopId) {
+            console.log('Joining barbershop room:', barbershopId);
+            socket.emit('join_barbershop', barbershopId);
+
+            socket.on('new_appointment', (data) => {
+                console.log('New appointment received via socket, refreshing...');
+                // Refresh data
+                if (viewMode === 'day') {
+                    fetchAppointments();
+                } else {
+                    fetchAllAppointmentsInRange();
+                }
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off('new_appointment');
+            }
+        };
+    }, [currentDate, viewMode, barbershopId, page, limit, socket]);
 
     const fetchResources = async () => {
         try {

@@ -20,26 +20,16 @@ exports.getDashboardStats = async (req, res) => {
             yesterdayStats,
             totalRevenueResult,
             uniqueClientsCount,
-            openCommandsCount
+            openCommandsCount,
+            appointmentsTodayCount
         ] = await Promise.all([
-            // Today's Orders (Aggregate sum and count)
-            prisma.order.aggregate({
+            // Count Today's Appointments (instead of just closed orders)
+            prisma.appointment.count({
                 where: {
                     barbershopId,
-                    status: { in: ['CLOSED', 'PAID'] },
-                    updatedAt: { gte: startOfToday, lte: endOfToday }
-                },
-                _sum: { total: true },
-                _count: { id: true }
-            }),
-            // Yesterday's Orders (Aggregate sum only)
-            prisma.order.aggregate({
-                where: {
-                    barbershopId,
-                    status: { in: ['CLOSED', 'PAID'] },
-                    updatedAt: { gte: startOfYesterday, lte: endOfYesterday }
-                },
-                _sum: { total: true }
+                    date: { gte: startOfToday, lte: endOfToday },
+                    status: { not: 'CANCELLED' }
+                }
             }),
             // Total Lifetime Revenue
             prisma.order.aggregate({
@@ -65,7 +55,7 @@ exports.getDashboardStats = async (req, res) => {
         const revenueYesterday = yesterdayStats._sum.total || 0;
         const revenueTotal = totalRevenueResult._sum.total || 0;
         const clientsTotal = uniqueClientsCount || 0;
-        const appointmentsToday = todayStats._count.id || 0;
+        const appointmentsToday = appointmentsTodayCount || 0;
 
         // Trend calculation
         let revenueTrend = "0% vs ontem";
