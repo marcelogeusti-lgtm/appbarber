@@ -12,8 +12,10 @@ import NewOrderModal from '../../../components/NewOrderModal';
 import Pagination from '../../../components/ui/Pagination';
 import Skeleton from '../../../components/ui/Skeleton';
 import PrintButton from '../../../components/PrintButton';
+import { useSocket } from '../../../contexts/SocketContext';
 
 export default function SchedulePage() {
+    const socket = useSocket();
     const [appointments, setAppointments] = useState([]);
     const [waitlist, setWaitlist] = useState([]);
     const [professionals, setProfessionals] = useState([]);
