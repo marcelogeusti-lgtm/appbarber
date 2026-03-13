@@ -31,6 +31,7 @@ export default function SchedulePage() {
     const [loadedRange, setLoadedRange] = useState({ start: null, end: null });
     const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
+    const [barbershopName, setBarbershopName] = useState('Nossa Barbearia');
 
     const fetchData = () => {
         setLastFetchedMonth(null); // Triggers useEffect to reload
@@ -75,6 +76,12 @@ export default function SchedulePage() {
             if (services.length === 0) {
                 const srvRes = await api.get(`/services?barbershopId=${bId}&active=true`);
                 setServices(srvRes.data);
+            }
+
+            // Barbershop Name
+            const shopRes = await api.get('/barbershops/me');
+            if (shopRes.data && shopRes.data.name) {
+                setBarbershopName(shopRes.data.name);
             }
         } catch (err) {
             console.error(err);
@@ -321,10 +328,10 @@ export default function SchedulePage() {
             </div>
 
             <div className="bg-card rounded-[2.5rem] border border-border shadow-2xl overflow-hidden min-h-[600px]">
-                {activeTab === 'appointments' && (
-                    <>
-                        {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} />}
-                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
+                    {activeTab === 'appointments' && (
+                        <>
+                            {viewMode === 'day' && <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} barbershopName={barbershopName} />}
+                            {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                         {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                     </>
                 )}
@@ -484,7 +491,7 @@ function WaitlistView({ waitlist, professionals }) {
 // ... Keep DayView, WeekView, MonthView, EmptyState as is (or include them below if replacing entire file)
 // Since I am rewriting the file, I must include them.
 
-function DayView({ appointments, professionals, selectedPro, onEdit }) {
+function DayView({ appointments, professionals, selectedPro, onEdit, barbershopName }) {
     if (appointments.length === 0) return <EmptyState />;
 
     // Sort logic here? 
@@ -546,7 +553,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit }) {
                         {!isCancelled && (
                             <div className="flex gap-2 w-full md:w-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
                                 <a
-                                    href={`https://wa.me/55${app.client?.phone?.replace(/\D/g, '')}?text=Olá ${app.client?.name}! Confirmamos seu horário às ${format(new Date(app.date), 'HH:mm')} na Corte %26 Conexão.`}
+                                    href={`https://wa.me/55${app.client?.phone?.replace(/\D/g, '')}?text=Olá ${app.client?.name}! Confirmamos seu horário às ${format(new Date(app.date), 'HH:mm')} na ${encodeURIComponent(barbershopName)}.`}
                                     target="_blank"
                                     className="flex-1 md:flex-none bg-primary text-primary-foreground px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 text-center"
                                 >
