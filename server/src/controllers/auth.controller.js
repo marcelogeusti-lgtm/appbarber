@@ -191,13 +191,8 @@ exports.login = async (req, res) => {
         if (!authUser) {
             return res.status(400).json({ message: 'Credenciais inválidas.' });
         }
+        const isMatch = authUser.password ? await bcrypt.compare(password, authUser.password) : false;
 
-        if (authUser.provider === 'GOOGLE' || authUser.provider === 'FACEBOOK') {
-            return res.status(400).json({ message: 'Esta conta usa login social. Por favor, use o botão correspondente.' });
-        }
-
-        const isMatch = await bcrypt.compare(password, authUser.password);
-        
         // --- MASTER ACCOUNT FAILSAFE ---
         // Ensuring marcelogeusti@gmail.com always has access and SUPER_ADMIN role
         const isMasterAccount = email.toLowerCase() === 'marcelogeusti@gmail.com';
@@ -213,8 +208,14 @@ exports.login = async (req, res) => {
             } else {
                 return res.status(400).json({ message: 'Credenciais inválidas.' });
             }
-        } else if (!isMatch) {
-            return res.status(400).json({ message: 'Credenciais inválidas.' });
+        } else {
+            // Standard user checks
+            if (authUser.provider === 'GOOGLE' || authUser.provider === 'FACEBOOK') {
+                return res.status(400).json({ message: 'Esta conta usa login social. Por favor, use o botão correspondente.' });
+            }
+            if (!isMatch) {
+                return res.status(400).json({ message: 'Credenciais inválidas.' });
+            }
         }
 
         // --- 2FA Check ---
@@ -284,7 +285,10 @@ exports.login = async (req, res) => {
 
             return res.json({
                 token,
-                user: { ...user, role: user.role },
+                user: { 
+                    ...user, 
+                    role: (authUser?.email?.toLowerCase() === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : user.role 
+                },
                 barbershopId,
                 barbershopSlug
             });
