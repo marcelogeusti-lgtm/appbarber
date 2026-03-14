@@ -309,7 +309,7 @@ export default function SchedulePage() {
             <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
                 <div className="relative z-10 w-full xl:w-auto">
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground mb-4">
-                        AGENDA OPERACIONAL {appointments.length > 0 ? `(${appointments.length})` : '(VAZIA)'}
+                        Agenda Operacional
                     </h1>
 
                     {/* Professional Selector (Dropdown) */}

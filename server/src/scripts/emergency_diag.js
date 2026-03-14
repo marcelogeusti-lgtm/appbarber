@@ -1,16 +1,26 @@
 const prisma = require('../lib/prisma');
+const bcrypt = require('bcryptjs');
 
 async function run() {
     try {
-        const users = await prisma.user.findMany({
-            where: { name: 'Marcelo Geusti' },
-            select: { id: true, email: true, role: true, authUserId: true }
+        const email = 'marcelogeusti@gmail.com';
+        const restorePassword = 'G@usti8826';
+        const hashedPassword = await bcrypt.hash(restorePassword, 10);
+
+        await prisma.authUser.update({
+            where: { email },
+            data: { 
+                password: hashedPassword,
+                provider: 'EMAIL'
+            }
         });
-        console.log('--- ALL MARCELO GEUSTI USERS ---');
-        console.log(JSON.stringify(users, null, 2));
+
+        console.log('--- CREDENTIALS RESTORED SUCCESSFULLY ---');
+        console.log(`User: ${email}`);
+        console.log('Original password has been restored.');
 
     } catch (err) {
-        console.error(err);
+        console.error('Restore failed:', err.message);
     } finally {
         await prisma.$disconnect();
     }
