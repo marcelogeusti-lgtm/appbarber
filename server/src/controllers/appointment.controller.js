@@ -547,7 +547,21 @@ exports.getProAppointments = async (req, res) => {
 // Admin: Get ALL Appointments for Barbershop
 exports.getAllAppointments = async (req, res) => {
     try {
-        const { barbershopId, start, end, page = 1, limit = 25 } = req.query;
+        let { barbershopId, start, end, page = 1, limit = 25 } = req.query;
+        
+        // Fallback: If no barbershopId in query, use from token or DB
+        if (!barbershopId && req.user) {
+            barbershopId = req.user.barbershopId;
+            
+            if (!barbershopId) {
+                const user = await prisma.user.findUnique({
+                    where: { id: req.user.id },
+                    include: { ownedBarbershops: true }
+                });
+                barbershopId = user?.ownedBarbershops?.[0]?.id || user?.workedBarbershopId;
+            }
+        }
+
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
         const p = parseInt(page);

@@ -1,5 +1,7 @@
 const eventBus = require('./eventBus');
 const communicationService = require('../communication/CommunicationService');
+const notificationController = require('../../controllers/notification.controller');
+const { format } = require('date-fns');
 
 /**
  * AppointmentEventsListener
@@ -13,8 +15,19 @@ function init() {
         console.log(`[Event] APPOINTMENT_CREATED: ${appointment.id}`);
         try {
             await communicationService.sendConfirmationRequest(appointment);
+            
+            // Notify Professional (Internal/Socket)
+            if (appointment.professionalId) {
+                await notificationController.createNotification({
+                    userId: appointment.professionalId,
+                    title: 'Novo Agendamento',
+                    message: `Você tem um novo agendamento de ${appointment.client?.name || 'Cliente'} para as ${format(new Date(appointment.date), 'HH:mm')}.`,
+                    type: 'appointment',
+                    appointmentId: appointment.id
+                });
+            }
         } catch (error) {
-            console.error('[Event Error] Failed to send confirmation:', error.message);
+            console.error('[Event Error] Failed to process APPOINTMENT_CREATED:', error.message);
         }
     });
 
