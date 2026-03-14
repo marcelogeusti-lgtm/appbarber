@@ -549,8 +549,8 @@ exports.getAllAppointments = async (req, res) => {
     try {
         let { barbershopId, start, end, page = 1, limit = 25 } = req.query;
         
-        // Fallback: If no barbershopId in query, use from token or DB
-        if (!barbershopId && req.user) {
+        // Fallback: If no barbershopId in query (or is string 'null'), use from token or DB
+        if ((!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') && req.user) {
             barbershopId = req.user.barbershopId;
             
             if (!barbershopId) {

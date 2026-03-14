@@ -26,6 +26,17 @@ function init() {
                     appointmentId: appointment.id
                 });
             }
+
+            // ALSO Notify Owner (if different from professional)
+            if (appointment.barbershop?.ownerId && appointment.barbershop.ownerId !== appointment.professionalId) {
+                await notificationController.createNotification({
+                    userId: appointment.barbershop.ownerId,
+                    title: 'Novo Agendamento na Unidade',
+                    message: `${appointment.client?.name || 'Um cliente'} agendou com ${appointment.professional?.name || 'um profissional'} para as ${format(new Date(appointment.date), 'HH:mm')}.`,
+                    type: 'appointment',
+                    appointmentId: appointment.id
+                });
+            }
         } catch (error) {
             console.error('[Event Error] Failed to process APPOINTMENT_CREATED:', error.message);
         }
