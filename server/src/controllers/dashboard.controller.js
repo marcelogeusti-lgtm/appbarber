@@ -16,20 +16,38 @@ exports.getDashboardStats = async (req, res) => {
 
         // 1. Revenue and Attendance using Aggregations
         const [
-            todayStats,
-            yesterdayStats,
+            appointmentsTodayCount,
+            todayRevenueResult,
+            yesterdayRevenueResult,
             totalRevenueResult,
             uniqueClientsCount,
-            openCommandsCount,
-            appointmentsTodayCount
+            openCommandsCount
         ] = await Promise.all([
-            // Count Today's Appointments (instead of just closed orders)
+            // Count Today's Appointments
             prisma.appointment.count({
                 where: {
                     barbershopId,
                     date: { gte: startOfToday, lte: endOfToday },
                     status: { not: 'CANCELLED' }
                 }
+            }),
+            // Today's Revenue (Aggregated from Orders)
+            prisma.order.aggregate({
+                where: {
+                    barbershopId,
+                    status: { in: ['CLOSED', 'PAID'] },
+                    updatedAt: { gte: startOfToday, lte: endOfToday }
+                },
+                _sum: { total: true }
+            }),
+            // Yesterday's Revenue
+            prisma.order.aggregate({
+                where: {
+                    barbershopId,
+                    status: { in: ['CLOSED', 'PAID'] },
+                    updatedAt: { gte: startOfYesterday, lte: endOfYesterday }
+                },
+                _sum: { total: true }
             }),
             // Total Lifetime Revenue
             prisma.order.aggregate({
@@ -39,23 +57,22 @@ exports.getDashboardStats = async (req, res) => {
                 },
                 _sum: { total: true }
             }),
-            // Simpler unique clients via Prisma groupBy (much faster than giant queryRaw UNION)
+            // Unique clients
             prisma.client.count({
                 where: {
                     appointments: { some: { barbershopId } },
                     active: true
                 }
             }),
-
             // Open Commands Count
             prisma.order.count({ where: { barbershopId, status: 'OPEN' } })
         ]);
 
-        const revenueToday = todayStats._sum.total || 0;
-        const revenueYesterday = yesterdayStats._sum.total || 0;
-        const revenueTotal = totalRevenueResult._sum.total || 0;
-        const clientsTotal = uniqueClientsCount || 0;
         const appointmentsToday = appointmentsTodayCount || 0;
+        const revenueToday = Number(todayRevenueResult._sum.total || 0);
+        const revenueYesterday = Number(yesterdayRevenueResult._sum.total || 0);
+        const revenueTotal = Number(totalRevenueResult._sum.total || 0);
+        const clientsTotal = uniqueClientsCount || 0;
 
         // Trend calculation
         let revenueTrend = "0% vs ontem";

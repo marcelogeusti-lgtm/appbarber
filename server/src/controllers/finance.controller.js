@@ -110,10 +110,13 @@ exports.getFinancialDashboard = async (req, res) => {
         const futureRevenue = futureAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
         const toReceive = totalOpenCommands + futureRevenue;
 
-        // Estimativas
-        const toReceiveCash = toReceive * 0.4;
-        const toReceiveCard = toReceive * 0.35;
-        const toReceivePix = toReceive * 0.25;
+        // --- BREAKDOWNS ---
+        
+        // Note: 'toReceiveCash/Card/Pix' were previously hardcoded estimates (placebos).
+        // Removing them to ensure only real data is shown.
+        const toReceiveCash = 0;
+        const toReceiveCard = 0;
+        const toReceivePix = 0;
 
         // --- BREAKDOWNS ---
 

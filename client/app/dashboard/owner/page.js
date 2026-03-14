@@ -124,8 +124,8 @@ export default function OwnerDashboardPage() {
 
             {/* --- MAIN KPIs --- */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <ManagementCard label="Ticket Médio" value={formatBRL(kpis.ticketMedio)} desc="Gasto médio por cliente" icon={Target} trend="+12%" />
-                <ManagementCard label="Taxa de Retenção" value={`${kpis.retentionRate.toFixed(1)}%`} desc="Clientes que voltaram" icon={UserPlus} trend="+5%" />
+                <ManagementCard label="Ticket Médio" value={formatBRL(kpis.ticketMedio)} desc="Gasto médio por cliente" icon={Target} />
+                <ManagementCard label="Taxa de Retenção" value={`${kpis.retentionRate.toFixed(1)}%`} desc="Clientes que voltaram" icon={UserPlus} />
                 <ManagementCard label="Previsão (30d)" value={formatBRL(kpis.forecast)} desc="Receita já agendada" icon={Calendar} color="primary" />
                 <ManagementCard label="Lucro" value={formatBRL(kpis.estimatedProfit)} desc="Resultado líquido" icon={Zap} color="secondary" />
             </div>

@@ -82,7 +82,6 @@ export default function SuperAdminPage() {
                     desc={`Total de ${stats.activeUnits} parceiros`} // Simplified description
                     icon={<Globe className="w-6 h-6" />}
                     color="primary"
-                    trend="+5%" // Mock trend or calculate
                 />
                 <KPICard
                     label="Receita SaaS (MRR)"
