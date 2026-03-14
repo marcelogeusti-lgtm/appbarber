@@ -1,6 +1,7 @@
 const prisma = require('../lib/prisma');
 const saasPlans = require('../config/saasPlans');
 const { generateUniqueSlug, slugify } = require('../utils/slugGenerator');
+const { geocodeAddress } = require('../utils/geocoder');
 
 // Public: Search Barbershops
 const searchBarbershops = async (req, res) => {
@@ -10,10 +11,12 @@ const searchBarbershops = async (req, res) => {
         // Base Query
         let where = {};
 
-        // 1. Text Search (Name or Address)
+        // 1. Text Search (Name, Commercial Name, Slug, or Address)
         if (term) {
             where.OR = [
                 { name: { contains: term, mode: 'insensitive' } },
+                { commercialName: { contains: term, mode: 'insensitive' } },
+                { slug: { contains: term, mode: 'insensitive' } },
                 { address: { contains: term, mode: 'insensitive' } }
             ];
         }
@@ -21,8 +24,11 @@ const searchBarbershops = async (req, res) => {
         // 2. City Filter
         // If type is CITY or if explicit city param is provided
         if ((type === 'CITY' && term) || city) {
-            // If searching by city logic
-            where.address = { contains: term || city, mode: 'insensitive' };
+            const cityTerm = term || city;
+            where.OR = [
+                { city: { contains: cityTerm, mode: 'insensitive' } },
+                { address: { contains: cityTerm, mode: 'insensitive' } }
+            ];
         }
 
         // 3. Nearby Logic (Simplified for SQLite/Postgres without spatial extension)
@@ -31,12 +37,8 @@ const searchBarbershops = async (req, res) => {
         // We will fetch limited results and sort in memory if needed, or rely on client sorting.
         // For 'NEARBY' without lat/lng, we can't do much.
 
-        let orderBy = undefined;
-        // If simple ordering needed
-        // orderBy = { name: 'asc' }; 
-
-        // Only consider active barbershops
-        where.subscriptionStatus = 'ACTIVE';
+        // Allow both ACTIVE and TRIAL barbershops in public search
+        where.subscriptionStatus = { in: ['ACTIVE', 'TRIAL'] };
 
         const barbershops = await prisma.barbershop.findMany({
             where,
@@ -114,9 +116,9 @@ const getRecommendedBarbershops = async (req, res) => {
         const userLat = lat ? parseFloat(lat) : null;
         const userLng = lng ? parseFloat(lng) : null;
 
-        // 1. Fetch all active shops with basic data and creation date
+        // 1. Fetch all active/trial shops with basic data and creation date
         const barbershops = await prisma.barbershop.findMany({
-            where: { subscriptionStatus: 'ACTIVE' },
+            where: { subscriptionStatus: { in: ['ACTIVE', 'TRIAL'] } },
             select: {
                 id: true,
                 name: true,
@@ -360,40 +362,55 @@ exports.getBarbershopBySlug = async (req, res) => {
 // Admin: Update Barbershop
 exports.updateBarbershop = async (req, res) => {
     try {
-        const { id } = req.params; // or derived from user token
-        const {
-            name, address, phone, slug, webhookUrl, noShowEnabled, noShowPercent, noShowText,
-            logoUrl, bannerUrls, whatsappPhone, enabledPaymentMethods,
-            whatsappAutoReply, whatsappKeywords, whatsappBusinessHoursOnly, whatsappWelcomeMessage
-        } = req.body;
+        const { id } = req.params;
 
-        // Check ownership
-        // Ideally use req.user.barbershopId or check ownerId
+        // 1. Fetch current barbershop state
         const barbershop = await prisma.barbershop.findUnique({ where: { id } });
         if (!barbershop) return res.status(404).json({ message: 'Not found' });
 
+        // 2. Check ownership
         if (barbershop.ownerId !== req.user.id && req.user.role !== 'SUPER_ADMIN') {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        // Protect against overwriting slug with empty string
+        const {
+            name, commercialName, legalName, address, phone, slug, description, latitude, longitude,
+            webhookUrl, noShowEnabled, noShowPercent, noShowText,
+            logoUrl, bannerUrls, whatsappPhone, enabledPaymentMethods,
+            whatsappAutoReply, whatsappKeywords, whatsappBusinessHoursOnly,
+            whatsappWelcomeMessage,
+            street, number, complement, neighborhood, city, state, zipCode, country,
+            instagramUrl, facebookUrl, youtubeUrl
+        } = req.body;
+
+        // 3. Prepare data subset for update
         const dataToUpdate = {
-            name,
-            address,
-            phone,
-            webhookUrl,
-            noShowEnabled,
+            name, commercialName, legalName, address, description, phone,
+            webhookUrl, noShowEnabled, noShowText, logoUrl, bannerUrls,
+            whatsappPhone, enabledPaymentMethods, whatsappAutoReply,
+            whatsappKeywords, whatsappBusinessHoursOnly, whatsappWelcomeMessage,
+            street, number, complement, neighborhood, city, state, zipCode, country,
+            instagramUrl, facebookUrl, youtubeUrl,
+            latitude: latitude ? parseFloat(latitude) : undefined,
+            longitude: longitude ? parseFloat(longitude) : undefined,
             noShowPercent: noShowPercent ? parseFloat(noShowPercent) : undefined,
-            noShowText,
-            logoUrl,
-            bannerUrls,
-            whatsappPhone,
-            enabledPaymentMethods,
-            whatsappAutoReply,
-            whatsappKeywords,
-            whatsappBusinessHoursOnly,
-            whatsappWelcomeMessage
         };
+
+        // 4. Geocoding Logic: If address, city or state changes, try to re-geocode
+        const hasAddressParts = street || city || state;
+        const addressChanged = (street && street !== barbershop.street) ||
+            (city && city !== barbershop.city) ||
+            (state && state !== barbershop.state) ||
+            (address && address !== barbershop.address);
+
+        if (addressChanged || (hasAddressParts && (!barbershop.latitude || !barbershop.longitude))) {
+            const fullAddress = `${street || ''} ${number || ''} ${neighborhood || ''} ${city || ''} ${state || ''} ${country || 'Brasil'}`.trim();
+            const coords = await geocodeAddress(fullAddress || address);
+            if (coords) {
+                dataToUpdate.latitude = coords.lat;
+                dataToUpdate.longitude = coords.lng;
+            }
+        }
 
         if (slug && typeof slug === 'string' && slug.trim().length > 0) {
             // Ensure uniqueness for the new slug, ignoring current ID

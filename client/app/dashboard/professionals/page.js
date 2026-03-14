@@ -79,7 +79,7 @@ export default function ProfessionalsPage() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {professionals.map(pro => (
+                {Array.isArray(professionals) && professionals.map(pro => (
                     <div key={pro.id} className="bg-card p-10 rounded-[2.5rem] border border-border hover:border-primary/50 transition-all group relative flex flex-col items-center text-center shadow-sm hover:shadow-xl hover:shadow-primary/5">
                         <div className="absolute top-6 right-6 flex gap-2">
                             <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${pro.active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>

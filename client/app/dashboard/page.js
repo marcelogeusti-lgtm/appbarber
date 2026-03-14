@@ -78,7 +78,9 @@ export default function DashboardPage() {
         alert('Link copiado!');
     };
 
-    const shopName = user.barbershop?.name || user.ownedBarbershops?.[0]?.name || user.workedBarbershop?.name;
+    const shopName = user.barbershop?.commercialName || user.barbershop?.name || 
+                     user.ownedBarbershops?.[0]?.commercialName || user.ownedBarbershops?.[0]?.name || 
+                     user.workedBarbershop?.commercialName || user.workedBarbershop?.name;
     const greetingName = shopName || user.name;
 
     return (

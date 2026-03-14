@@ -77,13 +77,7 @@ export default function Navbar() {
                         Sou Cliente
                     </button>
 
-                    {user && (
-                        <Link href="/home">
-                            <button className="h-10 px-6 bg-gray-900 hover:bg-black text-white text-[11px] uppercase tracking-widest font-black rounded-lg transition-all shadow-sm ml-2">
-                                Minha Conta
-                            </button>
-                        </Link>
-                    )}
+
                 </div>
 
                 {/* Mobile Menu Toggle */}
@@ -126,13 +120,7 @@ export default function Navbar() {
                                     </button>
                                 </Link>
 
-                                {user && (
-                                    <Link href="/home" onClick={() => setIsOpen(false)}>
-                                        <button className="w-full py-4 bg-gray-900 text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg mt-2">
-                                            Minha Conta
-                                        </button>
-                                    </Link>
-                                )}
+
                             </div>
                         </div>
                     </div>

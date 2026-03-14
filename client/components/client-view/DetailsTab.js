@@ -1,5 +1,5 @@
 'use client';
-import { MapPin, Phone, Clock, Wifi, Car, Accessibility, Baby } from 'lucide-react';
+import { MapPin, Phone, Clock, Wifi, Car, Accessibility, Baby, Instagram, Facebook, Youtube } from 'lucide-react';
 
 export default function DetailsTab({ barbershop }) {
     return (
@@ -78,10 +78,50 @@ export default function DetailsTab({ barbershop }) {
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Contato</h3>
-                <div className="flex items-center gap-3 bg-[#111] p-4 rounded-2xl border border-white/5">
-                    <Phone className="w-5 h-5 text-emerald-500" />
-                    <span className="font-bold text-white text-sm">{barbershop.phone || '(00) 00000-0000'}</span>
+                <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Contato & Redes Sociais</h3>
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3 bg-[#111] p-4 rounded-2xl border border-white/5">
+                        <Phone className="w-5 h-5 text-emerald-500" />
+                        <span className="font-bold text-white text-sm">{barbershop.phone || '(00) 00000-0000'}</span>
+                    </div>
+                    
+                    {(barbershop.instagramUrl || barbershop.facebookUrl || barbershop.youtubeUrl) && (
+                        <div className="flex gap-3">
+                            {barbershop.instagramUrl && (
+                                <a 
+                                    href={barbershop.instagramUrl.startsWith('http') ? barbershop.instagramUrl : `https://instagram.com/${barbershop.instagramUrl.replace('@', '')}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-pink-500/30 hover:text-pink-500 transition group"
+                                >
+                                    <Instagram className="w-5 h-5 group-hover:scale-110 transition" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Instagram</span>
+                                </a>
+                            )}
+                            {barbershop.facebookUrl && (
+                                <a 
+                                    href={barbershop.facebookUrl.startsWith('http') ? barbershop.facebookUrl : `https://facebook.com/${barbershop.facebookUrl}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-blue-500/30 hover:text-blue-500 transition group"
+                                >
+                                    <Facebook className="w-5 h-5 group-hover:scale-110 transition" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Facebook</span>
+                                </a>
+                            )}
+                            {barbershop.youtubeUrl && (
+                                <a 
+                                    href={barbershop.youtubeUrl.startsWith('http') ? barbershop.youtubeUrl : `https://youtube.com/${barbershop.youtubeUrl}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-red-500/30 hover:text-red-500 transition group"
+                                >
+                                    <Youtube className="w-5 h-5 group-hover:scale-110 transition" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">YouTube</span>
+                                </a>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

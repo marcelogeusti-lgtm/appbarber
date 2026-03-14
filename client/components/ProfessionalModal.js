@@ -101,12 +101,12 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                     role: professional.role || 'BARBER',
                     active: professional.active ?? true,
                     commissionPercent: professional.professionalProfile?.commissionPercent?.toString() || '',
-                    services: professional.professionalProfile?.services?.map(s => s.id) || [],
+                    services: Array.isArray(professional.professionalProfile?.services) ? professional.professionalProfile.services.map(s => s.id) : [],
                 });
 
                 // Set schedules
                 const days = [0, 1, 2, 3, 4, 5, 6];
-                const existing = professional.professionalProfile?.schedules || [];
+                const existing = Array.isArray(professional.professionalProfile?.schedules) ? professional.professionalProfile.schedules : [];
                 const initial = days.map(d => {
                     const match = existing.find(s => s.dayOfWeek === d);
                     return match ? { ...match } : { dayOfWeek: d, startTime: '09:00', endTime: '18:00', breakStart: '12:00', breakEnd: '13:00', isOff: d === 0 };
@@ -141,7 +141,9 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
             const user = JSON.parse(userStr);
             const barbershopId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
             const res = await api.get(`/services?barbershopId=${barbershopId}`);
-            setAvailableServices(res.data);
+            // Handle both paginated { data: [] } and direct [] responses
+            const servicesData = res.data?.data || (Array.isArray(res.data) ? res.data : []);
+            setAvailableServices(servicesData);
         } catch (err) {
             console.error('Error fetching services:', err);
         }
@@ -346,7 +348,14 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-950/30 max-h-[60vh]">
-                    <form id="proForm" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                    <form 
+                        id="proForm" 
+                        onSubmit={handleSubmit(onSubmit, (errors) => {
+                            console.log('[VALIDATION ERRORS]', errors);
+                            toast.error('Verifique os campos obrigatórios em todas as abas (Nome, E-mail, Telefone e Cargo).');
+                        })} 
+                        className="space-y-8"
+                    >
 
                         {/* Tab 1: Personal Data */}
                         {tab === 1 && (
@@ -445,7 +454,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                     <p className="text-[10px] font-bold uppercase tracking-widest">Selecione os serviços que este profissional realiza.</p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {availableServices.map(service => (
+                                    {Array.isArray(availableServices) && availableServices.map(service => (
                                         <label key={service.id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${watch('services')?.includes(service.id)
                                             ? 'bg-emerald-500/10 border-emerald-500'
                                             : 'bg-slate-900 border-slate-800 hover:border-slate-700'
@@ -482,7 +491,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         {/* Tab 4: Schedules */}
                         {tab === 4 && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                                {schedules.map((s, idx) => (
+                                {Array.isArray(schedules) && schedules.map((s, idx) => (
                                     <div key={idx} className={`p-6 rounded-[2rem] border transition-all ${s.isOff ? 'bg-slate-900/30 border-slate-800' : 'bg-slate-900 border-slate-700 shadow-xl shadow-black/20'}`}>
                                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                                             <div>

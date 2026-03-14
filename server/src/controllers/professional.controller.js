@@ -140,11 +140,25 @@ exports.createProfessional = async (req, res) => {
             if (existingCpf) return res.status(400).json({ message: 'Este CPF já está em uso por outro usuário.' });
         }
 
+        const parseDate = (dateStr) => {
+            if (!dateStr) return null;
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) return d;
+            
+            // Try DD/MM/YYYY
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1;
+                const year = parseInt(parts[2]);
+                const d2 = new Date(year, month, day);
+                if (!isNaN(d2.getTime())) return d2;
+            }
+            return null; // Return null instead of Invalid Date to prevent Prisma crash
+        };
+
         const hashedPassword = await bcrypt.hash(password || '123456', 10);
 
-        // --- DO NOT MODIFY: CRITICAL FOR AUTHENTICATION ---
-        // This transaction ensures User and AuthUser are created together.
-        // Modifying this may break login functionality for new professionals.
         const result = await prisma.$transaction(async (tx) => {
             // 1. Create AuthUser
             const authUser = await tx.authUser.create({
@@ -159,14 +173,14 @@ exports.createProfessional = async (req, res) => {
             const userData = {
                 name, nickname,
                 email: normalizedEmail,
-                password: hashedPassword, // Keep for legacy
+                password: hashedPassword,
                 phone: normalizedPhone,
                 landline: onlyNumbers(landline),
                 cpf: normalizedCpf,
                 cnpj: onlyNumbers(cnpj),
                 rg: onlyNumbers(rg),
                 gender,
-                birthday: birthday ? new Date(birthday) : null,
+                birthday: parseDate(birthday),
                 notes, avatarUrl,
                 active: active !== undefined ? active : true,
                 workedBarbershopId: barbershopId,
@@ -187,7 +201,8 @@ exports.createProfessional = async (req, res) => {
             const profile = await tx.professional.create({
                 data: {
                     userId: user.id,
-                    position, bio, showInApp, showPublicly,
+                    position: position || 'Profissional',
+                    bio, showInApp, showPublicly,
                     appointmentInterval: appointmentInterval ? parseInt(appointmentInterval) : 30,
                     zipCode, street, number, complement, neighborhood, city, state, country,
                     commissionPercent: comPercent,
@@ -216,11 +231,22 @@ exports.createProfessional = async (req, res) => {
         res.status(201).json(result);
     } catch (error) {
         console.error('Create Prof error:', error);
+        
+        // Detailed error reporting
         if (error.code === 'P2002') {
             const target = error.meta?.target || 'campo único';
-            return res.status(400).json({ message: `Erro: O valor informado para '${target}' já existe no sistema.` });
+            return res.status(400).json({ 
+                message: `Erro: O valor informado para '${target}' já existe (e-mail, CPF ou telefone).` 
+            });
         }
-        res.status(500).json({ message: 'Erro ao criar profissional. Verifique os dados e tente novamente.' });
+        
+        if (error.code === 'P2025') {
+            return res.status(400).json({ message: 'Erro: Um ou mais serviços selecionados não foram encontrados.' });
+        }
+
+        res.status(500).json({ 
+            message: 'Erro ao criar profissional: ' + (error.message || 'Verifique os dados e tente novamente.') 
+        });
     }
 };
 

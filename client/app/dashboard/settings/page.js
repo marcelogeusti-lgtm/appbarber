@@ -21,7 +21,17 @@ export default function SettingsPage() {
         noShowEnabled: false,
         noShowPercent: 0,
         noShowText: '',
-        whatsappAutoReply: false
+        whatsappAutoReply: false,
+        street: '',
+        number: '',
+        complement: '',
+        neighborhood: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        instagramUrl: '',
+        facebookUrl: '',
+        youtubeUrl: ''
     });
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -182,9 +192,30 @@ function GeneralTab({ barbershop, setBarbershop }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
-                <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Endereço Completo</label>
+                <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Endereço Completo (Visível no App)</label>
                     <input value={barbershop.address || ''} onChange={e => setBarbershop({ ...barbershop, address: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="Rua Exemplo, 123 - Centro" />
+                </div>
+                
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground ml-1">Rua / Logradouro</label>
+                    <input value={barbershop.street || ''} onChange={e => setBarbershop({ ...barbershop, street: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="Rua Augusta" />
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground ml-1">Número</label>
+                    <input value={barbershop.number || ''} onChange={e => setBarbershop({ ...barbershop, number: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="100" />
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground ml-1">Bairro</label>
+                    <input value={barbershop.neighborhood || ''} onChange={e => setBarbershop({ ...barbershop, neighborhood: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="Centro" />
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground ml-1">Cidade</label>
+                    <input value={barbershop.city || ''} onChange={e => setBarbershop({ ...barbershop, city: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="São Paulo" />
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground ml-1">Estado (UF)</label>
+                    <input value={barbershop.state || ''} onChange={e => setBarbershop({ ...barbershop, state: e.target.value?.toUpperCase() })} maxLength={2} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="SP" />
                 </div>
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1"><Phone className="w-3 h-3" /> Telefone para Contato</label>
@@ -195,6 +226,24 @@ function GeneralTab({ barbershop, setBarbershop }) {
             <div className="space-y-1.5 pt-4 border-t border-border">
                 <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1"><AlignLeft className="w-3 h-3" /> Descrição / Bio</label>
                 <textarea value={barbershop.description || ''} onChange={e => setBarbershop({ ...barbershop, description: e.target.value })} className="w-full h-32 p-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground resize-none" placeholder="Conte um pouco sobre sua barbearia para seus clientes..." />
+            </div>
+
+            <div className="pt-6 border-t border-border space-y-6">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2 uppercase tracking-wider">Redes Sociais</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1">Instagram (@usuario ou link)</label>
+                        <input value={barbershop.instagramUrl || ''} onChange={e => setBarbershop({ ...barbershop, instagramUrl: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="https://instagram.com/..." />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1">Facebook</label>
+                        <input value={barbershop.facebookUrl || ''} onChange={e => setBarbershop({ ...barbershop, facebookUrl: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="https://facebook.com/..." />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1">YouTube</label>
+                        <input value={barbershop.youtubeUrl || ''} onChange={e => setBarbershop({ ...barbershop, youtubeUrl: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="https://youtube.com/..." />
+                    </div>
+                </div>
             </div>
         </div>
     );

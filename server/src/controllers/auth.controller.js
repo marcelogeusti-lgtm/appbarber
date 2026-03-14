@@ -83,6 +83,7 @@ exports.register = async (req, res) => {
                 const barbershop = await tx.barbershop.create({
                     data: {
                         name: barbershopName,
+                        commercialName: barbershopName,
                         slug,
                         ownerId: user.id,
                         staff: { connect: { id: user.id } },
@@ -90,6 +91,12 @@ exports.register = async (req, res) => {
                         subscriptionStatus: 'TRIAL',
                         trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 Days from now
                     }
+                });
+
+                // Update user to link barbershopId (Back-reference)
+                await tx.user.update({
+                    where: { id: user.id },
+                    data: { workedBarbershopId: barbershop.id }
                 });
 
                 // AUTO-CREATE PROFESSIONAL PROFILE
@@ -117,20 +124,38 @@ exports.register = async (req, res) => {
             return res.status(201).json({ token, user: userForToken, barbershop: result.barbershop });
         }
 
-        // 3. CLIENT Registration (Default)
+        // 3. CLIENT Registration (Adoption Logic)
         const result = await prisma.$transaction(async (tx) => {
             const authUser = await tx.authUser.create({
                 data: { email, password: hashedPassword, provider: 'EMAIL' }
             });
 
-            const client = await tx.client.create({
-                data: {
-                    name,
-                    phone,
-                    authUserId: authUser.id,
-                    theme: 'dark'
+            // Check for orphaned client (phone match and authUserId is null)
+            let client;
+            if (phone) {
+                const orphanedClient = await tx.client.findFirst({
+                    where: { phone, authUserId: null }
+                });
+
+                if (orphanedClient) {
+                    console.log(`[AUTH] Adopting orphaned client ${orphanedClient.id} for phone ${phone}`);
+                    client = await tx.client.update({
+                        where: { id: orphanedClient.id },
+                        data: { authUserId: authUser.id, name: name || orphanedClient.name }
+                    });
                 }
-            });
+            }
+
+            if (!client) {
+                client = await tx.client.create({
+                    data: {
+                        name,
+                        phone,
+                        authUserId: authUser.id,
+                        theme: 'dark'
+                    }
+                });
+            }
 
             return { client, authUser };
         });
@@ -319,6 +344,7 @@ exports.socialLogin = async (req, res) => {
                     const newBarbershop = await tx.barbershop.create({
                         data: {
                             name: name ? `${name} Barbearia` : 'Minha Barbearia',
+                            commercialName: name ? `${name} Barbearia` : 'Minha Barbearia',
                             slug,
                             ownerId: newUser.id,
                             staff: { connect: { id: newUser.id } },
@@ -369,6 +395,10 @@ exports.socialLogin = async (req, res) => {
 
         } else {
             if (!authUser.client) {
+                // Social Login Adoption Logic: If user provides phone later, we adopted it.
+                // For now, check if there's an orphaned client with THIS email in future? 
+                // Mostly phone is the key for orphans from previous systems.
+                
                 const newClient = await prisma.client.create({
                     data: {
                         name: name || 'Cliente',

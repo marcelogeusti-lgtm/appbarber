@@ -276,12 +276,26 @@ model EmailLog {
 model Barbershop {
   id            String   @id @default(uuid())
   name          String
+  commercialName String?
+  legalName      String?
   slug          String   @unique
   address       String?
+  street        String?
+  number        String?
+  complement    String?
+  neighborhood  String?
+  city          String?
+  state         String?
+  zipCode       String?
+  country       String?  @default("Brasil")
+  description   String?  @db.Text
   phone         String?
   logoUrl       String?
   bannerUrls    String[] @default([])
   webhookUrl    String?
+  instagramUrl  String?
+  facebookUrl   String?
+  youtubeUrl    String?
   whatsappPhone String? // Sender number for notifications
 
   // Geolocalização

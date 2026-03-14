@@ -21,7 +21,22 @@ exports.saveConfig = async (req, res) => {
     try {
         const { credentials, isActive } = req.body;
         const gateway = req.body.gateway?.toUpperCase();
-        const barbershopId = req.user.barbershopId || req.user.barbershop?.id;
+        let barbershopId = req.user.barbershopId || req.user.barbershop?.id;
+
+        // Fallback: If not in token, look up from DB
+        if (!barbershopId) {
+            const user = await prisma.user.findUnique({
+                where: { id: req.user.id },
+                include: {
+                    ownedBarbershops: { select: { id: true } }
+                }
+            });
+            barbershopId = user?.ownedBarbershops?.[0]?.id;
+        }
+
+        if (!barbershopId) {
+            return res.status(400).json({ error: 'Barbershop ID context missing. Please ensure you are linked to a barbershop.' });
+        }
 
         if (!gateway || !credentials) {
             return res.status(400).json({ error: 'Gateway and credentials are required' });
