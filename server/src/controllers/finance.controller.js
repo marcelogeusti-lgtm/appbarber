@@ -277,6 +277,39 @@ exports.getFinancialStats = async (req, res) => {
         const netProfit = totalGrossRevenue - totalExpenses;
         // Note: totalExpenses already includes paid commissions if they were recorded as Expense transactions.
 
+        // Commissions calculation
+        const commissions = commissionsRecords.reduce((acc, curr) => {
+            // Group by professionalId if needed, but for summary we match the expected frontend format
+            const proName = curr.barber?.name || 'Profissional';
+            acc[proName] = (acc[proName] || 0) + curr.amount;
+            return acc;
+        }, {});
+
+        // Standardized Breakdowns (Same as Dashboard)
+        const revenueByMethod = transactions
+            .filter(t => t.type === 'INCOME')
+            .reduce((acc, t) => {
+                const method = t.paymentMethod || 'OUTROS';
+                acc[method] = (acc[method] || 0) + Number(t.amount);
+                return acc;
+            }, {});
+
+        const revenueByOrigin = transactions
+            .filter(t => t.type === 'INCOME')
+            .reduce((acc, t) => {
+                const origin = t.origin || 'NAO_IDENTIFICADO';
+                acc[origin] = (acc[origin] || 0) + Number(t.amount);
+                return acc;
+            }, {});
+
+        const revenueByBarber = transactions
+            .filter(t => t.type === 'INCOME' && t.professionalId)
+            .reduce((acc, t) => {
+                const name = orders.find(o => o.professionalId === t.professionalId)?.professional?.name || 'Desconhecido';
+                acc[name] = (acc[name] || 0) + Number(t.amount);
+                return acc;
+            }, {});
+
         res.json({
             totalRevenue: totalGrossRevenue,
             salesRevenue: salesRevenue,
@@ -286,8 +319,11 @@ exports.getFinancialStats = async (req, res) => {
             totalExpenses,
             netProfit,
             totalOrders: orders.length,
+            totalCommissions: totalCommissions,
             commissions: Object.entries(commissions).map(([name, value]) => ({ name, value })),
-            orders: orders.slice(0, 10), // Últimas 10
+            revenueByMethod,
+            revenueByOrigin,
+            revenueByBarber,
             transactions: transactions.slice(0, 10)
         });
     } catch (error) {

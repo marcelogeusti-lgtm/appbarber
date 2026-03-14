@@ -22,21 +22,28 @@ exports.getCommissionsReport = async (req, res) => {
             }
         });
 
-        // Buscar agendamentos completados no período
-        const appointments = await prisma.appointment.findMany({
-            where: {
-                barbershopId,
-                status: 'COMPLETED',
-                date: {
-                    gte: startOfDay(start),
-                    lte: endOfDay(end)
+        // Buscar agendamentos e comandas completas no período
+        const [appointments, orders] = await Promise.all([
+            prisma.appointment.findMany({
+                where: {
+                    barbershopId,
+                    status: 'COMPLETED',
+                    date: { gte: startOfDay(start), lte: endOfDay(end) }
+                },
+                include: { service: true, professional: { select: { id: true, name: true } } }
+            }),
+            prisma.order.findMany({
+                where: {
+                    barbershopId,
+                    status: { in: ['CLOSED', 'PAID'] },
+                    paidAt: { gte: startOfDay(start), lte: endOfDay(end) }
+                },
+                include: { 
+                    items: { include: { service: true, product: true } }, 
+                    professional: { select: { id: true, name: true } } 
                 }
-            },
-            include: {
-                service: true,
-                professional: { select: { id: true, name: true } }
-            }
-        });
+            })
+        ]);
 
         // Buscar comissões existentes
         const commissions = await prisma.commission.findMany({
@@ -54,14 +61,21 @@ exports.getCommissionsReport = async (req, res) => {
 
         // Calcular estatísticas por barbeiro
         const barberStats = barbers.map(barber => {
-            // Agendamentos do barbeiro
+            // Agendamentos e Comandas do barbeiro
             const barberAppointments = appointments.filter(apt => apt.professionalId === barber.id);
+            const barberOrders = orders.filter(ord => ord.professionalId === barber.id);
 
-            // Vendas totais
-            const totalSales = barberAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
+            // Vendas totais (Soma de Appointments + Comandas)
+            const aptSales = barberAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
+            const ordSales = barberOrders.reduce((sum, ord) => sum + (ord.total || 0), 0);
+            const totalSales = aptSales + ordSales;
 
             // Total de serviços
-            const totalServices = barberAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
+            const aptServices = barberAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
+            const ordServices = barberOrders.reduce((sum, ord) => {
+                return sum + ord.items.filter(i => i.type === 'SERVICE').reduce((s, i) => s + i.total, 0);
+            }, 0);
+            const totalServices = aptServices + ordServices;
 
             // Fetch stored commissions for this barber
             const barberCommissions = commissions.filter(c => c.barberId === barber.id);
