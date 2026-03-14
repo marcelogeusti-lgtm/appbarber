@@ -93,71 +93,91 @@ export default function SchedulePage() {
     }, [currentDate, viewMode, barbershopId, page, limit, socket]);
 
     const fetchResources = async () => {
+        console.log('[DEBUG] fetchResources started');
         try {
             const userStr = localStorage.getItem('user');
-            if (!userStr) return;
+            if (!userStr) {
+                console.log('[DEBUG] No user in localStorage');
+                return;
+            }
             const user = JSON.parse(userStr);
+            console.log('[DEBUG] User from storage:', user.id, user.email);
             let bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
             
             // Barbershop Info (get fresh ID if missing)
             const shopRes = await api.get('/barbershops/me');
+            console.log('[DEBUG] /barbershops/me response:', shopRes.data);
             if (shopRes.data) {
                 if (shopRes.data.name) setBarbershopName(shopRes.data.name);
                 if (shopRes.data.id) {
                     bId = shopRes.data.id;
+                    console.log('[DEBUG] Setting barbershopId from API:', bId);
                     setBarbershopId(bId);
                 }
             } else {
+                console.log('[DEBUG] No shop data from API, using fallback bId:', bId);
                 setBarbershopId(bId);
             }
 
             // Professionals
             if (professionals.length === 0 && bId) {
                 const proRes = await api.get(`/professionals?barbershopId=${bId}`);
+                console.log('[DEBUG] Professionals count:', proRes.data?.length);
                 setProfessionals(Array.isArray(proRes.data) ? proRes.data : (proRes.data.data || []));
             }
 
             // Services
             if (services.length === 0 && bId) {
                 const srvRes = await api.get(`/services?barbershopId=${bId}&active=true&limit=1000`);
+                console.log('[DEBUG] Services count:', srvRes.data?.length);
                 setServices(Array.isArray(srvRes.data) ? srvRes.data : (srvRes.data.data || []));
             }
         } catch (err) {
-            console.error(err);
+            console.error('[DEBUG] fetchResources error:', err);
         }
     };
 
     const fetchAppointments = async () => {
-        if (!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') return;
+        if (!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') {
+            console.log('[DEBUG] fetchAppointments skipped: invalid barbershopId', barbershopId);
+            return;
+        }
         setLoading(true);
         try {
             const start = startOfDay(currentDate).toISOString();
             const end = endOfDay(currentDate).toISOString();
 
+            console.log(`[DEBUG] fetchAppointments calling /appointments/all for ${barbershopId}, range: ${start} - ${end}`);
             const res = await api.get(`/appointments/all?barbershopId=${barbershopId}&start=${start}&end=${end}&page=${page}&limit=${limit}`);
+            console.log('[DEBUG] fetchAppointments response count:', res.data.data?.length);
 
             setAppointments(res.data.data || []);
             setTotalItems(res.data.total || 0);
             setTotalPages(res.data.totalPages || 0);
         } catch (err) {
-            console.error(err);
+            console.error('[DEBUG] fetchAppointments error:', err);
         } finally {
             setLoading(false);
         }
     };
 
     const fetchAllAppointmentsInRange = async () => {
-        if (!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') return;
+        if (!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') {
+            console.log('[DEBUG] fetchAllInRange skipped: invalid barbershopId', barbershopId);
+            return;
+        }
         setLoading(true);
         try {
             // Load 3 months to be safe on calendar navigation
             const start = startOfMonth(subMonths(currentDate, 1)).toISOString();
             const end = endOfMonth(addMonths(currentDate, 1)).toISOString();
 
+            console.log(`[DEBUG] fetchAllInRange calling /appointments/all for ${barbershopId}, range: ${start} - ${end}`);
             const res = await api.get(`/appointments/all?barbershopId=${barbershopId}&start=${start}&end=${end}&limit=1000`);
+            console.log('[DEBUG] fetchAllInRange response count:', res.data.data?.length);
             setAppointments(res.data.data || []);
         } catch (err) {
-            console.error(err);
+            console.error('[DEBUG] fetchAllInRange error:', err);
         } finally {
             setLoading(false);
         }

@@ -1,14 +1,8 @@
-const { getAllAppointments } = require('../controllers/appointment.controller');
+const { getMyBarbershop } = require('../controllers/barbershop.controller');
 const prisma = require('../lib/prisma');
 
 async function test() {
     const req = {
-        query: {
-            barbershopId: '94dad01c-504e-4f93-bcfe-5371d5a7ee50',
-            start: '2026-03-01T00:00:00.000Z',
-            end: '2026-03-31T23:59:59.999Z',
-            limit: '1000'
-        },
         user: {
             id: 'ff550352-540a-4fd4-a1a5-55cb7c61a54f', // Marcelo Geusti
             role: 'SUPER_ADMIN'
@@ -17,20 +11,23 @@ async function test() {
 
     const res = {
         json: (data) => {
-            console.log('--- API RESPONSE ---');
-            console.log(`Count: ${data.data?.length}`);
-            if (data.data?.length > 0) {
-                const pros = new Set(data.data.map(a => a.professionalId));
-                console.log('Professional IDs found in Appointments:', Array.from(pros));
-            }
+            console.log('--- GET ME SHOP RESPONSE ---');
+            console.log(JSON.stringify(data, null, 2));
             process.exit(0);
         },
-        status: (code) => ({ json: (data) => process.exit(1) })
+        status: (code) => ({
+            json: (data) => {
+                console.error(`--- ERROR RESPONSE (${code}) ---`);
+                console.error(data);
+                process.exit(code);
+            }
+        })
     };
 
     try {
-        await getAllAppointments(req, res);
+        await getMyBarbershop(req, res);
     } catch (err) {
+        console.error(err);
         process.exit(1);
     }
 }
