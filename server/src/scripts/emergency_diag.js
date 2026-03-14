@@ -2,33 +2,22 @@ const prisma = require('../lib/prisma');
 
 async function run() {
     try {
-        const today = '2026-03-13';
-        const tomorrow = '2026-03-14';
-
+        const shopId = '94dad01c-504e-4f93-bcfe-5371d5a7ee50';
         const apps = await prisma.appointment.findMany({
             where: {
+                barbershopId: shopId,
                 date: {
-                    gte: new Date(today),
-                    lte: new Date('2026-03-15')
+                    gte: new Date('2026-03-01T00:00:00Z'),
+                    lte: new Date('2026-03-31T23:59:59Z')
                 }
             },
-            include: {
-                client: { select: { name: true } },
-                barbershop: { select: { name: true } }
-            }
+            select: { id: true, date: true, status: true }
         });
 
-        console.log(`--- APPOINTMENTS SCHEDULED FOR ${today} - ${tomorrow} ---`);
-        if (apps.length === 0) {
-            console.log('No appointments found for these dates.');
-        } else {
-            apps.forEach(app => {
-                console.log(`ID: ${app.id} | Date: ${app.date} | Status: ${app.status}`);
-                console.log(`Shop: ${app.barbershop?.name} (${app.barbershopId})`);
-                console.log(`Client: ${app.client?.name}`);
-                console.log('-------------------');
-            });
-        }
+        console.log(`Appointments for NextApp in March 2026 (${apps.length}):`);
+        apps.forEach(app => {
+            console.log(`${app.id}: ${app.date.toISOString()} | ${app.status}`);
+        });
 
     } catch (err) {
         console.error(err);

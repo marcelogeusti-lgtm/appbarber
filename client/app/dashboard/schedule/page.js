@@ -97,27 +97,30 @@ export default function SchedulePage() {
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-            setBarbershopId(bId);
+            let bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+            
+            // Barbershop Info (get fresh ID if missing)
+            const shopRes = await api.get('/barbershops/me');
+            if (shopRes.data) {
+                if (shopRes.data.name) setBarbershopName(shopRes.data.name);
+                if (shopRes.data.id) {
+                    bId = shopRes.data.id;
+                    setBarbershopId(bId);
+                }
+            } else {
+                setBarbershopId(bId);
+            }
 
             // Professionals
-            if (professionals.length === 0) {
+            if (professionals.length === 0 && bId) {
                 const proRes = await api.get(`/professionals?barbershopId=${bId}`);
-                // Professionals endpoint currently returns an array, but we'll be safe
                 setProfessionals(Array.isArray(proRes.data) ? proRes.data : (proRes.data.data || []));
             }
 
             // Services
-            if (services.length === 0) {
-                // Fetch all active services for dropdowns/modals (using high limit)
+            if (services.length === 0 && bId) {
                 const srvRes = await api.get(`/services?barbershopId=${bId}&active=true&limit=1000`);
                 setServices(Array.isArray(srvRes.data) ? srvRes.data : (srvRes.data.data || []));
-            }
-
-            // Barbershop Name
-            const shopRes = await api.get('/barbershops/me');
-            if (shopRes.data && shopRes.data.name) {
-                setBarbershopName(shopRes.data.name);
             }
         } catch (err) {
             console.error(err);
@@ -125,17 +128,13 @@ export default function SchedulePage() {
     };
 
     const fetchAppointments = async () => {
+        if (!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') return;
         setLoading(true);
         try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) return;
-            const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
             const start = startOfDay(currentDate).toISOString();
             const end = endOfDay(currentDate).toISOString();
 
-            const res = await api.get(`/appointments/all?barbershopId=${bId}&start=${start}&end=${end}&page=${page}&limit=${limit}`);
+            const res = await api.get(`/appointments/all?barbershopId=${barbershopId}&start=${start}&end=${end}&page=${page}&limit=${limit}`);
 
             setAppointments(res.data.data || []);
             setTotalItems(res.data.total || 0);
@@ -148,19 +147,15 @@ export default function SchedulePage() {
     };
 
     const fetchAllAppointmentsInRange = async () => {
+        if (!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') return;
         setLoading(true);
         try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) return;
-            const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
+            // Load 3 months to be safe on calendar navigation
             const start = startOfMonth(subMonths(currentDate, 1)).toISOString();
             const end = endOfMonth(addMonths(currentDate, 1)).toISOString();
 
-            const res = await api.get(`/appointments/all?barbershopId=${bId}&start=${start}&end=${end}&limit=1000`);
+            const res = await api.get(`/appointments/all?barbershopId=${barbershopId}&start=${start}&end=${end}&limit=1000`);
             setAppointments(res.data.data || []);
-            // setTotalItems(res.data.total || res.data.data?.length || 0); // Not needed for non-paginated views
         } catch (err) {
             console.error(err);
         } finally {
@@ -180,15 +175,11 @@ export default function SchedulePage() {
     };
 
     const fetchWaitlist = async () => {
+        if (!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') return;
         try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) return;
-            const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
             const res = await api.get(`/waitlist`, {
                 params: {
-                    barbershopId: bId,
+                    barbershopId: barbershopId,
                     date: currentDate.toISOString(),
                     professionalId: selectedPro
                 }
@@ -297,7 +288,9 @@ export default function SchedulePage() {
             {/* Header Redesign */}
             <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
                 <div className="relative z-10 w-full xl:w-auto">
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground mb-4">Agenda Operacional</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground mb-4">
+                        Agenda Operacional {appointments.length > 0 ? `(${appointments.length})` : '(Vazia)'}
+                    </h1>
 
                     {/* Professional Selector (Dropdown) */}
                     <div className="flex flex-col sm:flex-row gap-4">
