@@ -147,8 +147,8 @@ export default function SchedulePage() {
             const start = startOfDay(currentDate).toISOString();
             const end = endOfDay(currentDate).toISOString();
 
-            console.log(`[DEBUG] fetchAppointments calling /appointments/all for ${barbershopId}, range: ${start} - ${end}`);
-            const res = await api.get(`/appointments/all?barbershopId=${barbershopId}&start=${start}&end=${end}&page=${page}&limit=${limit}`);
+            console.log(`[DEBUG] fetchAppointments calling /appointments for ${barbershopId}, range: ${start} - ${end}`);
+            const res = await api.get(`/appointments?barbershopId=${barbershopId}&start=${start}&end=${end}&page=${page}&limit=${limit}`);
             console.log('[DEBUG] fetchAppointments response count:', res.data.data?.length);
 
             setAppointments(res.data.data || []);
@@ -172,8 +172,8 @@ export default function SchedulePage() {
             const start = startOfMonth(subMonths(currentDate, 1)).toISOString();
             const end = endOfMonth(addMonths(currentDate, 1)).toISOString();
 
-            console.log(`[DEBUG] fetchAllInRange calling /appointments/all for ${barbershopId}, range: ${start} - ${end}`);
-            const res = await api.get(`/appointments/all?barbershopId=${barbershopId}&start=${start}&end=${end}&limit=1000`);
+            console.log(`[DEBUG] fetchAllInRange calling /appointments for ${barbershopId}, range: ${start} - ${end}`);
+            const res = await api.get(`/appointments?barbershopId=${barbershopId}&start=${start}&end=${end}&limit=1000`);
             console.log('[DEBUG] fetchAllInRange response count:', res.data.data?.length);
             setAppointments(res.data.data || []);
         } catch (err) {
