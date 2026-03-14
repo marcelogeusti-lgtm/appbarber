@@ -2,21 +2,28 @@ import axios from 'axios';
 import { safeGetItem } from './storage';
 
 const getBaseUrl = () => {
+    let url;
     // Priority 1: Environment variable
     if (process.env.NEXT_PUBLIC_API_URL) {
-        return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') + '/api';
+        url = process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') + '/api';
+        console.log('[DEBUG] getBaseUrl Priority 1:', url);
+        return url;
     }
 
     // Priority 2: Runtime detection (Vercel vs Local)
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-            return 'https://barber-api-uz05.onrender.com/api';
+            url = 'https://barber-api-uz05.onrender.com/api';
+            console.log('[DEBUG] getBaseUrl Priority 2:', url);
+            return url;
         }
     }
 
     // Priority 3: Default Local
-    return 'http://localhost:3001/api';
+    url = 'http://localhost:3001/api';
+    console.log('[DEBUG] getBaseUrl Priority 3:', url);
+    return url;
 };
 
 const api = axios.create({
