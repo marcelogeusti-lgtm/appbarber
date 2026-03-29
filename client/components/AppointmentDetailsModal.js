@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Calendar, User, Scissors, Clock, FileText, Pencil, CheckCircle, DollarSign, CreditCard, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
@@ -18,10 +19,12 @@ export default function AppointmentDetailsModal({
     const { user } = useClientAuth();
     const [showPaymentSelector, setShowPaymentSelector] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
+    const [mounted, setMounted] = useState(false);
     
     const isProfessional = user?.role !== 'CLIENT';
 
     useEffect(() => {
+        setMounted(true);
         if (isOpen) setShowPaymentSelector(false);
     }, [isOpen, appointment]);
 
@@ -57,9 +60,9 @@ export default function AppointmentDetailsModal({
         }
     };
 
-    if (!isOpen || !appointment) return null;
+    if (!isOpen || !appointment || !mounted) return null;
 
-    return (
+    const modalContent = (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
             {/* Backdrop */}
             <div
@@ -221,4 +224,6 @@ export default function AppointmentDetailsModal({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
