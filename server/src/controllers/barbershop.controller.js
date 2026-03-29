@@ -626,7 +626,17 @@ exports.checkFavoriteStatus = async (req, res) => {
 
 exports.getMyFavorites = async (req, res) => {
     try {
-        const client = await prisma.client.findUnique({ where: { authUserId: req.user.id } });
+        const authUserId = req.user.id;
+
+        // Try finding by Client ID or authUserId for robustness
+        const client = await prisma.client.findFirst({
+            where: {
+                OR: [
+                    { id: authUserId },
+                    { authUserId: authUserId }
+                ]
+            }
+        });
         if (!client) return res.json([]);
 
         const favs = await prisma.favoriteBarbershop.findMany({
