@@ -378,7 +378,7 @@ export default function SchedulePage() {
                     {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'RECEPTIONIST') && (
                         <button
                             onClick={() => setIsSqueezeInOpen(true)}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-secondary/90 transition shadow-xl shadow-white/5"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
                         >
                             <PlusCircle className="w-4 h-4" /> Encaixe Rápido
                         </button>
@@ -621,7 +621,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
                                 <div>
                                     <h4 className={`font-black text-lg uppercase tracking-tight transition-colors ${isCancelled ? 'text-red-400' : 'text-foreground group-hover:text-primary'}`}>{app.client?.name}</h4>
                                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-700"></div> {app.client?.phone}
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary/40"></div> {app.client?.phone}
                                     </p>
                                 </div>
                             </div>
@@ -630,10 +630,10 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
                                     <Scissors className={`w-3.5 h-3.5 ${isCancelled ? 'text-red-500' : 'text-primary'}`} /> {app.service?.name}
                                 </span>
                                 <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-background/50 px-4 py-2 rounded-xl border border-border">
-                                    <User className="w-3.5 h-3.5 text-slate-600" /> {app.summaryProName || professionals.find(p => p.id === app.professionalId)?.name}
+                                    <User className="w-3.5 h-3.5 text-muted-foreground" /> {app.summaryProName || professionals.find(p => p.id === app.professionalId)?.name}
                                 </span>
                                 {app.isSqueezeIn && (
-                                    <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
+                                    <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
                                         Encaixe
                                     </span>
                                 )}
@@ -729,7 +729,7 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                                                 <div className={`w-1 h-1 rounded-full ${isCancelled ? 'bg-red-500' : 'bg-primary'}`}></div>
                                                 <p className="text-[9px] text-primary font-black uppercase truncate tracking-tighter">{app.service?.name}</p>
                                             </div>
-                                            {app.isSqueezeIn && <div className="mt-1 text-[8px] text-orange-500 uppercase font-black">Encaixe</div>}
+                                            {app.isSqueezeIn && <div className="mt-1 text-[8px] text-primary uppercase font-black">Encaixe</div>}
                                         </div>
                                     ))
                             })}

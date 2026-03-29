@@ -75,9 +75,9 @@ export default function DayDetailsModal({ isOpen, onClose, date, appointments, p
                                                 </h3>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <User className="w-3 h-3 text-slate-500" />
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                        {app.client?.name} {app.isSqueezeIn && <span className="text-orange-500">(Encaixe)</span>}
-                                                    </p>
+                                                    <span className="font-bold uppercase tracking-tight truncate flex-1 text-slate-200">
+                                                        {app.client?.name} {app.isSqueezeIn && <span className="text-primary">(Encaixe)</span>}
+                                                    </span>
                                                 </div>
                                             </div>
                                             {/* Status Badge */}
