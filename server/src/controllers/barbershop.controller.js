@@ -24,6 +24,29 @@ function sortBarbershopsByRatingAndAge(barbershops) {
     });
 }
 
+// Helper: Sophisticated Recommendation Scoring (Quality + Trending + Newness)
+function calculateRecommendationScore(shop, trendingCount, globalAvgRating) {
+    // 1. Bayesian Rating: (v * R + m * C) / (v + m)
+    // v = count of reviews, R = shop avg, m = min reviews (5), C = global mean (4.5)
+    const v = shop.totalReviews || 0;
+    const R = shop.averageRating || 0;
+    const m = 5; 
+    const C = globalAvgRating || 4.5;
+    
+    const bayesianRating = (v * R + m * C) / (v + m);
+    
+    // 2. Trending Score: Recent bookings in last 7 days
+    const trendingScore = Math.min(trendingCount * 2, 20); // Cap trending impact to prevent gaming
+    
+    // 3. Newcomer Bonus: Boost shops created in the last 15 days
+    const isNewcomer = (new Date() - new Date(shop.createdAt)) / (1000 * 60 * 60 * 24) <= 15;
+    const newcomerBonus = isNewcomer ? 15 : 0;
+
+    // Final Score Calculation
+    // Base is BayesianRating (0-50 range after * 10) + Trending (0-20) + Newcomer (0/15)
+    return (bayesianRating * 10) + trendingScore + newcomerBonus;
+}
+
 // Public: Search Barbershops
 const searchBarbershops = async (req, res) => {
     try {
@@ -132,6 +155,7 @@ const getRecommendedBarbershops = async (req, res) => {
         const userLat = lat ? parseFloat(lat) : null;
         const userLng = lng ? parseFloat(lng) : null;
 
+        // 1. Fetch Basic Active Barbershops
         const barbershops = await prisma.barbershop.findMany({
             where: { subscriptionStatus: { in: ['ACTIVE', 'TRIAL'] } },
             select: {
@@ -151,6 +175,7 @@ const getRecommendedBarbershops = async (req, res) => {
             }
         });
 
+        // 2. Fetch Review Aggregates
         const ratingsData = await prisma.review.groupBy({
             by: ['barbershopId'],
             _avg: { rating: true },
@@ -165,6 +190,25 @@ const getRecommendedBarbershops = async (req, res) => {
             return acc;
         }, {});
 
+        // 3. Trending Calculation: Confirmed/Completed appointments in last 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const trendingData = await prisma.appointment.groupBy({
+            by: ['barbershopId'],
+            where: {
+                createdAt: { gte: sevenDaysAgo },
+                status: { in: ['CONFIRMED', 'COMPLETED'] }
+            },
+            _count: { id: true }
+        });
+
+        const trendingMap = trendingData.reduce((acc, curr) => {
+            acc[curr.barbershopId] = curr._count.id;
+            return acc;
+        }, {});
+
+        // 4. Score and Process Candidates
         let recommended = barbershops.map(shop => {
             let distance = null;
             if (userLat && userLng && shop.latitude && shop.longitude) {
@@ -172,28 +216,44 @@ const getRecommendedBarbershops = async (req, res) => {
             }
 
             const ratingInfo = ratingsMap[shop.id] || { avg: 0, count: 0 };
+            const trendingCount = trendingMap[shop.id] || 0;
+
+            // Global mean rating (fallback to 4.5 if no ratings exist at all)
+            const globalAvg = 4.5; 
+            
+            const recScore = calculateRecommendationScore(
+                { ...shop, averageRating: ratingInfo.avg, totalReviews: ratingInfo.count },
+                trendingCount,
+                globalAvg
+            );
 
             return {
                 ...shop,
                 distance,
                 averageRating: ratingInfo.avg,
                 totalReviews: ratingInfo.count,
-                hasRealReviews: ratingInfo.count > 0
+                hasRealReviews: ratingInfo.count > 0,
+                recommendationScore: recScore
             };
         });
 
-        // Strict Radius filtering - completely remove fallback logic
+        // 5. Strict Radius filtering (15km)
         if (userLat && userLng) {
             recommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
         }
 
-        // Unified Sorting
-        recommended = sortBarbershopsByRatingAndAge(recommended);
+        // 6. Sophisticated Sorting: Score DESC, then Distance ASC
+        recommended.sort((a, b) => {
+            if (b.recommendationScore !== a.recommendationScore) {
+                return b.recommendationScore - a.recommendationScore;
+            }
+            // Tie-breaker: Distance
+            return (a.distance || 999) - (b.distance || 999);
+        });
 
-        const finalResults = recommended.slice(0, 10).map(shop => ({
+        const finalResults = recommended.slice(0, 15).map(shop => ({
             ...shop,
-            averageRating: shop.hasRealReviews ? shop.averageRating.toFixed(1) : null,
-            usingFallback: false // Deprecated concept, setting to false explicitly
+            averageRating: shop.hasRealReviews ? shop.averageRating.toFixed(1) : null
         }));
 
         res.json(finalResults);

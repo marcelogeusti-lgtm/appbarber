@@ -420,32 +420,37 @@ export default function ClientHome() {
                         </div>
 
                         <div className="space-y-4">
-                            {lastAccess.length > 0 ? lastAccess.slice(0, 5).map(shop => (
-                                <div
-                                    key={shop.id || shop._id}
-                                    className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-6 flex items-center justify-between gap-6 hover:border-primary/30 transition-all cursor-pointer group"
-                                    onClick={() => router.push(`/${shop.slug}`)}
-                                >
-                                    <div className="flex flex-1 min-w-0 items-center gap-5">
-                                        <div className="w-16 h-16 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden shrink-0 relative">
-                                            <img src={shop.logoUrl || "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
-                                            <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
-                                                <Star className="w-2 h-2 text-primary fill-current" />
-                                                <span className="text-[7px] font-black text-white">{shop.averageRating || "5.0"}</span>
+                            {lastAccess.length > 0 ? (
+                                (() => {
+                                    const shop = lastAccess[0];
+                                    return (
+                                        <div
+                                            key={shop.id || shop._id}
+                                            className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-6 flex items-center justify-between gap-6 hover:border-primary/30 transition-all cursor-pointer group"
+                                            onClick={() => router.push(`/${shop.slug}`)}
+                                        >
+                                            <div className="flex flex-1 min-w-0 items-center gap-5">
+                                                <div className="w-16 h-16 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden shrink-0 relative">
+                                                    <img src={shop.logoUrl || "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
+                                                    <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
+                                                        <Star className="w-2 h-2 text-primary fill-current" />
+                                                        <span className="text-[7px] font-black text-white">{shop.averageRating || "5.0"}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="font-black text-lg text-white uppercase tracking-tight truncate group-hover:text-primary transition-colors">{shop.name}</h4>
+                                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest truncate italic">
+                                                        {shop.address || "Endereço indisponível"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
+                                                <ChevronRight className="w-5 h-5" />
                                             </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <h4 className="font-black text-lg text-white uppercase tracking-tight truncate group-hover:text-primary transition-colors">{shop.name}</h4>
-                                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest truncate italic">
-                                                {shop.address || "Endereço indisponível"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </div>
-                                </div>
-                            )) : (
+                                    );
+                                })()
+                            ) : (
                                 <div className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-10 text-center border-dashed">
                                     <p className="text-slate-600 text-[10px] font-black uppercase tracking-widest italic">Nenhum histórico recente</p>
                                 </div>
