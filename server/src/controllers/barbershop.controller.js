@@ -34,7 +34,7 @@ const searchBarbershops = async (req, res) => {
         let where = { subscriptionStatus: { in: ['ACTIVE', 'TRIAL'] } };
 
         // 1. Types of Search Filters
-        if (type === 'CITY' || city) {
+        if ((type === 'CITY' || city) && (term || city)) {
             const cityTerm = term || city;
             where.OR = [
                 { city: { contains: cityTerm, mode: 'insensitive' } },
