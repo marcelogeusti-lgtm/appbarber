@@ -127,9 +127,10 @@ const searchBarbershops = async (req, res) => {
             };
         });
 
-        // 5. Restrict Distance (Only if explicitly NEARBY)
+        // 5. Restrict Distance (Strictly hide only if KNOWN to be > 15km)
         if (type === 'NEARBY' && userLat && userLng) {
-            processedShops = processedShops.filter(shop => shop.distance !== null && shop.distance <= 15);
+            // Keep shops within 15km OR shops with unknown distance (null coords) to unblock discovery
+            processedShops = processedShops.filter(shop => shop.distance === null || shop.distance <= 15);
         }
 
         // 6. Sort unified
@@ -221,11 +222,14 @@ const getRecommendedBarbershops = async (req, res) => {
             // Global mean rating (fallback to 4.5 if no ratings exist at all)
             const globalAvg = 4.5; 
             
-            const recScore = calculateRecommendationScore(
+            let recScore = calculateRecommendationScore(
                 { ...shop, averageRating: ratingInfo.avg, totalReviews: ratingInfo.count },
                 trendingCount,
                 globalAvg
             );
+
+            // Penalty for shops without GPS (so known close ones stay on top)
+            if (distance === null) recScore -= 5;
 
             return {
                 ...shop,
@@ -239,7 +243,8 @@ const getRecommendedBarbershops = async (req, res) => {
 
         // 5. Strict Radius filtering (15km)
         if (userLat && userLng) {
-            recommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
+            // Unblock discovery: Only remove if we KNOW it is further than 15km
+            recommended = recommended.filter(shop => shop.distance === null || shop.distance <= 15);
         }
 
         // 6. Sophisticated Sorting: Score DESC, then Distance ASC
