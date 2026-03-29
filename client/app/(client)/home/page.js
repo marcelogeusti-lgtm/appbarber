@@ -142,10 +142,16 @@ export default function ClientHome() {
     const handleVisitShop = (shop) => {
         // Update last access in localStorage
         const stored = localStorage.getItem('last_accessed_barbershops');
-        let current = stored ? JSON.parse(stored) : [];
+        let current = [];
+        try {
+            const parsed = stored ? JSON.parse(stored) : [];
+            current = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            current = [];
+        }
 
         // Remove if already exists to move to top
-        current = current.filter(item => item.id !== (shop.id || shop._id));
+        current = current.filter(item => item && (item.id !== (shop.id || shop._id)));
 
         // Add to top
         current.unshift({
@@ -159,7 +165,7 @@ export default function ClientHome() {
 
         // Keep last 10
         const limited = current.slice(0, 10);
-        safeSetItem('last_accessed_barbershops', JSON.stringify(limited));
+        safeSetItem('last_accessed_barbershops', limited);
 
         // Navigate
         router.push(`/${shop.slug}`);
@@ -325,7 +331,7 @@ export default function ClientHome() {
                                 onClick={() => router.push('/agendamentos')}
                             >
                                 <div className="bg-[#050505] rounded-[1.95rem] p-6 flex items-center justify-between gap-6 hover:bg-white/5 transition-all cursor-pointer">
-                                    <div className="flex items-center gap-5">
+                                    <div className="flex flex-1 min-w-0 items-center gap-5">
                                         <div className="w-16 h-16 rounded-full border-2 border-white/10 p-0.5 overflow-hidden shrink-0">
                                             <img
                                                 src={lastAppointment.barbershop?.logoUrl || "https://cdn.simpleicons.org/barber/white"}
@@ -342,7 +348,7 @@ export default function ClientHome() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
+                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
                                         <ChevronRight className="w-5 h-5" />
                                     </div>
                                 </div>
@@ -375,7 +381,7 @@ export default function ClientHome() {
                                     className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-6 flex items-center justify-between gap-6 hover:border-primary/30 transition-all cursor-pointer group"
                                     onClick={() => handleVisitShop(shop)}
                                 >
-                                    <div className="flex items-center gap-5">
+                                    <div className="flex flex-1 min-w-0 items-center gap-5">
                                         <div className="w-16 h-16 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden shrink-0 relative">
                                             <img src={shop.logoUrl || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
                                             <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
@@ -390,7 +396,7 @@ export default function ClientHome() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
+                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
                                         <ChevronRight className="w-5 h-5" />
                                     </div>
                                 </div>
@@ -420,7 +426,7 @@ export default function ClientHome() {
                                     className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-6 flex items-center justify-between gap-6 hover:border-primary/30 transition-all cursor-pointer group"
                                     onClick={() => router.push(`/${shop.slug}`)}
                                 >
-                                    <div className="flex items-center gap-5">
+                                    <div className="flex flex-1 min-w-0 items-center gap-5">
                                         <div className="w-16 h-16 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden shrink-0 relative">
                                             <img src={shop.logoUrl || "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
                                             <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
@@ -435,7 +441,7 @@ export default function ClientHome() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
+                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
                                         <ChevronRight className="w-5 h-5" />
                                     </div>
                                 </div>

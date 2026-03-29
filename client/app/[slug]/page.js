@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
+import { safeSetItem } from '../../lib/storage';
 import CardForm from '../../components/payment/CardForm';
 
 // Dynamic Sub-components (Lazy Loaded)
@@ -232,6 +233,34 @@ export default function BarbershopPage() {
                 }
                 loadProducts(res.data.id);
                 loadUserData(res.data.id);
+
+                // Update last access in localStorage here to reliably track all visits
+                try {
+                    const shop = res.data;
+                    const stored = localStorage.getItem('last_accessed_barbershops');
+                    let current = [];
+                    try {
+                        const parsed = stored ? JSON.parse(stored) : [];
+                        current = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        current = [];
+                    }
+                    
+                    current = current.filter(item => item && (item.id !== (shop.id || shop._id)));
+                    current.unshift({
+                        id: shop.id || shop._id,
+                        name: shop.name,
+                        slug: shop.slug,
+                        logoUrl: shop.logoUrl,
+                        address: shop.address,
+                        averageRating: shop.averageRating
+                    });
+                    
+                    const limited = current.slice(0, 10);
+                    safeSetItem('last_accessed_barbershops', limited);
+                } catch (e) {
+                    console.error('Failed to save last accessed barbershop', e);
+                }
 
             } catch (err) {
                 console.error(err);
