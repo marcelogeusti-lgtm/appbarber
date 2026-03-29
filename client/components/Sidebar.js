@@ -132,10 +132,12 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 {/* Navigation */}
                 <nav className={`flex-1 overflow-y-auto py-4 px-3 space-y-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 ${isLocked ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
 
-                    {/* Principal - PROTECTED SECTION: DO NOT MODIFY NAVIGATION ORDER */}
+                    {/* Principal */}
                     <div className="space-y-1">
                         <MenuItem href="/dashboard" icon={LayoutDashboard} label="Visão Geral" />
-                        <MenuItem href="/dashboard/owner" icon={BarChart3} label="Análise" />
+                        {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.isMaster) && (
+                            <MenuItem href="/dashboard/owner" icon={BarChart3} label="Análise" />
+                        )}
                         <MenuItem href="/dashboard/schedule" icon={Calendar} label="Agenda" />
                     </div>
 
@@ -143,7 +145,9 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
 
                     {/* Cadastros */}
                     <MenuGroup title="Cadastros" id="cadastros" icon={Users}>
-                        <MenuItem href="/dashboard/professionals" icon={UserCheck} label="Profissionais" />
+                        {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'RECEPTIONIST') && (
+                            <MenuItem href="/dashboard/professionals" icon={UserCheck} label="Profissionais" />
+                        )}
                         <MenuItem href="/dashboard/services" icon={Scissors} label="Serviços" />
                         <MenuItem href="/dashboard/products" icon={ShoppingBag} label="Produtos" />
                         <MenuItem href="/dashboard/clients" icon={Users} label="Clientes" />
@@ -152,24 +156,32 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     {/* Comandas & Vendas */}
                     <MenuGroup title="Vendas" id="vendas" icon={Receipt}>
                         <MenuItem href="/dashboard/orders" icon={ScrollText} label="Comandas" />
-                        <MenuItem href="/dashboard/subscriptions" icon={Package} label="Planos & Assinaturas" />
-                        <MenuItem href="/dashboard/subscribers" icon={Users} label="Assinantes" />
-                        <MenuItem href="/dashboard/loyalty" icon={Gift} label="Fidelidade" />
+                        {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                            <>
+                                <MenuItem href="/dashboard/subscriptions" icon={Package} label="Planos & Assinaturas" />
+                                <MenuItem href="/dashboard/subscribers" icon={Users} label="Assinantes" />
+                                <MenuItem href="/dashboard/loyalty" icon={Gift} label="Fidelidade" />
+                            </>
+                        )}
                         <MenuItem href="/dashboard/reviews" icon={Star} label="Avaliações" />
                     </MenuGroup>
 
                     {/* Conteúdo (Cursos) */}
-                    <MenuGroup title="Educação" id="educacao" icon={GraduationCap}>
-                        <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Cursos" />
-                    </MenuGroup>
+                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'BARBER' || user?.role === 'RECEPTIONIST') && (
+                        <MenuGroup title="Educação" id="educacao" icon={GraduationCap}>
+                            <MenuItem href="/dashboard/courses" icon={GraduationCap} label="Cursos" />
+                        </MenuGroup>
+                    )}
 
                     {/* Financeiro */}
-                    <MenuGroup title="Financeiro" id="financeiro" icon={DollarSign}>
-                        <MenuItem href="/dashboard/finance/dashboard" icon={PieChart} label="Dashboard" />
-                        <MenuItem href="/dashboard/finance" icon={Wallet} label="Movimentações" />
-                        <MenuItem href="/dashboard/reports/commissions" icon={DollarSign} label="Comissões" />
-                        <MenuItem href="/dashboard/finance/integrations" icon={CreditCard} label="Integrações" />
-                    </MenuGroup>
+                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.isMaster) && (
+                        <MenuGroup title="Financeiro" id="financeiro" icon={DollarSign}>
+                            <MenuItem href="/dashboard/finance/dashboard" icon={PieChart} label="Dashboard" />
+                            <MenuItem href="/dashboard/finance" icon={Wallet} label="Movimentações" />
+                            <MenuItem href="/dashboard/reports/commissions" icon={DollarSign} label="Comissões" />
+                            <MenuItem href="/dashboard/finance/integrations" icon={CreditCard} label="Integrações" />
+                        </MenuGroup>
+                    )}
 
                     <div className="h-px bg-border mx-2 my-2"></div>
 
@@ -179,9 +191,11 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     </MenuGroup>
 
                     {/* Configurações */}
-                    <MenuGroup title="Configurações" id="config" icon={Settings}>
-                        <MenuItem href="/dashboard/settings" icon={Settings} label="Ajustes do Sistema" />
-                    </MenuGroup>
+                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.isMaster) && (
+                        <MenuGroup title="Configurações" id="config" icon={Settings}>
+                            <MenuItem href="/dashboard/settings" icon={Settings} label="Ajustes do Sistema" />
+                        </MenuGroup>
+                    )}
 
                     {/* Master Management - PROTECTED SECTION: DO NOT REMOVE ROLE CHECKS */}
                     {(user?.role === 'SUPER_ADMIN' || user?.isMaster) && (

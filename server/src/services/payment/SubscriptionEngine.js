@@ -15,14 +15,34 @@ class SubscriptionEngine {
 
         if (!plan) throw new Error('Plano não encontrado');
 
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { authUser: true }
-        });
-        if (!user) throw new Error('Usuário não encontrado');
+        let userProfile;
+        let client;
 
-        let client = await prisma.client.findFirst({ where: { authUserId: userId } });
-        if (!client) throw new Error('Perfil de cliente necessário');
+        if (paymentData.role === 'CLIENT') {
+            client = await prisma.client.findUnique({
+                where: { id: userId },
+                include: { authUser: true }
+            });
+            if (!client) throw new Error('Perfil de cliente não encontrado');
+            userProfile = {
+                name: client.name,
+                email: client.authUser?.email || client.email,
+                phone: client.phone
+            };
+        } else {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { authUser: true }
+            });
+            if (!user) throw new Error('Usuário não encontrado');
+            userProfile = {
+                name: user.name,
+                email: user.authUser?.email || user.email,
+                phone: user.phone
+            };
+            client = await prisma.client.findFirst({ where: { authUserId: userId } });
+            if (!client) throw new Error('Perfil de cliente necessário para assinatura');
+        }
 
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + plan.validityDays);
@@ -88,9 +108,9 @@ class SubscriptionEngine {
                     gateway,
                     token,
                     customer: {
-                        name: user.name,
-                        email: user.authUser?.email || user.email,
-                        phone: user.phone
+                        name: userProfile.name,
+                        email: userProfile.email,
+                        phone: userProfile.phone
                     },
                     externalId: subscription.id
                 });
@@ -103,7 +123,8 @@ class SubscriptionEngine {
                         externalId: paymentResult.paymentId,
                         status: paymentResult.status || 'pending',
                         amount: plan.price,
-                        userId,
+                        userId: paymentData.role !== 'CLIENT' ? userId : null,
+                        clientId: paymentData.role === 'CLIENT' ? userId : null,
                         clientSubscriptionId: subscription.id
                     }
                 });

@@ -1,5 +1,6 @@
 import { X, Calendar, Clock, User, Scissors, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 
 export default function DayDetailsModal({ isOpen, onClose, date, appointments, professionals }) {
@@ -21,7 +22,7 @@ export default function DayDetailsModal({ isOpen, onClose, date, appointments, p
                 <div className="p-8 border-b border-slate-800/50 flex justify-between items-start bg-slate-900/20 backdrop-blur-md sticky top-0 z-10">
                     <div>
                         <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-1">
-                            {format(date, 'dd de MMMM', { locale: ptBR })}
+                            {format(date, 'dd/MM/yyyy')}
                         </h2>
                         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
                             {format(date, 'EEEE', { locale: ptBR })}

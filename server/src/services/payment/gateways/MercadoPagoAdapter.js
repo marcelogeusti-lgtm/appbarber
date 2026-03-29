@@ -1,15 +1,17 @@
 const GatewayAdapter = require('./GatewayAdapter');
-const axios = require('axios');
+const { MercadoPagoConfig, Payment } = require('mercadopago');
 
 class MercadoPagoAdapter extends GatewayAdapter {
     constructor() {
         super();
-        this.apiUrl = 'https://api.mercadopago.com/v1';
     }
 
     async createPayment({ amount, description, customer, credentials, externalId, method, token, installments, issuerId, paymentMethodId, payer }) {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+
+        const client = new MercadoPagoConfig({ accessToken, options: { timeout: 5000 } });
+        const payment = new Payment(client);
 
         try {
             // Payer Info - Strict identification check
@@ -25,8 +27,8 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 throw new Error("E-mail do pagador é obrigatório.");
             }
 
-            // Payload for /v1/payments API
-            const payload = {
+            // Payload for MP SDK
+            const body = {
                 transaction_amount: parseFloat(amount),
                 description: description || 'Serviço Barbearia',
                 external_reference: externalId?.toString(),
@@ -44,43 +46,36 @@ class MercadoPagoAdapter extends GatewayAdapter {
 
             // Method Logic
             if (method === 'PIX') {
-                payload.payment_method_id = 'pix';
+                body.payment_method_id = 'pix';
             } else if (method === 'BOLETO') {
-                payload.payment_method_id = 'bolbradesco';
+                body.payment_method_id = 'bolbradesco';
             } else if (method === 'CREDIT_CARD' || method === 'DEBIT_CARD' || method.includes('card')) {
                 if (!token) throw new Error("Token do cartão obrigatório.");
-                payload.token = token;
+                body.token = token;
 
-                // STRICT DEBIT ENFORCEMENT: If it's debit, force 1 installment.
-                // In MP, payment_method_id for debit usually starts with 'deb'.
                 const isDebit = method === 'DEBIT_CARD' || (paymentMethodId && paymentMethodId.toLowerCase().includes('deb'));
 
                 if (isDebit) {
-                    payload.installments = 1;
-                    if (!paymentMethodId) payload.payment_method_id = 'debvisa'; // Fallback if missing, but should be passed
+                    body.installments = 1;
+                    if (!paymentMethodId) body.payment_method_id = 'debvisa';
                 } else {
-                    payload.installments = Number(installments) || 1;
+                    body.installments = Number(installments) || 1;
                 }
 
-                if (paymentMethodId) payload.payment_method_id = paymentMethodId;
-                if (issuerId) payload.issuer_id = issuerId;
+                if (paymentMethodId) body.payment_method_id = paymentMethodId;
+                if (issuerId) body.issuer_id = issuerId;
             }
 
-            // STABLE IDEMPOTENCY: Use the internal Payment UUID if available, otherwise fallback.
-            // This prevents duplicate charges if the same request is retried.
             const idempotencyKey = externalId ? `pay_${externalId}` : `temp_${Date.now()}`;
 
-            const response = await axios.post(`${this.apiUrl}/payments`, payload, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'X-Idempotency-Key': idempotencyKey
-                }
+            const response = await payment.create({
+                body,
+                requestOptions: { idempotencyKey }
             });
 
-            const data = response.data;
+            const data = response;
             let finalStatus = 'pending';
 
-            // Mapping MP statuses to internal statuses
             const statusMap = {
                 'approved': 'paid',
                 'accredited': 'paid',
@@ -140,19 +135,22 @@ class MercadoPagoAdapter extends GatewayAdapter {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
+        const { Customer } = require('mercadopago');
+        const client = new MercadoPagoConfig({ accessToken });
+        const customerClient = new Customer(client);
+
         try {
-            // Create
-            const res = await axios.post(`${this.apiUrl}/customers`, {
-                email,
-                first_name: name?.split(' ')[0] || 'Cliente',
-                last_name: name?.split(' ').slice(1).join(' ') || ''
-            }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
+            const res = await customerClient.create({
+                body: {
+                    email,
+                    first_name: name?.split(' ')[0] || 'Cliente',
+                    last_name: name?.split(' ').slice(1).join(' ') || ''
+                }
             });
-            return res.data; // { id: "..." }
+            return res; // { id: "..." }
         } catch (err) {
-            console.error('[MP] Create Customer Error:', err.response?.data || err.message);
-            throw new Error(`Falha ao criar cliente no MP: ${err.response?.data?.message || err.message}`);
+            console.error('[MP] Create Customer Error:', err);
+            throw new Error(`Falha ao criar cliente no MP: ${err.message}`);
         }
     }
 
@@ -160,14 +158,19 @@ class MercadoPagoAdapter extends GatewayAdapter {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
+        const { CustomerCard } = require('mercadopago');
+        const client = new MercadoPagoConfig({ accessToken });
+        const cardClient = new CustomerCard(client);
+
         try {
-            const res = await axios.post(`${this.apiUrl}/customers/${customerId}/cards`, { token }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
+            const res = await cardClient.create({
+                customerId,
+                body: { token }
             });
-            return res.data; // { id: "...", first_six_digits, last_four_digits, ... }
+            return res; 
         } catch (err) {
-            console.error('[MP] Save Card Error:', err.response?.data || err.message);
-            throw new Error(`Falha ao salvar cartão no MP: ${err.response?.data?.message || err.message}`);
+            console.error('[MP] Save Card Error:', err);
+            throw new Error(`Falha ao salvar cartão no MP: ${err.message}`);
         }
     }
 
@@ -175,8 +178,12 @@ class MercadoPagoAdapter extends GatewayAdapter {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
+        const { PreApprovalPlan } = require('mercadopago');
+        const client = new MercadoPagoConfig({ accessToken });
+        const planClient = new PreApprovalPlan(client);
+
         try {
-            const payload = {
+            const body = {
                 reason: plan.name,
                 auto_recurring: {
                     frequency: 1,
@@ -188,33 +195,30 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 external_reference: plan.id.toString()
             };
 
-            // Enhanced frequency mapping based on validityDays
             if (plan.validityDays >= 365) {
-                payload.auto_recurring.frequency = 1;
-                payload.auto_recurring.frequency_type = 'months';
-                payload.auto_recurring.repetitions = 12; // Annual plan billed monthly for 12 months
+                body.auto_recurring.frequency = 1;
+                body.auto_recurring.frequency_type = 'months';
+                body.auto_recurring.repetitions = 12; 
             } else if (plan.validityDays === 30 || plan.validityDays === 31) {
-                payload.auto_recurring.frequency = 1;
-                payload.auto_recurring.frequency_type = 'months';
+                body.auto_recurring.frequency = 1;
+                body.auto_recurring.frequency_type = 'months';
             } else if (plan.validityDays === 7) {
-                payload.auto_recurring.frequency = 1;
-                payload.auto_recurring.frequency_type = 'weeks';
+                body.auto_recurring.frequency = 1;
+                body.auto_recurring.frequency_type = 'weeks';
             } else if (plan.validityDays > 0) {
-                payload.auto_recurring.frequency = plan.validityDays;
-                payload.auto_recurring.frequency_type = 'days';
+                body.auto_recurring.frequency = plan.validityDays;
+                body.auto_recurring.frequency_type = 'days';
             }
 
-            const response = await axios.post(`${this.apiUrl}/preapproval_plan`, payload, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
+            const response = await planClient.create({ body });
 
             return {
-                id: response.data.id,
-                init_point: response.data.init_point
+                id: response.id,
+                init_point: response.init_point
             };
         } catch (err) {
-            console.error('[MP] Create Plan Error:', err.response?.data || err.message);
-            throw new Error(`Erro ao criar plano no MP: ${err.response?.data?.message || err.message}`);
+            console.error('[MP] Create Plan Error:', err);
+            throw new Error(`Erro ao criar plano no MP: ${err.message}`);
         }
     }
 
@@ -222,27 +226,29 @@ class MercadoPagoAdapter extends GatewayAdapter {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
+        const { PreApproval } = require('mercadopago');
+        const client = new MercadoPagoConfig({ accessToken });
+        const subClient = new PreApproval(client);
+
         try {
-            const payload = {
+            const body = {
                 preapproval_plan_id: planId,
                 card_token_id: cardToken,
                 payer_email: payerEmail,
                 external_reference: externalReference,
-                status: 'authorized' // Auto-approve
+                status: 'authorized' 
             };
 
-            const response = await axios.post(`${this.apiUrl}/preapproval`, payload, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
+            const response = await subClient.create({ body });
 
             return {
-                subscriptionId: response.data.id,
-                status: response.data.status, // authorized, paused, cancelled
-                payerId: response.data.payer_id
+                subscriptionId: response.id,
+                status: response.status, 
+                payerId: response.payer_id
             };
         } catch (err) {
-            console.error('[MP] Create Subscription Error:', err.response?.data || err.message);
-            throw new Error(`Erro ao assinar no MP: ${err.response?.data?.message || err.message}`);
+            console.error('[MP] Create Subscription Error:', err);
+            throw new Error(`Erro ao assinar no MP: ${err.message}`);
         }
     }
 
@@ -250,46 +256,15 @@ class MercadoPagoAdapter extends GatewayAdapter {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
-        // Check if it's an Order ID (starts with ORD usually, depends on MP version, but typically we know from creation)
-        // Or we just try one endpoint and fallback? 
-        // Safer: Since we migrated to Orders API, new IDs are likely Orders. 
-        // But we might have legacy ID? Legacy Payment IDs are numeric. Orders IDs are alphanumeric (often).
-
-        let endpoint = `${this.apiUrl}/payments/${externalId}`;
-        let isOrder = false;
-
-        // Simple heuristic: If it contains letters and is long, probably an Order ID (e.g. ORD...)
-        // Or if we strictly use Orders API now, we check if it looks like an Order.
-        if (externalId && typeof externalId === 'string' && (externalId.startsWith('ORD') || isNaN(externalId))) {
-            endpoint = `${this.apiUrl}/orders/${externalId}`;
-            isOrder = true;
-        }
+        const client = new MercadoPagoConfig({ accessToken });
+        const payment = new Payment(client);
 
         try {
-            const response = await axios.get(endpoint, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-
-            const data = response.data;
+            const data = await payment.get({ id: externalId });
 
             let status = 'pending';
-
-            if (isOrder) {
-                // Order Status Logic
-                const orderStatus = data.status; // open, closed, expired
-                // Check transactions inside order for more detail
-                const txStatus = data.transactions?.payments?.[0]?.status;
-
-                if (orderStatus === 'closed' || txStatus === 'approved' || txStatus === 'accredited') {
-                    status = 'paid';
-                } else if (orderStatus === 'expired' || txStatus === 'rejected' || txStatus === 'cancelled') {
-                    status = 'failed';
-                }
-            } else {
-                // Legacy Payment Status Logic
-                if (data.status === 'approved') status = 'paid';
-                else if (data.status === 'rejected' || data.status === 'cancelled') status = 'failed';
-            }
+            if (data.status === 'approved' || data.status === 'accredited') status = 'paid';
+            else if (data.status === 'rejected' || data.status === 'cancelled') status = 'failed';
 
             return {
                 externalId: data.id.toString(),
@@ -297,7 +272,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 rawResponse: data
             };
         } catch (err) {
-            console.error('[MP] Get Status Error:', err.response?.data || err.message);
+            console.error('[MP] Get Status Error:', err);
             throw new Error(`Erro ao buscar status no Mercado Pago: ${err.message}`);
         }
     }
@@ -306,19 +281,17 @@ class MercadoPagoAdapter extends GatewayAdapter {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
-        // O 'externalId' aqui é o 'preapproval_id' do Mercado Pago
+        const { PreApproval } = require('mercadopago');
+        const client = new MercadoPagoConfig({ accessToken });
+        const subClient = new PreApproval(client);
+
         try {
-            const response = await axios.get(`${this.apiUrl}/preapproval/${externalId}`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
+            const data = await subClient.get({ id: externalId });
+            const mpStatus = data.status; 
 
-            const data = response.data;
-            const mpStatus = data.status; // authorized, paused, cancelled
-
-            // Mapear status do MP para o nosso sistema
             let status = 'PENDING';
             if (mpStatus === 'authorized') status = 'ACTIVE';
-            else if (mpStatus === 'paused') status = 'OVERDUE'; // Ou SUSPENDED, dependendo do enum
+            else if (mpStatus === 'paused') status = 'OVERDUE'; 
             else if (mpStatus === 'cancelled') status = 'CANCELLED';
             else if (mpStatus === 'pending') status = 'PENDING';
 
@@ -329,7 +302,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
             };
 
         } catch (err) {
-            console.error('[MP] Get Subscription Status Error:', err.response?.data || err.message);
+            console.error('[MP] Get Subscription Status Error:', err);
             throw new Error(`Erro ao buscar status da assinatura no Mercado Pago: ${err.message}`);
         }
     }
@@ -419,12 +392,10 @@ class MercadoPagoAdapter extends GatewayAdapter {
         // If not available (only access token), we cannot validate HMAC properly.
         // Falls back to basic check only if secret is missing? 
         // Security requirement: MUST have secret.
-        const secret = credentials?.secretKey || credentials?.clientSecret;
+        const secret = credentials?.clientSecret || credentials?.secretKey;
 
         if (!secret) {
-            console.warn('[MP Webhook] No Secret Key available for validation. Skipping HMAC check (INSECURE).');
-            // Returning true purely to avoid breaking flow if user hasn't configured secret yet, 
-            // BUT this should be false in production.
+            console.warn('[MP Webhook] No Secret Key / Client Secret available for validation. Skipping HMAC check (INSECURE).');
             return true;
         }
 

@@ -48,7 +48,7 @@ export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, 
                         <span className="text-xs font-semibold hidden xl:block">Caixa</span>
                     </button>
                     <ThemeToggle />
-                    <NotificationCenter />
+                    <NotificationCenter user={user} />
                 </div>
 
                 {isLocked && (

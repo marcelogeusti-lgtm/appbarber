@@ -56,10 +56,13 @@ class TransactionService {
                     if (order) {
                         professionalId = professionalId || order.professionalId;
                         clientName = order.client.name;
-                        // For orders, commission might be on Services only
-                        commissionBaseValue = order.items
-                            .filter(i => i.type === 'SERVICE')
-                            .reduce((sum, i) => sum + i.total, 0);
+                        // Calculate values for commission
+                        const items = await tx.orderItem.findMany({ where: { orderId } });
+                        const totalGrossVolume = items.reduce((sum, i) => sum + i.total, 0);
+                        
+                        // Fallback to the transaction amount if no items are found
+                        // This ensures commissioned volume is tracked even for top-level comanda payments.
+                        commissionBaseValue = totalGrossVolume > 0 ? totalGrossVolume : amount;
                     }
                 }
             }

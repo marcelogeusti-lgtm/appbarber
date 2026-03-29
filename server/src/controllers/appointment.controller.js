@@ -223,6 +223,9 @@ exports.createAppointment = async (req, res) => {
         const dateTimeString = `${date}T${time}:00`;
         const appointmentDateTime = zonedTimeToUtc(dateTimeString, TIMEZONE);
 
+        console.log(`[Appointment Debug] Incoming: date=${date}, time=${time}`);
+        console.log(`[Appointment Debug] Converted UTC: ${appointmentDateTime.toISOString()}`);
+
         if (isNaN(appointmentDateTime.getTime())) {
             return res.status(400).json({ message: 'Data ou hora inválida.' });
         }
@@ -773,25 +776,6 @@ exports.updateAppointmentStatus = async (req, res) => {
 
         // Trigger n8n on cancellation to notify waitlist
         if (status === 'CANCELLED') {
-            // 1. Notify Professional (Interior)
-            try {
-                const appToNotify = await prisma.appointment.findUnique({
-                    where: { id },
-                    include: { client: true, service: true }
-                });
-
-                if (appToNotify && appToNotify.professionalId) {
-                    await notificationController.createNotification({
-                        userId: appToNotify.professionalId,
-                        title: 'Agendamento Cancelado',
-                        message: `O agendamento de ${appToNotify.client?.name || 'Cliente'} para ${format(new Date(appToNotify.date), 'HH:mm')} foi cancelado. O horário está liberado.`,
-                        type: 'cancellation',
-                        appointmentId: appToNotify.id
-                    });
-                }
-            } catch (notifyErr) {
-                console.error('Error notifying professional of cancellation:', notifyErr);
-            }
 
             const barbershop = await prisma.barbershop.findUnique({ where: { id: appointment.barbershopId } });
             const webhookUrl = barbershop?.webhookUrl;

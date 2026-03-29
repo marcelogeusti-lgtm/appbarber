@@ -95,7 +95,8 @@ export default function PaymentSettings() {
                     fields={[
                         { name: 'publicKey', label: 'Public Key', placeholder: 'APP_USR-... ou TEST-...' },
                         { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'APP_USR-... ou TEST-...' },
-                        { name: 'secretKey', label: 'Secret Key (Webhooks)', type: 'password', placeholder: 'Para validação de segurança...' }
+                        { name: 'clientId', label: 'Client ID', placeholder: 'ID numérico da aplicação...' },
+                        { name: 'clientSecret', label: 'Client Secret / Secret Key', type: 'password', placeholder: 'Para validação de segurança (Webhooks)...' }
                     ]}
                 />
             </div>

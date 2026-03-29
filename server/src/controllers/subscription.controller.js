@@ -243,7 +243,8 @@ exports.purchasePlan = async (req, res) => {
             method: paymentMethod,
             gateway: gateway || 'mercadopago',
             token,
-            payer
+            payer,
+            role: req.user.role
         });
 
         res.status(201).json({

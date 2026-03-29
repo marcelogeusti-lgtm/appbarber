@@ -2,6 +2,17 @@
 
 Atualizado em: 30/12/2025
 
+# App Barbeiro SaaS 🚀
+
+Sistema completo para gerenciamento de barbearias com agendamento, financeiro e controle de profissionais.
+
+### ⚡ Deploy Rápido (Vercel)
+Sempre utilize o comando abaixo para manter a vinculação oficial (`appbarber` e `appbarber-api`):
+```powershell
+# Deploy Unificado
+npx vercel deploy --prod --yes --cwd server; npx vercel deploy --prod --yes --cwd .
+```
+Mais detalhes em: [.agents/workflows/deploy.md](file:///c:/Users/wanie/Downloads/MARCELO/EU/App%20Barbeiro/.agents/workflows/deploy.md)
 Este é um sistema SaaS completo para gestão de barbearias, construído com Node.js (Backend) e Next.js (Frontend).
 
 ## 🚀 Pré-requisitos

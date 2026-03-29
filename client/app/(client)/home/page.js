@@ -103,7 +103,8 @@ export default function ClientHome() {
                 recommendations: searchDataRaw.length,
                 favorites: favoritesData.length,
                 appointments: appointmentsData.length,
-                user: user?.id
+                user: user?.id,
+                userId: user?.authUserId || user?.id
             });
 
             // Process recommendations
@@ -116,8 +117,19 @@ export default function ClientHome() {
             if (user) {
                 setFavorites(favoritesData);
                 if (appointmentsData.length > 0) {
-                    const sorted = [...appointmentsData].sort((a, b) => new Date(b.date) - new Date(a.date));
-                    setLastAppointment(sorted[0]);
+                    // Filter to get only future or current appointments for "Last" card
+                    const now = new Date();
+                    const next = [...appointmentsData]
+                        .filter(a => new Date(a.date) >= now || a.status === 'CONFIRMED')
+                        .sort((a, b) => new Date(a.date) - new Date(b.date));
+                    
+                    if (next.length > 0) {
+                        setLastAppointment(next[0]);
+                    } else {
+                        // If no future, show most recent completed/past
+                        const last = [...appointmentsData].sort((a, b) => new Date(b.date) - new Date(a.date));
+                        setLastAppointment(last[0]);
+                    }
                 }
             }
         } catch (err) {

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle, XCircle } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, subDays, startOfDay, endOfDay } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 import SqueezeInModal from '../../../components/SqueezeInModal';
 import DayDetailsModal from '../../../components/DayDetailsModal';
@@ -42,6 +43,7 @@ export default function SchedulePage() {
     const [limit, setLimit] = useState(25);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [user, setUser] = useState(null);
 
     const fetchData = () => {
         // This function is now more of a trigger for the main useEffect
@@ -102,6 +104,7 @@ export default function SchedulePage() {
             }
             const user = JSON.parse(userStr);
             console.log('[DEBUG] User from storage:', user.id, user.email);
+            setUser(user);
             let bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
             
             // Barbershop Info (get fresh ID if missing)
@@ -123,7 +126,14 @@ export default function SchedulePage() {
             if (professionals.length === 0 && bId) {
                 const proRes = await api.get(`/professionals?barbershopId=${bId}`);
                 console.log('[DEBUG] Professionals count:', proRes.data?.length);
-                setProfessionals(Array.isArray(proRes.data) ? proRes.data : (proRes.data.data || []));
+                const pros = Array.isArray(proRes.data) ? proRes.data : (proRes.data.data || []);
+                setProfessionals(pros);
+
+                // AUTO-SELECT for BARBER
+                if (user.role === 'BARBER') {
+                    const myPro = pros.find(p => p.email === user.email);
+                    if (myPro) setSelectedPro(myPro.id);
+                }
             }
 
             // Services
@@ -309,7 +319,7 @@ export default function SchedulePage() {
             <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
                 <div className="relative z-10 w-full xl:w-auto">
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground mb-4">
-                        AGENDA OPERACIONAL {appointments.length > 0 ? `(${appointments.length})` : '(VAZIA)'}
+                        AGENDA OPERACIONAL {appointments.length > 0 ? `(${appointments.length})` : ''}
                     </h1>
 
                     {/* Professional Selector (Dropdown) */}
@@ -317,10 +327,11 @@ export default function SchedulePage() {
                         <div className="relative group">
                             <select
                                 value={selectedPro}
-                                onChange={(e) => setSelectedPro(e.target.value)}
-                                className="appearance-none bg-background text-foreground pl-12 pr-12 py-4 rounded-2xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none font-black text-xs uppercase tracking-widest cursor-pointer hover:bg-muted transition min-w-[280px]"
+                                onChange={(e) => user?.role !== 'BARBER' && setSelectedPro(e.target.value)}
+                                disabled={user?.role === 'BARBER'}
+                                className={`appearance-none bg-background text-foreground pl-12 pr-12 py-4 rounded-2xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none font-black text-xs uppercase tracking-widest cursor-pointer hover:bg-muted transition min-w-[280px] ${user?.role === 'BARBER' ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                <option value="all">Todos Profissionais</option>
+                                {user?.role !== 'BARBER' && <option value="all">Todos Profissionais</option>}
                                 {professionals.map(pro => (
                                     <option key={pro.id} value={pro.id}>{pro.name}</option>
                                 ))}
@@ -364,12 +375,14 @@ export default function SchedulePage() {
                     <PrintButton />
 
                     {/* Squeeze In Button */}
-                    <button
-                        onClick={() => setIsSqueezeInOpen(true)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-secondary/90 transition shadow-xl shadow-white/5"
-                    >
-                        <PlusCircle className="w-4 h-4" /> Encaixe Rápido
-                    </button>
+                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'RECEPTIONIST') && (
+                        <button
+                            onClick={() => setIsSqueezeInOpen(true)}
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-secondary/90 transition shadow-xl shadow-white/5"
+                        >
+                            <PlusCircle className="w-4 h-4" /> Encaixe Rápido
+                        </button>
+                    )}
                 </div>
             </header>
 

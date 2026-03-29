@@ -529,6 +529,15 @@ export default function BarbershopPage() {
                     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
                         {Array.isArray(barbershop?.services) && barbershop.services.filter(s => s.isFeatured).map(service => (
                             <div key={`feat-svc-${service.id}`} onClick={() => handleServiceSelect(service)} className="min-w-[200px] snap-center bg-[#111] rounded-2xl p-4 border border-yellow-500/20 hover:border-yellow-500 cursor-pointer transition group">
+                                <div className="aspect-square bg-slate-900 rounded-xl mb-3 overflow-hidden flex items-center justify-center">
+                                    {service.imageUrl ? (
+                                        <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-slate-700">
+                                            <Scissors className="w-8 h-8" />
+                                        </div>
+                                    )}
+                                </div>
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase px-2 py-1 rounded-lg">Popular</div>
                                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 group-hover:scale-110 transition" />

@@ -14,8 +14,9 @@ const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-            url = 'https://barber-api-uz05.onrender.com/api';
-            console.log('[DEBUG] getBaseUrl Priority 2:', url);
+            // Point to the dedicated Vercel backend
+            url = 'https://appbarber-api.vercel.app/api';
+            console.log('[DEBUG] getBaseUrl Dedicated Vercel:', url);
             return url;
         }
     }

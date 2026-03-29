@@ -17,7 +17,7 @@ const professionalSchema = z.object({
     name: z.string().min(3, 'Nome muito curto'),
     nickname: z.string().optional(),
     email: z.string().email('E-mail inválido'),
-    password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional().or(z.literal('')),
+    password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
     phone: z.string().min(10, 'Telefone inválido'),
     landline: z.string().optional(),
     cpf: z.string().optional(),
@@ -40,7 +40,7 @@ const professionalSchema = z.object({
     city: z.string().optional(),
     state: z.string().optional(),
     country: z.string().default('Brasil'),
-    role: z.enum(['BARBER', 'ADMIN', 'BARBER_CONSULTA']).default('BARBER'),
+    role: z.enum(['BARBER', 'ADMIN', 'BARBER_CONSULTA', 'RECEPTIONIST']).default('BARBER'),
     active: z.boolean().default(true),
     commissionPercent: z.string().optional(),
     services: z.array(z.string()).optional(),
@@ -66,6 +66,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
     });
 
     const isEdit = !!professional;
+    const watchRole = watch('role');
 
     useEffect(() => {
         if (isOpen) {

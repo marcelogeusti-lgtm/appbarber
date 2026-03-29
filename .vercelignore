@@ -1,7 +1,7 @@
 # Excluir pastas pesadas e desnecessárias
 node_modules
 **/node_modules
-server
+# server
 .git
 .next
 .vercel

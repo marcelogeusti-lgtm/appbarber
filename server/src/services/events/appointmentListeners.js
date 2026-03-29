@@ -16,12 +16,16 @@ function init() {
         try {
             await communicationService.sendConfirmationRequest(appointment);
             
+            // Format time correctly for BRT
+            const { formatInTimeZone } = require('date-fns-tz');
+            const timeStr = formatInTimeZone(new Date(appointment.date), 'America/Sao_Paulo', 'HH:mm');
+
             // Notify Professional (Internal/Socket)
             if (appointment.professionalId) {
                 await notificationController.createNotification({
                     userId: appointment.professionalId,
                     title: 'Novo Agendamento',
-                    message: `Você tem um novo agendamento de ${appointment.client?.name || 'Cliente'} para as ${format(new Date(appointment.date), 'HH:mm')}.`,
+                    message: `Você tem um novo agendamento de ${appointment.client?.name || 'Cliente'} para as ${timeStr}.`,
                     type: 'appointment',
                     appointmentId: appointment.id
                 });
@@ -32,7 +36,7 @@ function init() {
                 await notificationController.createNotification({
                     userId: appointment.barbershop.ownerId,
                     title: 'Novo Agendamento na Unidade',
-                    message: `${appointment.client?.name || 'Um cliente'} agendou com ${appointment.professional?.name || 'um profissional'} para as ${format(new Date(appointment.date), 'HH:mm')}.`,
+                    message: `${appointment.client?.name || 'Um cliente'} agendou com ${appointment.professional?.name || 'um profissional'} para as ${timeStr}.`,
                     type: 'appointment',
                     appointmentId: appointment.id
                 });
@@ -49,6 +53,17 @@ function init() {
         try {
             if (appointment.status === 'CANCELLED') {
                 await communicationService.sendCancellationNotice(appointment);
+                
+                // Notify Professional (In-App)
+                if (appointment.professionalId) {
+                    await notificationController.createNotification({
+                        userId: appointment.professionalId,
+                        title: 'Agendamento Cancelado',
+                        message: `O agendamento de ${appointment.client?.name || 'Cliente'} para as ${format(new Date(appointment.date), 'HH:mm')} foi cancelado. O horário está liberado.`,
+                        type: 'cancellation',
+                        appointmentId: appointment.id
+                    });
+                }
             } else if (appointment.status === 'COMPLETED') {
                 await communicationService.sendThankYouMessage(appointment);
             }

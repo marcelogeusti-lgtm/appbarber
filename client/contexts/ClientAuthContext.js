@@ -156,6 +156,9 @@ export function ClientAuthProvider({ children }) {
         setIsLoginModalOpen(false);
         setIsRegisterModalOpen(false);
         setIsForgotPasswordModalOpen(false);
+        
+        // Redirect to home/dashboard after successful login
+        router.push('/home');
     };
 
     const logout = () => {

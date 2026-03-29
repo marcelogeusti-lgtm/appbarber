@@ -21,6 +21,7 @@ class PaymentService {
             description,
             barbershopId,
             userId,
+            clientId,
             appointmentId,
             orderId,
             customer,
@@ -54,6 +55,7 @@ class PaymentService {
                 status: 'PENDING',
                 amount: parseFloat(amount),
                 userId,
+                clientId,
                 appointmentId,
                 orderId,
                 barbershopId
@@ -129,6 +131,7 @@ class PaymentService {
             method: p.method,
             origin: 'ONLINE',
             appointmentId: p.appointmentId,
+            orderId: p.orderId,
             description: `Pagamento Online - Ref #${p.id.substring(0, 8)}`
         }).catch(err => console.error('[PaymentService] Transaction log failed:', err.message));
 

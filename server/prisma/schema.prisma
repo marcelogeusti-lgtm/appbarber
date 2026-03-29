@@ -13,6 +13,7 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
+  RECEPTIONIST
   BARBER
   BARBER_CONSULTA
   CLIENT
@@ -132,8 +133,19 @@ model Client {
 
   points    Int             @default(0)
   addresses ClientAddress[]
+  payments  Payment[]
 }
 
+// Phase 16: Credential Field Standardization [x]
+// - [x] Add `Client ID` and `Client Secret` fields to `PaymentSettings.js`
+// - [x] Update backend to prioritize `clientSecret` for webhook validation
+// - [x] Sync production environment with UI updates
+
+// Phase 17: Payment Foreign Key Fix [x]
+// - [x] Add `clientId` and `client` relation to `Payment` model in `schema.prisma`
+// - [x] Update `PaymentService` and `PaymentController` to distinguish between `User` (Staff) and `Client` (Customer)
+// - [x] Apply schema changes with `prisma db push`
+// - [x] Redeploy to Vercel and verify fix
 model GatewayCustomer {
   id       String @id @default(uuid())
   clientId String
@@ -480,6 +492,7 @@ model Service {
   professionals       Professional[]
 
   isFeatured Boolean @default(false)
+  imageUrl   String?
 }
 
 model Schedule {
@@ -841,6 +854,9 @@ model Payment {
 
   userId String? @map("user_id")
   user   User?   @relation(fields: [userId], references: [id])
+
+  clientId String? @map("client_id")
+  client   Client? @relation(fields: [clientId], references: [id])
 
   // Relations to context
   barbershopId String?     @map("barbershop_id")

@@ -27,7 +27,8 @@ exports.createPayment = async (req, res) => {
             description,
             gateway,
             barbershopId: finalBarbershopId,
-            userId,
+            userId: req.user.role !== 'CLIENT' ? userId : null,
+            clientId: req.user.role === 'CLIENT' ? userId : null,
             appointmentId,
             orderId
         });
@@ -62,29 +63,44 @@ exports.createPixPayment = async (req, res) => {
         const amount = Number(appointment.service.price);
         if (amount <= 0) return res.status(400).json({ error: 'Valor inválido para pagamento' });
 
-        const payerUser = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { authUser: true }
-        });
+        let customerData;
+        if (req.user.role === 'CLIENT') {
+            customerData = {
+                name: appointment.client.name || 'Cliente',
+                email: appointment.client.authUser?.email || appointment.client.email || 'email@naoinformado.com',
+                phone: appointment.client.phone || '00000000000',
+                document: (appointment.client.cpf || '').replace(/\D/g, ''),
+                identification: {
+                    type: 'CPF',
+                    number: (appointment.client.cpf || '').replace(/\D/g, '')
+                }
+            };
+        } else {
+            const payerUser = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { authUser: true }
+            });
 
-        const cpf = (payerUser?.cpf || payerUser?.document || '').replace(/\D/g, '');
-        const customerData = {
-            name: payerUser?.name || appointment.client.name || 'Cliente',
-            email: payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com',
-            phone: payerUser?.phone || appointment.client.phone || '00000000000',
-            document: cpf,
-            identification: {
-                type: 'CPF',
-                number: cpf
-            }
-        };
+            const cpf = (payerUser?.cpf || payerUser?.document || '').replace(/\D/g, '');
+            customerData = {
+                name: payerUser?.name || appointment.client.name || 'Cliente',
+                email: payerUser?.authUser?.email || payerUser?.email || appointment.client.authUser?.email || 'email@naoinformado.com',
+                phone: payerUser?.phone || appointment.client.phone || '00000000000',
+                document: cpf,
+                identification: {
+                    type: 'CPF',
+                    number: cpf
+                }
+            };
+        }
 
         const result = await PaymentService.createPayment({
             amount,
             method: 'PIX',
             description: `Agendamento #${appointment.id.slice(0, 8)} - ${appointment.service.name}`,
             barbershopId: appointment.barbershopId,
-            userId,
+            userId: req.user.role !== 'CLIENT' ? userId : null,
+            clientId: req.user.role === 'CLIENT' ? userId : null,
             appointmentId: appointment.id,
             customer: customerData
         });
@@ -126,7 +142,8 @@ exports.createCardPayment = async (req, res) => {
             method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
             description: `Agendamento #${appointment.id.slice(0, 8)}`,
             barbershopId: appointment.barbershopId,
-            userId,
+            userId: req.user.role !== 'CLIENT' ? userId : null,
+            clientId: req.user.role === 'CLIENT' ? userId : null,
             appointmentId: appointment.id,
             token,
             installments: installments || 1,
@@ -197,7 +214,8 @@ exports.createBrickPayment = async (req, res) => {
             method: payment_method_id === 'pix' ? 'PIX' : (payment_method_id?.includes('deb') ? 'DEBIT_CARD' : 'CREDIT_CARD'),
             description: description || 'Pagamento via Brick',
             barbershopId: finalBarbershopId,
-            userId: req.user.id,
+            userId: req.user.role !== 'CLIENT' ? req.user.id : null,
+            clientId: req.user.role === 'CLIENT' ? req.user.id : null,
             appointmentId,
             token,
             installments,

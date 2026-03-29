@@ -1,6 +1,20 @@
 const prisma = require('../lib/prisma');
 const { startOfDay, endOfDay, eachDayOfInterval, format } = require('date-fns');
 
+const parseBrazilianDate = (dateStr) => {
+    if (!dateStr) return null;
+    // If it's already an ISO string or YYYY-MM-DD
+    if (dateStr.includes('-')) return new Date(dateStr);
+    
+    // Handle DD/MM/YYYY
+    if (dateStr.includes('/')) {
+        const [day, month, year] = dateStr.split('/');
+        return new Date(`${year}-${month}-${day}T00:00:00`);
+    }
+    
+    return new Date(dateStr);
+};
+
 // Dashboard Financeiro Completo
 exports.getFinancialDashboard = async (req, res) => {
     try {
@@ -22,8 +36,8 @@ exports.getFinancialDashboard = async (req, res) => {
             // SUPER_ADMIN with no ID = Global View (empty where.barbershopId)
         }
 
-        const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1)); // Primeiro dia do mês
-        const end = endDate ? new Date(endDate) : new Date(); // Hoje
+        const start = parseBrazilianDate(startDate) || new Date(new Date().setDate(1)); // Primeiro dia do mês
+        const end = parseBrazilianDate(endDate) || new Date(); // Hoje
 
         // 1. Single Source of Truth for Finance: TRANSACTIONS
         const transactions = await prisma.transaction.findMany({
@@ -110,14 +124,20 @@ exports.getFinancialDashboard = async (req, res) => {
         const futureRevenue = futureAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
         const toReceive = totalOpenCommands + futureRevenue;
 
-        // --- BREAKDOWNS ---
+        // Dynamic breakdown of pending values
+        const toReceiveCash = openOrders
+            .filter(o => o.paymentMethod === 'MONEY' || o.paymentMethod === 'CASH')
+            .reduce((sum, o) => sum + (o.total || 0), 0);
         
-        // Note: 'toReceiveCash/Card/Pix' were previously hardcoded estimates (placebos).
-        // Removing them to ensure only real data is shown.
-        const toReceiveCash = 0;
-        const toReceiveCard = 0;
-        const toReceivePix = 0;
-
+        const toReceiveCard = openOrders
+            .filter(o => o.paymentMethod === 'CREDIT_CARD' || o.paymentMethod === 'DEBIT_CARD' || o.paymentMethod === 'CARD')
+            .reduce((sum, o) => sum + (o.total || 0), 0);
+        
+        const toReceivePix = openOrders
+            .filter(o => o.paymentMethod === 'PIX')
+            .reduce((sum, o) => sum + (o.total || 0), 0);
+        
+        const toReceiveOther = toReceive - (toReceiveCash + toReceiveCard + toReceivePix);
         // --- BREAKDOWNS ---
 
         // By Method
@@ -174,7 +194,8 @@ exports.getFinancialDashboard = async (req, res) => {
             toReceive,
             toReceiveCash,
             toReceiveCard,
-            toReceivePix
+            toReceivePix,
+            toReceiveOther
         });
     } catch (error) {
         console.error('Financial Dashboard Error:', error);
@@ -197,8 +218,8 @@ exports.getFinancialStats = async (req, res) => {
             }
         }
 
-        const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));
-        const end = endDate ? new Date(endDate) : new Date();
+        const start = parseBrazilianDate(startDate) || new Date(new Date().setDate(1));
+        const end = parseBrazilianDate(endDate) || new Date();
 
         const [orders, transactions] = await Promise.all([
             prisma.order.findMany({
@@ -262,6 +283,9 @@ exports.getFinancialStats = async (req, res) => {
                     gte: startOfDay(start),
                     lte: endOfDay(end)
                 }
+            },
+            include: {
+                barber: { select: { name: true } }
             }
         });
 
@@ -339,8 +363,8 @@ exports.getOwnerDashboard = async (req, res) => {
         let where = {};
         if (barbershopId) where.barbershopId = barbershopId;
 
-        const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));
-        const end = endDate ? new Date(endDate) : new Date();
+        const start = parseBrazilianDate(startDate) || new Date(new Date().setDate(1));
+        const end = parseBrazilianDate(endDate) || new Date();
 
         const [transactions, orders] = await Promise.all([
             prisma.transaction.findMany({
@@ -387,11 +411,18 @@ exports.getOwnerDashboard = async (req, res) => {
             proStock[id].revenue += Number(t.amount);
         });
 
-        // Commissions from Transactions (mapped to pros as expense)
-        transactions.filter(t => t.type === 'EXPENSE' && t.category === 'Comissão' && t.professionalId).forEach(t => {
-            const id = t.professionalId;
-            if (!proStock[id]) proStock[id] = { name: t.professional?.name || 'Desconhecido', revenue: 0, commission: 0 };
-            proStock[id].commission += Number(t.amount);
+        // Commissions from Commission Table (Pending/Paid)
+        const commissionRecordsForPro = await prisma.commission.findMany({
+            where: {
+                barbershopId,
+                createdAt: { gte: startOfDay(start), lte: endOfDay(end) }
+            }
+        });
+
+        commissionRecordsForPro.forEach(c => {
+            const id = c.barberId;
+            if (!proStock[id]) proStock[id] = { name: 'Profissional', revenue: 0, commission: 0 };
+            proStock[id].commission += Number(c.amount);
         });
 
         const rankingPro = Object.values(proStock).map(p => ({

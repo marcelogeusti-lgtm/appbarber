@@ -1,4 +1,3 @@
-const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
@@ -28,6 +27,7 @@ class WhatsAppProvider {
 
     async initialize() {
         try {
+            const { makeWASocket, useMultiFileAuthState, DisconnectReason } = await import('@whiskeysockets/baileys');
             const { state, saveCreds } = await useMultiFileAuthState(this.authDir);
 
             this.sock = makeWASocket({

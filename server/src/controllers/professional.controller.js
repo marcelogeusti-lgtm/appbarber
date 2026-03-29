@@ -157,7 +157,11 @@ exports.createProfessional = async (req, res) => {
             return null; // Return null instead of Invalid Date to prevent Prisma crash
         };
 
-        const hashedPassword = await bcrypt.hash(password || '123456', 10);
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'A senha é obrigatória e deve ter no mínimo 6 caracteres para novos profissionais.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const result = await prisma.$transaction(async (tx) => {
             // 1. Create AuthUser
@@ -189,6 +193,39 @@ exports.createProfessional = async (req, res) => {
             };
 
             const user = await tx.user.create({ data: userData });
+
+            // 3. Send Credentials Email
+            try {
+                const emailProvider = require('../services/communication/providers/EmailProvider');
+                const systemUrl = process.env.FRONTEND_URL || 'https://www.corteconexao.com.br';
+                
+                const subject = 'Seu acesso ao sistema da barbearia';
+                const html = `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                        <h2 style="color: #0f172a; text-transform: uppercase; font-weight: 900;">Olá, ${name}!</h2>
+                        <p style="color: #64748b;">Seu acesso ao sistema da barbearia foi criado com sucesso.</p>
+                        
+                        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                            <p style="margin: 0; font-weight: bold; color: #0f172a; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em;">Suas Credenciais:</p>
+                            <p style="margin: 10px 0 5px 0; color: #334155;"><strong>Usuário:</strong> ${normalizedEmail}</p>
+                            <p style="margin: 0; color: #334155;"><strong>Senha:</strong> ${password}</p>
+                        </div>
+                        
+                        <p style="color: #64748b;">Acesse o sistema pelo link abaixo:</p>
+                        <a href="${systemUrl}/login" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em;">Acessar Sistema</a>
+                        
+                        <p style="color: #ef4444; font-size: 11px; margin-top: 25px; font-weight: bold; text-transform: uppercase;">Importante: Por segurança, recomendamos que altere sua senha após o primeiro acesso.</p>
+                        
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+                        <p style="color: #94a3b8; font-size: 10px; text-align: center; text-transform: uppercase; font-weight: 800;">Equipe ${barbershop.name || 'Próxima Barbearia'}</p>
+                    </div>
+                `;
+                
+                await emailProvider.sendEmail(normalizedEmail, subject, html);
+            } catch (emailError) {
+                console.error('[ProfessionalController] Failed to send welcome email:', emailError.message);
+                // We don't fail the transaction if email fails, but we log it.
+            }
 
             // Prepare Commission
             let comPercent = 0;
@@ -258,7 +295,7 @@ exports.listProfessionals = async (req, res) => {
         const pros = await prisma.user.findMany({
             where: {
                 workedBarbershopId: barbershopId,
-                role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA'] },
+                role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA', 'RECEPTIONIST'] },
                 // removed active: true so admins can see inactive
             },
             include: {
@@ -403,7 +440,7 @@ exports.deleteProfessional = async (req, res) => {
             include: { professionalProfile: true }
         });
 
-        const allowedRoles = ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA'];
+        const allowedRoles = ['BARBER', 'ADMIN', 'SUPER_ADMIN', 'BARBER_CONSULTA', 'RECEPTIONIST'];
         if (!pro || !allowedRoles.includes(pro.role)) {
             return res.status(404).json({ message: 'Profissional não encontrado' });
         }

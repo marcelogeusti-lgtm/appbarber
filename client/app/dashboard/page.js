@@ -124,7 +124,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Top Cards Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 ${user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? 'lg:grid-cols-2' : ''} gap-6`}>
 
                 {/* Link Card */}
                 <div className="bg-card rounded-xl p-6 border border-border flex flex-col justify-center">
@@ -153,34 +153,38 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Today's Appointments Card */}
-                <div className="bg-card rounded-xl p-6 border border-border flex flex-col items-center justify-center text-center relative overflow-hidden">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Atendimentos Hoje</span>
-                    <h2 className="text-5xl font-bold text-foreground mb-2">{stats.appointments}</h2>
-                    <div className="bg-primary/5 text-primary border border-primary/10 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider">
-                        Atendimento Dinâmico
+                {/* Today's Appointments Card (Hidden for non-admins to keep revenue private) */}
+                {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                    <div className="bg-card rounded-xl p-6 border border-border flex flex-col items-center justify-center text-center relative overflow-hidden">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Atendimentos Hoje</span>
+                        <h2 className="text-5xl font-bold text-foreground mb-2">{stats.appointments}</h2>
+                        <div className="bg-primary/5 text-primary border border-primary/10 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider">
+                            Atendimento Dinâmico
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Metrics Row - ONLY FOR ADMINS */}
+            {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Historical Performance */}
+                    <div className="bg-card rounded-xl p-6 border border-border relative overflow-hidden">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Performance Histórica</span>
+                        <h3 className="text-3xl font-bold text-foreground mb-1">
+                            {stats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </h3>
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Faturamento Hoje</p>
+                    </div>
+
+                    {/* Community Metric */}
+                    <div className="bg-card rounded-xl p-6 border border-border">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Nossa Comunidade</span>
+                        <h3 className="text-3xl font-bold text-foreground mb-1">{stats.clients}</h3>
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Clientes Cadastrados</p>
                     </div>
                 </div>
-            </div>
-
-            {/* Metrics Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Historical Performance */}
-                <div className="bg-card rounded-xl p-6 border border-border relative overflow-hidden">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Performance Histórica</span>
-                    <h3 className="text-3xl font-bold text-foreground mb-1">
-                        {stats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Faturamento Hoje</p>
-                </div>
-
-                {/* Community Metric */}
-                <div className="bg-card rounded-xl p-6 border border-border">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Nossa Comunidade</span>
-                    <h3 className="text-3xl font-bold text-foreground mb-1">{stats.clients}</h3>
-                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Clientes Cadastrados</p>
-                </div>
-            </div>
+            )}
 
             {/* Premium Experience Banner */}
             <div className="bg-card rounded-xl p-8 border border-border relative overflow-hidden">

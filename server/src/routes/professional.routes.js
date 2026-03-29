@@ -6,10 +6,13 @@ const { checkSubscription } = require('../middlewares/subscription.middleware');
 const router = express.Router();
 
 router.put('/schedule', protect, authorize('BARBER', 'ADMIN'), checkSubscription, updateSchedule);
-router.get('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, listProfessionals);
-router.post('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, createProfessional);
-router.put('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, updateProfessional);
-router.delete('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, deleteProfessional); // New Delete Route
-router.get('/:userId', getProfessional);
+router.route('/')
+    .get(protect, authorize('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'), checkSubscription, listProfessionals)
+    .post(protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, createProfessional);
+
+router.route('/:id')
+    .get(protect, authorize('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'BARBER'), checkSubscription, getProfessional)
+    .patch(protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, updateProfessional)
+    .delete(protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, deleteProfessional);
 
 module.exports = router;

@@ -6,14 +6,22 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useSocket } from '../contexts/SocketContext';
 import { useClientAuth } from '../contexts/ClientAuthContext';
+import { useRouter } from 'next/navigation';
+import AppointmentDetailsModal from './AppointmentDetailsModal';
+import { Loader2 } from 'lucide-react';
 
-export default function NotificationCenter() {
-    const { user } = useClientAuth();
+export default function NotificationCenter({ user: propUser }) {
+    const { user: clientAuthUser } = useClientAuth();
+    const user = propUser || clientAuthUser;
+    const router = useRouter();
     const socket = useSocket();
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [viewingAppointment, setViewingAppointment] = useState(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const containerRef = useRef(null);
 
     const fetchNotifications = async () => {
@@ -78,11 +86,59 @@ export default function NotificationCenter() {
 
     const markAllAsRead = async () => {
         try {
-            await api.patch(`/notifications/read-all`);
+            await api.patch('/notifications/read-all');
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const handleNotificationClick = async (notification) => {
+        if (!notification.isRead) {
+            markAsRead(notification.id);
+        }
+
+        setIsOpen(false);
+
+        // STRIKE Context Isolation: Identify if we are in Dashboard or Client Site
+        const isInDashboard = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard');
+        const isProfessional = (propUser?.role && propUser.role !== 'CLIENT') || (isInDashboard);
+
+        // 1. Appointment Notifications -> Expansion (Priority)
+        if (notification.appointmentId) {
+            try {
+                setIsLoadingDetails(true);
+                const res = await api.get(`/appointments/${notification.appointmentId}`);
+                if (res.data) {
+                    setViewingAppointment(res.data);
+                    setIsDetailsModalOpen(true);
+                }
+                return; // STOP: We handle appointments via modal only
+            } catch (err) {
+                console.error('Error fetching appointment details:', err);
+                // Fallback: If it's a Pro and fetch fails, maybe attempt redirect if really needed, 
+                // but user said NO redirect, so just alert.
+                alert('Não foi possível carregar os detalhes do agendamento.');
+                return;
+            } finally {
+                setIsLoadingDetails(false);
+            }
+        } 
+        
+        // 2. Payment/Order Notifications -> Context-aware Redirection
+        if (notification.type === 'payment_confirmed' || notification.type === 'order_confirmed') {
+            if (isProfessional) {
+                router.push('/dashboard/finance');
+            } else {
+                router.push('/agendamentos');
+            }
+            return;
+        }
+
+        // 3. Fallback for other types
+        if (!isProfessional && notification.type === 'system') {
+            router.push('/home');
         }
     };
 
@@ -122,14 +178,15 @@ export default function NotificationCenter() {
                                 {notifications.map(n => (
                                     <div
                                         key={n.id}
-                                        className={`p-4 hover:bg-slate-800/20 transition flex gap-3 ${!n.isRead ? 'bg-slate-800/10' : ''}`}
+                                        onClick={() => handleNotificationClick(n)}
+                                        className={`p-4 hover:bg-slate-800/40 transition flex gap-3 cursor-pointer group ${!n.isRead ? 'bg-slate-800/20 border-l-2 border-emerald-500' : ''}`}
                                     >
                                         <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!n.isRead ? 'bg-emerald-500' : 'bg-transparent'}`}></div>
                                         <div className="flex-1 space-y-1">
-                                            <p className={`text-xs ${!n.isRead ? 'text-white font-bold' : 'text-slate-400'}`}>
+                                            <p className={`text-xs ${!n.isRead ? 'text-white font-bold' : 'text-slate-400 group-hover:text-slate-200'}`}>
                                                 {n.title}
                                             </p>
-                                            <p className="text-[10px] text-slate-500 leading-relaxed">
+                                            <p className="text-[10px] text-slate-500 leading-relaxed group-hover:text-slate-400">
                                                 {n.message}
                                             </p>
                                             <p className="text-[9px] text-slate-600 uppercase font-black tracking-widest">
@@ -138,8 +195,11 @@ export default function NotificationCenter() {
                                         </div>
                                         {!n.isRead && (
                                             <button
-                                                onClick={() => markAsRead(n.id)}
-                                                className="text-slate-600 hover:text-emerald-500 self-start"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    markAsRead(n.id);
+                                                }}
+                                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-600 hover:text-emerald-500 transition-all self-start"
                                                 title="Marcar como lida"
                                             >
                                                 <Check className="w-4 h-4" />
@@ -155,6 +215,43 @@ export default function NotificationCenter() {
                         <button className="text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-white transition-colors">
                             Ver Histórico Completo
                         </button>
+                    </div>
+                </div>
+            )}
+            {isDetailsModalOpen && (
+                <AppointmentDetailsModal
+                    isOpen={isDetailsModalOpen}
+                    onClose={() => {
+                        setIsDetailsModalOpen(false);
+                        setViewingAppointment(null);
+                    }}
+                    appointment={viewingAppointment}
+                    onEdit={() => {
+                        setIsDetailsModalOpen(false);
+                        router.push(`/dashboard/appointments?id=${viewingAppointment.id}`);
+                    }}
+                    onComplete={async (id, method) => {
+                        try {
+                            await api.patch(`/appointments/${id}/status`, { 
+                                status: 'COMPLETED',
+                                paymentMethod: method
+                            });
+                            setIsDetailsModalOpen(false);
+                            fetchNotifications();
+                            alert('Atendimento finalizado com sucesso!');
+                        } catch (err) {
+                            alert('Erro ao finalizar atendimento');
+                        }
+                    }}
+                    onRefresh={fetchNotifications}
+                />
+            )}
+
+            {isLoadingDetails && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-[#111827] p-8 rounded-3xl border border-slate-800 flex flex-col items-center gap-4">
+                        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Carregando detalhes...</p>
                     </div>
                 </div>
             )}

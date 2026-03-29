@@ -9,7 +9,7 @@ export default function ServicesPage() {
     const queryClient = useQueryClient();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] });
+    const [formData, setFormData] = useState({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [], imageUrl: '', isFeatured: false });
     // User state for query dependency
     const [user, setUser] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
@@ -64,6 +64,7 @@ export default function ServicesPage() {
                 commissionType: formData.commissionType,
                 commissionValue: formData.commissionValue ? parseFloat(formData.commissionValue) : 0,
                 isFeatured: formData.isFeatured,
+                imageUrl: formData.imageUrl,
                 overrides: formData.overrides,
                 barbershopId
             };
@@ -74,7 +75,7 @@ export default function ServicesPage() {
                 await api.post('/services', payload);
             }
 
-            setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', isFeatured: false, overrides: [] });
+            setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', isFeatured: false, overrides: [], imageUrl: '' });
             setIsAdding(false);
             setEditingId(null);
 
@@ -101,6 +102,7 @@ export default function ServicesPage() {
             commissionType: service.commissionType || 'PERCENTAGE',
             commissionValue: service.commissionValue || '',
             isFeatured: service.isFeatured || false,
+            imageUrl: service.imageUrl || '',
             overrides
         });
         setEditingId(service.id);
@@ -169,7 +171,7 @@ export default function ServicesPage() {
                         <h2 className="text-xl font-bold uppercase tracking-wider text-foreground">
                             {editingId ? 'Editar Serviço' : 'Novo Serviço'}
                         </h2>
-                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [] }); }} className="text-muted-foreground hover:text-destructive transition">
+                        <button onClick={() => { setIsAdding(false); setEditingId(null); setFormData({ name: '', price: '', duration: '', description: '', commissionType: 'PERCENTAGE', commissionValue: '', overrides: [], imageUrl: '', isFeatured: false }); }} className="text-muted-foreground hover:text-destructive transition">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
@@ -214,6 +216,39 @@ export default function ServicesPage() {
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition"
                             />
+                        </div>
+
+                        {/* Image Section */}
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Imagem do Serviço (URL ou Upload)</label>
+                            <div className="flex gap-2">
+                                <input
+                                    placeholder="URL da imagem (https://...)"
+                                    value={formData.imageUrl || ''}
+                                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                                    className="flex-1 p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition text-xs"
+                                />
+                                <label className="cursor-pointer bg-muted border border-border hover:bg-muted/80 text-muted-foreground px-4 py-4 rounded-xl flex items-center justify-center transition">
+                                    <span className="text-[10px] font-black uppercase">Upload</span>
+                                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            if (file.size > 500000) return alert('Imagem muito grande! Máx 500kb');
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                setFormData({ ...formData, imageUrl: reader.result });
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }} />
+                                </label>
+                            </div>
+                            {formData.imageUrl && (
+                                <div className="mt-2 h-20 w-20 rounded-xl bg-muted overflow-hidden border border-border relative group">
+                                    <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <button type="button" onClick={() => setFormData({ ...formData, imageUrl: '' })} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"><Trash2 className="w-3 h-3" /></button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Featured Toggle */}
@@ -317,14 +352,23 @@ export default function ServicesPage() {
                 {services.map(service => (
                     <div key={service.id} className="bg-card p-8 rounded-[2rem] border border-border hover:border-primary/50 transition-all group relative">
                         <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 className="font-black text-xl text-foreground uppercase tracking-tight group-hover:text-primary transition-colors">{service.name}</h3>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-1">
-                                    <Clock className="w-3 h-3" /> {service.duration} MINUTOS
-                                </p>
-                            </div>
-                            <div className="text-xl font-black text-primary bg-primary/10 px-4 py-2 rounded-2xl border border-primary/20">
-                                R$ {service.price}
+                            <div className="flex items-center gap-4">
+                                <div className="p-4 bg-muted rounded-2xl border border-border overflow-hidden w-16 h-16 flex items-center justify-center">
+                                    {service.imageUrl ? (
+                                        <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Scissors className="w-8 h-8 text-primary" />
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-black text-xl text-foreground uppercase tracking-tight group-hover:text-primary transition-colors">{service.name}</h3>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-1">
+                                        <Clock className="w-3 h-3" /> {service.duration} MINUTOS
+                                    </p>
+                                </div>
+                                <div className="text-xl font-black text-primary bg-primary/10 px-4 py-2 rounded-2xl border border-primary/20">
+                                    R$ {service.price}
+                                </div>
                             </div>
                         </div>
 

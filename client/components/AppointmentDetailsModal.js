@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react';
 import { X, Calendar, User, Scissors, Clock, FileText, Pencil, CheckCircle, DollarSign, CreditCard, Zap } from 'lucide-react';
 import { format } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
+import { useClientAuth } from '../contexts/ClientAuthContext';
+import api from '../lib/api';
+import { XCircle, Loader2 } from 'lucide-react';
 
 export default function AppointmentDetailsModal({
     isOpen,
     onClose,
     appointment,
     onEdit,
-    onComplete
+    onComplete,
+    onRefresh // Callback to refresh parent data if needed
 }) {
+    const { user } = useClientAuth();
     const [showPaymentSelector, setShowPaymentSelector] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
+    
+    const isProfessional = user?.role !== 'CLIENT';
 
     useEffect(() => {
         if (isOpen) setShowPaymentSelector(false);
@@ -29,6 +38,23 @@ export default function AppointmentDetailsModal({
     const handlePaymentSelect = (method) => {
         // Here we could implement more complex logic like entering amount, but for now strict strict to just method selection as requested for flow
         onComplete(appointment.id, method);
+    };
+
+    const handleCancel = async () => {
+        if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
+        
+        setIsCancelling(true);
+        try {
+            await api.patch(`/appointments/${appointment.id}/status`, { status: 'CANCELLED' });
+            alert('Agendamento cancelado com sucesso.');
+            if (onRefresh) onRefresh();
+            onClose();
+        } catch (error) {
+            console.error('Error cancelling:', error);
+            alert('Erro ao cancelar agendamento: ' + (error.response?.data?.message || 'Erro interno'));
+        } finally {
+            setIsCancelling(false);
+        }
     };
 
     if (!isOpen || !appointment) return null;
@@ -50,13 +76,15 @@ export default function AppointmentDetailsModal({
                         Detalhes do Agendamento
                     </h2>
                     <div className="flex gap-2">
-                        <button
-                            onClick={onEdit}
-                            className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
-                            title="Editar"
-                        >
-                            <Pencil className="w-5 h-5" />
-                        </button>
+                        {isProfessional && onEdit && (
+                            <button
+                                onClick={onEdit}
+                                className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
+                                title="Editar"
+                            >
+                                <Pencil className="w-5 h-5" />
+                            </button>
+                        )}
                         <button
                             onClick={onClose}
                             className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
@@ -145,35 +173,46 @@ export default function AppointmentDetailsModal({
                     {/* Actions Footer - Finalization Flow */}
                     {(appointment.status === 'CONFIRMED' || appointment.status === 'PENDING' || appointment.status === 'SCHEDULED') && (
                         <div className="pt-4 mt-2 border-t border-slate-800">
-                            {!showPaymentSelector ? (
-                                <button
-                                    onClick={handleFinishClick}
-                                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
-                                >
-                                    <CheckCircle className="w-5 h-5" />
-                                    Finalizar Atendimento
-                                </button>
+                            {isProfessional ? (
+                                !showPaymentSelector ? (
+                                    <button
+                                        onClick={handleFinishClick}
+                                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle className="w-5 h-5" />
+                                        Finalizar Atendimento
+                                    </button>
+                                ) : (
+                                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Selecione o Pagamento</p>
+                                            <button onClick={() => setShowPaymentSelector(false)} className="text-[10px] text-red-400 hover:text-red-300 uppercase font-black">Cancelar</button>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <button onClick={() => handlePaymentSelect('CASH')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
+                                                <DollarSign className="w-6 h-6 text-emerald-500" />
+                                                <span className="text-[9px] font-bold uppercase text-slate-300">Dinheiro</span>
+                                            </button>
+                                            <button onClick={() => handlePaymentSelect('PIX')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
+                                                <Zap className="w-6 h-6 text-emerald-500" />
+                                                <span className="text-[9px] font-bold uppercase text-slate-300">Pix</span>
+                                            </button>
+                                            <button onClick={() => handlePaymentSelect('CREDIT_CARD')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
+                                                <CreditCard className="w-6 h-6 text-emerald-500" />
+                                                <span className="text-[9px] font-bold uppercase text-slate-300">Cartão</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )
                             ) : (
-                                <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Selecione o Pagamento</p>
-                                        <button onClick={() => setShowPaymentSelector(false)} className="text-[10px] text-red-400 hover:text-red-300 uppercase font-black">Cancelar</button>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <button onClick={() => handlePaymentSelect('CASH')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
-                                            <DollarSign className="w-6 h-6 text-emerald-500" />
-                                            <span className="text-[9px] font-bold uppercase text-slate-300">Dinheiro</span>
-                                        </button>
-                                        <button onClick={() => handlePaymentSelect('PIX')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
-                                            <Zap className="w-6 h-6 text-emerald-500" />
-                                            <span className="text-[9px] font-bold uppercase text-slate-300">Pix</span>
-                                        </button>
-                                        <button onClick={() => handlePaymentSelect('CREDIT_CARD')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
-                                            <CreditCard className="w-6 h-6 text-emerald-500" />
-                                            <span className="text-[9px] font-bold uppercase text-slate-300">Cartão</span>
-                                        </button>
-                                    </div>
-                                </div>
+                                <button
+                                    onClick={handleCancel}
+                                    disabled={isCancelling}
+                                    className="w-full py-4 rounded-2xl border border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {isCancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                    Cancelar Agendamento
+                                </button>
                             )}
                         </div>
                     )}

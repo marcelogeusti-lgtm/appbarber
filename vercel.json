@@ -1,6 +1,0 @@
-{
-    "version": 2,
-    "buildCommand": "if [ -d \"client\" ]; then cd client && npm run build; else npm run build; fi",
-    "outputDirectory": ".next",
-    "installCommand": "if [ -d \"client\" ]; then cd client && npm install; else npm install; fi"
-}

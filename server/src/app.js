@@ -28,11 +28,12 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Health Check
-app.get('/', (req, res) => {
+app.get(['/', '/api'], (req, res) => {
     res.json({
-        message: 'AppBarber Cloud API is running',
+        message: 'AppBarber Cloud API is running (Unified)',
         version: '1.0.0',
-        timestamp: new Date()
+        timestamp: new Date(),
+        v: 2
     });
 });
 

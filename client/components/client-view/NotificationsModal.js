@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { X, Search, Bell, Check, Loader2, Calendar } from 'lucide-react';
 import clientApi from '../../lib/clientApi';
 import { useRouter } from 'next/navigation';
+import AppointmentDetailsModal from '../AppointmentDetailsModal';
+import api from '../../lib/api';
 
 export default function NotificationsModal({ isOpen, onClose }) {
     const router = useRouter();
@@ -11,6 +13,9 @@ export default function NotificationsModal({ isOpen, onClose }) {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(false);
     const [markingAll, setMarkingAll] = useState(false);
+    const [viewingAppointment, setViewingAppointment] = useState(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
     const fetchNotifications = async () => {
         if (!isOpen) return;
@@ -36,9 +41,22 @@ export default function NotificationsModal({ isOpen, onClose }) {
             await clientApi.patch(`notifications/${id}/read`);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
 
-            // Redirect if linked to appointment
-            onClose();
-            router.push('/home');
+            // If it's an appointment, show details instead of redirecting
+            if (appointmentId) {
+                try {
+                    setIsLoadingDetails(true);
+                    const res = await api.get(`/appointments/${appointmentId}`);
+                    if (res.data) {
+                        setViewingAppointment(res.data);
+                        setIsDetailsModalOpen(true);
+                    }
+                } catch (err) {
+                    console.error('Error fetching appointment:', err);
+                    alert('Não foi possível carregar os detalhes do agendamento.');
+                } finally {
+                    setIsLoadingDetails(false);
+                }
+            }
         } catch (error) {
             console.error('Error marking as read:', error);
         }
@@ -179,6 +197,27 @@ export default function NotificationsModal({ isOpen, onClose }) {
                     )}
                 </div>
             </div>
+
+            {isDetailsModalOpen && (
+                <AppointmentDetailsModal
+                    isOpen={isDetailsModalOpen}
+                    onClose={() => {
+                        setIsDetailsModalOpen(false);
+                        setViewingAppointment(null);
+                    }}
+                    appointment={viewingAppointment}
+                    onRefresh={fetchNotifications}
+                />
+            )}
+
+            {isLoadingDetails && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-[#111] p-8 rounded-3xl border border-white/5 flex flex-col items-center gap-4">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Carregando detalhes...</p>
+                    </div>
+                </div>
+            )}
 
             <style jsx>{`
                 .custom-scrollbar::-webkit-scrollbar {

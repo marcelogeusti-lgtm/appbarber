@@ -1,20 +1,29 @@
 const prisma = require('../lib/prisma');
 const { startOfDay, endOfDay } = require('date-fns');
 
+const parseBrazilianDate = (dateStr) => {
+    if (!dateStr) return null;
+    if (dateStr.includes('-')) return new Date(dateStr);
+    if (dateStr.includes('/')) {
+        const [day, month, year] = dateStr.split('/');
+        return new Date(`${year}-${month}-${day}T00:00:00`);
+    }
+    return new Date(dateStr);
+};
+
 // Relatório de Comissões por Barbeiro
 exports.getCommissionsReport = async (req, res) => {
     try {
         const { barbershopId, startDate, endDate } = req.query;
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
-        const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));
-        const end = endDate ? new Date(endDate) : new Date();
+        const start = parseBrazilianDate(startDate) || new Date(new Date().setDate(1));
+        const end = parseBrazilianDate(endDate) || new Date();
 
-        // Buscar todos os barbeiros da barbearia
+        // Buscar todos os colaboradores da barbearia (independente de role, se estiverem vinculados ao shop)
         const barbers = await prisma.user.findMany({
             where: {
-                workedBarbershopId: barbershopId,
-                role: 'BARBER'
+                workedBarbershopId: barbershopId
             },
             select: {
                 id: true,
@@ -73,9 +82,13 @@ exports.getCommissionsReport = async (req, res) => {
             // Total de serviços
             const aptServices = barberAppointments.reduce((sum, apt) => sum + Number(apt.service.price), 0);
             const ordServices = barberOrders.reduce((sum, ord) => {
-                return sum + ord.items.filter(i => i.type === 'SERVICE').reduce((s, i) => s + i.total, 0);
+                const items = ord.items || [];
+                return sum + items.filter(i => i.type === 'SERVICE').reduce((s, i) => s + i.total, 0);
             }, 0);
             const totalServices = aptServices + ordServices;
+            
+            // Note: Volume Bruto (Gross) usually refers to totalSales in this context
+            const totalGrossVolume = totalSales;
 
             // Fetch stored commissions for this barber
             const barberCommissions = commissions.filter(c => c.barberId === barber.id);
@@ -123,6 +136,7 @@ exports.getCommissionsReport = async (req, res) => {
                 appointmentCount: barberAppointments.length,
                 totalSales,
                 totalServices,
+                totalGrossVolume,
                 serviceCommission,
                 productCommission,
                 subscriptionCommission,
