@@ -3,16 +3,44 @@ const saasPlans = require('../config/saasPlans');
 const { generateUniqueSlug, slugify } = require('../utils/slugGenerator');
 const { geocodeAddress } = require('../utils/geocoder');
 
+// Helper: Unified Sorting Logic for Barbershops
+function sortBarbershopsByRatingAndAge(barbershops) {
+    return barbershops.sort((a, b) => {
+        // Priority 1: Has Reviews > No Reviews
+        if (a.hasRealReviews && !b.hasRealReviews) return -1;
+        if (!a.hasRealReviews && b.hasRealReviews) return 1;
+
+        if (a.hasRealReviews && b.hasRealReviews) {
+            // Priority 2: Sort by Avg Rating (DESC)
+            if (b.averageRating !== a.averageRating) {
+                return b.averageRating - a.averageRating;
+            }
+            // Tie-breaker: Total Reviews count (DESC)
+            return b.totalReviews - a.totalReviews;
+        }
+
+        // Priority 3: No reviews - Created Date (ASC - Older first)
+        return new Date(a.createdAt) - new Date(b.createdAt);
+    });
+}
+
 // Public: Search Barbershops
 const searchBarbershops = async (req, res) => {
     try {
         const { term, type, city, lat, lng } = req.query; // type: NAME, CITY, NEARBY
+        const userLat = lat ? parseFloat(lat) : null;
+        const userLng = lng ? parseFloat(lng) : null;
 
-        // Base Query
-        let where = {};
+        let where = { subscriptionStatus: { in: ['ACTIVE', 'TRIAL'] } };
 
-        // 1. Text Search (Name, Commercial Name, Slug, or Address)
-        if (term) {
+        // 1. Types of Search Filters
+        if (type === 'CITY' || city) {
+            const cityTerm = term || city;
+            where.OR = [
+                { city: { contains: cityTerm, mode: 'insensitive' } },
+                { address: { contains: cityTerm, mode: 'insensitive' } }
+            ];
+        } else if (term) {
             where.OR = [
                 { name: { contains: term, mode: 'insensitive' } },
                 { commercialName: { contains: term, mode: 'insensitive' } },
@@ -21,25 +49,7 @@ const searchBarbershops = async (req, res) => {
             ];
         }
 
-        // 2. City Filter
-        // If type is CITY or if explicit city param is provided
-        if ((type === 'CITY' && term) || city) {
-            const cityTerm = term || city;
-            where.OR = [
-                { city: { contains: cityTerm, mode: 'insensitive' } },
-                { address: { contains: cityTerm, mode: 'insensitive' } }
-            ];
-        }
-
-        // 3. Nearby Logic (Simplified for SQLite/Postgres without spatial extension)
-        // If we have lat/lng, we fetch candidates and filter/sort in JS, 
-        // OR better: if Prisma + Postgres + PostGIS is not available, we can't do ST_Distance easily in standard Prisma.
-        // We will fetch limited results and sort in memory if needed, or rely on client sorting.
-        // For 'NEARBY' without lat/lng, we can't do much.
-
-        // Allow both ACTIVE and TRIAL barbershops in public search
-        where.subscriptionStatus = { in: ['ACTIVE', 'TRIAL'] };
-
+        // 2. Fetch all matching candidates (no premature limit to handle geolocation correctly)
         const barbershops = await prisma.barbershop.findMany({
             where,
             select: {
@@ -50,16 +60,16 @@ const searchBarbershops = async (req, res) => {
                 logoUrl: true,
                 latitude: true,
                 longitude: true,
+                createdAt: true,
                 services: {
                     take: 1,
                     where: { active: true },
                     select: { id: true, name: true, price: true }
                 }
-            },
-            take: 24
+            }
         });
 
-        // Optimization: Fetch ratings in a separate aggregated query to avoid overhead of many review records
+        // 3. Fetch aggregated ratings
         const shopIds = barbershops.map(s => s.id);
         const ratingsData = await prisma.review.groupBy({
             by: ['barbershopId'],
@@ -70,37 +80,43 @@ const searchBarbershops = async (req, res) => {
 
         const ratingsMap = ratingsData.reduce((acc, curr) => {
             acc[curr.barbershopId] = {
-                avg: curr._avg.rating?.toFixed(1) || "5.0",
+                avg: curr._avg.rating || 0,
                 count: curr._count.rating || 0
             };
             return acc;
         }, {});
 
-        // Post-processing for Distance and Reviews
-        let results = barbershops.map(shop => {
+        // 4. Map Distance & Ratings
+        let processedShops = barbershops.map(shop => {
             let distance = null;
-            if (lat && lng && shop.latitude && shop.longitude) {
-                distance = calculateDistance(parseFloat(lat), parseFloat(lng), shop.latitude, shop.longitude);
+            if (userLat && userLng && shop.latitude && shop.longitude) {
+                distance = calculateDistance(userLat, userLng, shop.latitude, shop.longitude);
             }
 
-            const ratingInfo = ratingsMap[shop.id] || { avg: "5.0", count: 0 };
+            const ratingInfo = ratingsMap[shop.id] || { avg: 0, count: 0 };
 
             return {
                 ...shop,
                 distance,
                 averageRating: ratingInfo.avg,
-                totalReviews: ratingInfo.count
+                totalReviews: ratingInfo.count,
+                hasRealReviews: ratingInfo.count > 0
             };
         });
 
-        // 4. Sort by Distance if 'NEARBY'
-        if (type === 'NEARBY' && lat && lng) {
-            results.sort((a, b) => {
-                if (a.distance === null) return 1;
-                if (b.distance === null) return -1;
-                return a.distance - b.distance;
-            });
+        // 5. Restrict Distance (Only if explicitly NEARBY)
+        if (type === 'NEARBY' && userLat && userLng) {
+            processedShops = processedShops.filter(shop => shop.distance !== null && shop.distance <= 15);
         }
+
+        // 6. Sort unified
+        processedShops = sortBarbershopsByRatingAndAge(processedShops);
+
+        // 7. Format string ratings and Limit Data payload
+        const results = processedShops.slice(0, 50).map(shop => ({
+            ...shop,
+            averageRating: shop.hasRealReviews ? shop.averageRating.toFixed(1) : null
+        }));
 
         res.json(results);
     } catch (error) {
@@ -116,7 +132,6 @@ const getRecommendedBarbershops = async (req, res) => {
         const userLat = lat ? parseFloat(lat) : null;
         const userLng = lng ? parseFloat(lng) : null;
 
-        // 1. Fetch all active/trial shops with basic data and creation date
         const barbershops = await prisma.barbershop.findMany({
             where: { subscriptionStatus: { in: ['ACTIVE', 'TRIAL'] } },
             select: {
@@ -127,11 +142,15 @@ const getRecommendedBarbershops = async (req, res) => {
                 logoUrl: true,
                 latitude: true,
                 longitude: true,
-                createdAt: true
+                createdAt: true,
+                services: {
+                    take: 1,
+                    where: { active: true },
+                    select: { id: true, name: true, price: true }
+                }
             }
         });
 
-        // 2. Fetch ratings stats for sorting
         const ratingsData = await prisma.review.groupBy({
             by: ['barbershopId'],
             _avg: { rating: true },
@@ -146,7 +165,6 @@ const getRecommendedBarbershops = async (req, res) => {
             return acc;
         }, {});
 
-        // 3. Filter by distance (15km) and prepare for sorting
         let recommended = barbershops.map(shop => {
             let distance = null;
             if (userLat && userLng && shop.latitude && shop.longitude) {
@@ -164,57 +182,18 @@ const getRecommendedBarbershops = async (req, res) => {
             };
         });
 
-        // Apply 15km filter if location is available
-        let filteredRecommended = [...recommended];
-        let usingFallback = false;
-
+        // Strict Radius filtering - completely remove fallback logic
         if (userLat && userLng) {
-            filteredRecommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
-
-            // Fallback: If strict 15km filtering yields 0 results, show top global recommendations instead of empty list
-            if (filteredRecommended.length === 0) {
-                filteredRecommended = [...recommended];
-                usingFallback = true;
-            }
+            recommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
         }
 
-        // 4. Sorting Logic
-        filteredRecommended.sort((a, b) => {
-            // Priority 1: Proximity (if location is provided)
-            if (userLat && userLng) {
-                if (a.distance !== null && b.distance !== null) {
-                    if (a.distance !== b.distance) {
-                        return a.distance - b.distance; // Ascending distance
-                    }
-                } else if (a.distance !== null) {
-                    return -1;
-                } else if (b.distance !== null) {
-                    return 1;
-                }
-            }
+        // Unified Sorting
+        recommended = sortBarbershopsByRatingAndAge(recommended);
 
-            // Priority 2: Real Ratings
-            if (a.hasRealReviews && !b.hasRealReviews) return -1;
-            if (!a.hasRealReviews && b.hasRealReviews) return 1;
-
-            if (a.hasRealReviews && b.hasRealReviews) {
-                // Both have reviews: Sort by Avg Rating (DESC)
-                if (b.averageRating !== a.averageRating) {
-                    return b.averageRating - a.averageRating;
-                }
-                // Tie-breaker: Total Reviews count (DESC)
-                return b.totalReviews - a.totalReviews;
-            }
-
-            // Priority 3: No reviews - Created Date (ASC - Older first)
-            return new Date(a.createdAt) - new Date(b.createdAt);
-        });
-
-        // Limit to 10
-        const finalResults = filteredRecommended.slice(0, 10).map(shop => ({
+        const finalResults = recommended.slice(0, 10).map(shop => ({
             ...shop,
             averageRating: shop.hasRealReviews ? shop.averageRating.toFixed(1) : null,
-            usingFallback // Add flag to let frontend know
+            usingFallback: false // Deprecated concept, setting to false explicitly
         }));
 
         res.json(finalResults);
