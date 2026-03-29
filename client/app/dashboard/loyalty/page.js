@@ -73,7 +73,7 @@ export default function LoyaltyPage() {
         <div className="space-y-8 pb-20">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <Crown className="w-8 h-8" />
                     </div>
                     <div>
@@ -85,7 +85,7 @@ export default function LoyaltyPage() {
 
             <form onSubmit={handleSubmit} className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl relative overflow-hidden">
                 {status === 'success' && (
-                    <div className="absolute top-0 left-0 right-0 bg-emerald-500 text-white p-2 text-center text-xs font-black uppercase tracking-widest animate-in slide-in-from-top">
+                    <div className="absolute top-0 left-0 right-0 bg-primary text-white p-2 text-center text-xs font-black uppercase tracking-widest animate-in slide-in-from-top">
                         Configurações salvas com sucesso!
                     </div>
                 )}
@@ -110,7 +110,7 @@ export default function LoyaltyPage() {
                                 onChange={e => setFormData({ ...formData, active: e.target.checked })}
                                 className="sr-only peer"
                             />
-                            <div className="w-14 h-7 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
+                            <div className="w-14 h-7 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                     </div>
 
@@ -123,7 +123,7 @@ export default function LoyaltyPage() {
                             type="number" step="0.1" min="0.1"
                             value={formData.pointsPerReal}
                             onChange={e => setFormData({ ...formData, pointsPerReal: parseFloat(e.target.value) })}
-                            className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-foreground text-lg"
+                            className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground text-lg"
                         />
                         <p className="text-[10px] text-muted-foreground pl-1">Ex: 1.0 (Gasta R$ 50, ganha 50 pts)</p>
                     </div>
@@ -137,7 +137,7 @@ export default function LoyaltyPage() {
                             type="number" step="1" min="10"
                             value={formData.minPointsToRedeem}
                             onChange={e => setFormData({ ...formData, minPointsToRedeem: parseInt(e.target.value) })}
-                            className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-foreground text-lg"
+                            className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground text-lg"
                         />
                         <p className="text-[10px] text-muted-foreground pl-1">Ex: 100 pontos para completar a barra.</p>
                     </div>
@@ -149,7 +149,7 @@ export default function LoyaltyPage() {
                             value={formData.rewardDescription}
                             onChange={e => setFormData({ ...formData, rewardDescription: e.target.value })}
                             placeholder="Ex: Ao atingir 100 pontos, você ganha um corte grátis ou 50% de desconto na barba."
-                            className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-emerald-500 outline-none font-bold text-foreground text-sm resize-none"
+                            className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground text-sm resize-none"
                         />
                     </div>
                 </div>
@@ -158,7 +158,7 @@ export default function LoyaltyPage() {
                     <button
                         type="submit"
                         disabled={status === 'loading'}
-                        className="w-full md:w-auto px-8 bg-emerald-500 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full md:w-auto px-8 bg-primary text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         <Save className="w-4 h-4" />
                         Salvar Configurações

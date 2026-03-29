@@ -150,7 +150,7 @@ export default function UpdateRolloutManager() {
                                         <Flag className="w-3 h-3" /> {key}
                                     </span>
                                     {isGlobalActive ? (
-                                        <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
+                                        <span className="text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
                                             <CheckCircle className="w-4 h-4" /> Ativo Globalmente
                                         </span>
                                     ) : (
@@ -174,10 +174,10 @@ export default function UpdateRolloutManager() {
                                             <div key={o.id} className="bg-background border border-border px-5 py-3 rounded-2xl flex items-center justify-between gap-4 shadow-sm hover:border-primary/40 transition-all max-w-md">
                                                 <span className="text-foreground text-xs font-black uppercase tracking-tighter">{o.barbershop?.name || 'ID: ' + o.barbershopId}</span>
                                                 <div className="flex items-center gap-2">
-                                                    <span className={`text-[9px] font-black uppercase ${o.enabled ? 'text-emerald-500' : 'text-red-500'}`}>{o.enabled ? 'ATIVO' : 'INATIVO'}</span>
+                                                    <span className={`text-[9px] font-black uppercase ${o.enabled ? 'text-primary' : 'text-red-500'}`}>{o.enabled ? 'ATIVO' : 'INATIVO'}</span>
                                                     <button
                                                         onClick={() => toggleFlag(o.key, o.enabled, o.barbershopId)}
-                                                        className={`transition-all duration-300 ${o.enabled ? 'text-emerald-500' : 'text-muted-foreground opacity-50 hover:opacity-100 hover:text-emerald-500'}`}
+                                                        className={`transition-all duration-300 ${o.enabled ? 'text-primary' : 'text-muted-foreground opacity-50 hover:opacity-100 hover:text-primary'}`}
                                                     >
                                                         {o.enabled ? <ToggleRightIcon className="w-8 h-8" /> : <ToggleLeftIcon className="w-8 h-8" />}
                                                     </button>
@@ -216,7 +216,7 @@ export default function UpdateRolloutManager() {
                                     disabled={isGlobalActive}
                                     className={`w-full xl:min-w-[280px] px-10 py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 shadow-2xl active:scale-95 ${isGlobalActive
                                         ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed'
-                                        : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20 hover:scale-105'
+                                        : 'bg-primary text-white hover:bg-primary/90 shadow-primary/20 hover:scale-105'
                                         }`}
                                 >
                                     {isGlobalActive ? 'RECURSO LIBERADO GLOBAL' : 'LIBERAR ROLLOUT GLOBAL'}

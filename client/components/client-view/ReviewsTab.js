@@ -89,7 +89,7 @@ export default function ReviewsTab({ barbershopId }) {
                 {unreviewed.length > 0 && !isWriting && (
                     <button
                         onClick={() => setIsWriting(true)}
-                        className="bg-emerald-500 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
+                        className="bg-primary text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20"
                     >
                         Avaliar Última Visita
                     </button>
@@ -98,7 +98,7 @@ export default function ReviewsTab({ barbershopId }) {
 
             {/* Writing Form */}
             {isWriting && unreviewed.length > 0 && (
-                <div className="bg-[#0b0f19] p-6 rounded-[2rem] border border-emerald-500/30 animate-in slide-in-from-top-4">
+                <div className="bg-[#0b0f19] p-6 rounded-[2rem] border border-primary/30 animate-in slide-in-from-top-4">
                     <h4 className="text-white font-black text-xs uppercase tracking-widest mb-4">Sua avaliação para {unreviewed[0].service?.name}</h4>
                     <div className="flex gap-2 mb-6 justify-center">
                         {[1, 2, 3, 4, 5].map(s => (
@@ -111,7 +111,7 @@ export default function ReviewsTab({ barbershopId }) {
                         value={comment}
                         onChange={e => setComment(e.target.value)}
                         placeholder="Como foi sua experiência? (Opcional)"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white text-sm outline-none focus:border-emerald-500 transition h-24 mb-4 resize-none"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white text-sm outline-none focus:border-primary transition h-24 mb-4 resize-none"
                     />
                     <div className="flex gap-3">
                         <button onClick={handleSubmitReview} className="flex-1 bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition">Enviar Avaliação</button>
@@ -149,7 +149,7 @@ export default function ReviewsTab({ barbershopId }) {
                                 <span className="text-[10px] text-slate-600 font-bold uppercase">{formatTime(review.createdAt)}</span>
                             </div>
                             {review.comment && (
-                                <p className="text-slate-400 text-sm leading-relaxed border-l-2 border-emerald-500/20 pl-3">
+                                <p className="text-slate-400 text-sm leading-relaxed border-l-2 border-primary/20 pl-3">
                                     "{review.comment}"
                                 </p>
                             )}

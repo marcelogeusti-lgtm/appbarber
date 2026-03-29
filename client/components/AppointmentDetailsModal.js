@@ -82,7 +82,7 @@ export default function AppointmentDetailsModal({
                         {isProfessional && onEdit && (
                             <button
                                 onClick={onEdit}
-                                className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
+                                className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-all"
                                 title="Editar"
                             >
                                 <Pencil className="w-5 h-5" />
@@ -101,7 +101,7 @@ export default function AppointmentDetailsModal({
                 <div className="p-6 space-y-6">
                     {/* Status Badge */}
                     <div className="flex justify-center">
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${appointment.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${appointment.status === 'CONFIRMED' ? 'bg-primary/10 text-primary border-primary/20' :
                             appointment.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                                 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                             }`}>
@@ -148,7 +148,7 @@ export default function AppointmentDetailsModal({
                                 <Scissors className="w-3 h-3" /> Serviço
                             </p>
                             <p className="text-white font-bold">{appointment.service?.name}</p>
-                            <p className="text-xs text-emerald-500 font-bold mt-1">
+                            <p className="text-xs text-primary font-bold mt-1">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appointment.service?.price || 0)}
                             </p>
                         </div>
@@ -180,7 +180,7 @@ export default function AppointmentDetailsModal({
                                 !showPaymentSelector ? (
                                     <button
                                         onClick={handleFinishClick}
-                                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                                        className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                                     >
                                         <CheckCircle className="w-5 h-5" />
                                         Finalizar Atendimento
@@ -192,16 +192,16 @@ export default function AppointmentDetailsModal({
                                             <button onClick={() => setShowPaymentSelector(false)} className="text-[10px] text-red-400 hover:text-red-300 uppercase font-black">Cancelar</button>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2">
-                                            <button onClick={() => handlePaymentSelect('CASH')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
-                                                <DollarSign className="w-6 h-6 text-emerald-500" />
+                                            <button onClick={() => handlePaymentSelect('CASH')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-primary transition-colors">
+                                                <DollarSign className="w-6 h-6 text-primary" />
                                                 <span className="text-[9px] font-bold uppercase text-slate-300">Dinheiro</span>
                                             </button>
-                                            <button onClick={() => handlePaymentSelect('PIX')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
-                                                <Zap className="w-6 h-6 text-emerald-500" />
+                                            <button onClick={() => handlePaymentSelect('PIX')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-primary transition-colors">
+                                                <Zap className="w-6 h-6 text-primary" />
                                                 <span className="text-[9px] font-bold uppercase text-slate-300">Pix</span>
                                             </button>
-                                            <button onClick={() => handlePaymentSelect('CREDIT_CARD')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-emerald-500 transition-colors">
-                                                <CreditCard className="w-6 h-6 text-emerald-500" />
+                                            <button onClick={() => handlePaymentSelect('CREDIT_CARD')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-primary transition-colors">
+                                                <CreditCard className="w-6 h-6 text-primary" />
                                                 <span className="text-[9px] font-bold uppercase text-slate-300">Cartão</span>
                                             </button>
                                         </div>

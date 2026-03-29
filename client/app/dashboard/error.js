@@ -29,7 +29,7 @@ export default function Error({ error, reset }) {
             <div className="flex gap-4">
                 <button
                     onClick={() => reset()}
-                    className="bg-emerald-500 text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest hover:bg-emerald-600 transition"
+                    className="bg-primary text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest hover:bg-primary/90 transition"
                 >
                     Tentar Novamente
                 </button>

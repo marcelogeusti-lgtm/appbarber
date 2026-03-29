@@ -161,7 +161,7 @@ export default function NotificationCenter({ user: propUser }) {
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllAsRead}
-                                className="text-[10px] text-emerald-500 font-bold hover:underline"
+                                className="text-[10px] text-primary font-bold hover:underline"
                             >
                                 Marcar todas como lidas
                             </button>
@@ -179,9 +179,9 @@ export default function NotificationCenter({ user: propUser }) {
                                     <div
                                         key={n.id}
                                         onClick={() => handleNotificationClick(n)}
-                                        className={`p-4 hover:bg-slate-800/40 transition flex gap-3 cursor-pointer group ${!n.isRead ? 'bg-slate-800/20 border-l-2 border-emerald-500' : ''}`}
+                                        className={`p-4 hover:bg-slate-800/40 transition flex gap-3 cursor-pointer group ${!n.isRead ? 'bg-slate-800/20 border-l-2 border-primary' : ''}`}
                                     >
-                                        <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!n.isRead ? 'bg-emerald-500' : 'bg-transparent'}`}></div>
+                                        <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!n.isRead ? 'bg-primary' : 'bg-transparent'}`}></div>
                                         <div className="flex-1 space-y-1">
                                             <p className={`text-xs ${!n.isRead ? 'text-white font-bold' : 'text-slate-400 group-hover:text-slate-200'}`}>
                                                 {n.title}
@@ -199,7 +199,7 @@ export default function NotificationCenter({ user: propUser }) {
                                                     e.stopPropagation();
                                                     markAsRead(n.id);
                                                 }}
-                                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-600 hover:text-emerald-500 transition-all self-start"
+                                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-600 hover:text-primary transition-all self-start"
                                                 title="Marcar como lida"
                                             >
                                                 <Check className="w-4 h-4" />
@@ -250,7 +250,7 @@ export default function NotificationCenter({ user: propUser }) {
             {isLoadingDetails && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="bg-[#111827] p-8 rounded-3xl border border-slate-800 flex flex-col items-center gap-4">
-                        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Carregando detalhes...</p>
                     </div>
                 </div>

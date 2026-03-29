@@ -50,8 +50,8 @@ export default function ForgotPasswordModal() {
 
                 {success ? (
                     <div className="text-center space-y-6">
-                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-                            <CheckCircle className="w-8 h-8 text-emerald-500" />
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                            <CheckCircle className="w-8 h-8 text-primary" />
                         </div>
                         <div className="space-y-2">
                             <h3 className="text-white font-bold text-lg">Email enviado!</h3>
@@ -75,12 +75,12 @@ export default function ForgotPasswordModal() {
                         <div className="space-y-1">
                             <label className="text-xs text-slate-400 font-bold ml-1">Email</label>
                             <div className="relative group">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition" />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                    className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
                                     placeholder="seu@email.com"
                                     required
                                 />
@@ -90,7 +90,7 @@ export default function ForgotPasswordModal() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                            className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />

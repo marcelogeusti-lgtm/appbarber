@@ -109,7 +109,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                             <div className="text-center mb-6">
                                 <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Você está assinando</p>
                                 <h2 className="text-2xl font-black text-white uppercase">{selectedPlan.name}</h2>
-                                <p className="text-emerald-500 font-bold text-lg">{formatCurrency(selectedPlan.price)}<span className="text-sm text-slate-500 font-normal">/mês</span></p>
+                                <p className="text-primary font-bold text-lg">{formatCurrency(selectedPlan.price)}<span className="text-sm text-slate-500 font-normal">/mês</span></p>
                             </div>
 
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Escolha o cartão para cobrança</p>
@@ -119,10 +119,10 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                         key={card.id}
                                         onClick={() => handleOneClickSubscribe(card.id)}
                                         disabled={loading === selectedPlan.id}
-                                        className="w-full flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/50 transition group text-left"
+                                        className="w-full flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-primary/10 hover:border-primary/50 transition group text-left"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition">
+                                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition">
                                                 <CreditCard className="w-5 h-5 text-slate-400 group-hover:text-white" />
                                             </div>
                                             <div>
@@ -130,7 +130,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                                 <p className="text-[10px] text-slate-500">Expira em {card.expiryMonth}/{card.expiryYear}</p>
                                             </div>
                                         </div>
-                                        {loading === selectedPlan.id ? <Loader2 className="w-4 h-4 animate-spin text-emerald-500" /> : <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-500" />}
+                                        {loading === selectedPlan.id ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary" />}
                                     </button>
                                 ))}
 
@@ -172,15 +172,15 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
             {/* --- PLANS LIST --- */}
             {plans.length > 0 ? (
                 plans.map((plan) => (
-                    <div key={plan.id} className="bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] p-[1px] rounded-[2.5rem] border border-emerald-500/10 hover:border-emerald-500/30 transition group">
+                    <div key={plan.id} className="bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] p-[1px] rounded-[2.5rem] border border-primary/10 hover:border-primary/30 transition group">
                         <div className="bg-[#0A0A0A] rounded-[2.4rem] p-6 relative overflow-hidden h-full flex flex-col">
 
                             {/* Header */}
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-3">
-                                        <Crown className="w-3 h-3 text-emerald-500 fill-emerald-500" />
-                                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Premium</span>
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
+                                        <Crown className="w-3 h-3 text-primary fill-primary" />
+                                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">Premium</span>
                                     </div>
                                     <h3 className="font-black text-white text-2xl uppercase tracking-tight leading-none">{plan.name}</h3>
                                 </div>
@@ -194,19 +194,19 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                             <div className="space-y-4 mb-8 flex-1">
                                 <div className="flex items-center gap-3">
                                     <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
-                                        <Check className="w-3 h-3 text-emerald-500" />
+                                        <Check className="w-3 h-3 text-primary" />
                                     </div>
                                     <span className="text-slate-300 text-sm font-medium">{plan.quantityOfCuts} Cortes inclusos</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
-                                        <Check className="w-3 h-3 text-emerald-500" />
+                                        <Check className="w-3 h-3 text-primary" />
                                     </div>
                                     <span className="text-slate-300 text-sm font-medium">Válido por {plan.validityDays} dias</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
-                                        <Check className="w-3 h-3 text-emerald-500" />
+                                        <Check className="w-3 h-3 text-primary" />
                                     </div>
                                     <span className="text-slate-300 text-sm font-medium">Prioridade no agendamento</span>
                                 </div>
@@ -216,7 +216,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                             <button
                                 onClick={() => handleSubscribeClick(plan)}
                                 disabled={loading === plan.id}
-                                className="w-full bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-500 hover:text-white transition shadow-xl hover:shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-[1.02] active:scale-95"
+                                className="w-full bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition shadow-xl hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-[1.02] active:scale-95"
                             >
                                 {loading === plan.id ? 'Processando...' : 'Assinar Agora'}
                             </button>

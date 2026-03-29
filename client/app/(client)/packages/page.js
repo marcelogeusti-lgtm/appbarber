@@ -35,17 +35,17 @@ export default function MyPackagesPage() {
             </header>
 
             {subscription ? (
-                <div className="bg-gradient-to-br from-zinc-900 to-black border border-emerald-500/30 rounded-3xl p-6 relative overflow-hidden">
-                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl"></div>
+                <div className="bg-gradient-to-br from-zinc-900 to-black border border-primary/30 rounded-3xl p-6 relative overflow-hidden">
+                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10">
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h2 className="text-2xl font-black text-white uppercase">{subscription.plan.name}</h2>
-                                <p className="text-emerald-500 text-xs font-bold uppercase tracking-widest">Ativo</p>
+                                <p className="text-primary text-xs font-bold uppercase tracking-widest">Ativo</p>
                             </div>
-                            <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
-                                <Package className="w-6 h-6 text-emerald-500" />
+                            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                <Package className="w-6 h-6 text-primary" />
                             </div>
                         </div>
 

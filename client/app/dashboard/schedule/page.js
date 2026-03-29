@@ -638,7 +638,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
                                     </span>
                                 )}
                                 {isCancelled && (
-                                    <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
+                                    <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
                                         Horário Liberado
                                     </span>
                                 )}
@@ -857,7 +857,7 @@ function AvailabilityView({ currentDate, professionals, selectedPro, barbershopI
                     {pro.slots.length > 0 ? (
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                             {pro.slots.map(time => (
-                                <div key={time} className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 p-3 rounded-xl text-center font-black text-[12px] shadow-sm hover:scale-105 transition-transform cursor-default">
+                                <div key={time} className="bg-primary/10 text-primary border border-primary/20 p-3 rounded-xl text-center font-black text-[12px] shadow-sm hover:scale-105 transition-transform cursor-default">
                                     {time}
                                 </div>
                             ))}

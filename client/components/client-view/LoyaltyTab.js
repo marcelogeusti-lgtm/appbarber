@@ -62,16 +62,16 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
     return (
         <div className="space-y-6 pb-24">
             {/* Points Balance Card */}
-            <div className="bg-gradient-to-br from-emerald-900 to-black p-6 rounded-[2rem] border border-emerald-500/30 relative overflow-hidden shadow-2xl shadow-emerald-900/20">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-3xl rounded-full"></div>
+            <div className="bg-gradient-to-br from-emerald-900 to-black p-6 rounded-[2rem] border border-primary/30 relative overflow-hidden shadow-2xl shadow-emerald-900/20">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full"></div>
                 <div className="relative z-10">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <p className="text-emerald-500 font-bold uppercase tracking-widest text-[10px] mb-1">Seus Pontos</p>
+                            <p className="text-primary font-bold uppercase tracking-widest text-[10px] mb-1">Seus Pontos</p>
                             <h2 className="text-5xl font-black text-white tracking-tighter">{points}</h2>
                         </div>
-                        <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                            <Gift className="w-6 h-6 text-emerald-500" />
+                        <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                            <Gift className="w-6 h-6 text-primary" />
                         </div>
                     </div>
                     <p className="text-slate-400 text-xs font-medium">
@@ -87,10 +87,10 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                 <div>
                     <div className="flex justify-between text-xs font-bold uppercase mb-2">
                         <span className="text-white">Progresso</span>
-                        <span className="text-emerald-500">{Math.round(progress)}%</span>
+                        <span className="text-primary">{Math.round(progress)}%</span>
                     </div>
                     <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000 ease-out" style={{ width: `${progress}%` }}></div>
+                        <div className="h-full bg-gradient-to-r from-primary/90 to-primary/80 transition-all duration-1000 ease-out" style={{ width: `${progress}%` }}></div>
                     </div>
                 </div>
 

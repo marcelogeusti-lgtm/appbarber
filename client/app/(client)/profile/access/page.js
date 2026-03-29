@@ -80,7 +80,7 @@ export default function AccessPage() {
 
                         <div className="relative z-10">
                             {method.connected ? (
-                                <div className="flex items-center gap-3 px-6 py-3 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                                <div className="flex items-center gap-3 px-6 py-3 bg-primary/10 text-primary rounded-2xl border border-primary/20 shadow-lg shadow-primary/5">
                                     <CheckCircle2 className="w-4 h-4" strokeWidth={3} />
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em]">Conectado</span>
                                 </div>

@@ -53,7 +53,7 @@ export default function HistoryPage() {
                                     <h3 className="font-bold text-white text-lg">{app.service?.name}</h3>
                                     <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{app.barbershop?.name}</p>
                                 </div>
-                                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${app.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${app.status === 'COMPLETED' ? 'bg-primary/10 text-primary border-primary/20' :
                                     app.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                                         'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                     }`}>

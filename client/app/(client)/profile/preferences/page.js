@@ -24,7 +24,7 @@ export default function PreferencesPage() {
                         </div>
                     </div>
                     {/* Toggle Switch Mock */}
-                    <div className="w-12 h-6 bg-emerald-500 rounded-full relative cursor-pointer">
+                    <div className="w-12 h-6 bg-primary rounded-full relative cursor-pointer">
                         <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
                     </div>
                 </div>

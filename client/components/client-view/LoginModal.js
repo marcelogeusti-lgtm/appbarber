@@ -121,8 +121,8 @@ export default function LoginModal() {
                 {twoFactorRequired ? (
                     <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in duration-300">
                         <div className="text-center mb-4">
-                            <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <ShieldCheck className="w-6 h-6 text-primary" />
                             </div>
                             <p className="text-sm text-slate-300">
                                 Código enviado por <strong>{twoFactorMethod === 'EMAIL' ? 'E-mail' : 'SMS/WhatsApp'}</strong>.
@@ -135,7 +135,7 @@ export default function LoginModal() {
                                 type="text"
                                 required
                                 maxLength="6"
-                                className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl py-4 px-4 text-center text-2xl font-mono tracking-[0.5em] text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl py-4 px-4 text-center text-2xl font-mono tracking-[0.5em] text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
                                 placeholder="000 000"
                                 value={mfaToken}
                                 onChange={(e) => setMfaToken(e.target.value.replace(/\D/g, ''))}
@@ -145,7 +145,7 @@ export default function LoginModal() {
                         <button
                             type="submit"
                             disabled={loading || mfaToken.length !== 6}
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                            className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar e Entrar'}
                         </button>
@@ -163,12 +163,12 @@ export default function LoginModal() {
                         <div className="space-y-2">
                             <label className="text-xs text-slate-400 font-bold ml-1">Email ou telefone <span className="text-red-500">*</span></label>
                             <div className="relative group">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition" />
                                 <input
                                     type="text"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                    className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
                                     placeholder="Informe o email ou telefone"
                                     required
                                 />
@@ -178,12 +178,12 @@ export default function LoginModal() {
                         <div className="space-y-2">
                             <label className="text-xs text-slate-400 font-bold ml-1">Senha <span className="text-red-500">*</span></label>
                             <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition" />
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                    className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
                                     placeholder="Informe sua senha"
                                     required
                                 />
@@ -203,7 +203,7 @@ export default function LoginModal() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -222,7 +222,7 @@ export default function LoginModal() {
                     <button
                         type="button"
                         onClick={openRegisterModal}
-                        className="text-emerald-500 hover:text-emerald-400 font-bold underline decoration-emerald-500/20 underline-offset-4"
+                        className="text-primary hover:text-primary/80 font-bold underline decoration-primary/20 underline-offset-4"
                     >
                         Cadastre-se
                     </button>

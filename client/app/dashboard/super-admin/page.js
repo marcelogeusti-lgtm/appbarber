@@ -171,7 +171,7 @@ export default function SuperAdminPage() {
                                                 onClick={() => handleToggleStatus(shop.id)}
                                                 className={`px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2 ${shop.subscriptionStatus === 'ACTIVE'
                                                     ? 'bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground'
-                                                    : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white'
+                                                    : 'bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white'
                                                     }`}
                                             >
                                                 {shop.subscriptionStatus === 'ACTIVE' ? <><Trash2 className="w-3 h-3" /> Suspender</> : <><Zap className="w-3 h-3" /> Ativar</>}

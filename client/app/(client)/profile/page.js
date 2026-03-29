@@ -160,8 +160,8 @@ export default function ProfileMenuPage() {
                                 {twoFactorRequired ? (
                                     <div className="space-y-4 animate-in fade-in duration-300">
                                         <div className="text-center mb-4">
-                                            <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <ShieldCheck className="w-6 h-6 text-primary" />
                                             </div>
                                             <p className="text-sm text-slate-300">
                                                 Código enviado por <strong>{twoFactorMethod === 'EMAIL' ? 'E-mail' : 'SMS/WhatsApp'}</strong>.
@@ -174,7 +174,7 @@ export default function ProfileMenuPage() {
                                                 type="text"
                                                 required
                                                 maxLength="6"
-                                                className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-4 px-4 text-center text-2xl font-mono tracking-[0.5em] text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition"
+                                                className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-4 px-4 text-center text-2xl font-mono tracking-[0.5em] text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition"
                                                 placeholder="000 000"
                                                 value={mfaToken}
                                                 onChange={(e) => setMfaToken(e.target.value.replace(/\D/g, ''))}
@@ -184,7 +184,7 @@ export default function ProfileMenuPage() {
                                         <button
                                             type="submit"
                                             disabled={localLoading || mfaToken.length !== 6}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-sm"
+                                            className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-sm"
                                         >
                                             {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar e Entrar'}
                                         </button>
@@ -202,12 +202,12 @@ export default function ProfileMenuPage() {
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider">Email ou telefone</label>
                                             <div className="relative group">
-                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition" />
                                                 <input
                                                     type="text"
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
-                                                    className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                                    className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition text-sm"
                                                     placeholder="Seu email"
                                                     required
                                                 />
@@ -220,12 +220,12 @@ export default function ProfileMenuPage() {
                                                 <button type="button" onClick={openForgotPasswordModal} className="text-[10px] text-primary hover:underline">Esqueceu?</button>
                                             </div>
                                             <div className="relative group">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition" />
                                                 <input
                                                     type="password"
                                                     value={password}
                                                     onChange={(e) => setPassword(e.target.value)}
-                                                    className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                                    className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition text-sm"
                                                     placeholder="••••••••"
                                                     required
                                                 />
@@ -235,7 +235,7 @@ export default function ProfileMenuPage() {
                                         <button
                                             type="submit"
                                             disabled={localLoading}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-sm"
+                                            className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-sm"
                                         >
                                             {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Acessar Painel'}
                                         </button>
@@ -247,12 +247,12 @@ export default function ProfileMenuPage() {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider">Nome Completo</label>
                                     <div className="relative group">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition" />
                                         <input
                                             type="text"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition text-sm"
                                             placeholder="Seu nome"
                                             required
                                         />
@@ -262,12 +262,12 @@ export default function ProfileMenuPage() {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider">Email</label>
                                     <div className="relative group">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition" />
                                         <input
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition text-sm"
                                             placeholder="seu@email.com"
                                             required
                                         />
@@ -277,12 +277,12 @@ export default function ProfileMenuPage() {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider">Telefone</label>
                                     <div className="relative group">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition" />
                                         <input
                                             type="tel"
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
-                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition text-sm"
                                             placeholder="(00) 00000-0000"
                                         />
                                     </div>
@@ -291,12 +291,12 @@ export default function ProfileMenuPage() {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-wider">Senha</label>
                                     <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-emerald-500 transition" />
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition" />
                                         <input
                                             type="password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition text-sm"
+                                            className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition text-sm"
                                             placeholder="••••••••"
                                             required
                                             minLength={6}
@@ -307,7 +307,7 @@ export default function ProfileMenuPage() {
                                 <button
                                     type="submit"
                                     disabled={localLoading}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-4 text-sm"
+                                    className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mt-4 text-sm"
                                 >
                                     {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Criar Conta'}
                                 </button>
@@ -392,7 +392,7 @@ export default function ProfileMenuPage() {
                                 {user.name?.[0]?.toUpperCase() || 'U'}
                             </div>
                         )}
-                        <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#050505]"></span>
+                        <span className="absolute bottom-1 right-1 w-4 h-4 bg-primary rounded-full border-2 border-[#050505]"></span>
                     </div>
                     <div>
                         <h1 className="text-xl font-black tracking-tight leading-tight">{user.name}</h1>

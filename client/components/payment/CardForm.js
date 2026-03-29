@@ -27,7 +27,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
     }, [publicKey]);
 
     if (!publicKey) {
-        return <div className="p-4 flex justify-center"><div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div></div>;
+        return <div className="p-4 flex justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
     }
 
     const customization = {
@@ -66,7 +66,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
         <div className="w-full max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4">
             <div className="bg-[#111827] border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
                 <div className="bg-slate-900/50 p-4 border-b border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-emerald-500 font-bold uppercase text-xs tracking-widest">
+                    <div className="flex items-center gap-2 text-primary font-bold uppercase text-xs tracking-widest">
                         <CreditCard className="w-4 h-4" />
                         Pagamento Seguro
                     </div>
@@ -76,7 +76,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
                 <div className="p-2 min-h-[300px] flex flex-col justify-center">
                     {!ready ? (
                         <div className="flex flex-col items-center justify-center py-12 gap-4">
-                            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Iniciando ambiente seguro...</p>
                         </div>
                     ) : (
@@ -93,7 +93,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
                                 <div className="px-4 pb-4 pt-2 flex items-center gap-3">
                                     <div
                                         onClick={() => setSaveCard(!saveCard)}
-                                        className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition ${saveCard ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-900 border-slate-700'}`}
+                                        className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition ${saveCard ? 'bg-primary border-primary' : 'bg-slate-900 border-slate-700'}`}
                                     >
                                         {saveCard && <span className="text-white text-xs font-bold">✓</span>}
                                     </div>

@@ -116,8 +116,8 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                         />
 
                         {/* Link Checkout */}
-                        <div className="bg-emerald-500/5 p-6 rounded-2xl border border-emerald-500/20 space-y-4">
-                            <div className="flex items-center gap-2 text-emerald-500 mb-2">
+                        <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">
+                            <div className="flex items-center gap-2 text-primary mb-2">
                                 <LinkIcon className="w-4 h-4" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Link de Venda (Checkout)</span>
                             </div>
@@ -128,7 +128,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                                 error={errors.link}
                                 placeholder="https://kiwify.com.br/..."
                                 required
-                                className="bg-emerald-950/20 border-emerald-500/30 focus:ring-emerald-500"
+                                className="bg-emerald-950/20 border-primary/30 focus:ring-primary"
                             />
                             <p className="text-[9px] text-slate-500 font-medium">
                                 * Este é o link para onde o barbeiro será redirecionado ao clicar em "Comprar".
@@ -166,7 +166,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                             <textarea
                                 {...register('description')}
                                 rows={3}
-                                className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition resize-none"
+                                className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition resize-none"
                                 placeholder="Resumo do que será ensinado..."
                             />
                         </div>
@@ -192,7 +192,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                         {/* Status Toggle */}
                         <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between cursor-pointer" onClick={() => setValue('active', !watch('active'))}>
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Curso Ativo / Visível?</span>
-                            <div className={`w-12 h-6 rounded-full relative transition-all ${watch('active') ? 'bg-emerald-500' : 'bg-slate-800'}`}>
+                            <div className={`w-12 h-6 rounded-full relative transition-all ${watch('active') ? 'bg-primary' : 'bg-slate-800'}`}>
                                 <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${watch('active') ? 'right-1' : 'left-1'}`} />
                             </div>
                             <input type="checkbox" {...register('active')} className="hidden" />
@@ -209,7 +209,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                         type="submit"
                         form="courseForm"
                         disabled={loading}
-                        className={`flex items-center gap-2 bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`flex items-center gap-2 bg-primary text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         {isEdit ? 'SALVAR ALTERAÇÕES' : 'CRIAR CURSO'}
@@ -227,7 +227,7 @@ const Input = ({ label, name, register, error, required, icon, className, ...res
         </label>
         <input
             {...register(name)}
-            className={`w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition ${error ? 'border-red-500/50 ring-red-500/10' : ''} ${className}`}
+            className={`w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition ${error ? 'border-red-500/50 ring-red-500/10' : ''} ${className}`}
             {...rest}
         />
         {error && <p className="text-[9px] text-red-500 font-bold uppercase tracking-widest ml-1">{error.message}</p>}

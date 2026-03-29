@@ -8,8 +8,8 @@ export default function DetailsTab({ barbershop }) {
             <div className="bg-[#111] rounded-3xl border border-white/5 overflow-hidden flex flex-col sm:flex-row shadow-2xl">
                 {/* Text Section */}
                 <div className="p-6 flex-1 flex flex-col justify-center bg-gradient-to-br from-[#151a23] to-[#0c0f14]">
-                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Endereço
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div> Endereço
                     </p>
                     <h3 className="text-[15px] font-bold text-white mb-1 leading-snug">
                         {barbershop.address || 'Localização não informada'}
@@ -28,8 +28,8 @@ export default function DetailsTab({ barbershop }) {
                 >
                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #334155 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
                     <div className="relative z-10 flex flex-col items-center gap-2 group-hover:scale-110 transition-transform duration-300">
-                        <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30">
-                            <MapPin className="w-6 h-6 text-emerald-500" />
+                        <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center border border-primary/30">
+                            <MapPin className="w-6 h-6 text-primary" />
                         </div>
                         <span className="text-[10px] font-black text-white uppercase tracking-widest text-center shadow-black drop-shadow-md">
                             Abrir no Mapa
@@ -54,7 +54,7 @@ export default function DetailsTab({ barbershop }) {
                         { icon: Accessibility, label: 'Acessível' },
                         { icon: Baby, label: 'Kids' }
                     ].map((item, idx) => (
-                        <div key={idx} className="bg-[#111] aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 border border-white/5 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/30 transition">
+                        <div key={idx} className="bg-[#111] aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 border border-white/5 text-slate-500 hover:text-primary hover:border-primary/30 transition">
                             <item.icon className="w-6 h-6" />
                             {/* <span className="text-[10px] uppercase font-bold">{item.label}</span> */}
                         </div>
@@ -81,7 +81,7 @@ export default function DetailsTab({ barbershop }) {
                 <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Contato & Redes Sociais</h3>
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-3 bg-[#111] p-4 rounded-2xl border border-white/5">
-                        <Phone className="w-5 h-5 text-emerald-500" />
+                        <Phone className="w-5 h-5 text-primary" />
                         <span className="font-bold text-white text-sm">{barbershop.phone || '(00) 00000-0000'}</span>
                     </div>
                     

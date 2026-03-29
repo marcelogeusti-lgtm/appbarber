@@ -12,7 +12,7 @@ export default function TermsPage() {
             <div className="prose prose-invert max-w-none space-y-6">
                 <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-4">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-emerald-500" />
+                        <CheckCircle className="w-5 h-5 text-primary" />
                         1. Aceitação dos Termos
                     </h2>
                     <p className="text-slate-400 text-sm leading-relaxed">

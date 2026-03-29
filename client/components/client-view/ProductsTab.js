@@ -23,9 +23,9 @@ export default function ProductsTab({ products }) {
                     <div
                         key={product.id}
                         onClick={() => setSelectedProduct(product)}
-                        className="bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all group cursor-pointer flex items-center gap-4"
+                        className="bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-primary/50 transition-all group cursor-pointer flex items-center gap-4"
                     >
-                        <div className="w-16 h-16 bg-[#1e293b] rounded-xl flex items-center justify-center text-slate-600 group-hover:text-emerald-500 transition overflow-hidden shrink-0">
+                        <div className="w-16 h-16 bg-[#1e293b] rounded-xl flex items-center justify-center text-slate-600 group-hover:text-primary transition overflow-hidden shrink-0">
                             {product.imageUrl ? (
                                 <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                             ) : (
@@ -35,9 +35,9 @@ export default function ProductsTab({ products }) {
                         <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-white text-sm uppercase tracking-tight truncate">{product.name}</h3>
                             <p className="text-slate-500 text-xs line-clamp-1">{product.description || 'Clique para ver detalhes'}</p>
-                            <p className="text-emerald-500 font-black text-sm mt-1">{formatCurrency(product.price)}</p>
+                            <p className="text-primary font-black text-sm mt-1">{formatCurrency(product.price)}</p>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-slate-600 group-hover:bg-emerald-500 group-hover:text-white transition">
+                        <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-slate-600 group-hover:bg-primary group-hover:text-white transition">
                             <ShoppingBag className="w-4 h-4" />
                         </div>
                     </div>
@@ -61,7 +61,7 @@ export default function ProductsTab({ products }) {
                         </div>
 
                         <h2 className="text-2xl font-black text-white uppercase leading-none mb-2">{selectedProduct.name}</h2>
-                        <p className="text-emerald-500 font-black text-xl mb-4">{formatCurrency(selectedProduct.price)}</p>
+                        <p className="text-primary font-black text-xl mb-4">{formatCurrency(selectedProduct.price)}</p>
 
                         <div className="bg-slate-900/50 p-4 rounded-xl mb-6 max-h-32 overflow-y-auto">
                             <p className="text-slate-400 text-sm">{selectedProduct.description || 'Sem descrição.'}</p>

@@ -54,7 +54,7 @@ export default function EditModal({
                         <button
                             onClick={onSave}
                             disabled={loading}
-                            className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 py-4 bg-primary hover:bg-primary/90 active:bg-primary/70 text-white rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>

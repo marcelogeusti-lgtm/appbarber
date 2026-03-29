@@ -143,7 +143,7 @@ export default function SearchPage() {
                                 <div
                                     key={shop.id}
                                     onClick={() => router.push(`/${shop.slug}`)}
-                                    className="bg-[#151821] p-4 rounded-3xl border border-white/5 hover:border-emerald-500/30 hover:bg-[#1A1D27] transition-all cursor-pointer group flex items-center gap-4"
+                                    className="bg-[#151821] p-4 rounded-3xl border border-white/5 hover:border-primary/30 hover:bg-[#1A1D27] transition-all cursor-pointer group flex items-center gap-4"
                                 >
                                     {/* Logo / Avatar */}
                                     <div className="w-16 h-16 rounded-full bg-slate-800 flex-shrink-0 relative overflow-hidden flex items-center justify-center border-2 border-slate-700/50 group-hover:border-primary/50 transition">

@@ -98,7 +98,7 @@ export default function CheckoutPage() {
 
     if (loading) return (
         <div className="min-h-screen bg-black flex items-center justify-center">
-            <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
         </div>
     );
 
@@ -116,7 +116,7 @@ export default function CheckoutPage() {
                 <div className="space-y-4">
                     <button
                         onClick={resetPayment}
-                        className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl hover:bg-emerald-500 transition-all transform active:scale-[0.98] shadow-lg shadow-emerald-900/20"
+                        className="w-full bg-primary/90 text-white font-bold py-4 rounded-2xl hover:bg-primary transition-all transform active:scale-[0.98] shadow-lg shadow-emerald-900/20"
                     >
                         Tentar Novamente
                     </button>
@@ -141,12 +141,12 @@ export default function CheckoutPage() {
         if (status === 'approved' || status === 'paid') {
             return (
                 <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-4">
-                    <CheckCircle className="w-20 h-20 text-emerald-500 mb-6" />
+                    <CheckCircle className="w-20 h-20 text-primary mb-6" />
                     <h1 className="text-2xl font-bold mb-2">Pagamento Confirmado!</h1>
                     <p className="text-slate-400 mb-8 max-w-md text-center">Seu agendamento foi garantido com sucesso.</p>
                     <button
                         onClick={() => router.push('/dashboard/appointments')}
-                        className="bg-emerald-600 hover:bg-emerald-500 px-8 py-3 rounded-xl font-bold transition"
+                        className="bg-primary/90 hover:bg-primary px-8 py-3 rounded-xl font-bold transition"
                     >
                         Ver Meus Agendamentos
                     </button>
@@ -182,7 +182,7 @@ export default function CheckoutPage() {
                 router.push(`/checkout-pix?id=${paymentResult.id}`);
                 return (
                     <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-4 animate-pulse">
-                        <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-6" />
+                        <Loader2 className="w-12 h-12 text-primary animate-spin mb-6" />
                         <h1 className="text-xl font-bold text-slate-300">Preparando ambiente PIX...</h1>
                     </div>
                 );
@@ -223,7 +223,7 @@ export default function CheckoutPage() {
                         )}
                         <div>
                             <h2 className="text-lg font-bold text-white leading-tight">{data.barbershopName}</h2>
-                            <p className="text-xs text-emerald-500 font-medium tracking-wide uppercase">Ambiente Seguro</p>
+                            <p className="text-xs text-primary font-medium tracking-wide uppercase">Ambiente Seguro</p>
                         </div>
                     </div>
 

@@ -59,8 +59,8 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
                 {/* Header */}
                 <div className="h-20 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f1523]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                            <Wallet className="w-5 h-5 text-emerald-500" />
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                            <Wallet className="w-5 h-5 text-primary" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-white leading-none">Caixa do Dia</h2>
@@ -83,8 +83,8 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status do Caixa</span>
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span className="text-xs font-bold text-emerald-500 uppercase">Aberto</span>
+                                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                                <span className="text-xs font-bold text-primary uppercase">Aberto</span>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
@@ -109,10 +109,10 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
 
                     {/* Metrics Grid */}
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/10">
+                        <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
                             <div className="flex items-center gap-2 mb-2">
-                                <TrendingUp className="w-4 h-4 text-emerald-500" />
-                                <span className="text-xs font-bold text-emerald-500">Entradas</span>
+                                <TrendingUp className="w-4 h-4 text-primary" />
+                                <span className="text-xs font-bold text-primary">Entradas</span>
                             </div>
                             <p className="text-lg font-bold text-white">
                                 {loading ? '...' : formatCurrency(stats?.totalReceived)}
@@ -135,13 +135,13 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
                         <div className="grid grid-cols-1 gap-3">
                             <button
                                 onClick={onOpenNewOrder}
-                                className="flex items-center gap-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all group w-full text-left"
+                                className="flex items-center gap-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:bg-primary/10 hover:border-primary/30 transition-all group w-full text-left"
                             >
-                                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                                     <PlusCircle className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-white group-hover:text-emerald-400">Nova Venda</p>
+                                    <p className="text-sm font-bold text-white group-hover:text-primary/80">Nova Venda</p>
                                     <p className="text-[10px] text-slate-500">Criar comanda rápida</p>
                                 </div>
                             </button>

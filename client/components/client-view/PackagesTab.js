@@ -33,12 +33,12 @@ export default function PackagesTab({ plans = [] }) {
         <div className="space-y-4 pb-24">
             {plans.length > 0 ? (
                 plans.map((pkg) => (
-                    <div key={pkg.id} className="bg-[#111] p-6 rounded-3xl border border-white/5 hover:border-emerald-500/50 transition-all relative overflow-hidden group">
+                    <div key={pkg.id} className="bg-[#111] p-6 rounded-3xl border border-white/5 hover:border-primary/50 transition-all relative overflow-hidden group">
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h3 className="font-black text-white text-lg uppercase tracking-tight max-w-[70%]">{pkg.name}</h3>
                                 <div className="flex gap-2 mt-2">
-                                    <span className="inline-block bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-widest">
+                                    <span className="inline-block bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-widest">
                                         {pkg.totalQuantity || pkg.quantityOfCuts} Cortes
                                     </span>
                                     <span className="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-widest">
@@ -46,7 +46,7 @@ export default function PackagesTab({ plans = [] }) {
                                     </span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 bg-[#1e293b] rounded-2xl flex items-center justify-center text-white group-hover:text-emerald-500 transition">
+                            <div className="w-12 h-12 bg-[#1e293b] rounded-2xl flex items-center justify-center text-white group-hover:text-primary transition">
                                 <Package className="w-6 h-6" />
                             </div>
                         </div>
@@ -58,7 +58,7 @@ export default function PackagesTab({ plans = [] }) {
                             <button
                                 onClick={() => handlePurchase(pkg)}
                                 disabled={loading === pkg.id}
-                                className={`bg-white text-black px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition shadow-lg ${loading === pkg.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`bg-white text-black px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition shadow-lg ${loading === pkg.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {loading === pkg.id ? 'Comprando...' : 'Comprar'}
                             </button>

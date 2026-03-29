@@ -255,8 +255,8 @@ export default function SubscriptionsPage() {
 
                 <div className="max-w-md mx-auto bg-[#111111] border border-white/5 rounded-[2.5rem] p-8 text-center space-y-8">
                     <div className="space-y-2">
-                        <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto">
-                            <Zap className="w-8 h-8 text-emerald-500" />
+                        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                            <Zap className="w-8 h-8 text-primary" />
                         </div>
                         <h2 className="text-xl font-black uppercase">{selectedPlan?.name}</h2>
                         <p className="text-slate-500 text-xs font-bold uppercase tracking-widest leading-none">
@@ -319,8 +319,8 @@ export default function SubscriptionsPage() {
             {subscription && (
                 <div className="mb-12">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Sua Assinatura Atual</p>
-                    <div className="bg-gradient-to-br from-emerald-900/20 to-black border border-emerald-500/30 rounded-[2.5rem] p-8 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 bg-emerald-500 text-black text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-bl-2xl shadow-xl">ATIVA</div>
+                    <div className="bg-gradient-to-br from-emerald-900/20 to-black border border-primary/30 rounded-[2.5rem] p-8 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 bg-primary text-black text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-bl-2xl shadow-xl">ATIVA</div>
 
                         <div className="flex items-center gap-4 mb-6">
                             <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
@@ -361,12 +361,12 @@ export default function SubscriptionsPage() {
                 {plans.length > 0 ? (
                     <div className="space-y-6">
                         {plans.filter(p => p.id !== subscription?.planId).map(plan => (
-                            <div key={plan.id} className="bg-[#111111] border border-white/5 rounded-[2.5rem] p-8 space-y-6 hover:border-emerald-500/30 transition-all">
+                            <div key={plan.id} className="bg-[#111111] border border-white/5 rounded-[2.5rem] p-8 space-y-6 hover:border-primary/30 transition-all">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="text-xl font-black uppercase tracking-tight leading-none mb-2">{plan.name}</h3>
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-xs font-black text-emerald-500 uppercase tracking-tighter">R$</span>
+                                            <span className="text-xs font-black text-primary uppercase tracking-tighter">R$</span>
                                             <span className="text-3xl font-black">
                                                 {(() => {
                                                     const price = Number(plan.price);

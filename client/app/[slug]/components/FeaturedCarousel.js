@@ -20,7 +20,7 @@ export default function FeaturedCarousel({ services = [], products = [], onSelec
                             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 group-hover:scale-110 transition" />
                         </div>
                         <h4 className="font-black text-white text-sm uppercase leading-tight mb-1">{service.name}</h4>
-                        <p className="text-emerald-500 font-bold text-xs">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                        <p className="text-primary font-bold text-xs">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     </div>
                 ))}
                 {featuredProducts.map(product => (

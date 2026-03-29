@@ -42,7 +42,7 @@ export default function ConnectWhatsAppModal({ isOpen, onClose }) {
                 </button>
 
                 <div className="p-8 text-center bg-slate-50">
-                    <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
+                    <div className="w-16 h-16 bg-emerald-100 text-primary/90 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
                         <Smartphone className="w-8 h-8" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Conectar WhatsApp</h2>
@@ -73,10 +73,10 @@ export default function ConnectWhatsAppModal({ isOpen, onClose }) {
 
                     {status === 'CONNECTED' && (
                         <div className="text-center">
-                            <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto mb-6" />
+                            <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
                             <h3 className="text-xl font-bold text-slate-800 mb-2">Conectado com Sucesso!</h3>
                             <p className="text-sm text-slate-500 mb-6">Seu sistema já pode enviar mensagens automáticas.</p>
-                            <button onClick={onClose} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl transition shadow-lg shadow-emerald-500/20">
+                            <button onClick={onClose} className="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-xl transition shadow-lg shadow-primary/20">
                                 Fechar
                             </button>
                         </div>

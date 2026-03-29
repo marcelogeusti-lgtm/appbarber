@@ -58,7 +58,7 @@ export default function NewTransactionModal({ isOpen, onClose, user, type = 'EXP
             <div className="relative bg-[#111827] border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
                 {/* Header */}
                 <div className="bg-[#0f1523] px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-                    <h2 className={`text-lg font-bold flex items-center gap-2 ${isExpense ? 'text-red-500' : 'text-emerald-500'}`}>
+                    <h2 className={`text-lg font-bold flex items-center gap-2 ${isExpense ? 'text-red-500' : 'text-primary'}`}>
                         {isExpense ? <TrendingDown className="w-5 h-5" /> : <TrendingUp className="w-5 h-5" />}
                         {isExpense ? 'Lançar Despesa' : 'Lançar Receita'}
                     </h2>
@@ -74,7 +74,7 @@ export default function NewTransactionModal({ isOpen, onClose, user, type = 'EXP
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Valor (R$)</label>
                         <div className="relative">
-                            <DollarSign className={`absolute left-3 top-3 w-4 h-4 ${isExpense ? 'text-red-500' : 'text-emerald-500'}`} />
+                            <DollarSign className={`absolute left-3 top-3 w-4 h-4 ${isExpense ? 'text-red-500' : 'text-primary'}`} />
                             <input
                                 type="number"
                                 step="0.01"
@@ -150,7 +150,7 @@ export default function NewTransactionModal({ isOpen, onClose, user, type = 'EXP
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`px-6 py-2.5 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-2 transition-all disabled:opacity-50 ${isExpense ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20'}`}
+                            className={`px-6 py-2.5 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-2 transition-all disabled:opacity-50 ${isExpense ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-primary hover:bg-primary/90 shadow-primary/20'}`}
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                             {isExpense ? 'Lançar Despesa' : 'Lançar Receita'}

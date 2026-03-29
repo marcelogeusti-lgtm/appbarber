@@ -51,15 +51,15 @@ export default function DayDetailsModal({ isOpen, onClose, date, appointments, p
                             const isCompleted = app.status === 'COMPLETED';
 
                             // Visual Styles
-                            const borderColor = isCancelled ? 'border-red-500/20' : isCompleted ? 'border-emerald-500/20' : 'border-blue-500/20';
-                            const bgColor = isCancelled ? 'bg-red-500/5' : isCompleted ? 'bg-emerald-500/5' : 'bg-blue-500/5';
-                            const textColor = isCancelled ? 'text-red-500' : isCompleted ? 'text-emerald-500' : 'text-blue-500';
-                            const iconColor = isCancelled ? 'text-red-400' : isCompleted ? 'text-emerald-400' : 'text-slate-400';
+                            const borderColor = isCancelled ? 'border-red-500/20' : isCompleted ? 'border-primary/20' : 'border-blue-500/20';
+                            const bgColor = isCancelled ? 'bg-red-500/5' : isCompleted ? 'bg-primary/5' : 'bg-blue-500/5';
+                            const textColor = isCancelled ? 'text-red-500' : isCompleted ? 'text-primary' : 'text-blue-500';
+                            const iconColor = isCancelled ? 'text-red-400' : isCompleted ? 'text-primary/80' : 'text-slate-400';
 
                             return (
                                 <div key={app.id} className="relative pl-8 border-l-2 border-slate-800 last:border-l-0 pb-8 last:pb-0 group">
                                     {/* Timeline Dot */}
-                                    <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-[#0F111A] ${isCancelled ? 'bg-red-500' : isCompleted ? 'bg-emerald-500' : 'bg-blue-500'}`}></div>
+                                    <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-[#0F111A] ${isCancelled ? 'bg-red-500' : isCompleted ? 'bg-primary' : 'bg-blue-500'}`}></div>
 
                                     {/* Time */}
                                     <span className={`text-xs font-black uppercase tracking-widest mb-2 block ${isCancelled ? 'text-red-500 line-through' : 'text-slate-400'}`}>
@@ -89,7 +89,7 @@ export default function DayDetailsModal({ isOpen, onClose, date, appointments, p
                                                                 app.status === 'NO_SHOW' ? 'No-Show' : 'Cancelado'}
                                                 </span>
                                                 {isCancelled && (
-                                                    <span className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 animate-pulse">
+                                                    <span className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded bg-primary/10 text-primary border border-primary/20 animate-pulse">
                                                         Horário Liberado
                                                     </span>
                                                 )}

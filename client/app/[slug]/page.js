@@ -425,7 +425,7 @@ export default function BarbershopPage() {
 
     if (loading) return (
         <div className="min-h-screen bg-black flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
     );
 
@@ -442,7 +442,7 @@ export default function BarbershopPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans selection:bg-emerald-500/30 overflow-x-hidden">
+        <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30 overflow-x-hidden">
             {/* Header / Cover */}
             <header className="relative h-64 w-full overflow-hidden group">
                 {barbershop.bannerUrls && barbershop.bannerUrls.length > 0 ? (
@@ -461,7 +461,7 @@ export default function BarbershopPage() {
                         <button onClick={handleToggleFavorite} className={`w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 transition ${isFavorite ? 'text-red-500 bg-red-500/10 border-red-500' : 'text-white hover:text-red-500'}`}>
                             <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
                         </button>
-                        <button onClick={handleShare} className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-emerald-500 transition">
+                        <button onClick={handleShare} className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-primary transition">
                             <Share2 className="w-5 h-5" />
                         </button>
                     </div>
@@ -471,7 +471,7 @@ export default function BarbershopPage() {
                     <button onClick={handleToggleFavorite} className={`w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 transition ${isFavorite ? 'text-red-500 bg-red-500/10 border-red-500' : 'text-white hover:text-red-500'}`}>
                         <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
                     </button>
-                    <button onClick={handleShare} className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-emerald-500 transition">
+                    <button onClick={handleShare} className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:text-primary transition">
                         <Share2 className="w-5 h-5" />
                     </button>
                 </div>
@@ -482,7 +482,7 @@ export default function BarbershopPage() {
                             {barbershop.logoUrl ? (
                                 <img src={barbershop.logoUrl} alt={barbershop.name} className="w-full h-full object-cover" />
                             ) : (
-                                <span className="font-black text-3xl text-emerald-500 tracking-tighter">{barbershop.name.charAt(0)}</span>
+                                <span className="font-black text-3xl text-primary tracking-tighter">{barbershop.name.charAt(0)}</span>
                             )}
                         </div>
                     </div>
@@ -491,8 +491,8 @@ export default function BarbershopPage() {
                         <span className="text-white ml-2">5.0</span>
                     </div>
                     <h1 className="text-2xl font-black uppercase tracking-tight text-white mb-1 leading-none drop-shadow-lg">{barbershop.name}</h1>
-                    <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold uppercase tracking-widest max-w-[80%] drop-shadow-md pointer-events-auto cursor-pointer hover:text-emerald-500 transition" onClick={openMap}>
-                        <MapPin className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                    <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold uppercase tracking-widest max-w-[80%] drop-shadow-md pointer-events-auto cursor-pointer hover:text-primary transition" onClick={openMap}>
+                        <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                         <span className="truncate">{barbershop.address || 'Endereço não informado'}</span>
                         <ExternalLink className="w-3 h-3 ml-1" />
                     </div>
@@ -507,7 +507,7 @@ export default function BarbershopPage() {
                             <img src={barbershop.logoUrl} alt={barbershop.name} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                                <span className="font-black text-9xl text-emerald-500 tracking-tighter">{barbershop.name.charAt(0)}</span>
+                                <span className="font-black text-9xl text-primary tracking-tighter">{barbershop.name.charAt(0)}</span>
                             </div>
                         )}
                         <button className="absolute top-8 right-8 bg-black/50 text-white rounded-full p-2 hover:bg-red-500/20 hover:text-red-500 transition" onClick={() => setLogoLightboxOpen(false)}>
@@ -543,7 +543,7 @@ export default function BarbershopPage() {
                                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 group-hover:scale-110 transition" />
                                 </div>
                                 <h4 className="font-black text-white text-sm uppercase leading-tight mb-1">{service.name}</h4>
-                                <p className="text-emerald-500 font-bold text-xs">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                <p className="text-primary font-bold text-xs">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                             </div>
                         ))}
                         {Array.isArray(products) && products.filter(p => p.isFeatured).map(product => (
@@ -618,7 +618,7 @@ export default function BarbershopPage() {
                                 )}
                                 <div>
                                     <h2 className="text-lg font-black uppercase text-white tracking-tight leading-none">Agendamento</h2>
-                                    <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
+                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
                                         {step === 6 ? 'Confirmado' : `Passo ${step} de 5`}
                                     </p>
                                 </div>
@@ -636,7 +636,7 @@ export default function BarbershopPage() {
                                 <div className="space-y-6 animate-in zoom-in">
                                     {checkoutData?.status === 'paid' ? (
                                         <div className="text-center py-6 space-y-6">
-                                            <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                            <div className="w-24 h-24 bg-primary rounded-full mx-auto flex items-center justify-center shadow-lg shadow-primary/30">
                                                 <CalendarCheck className="w-10 h-10 text-white" />
                                             </div>
                                             <h2 className="text-3xl font-black text-white uppercase">Pagamento Confirmado!</h2>
@@ -655,10 +655,10 @@ export default function BarbershopPage() {
                                                             <div
                                                                 key={card.id}
                                                                 onClick={() => { setSelectedCardId(card.id); setCvv(''); }}
-                                                                className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${selectedCardId === card.id ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'}`}
+                                                                className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition ${selectedCardId === card.id ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'}`}
                                                             >
                                                                 <div className="flex items-center gap-4">
-                                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedCardId === card.id ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedCardId === card.id ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>
                                                                         <CreditCard className="w-5 h-5" />
                                                                     </div>
                                                                     <div>
@@ -666,14 +666,14 @@ export default function BarbershopPage() {
                                                                         <p className="text-[10px] text-slate-500">Expira em {card.expiryMonth}/{card.expiryYear}</p>
                                                                     </div>
                                                                 </div>
-                                                                {selectedCardId === card.id && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                                {selectedCardId === card.id && <div className="w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
                                                             </div>
                                                         ))}
                                                         <div
                                                             onClick={() => setSelectedCardId('new')}
-                                                            className={`p-4 rounded-2xl border cursor-pointer flex items-center gap-4 transition ${selectedCardId === 'new' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'}`}
+                                                            className={`p-4 rounded-2xl border cursor-pointer flex items-center gap-4 transition ${selectedCardId === 'new' ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'}`}
                                                         >
-                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedCardId === 'new' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedCardId === 'new' ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>
                                                                 <Zap className="w-5 h-5" />
                                                             </div>
                                                             <p className="font-bold text-xs uppercase">Usar Novo Cartão</p>
@@ -710,7 +710,7 @@ export default function BarbershopPage() {
                                                         <input
                                                             type="text"
                                                             maxLength={4}
-                                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:ring-1 ring-emerald-500 outline-none transition"
+                                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:ring-1 ring-primary outline-none transition"
                                                             placeholder="•••"
                                                             value={cvv}
                                                             onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
@@ -718,7 +718,7 @@ export default function BarbershopPage() {
                                                     </div>
                                                     <button
                                                         disabled={cvv.length < 3}
-                                                        className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition disabled:opacity-50"
+                                                        className="w-full bg-primary text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition disabled:opacity-50"
                                                         onClick={() => {
                                                             const card = savedCards.find(c => c.id === selectedCardId);
                                                             processCardPayment(card.token, null, null, 1, false);
@@ -731,8 +731,8 @@ export default function BarbershopPage() {
                                         </div>
                                     ) : checkoutData?.checkoutUrl ? (
                                         <div className="text-center py-6 space-y-6">
-                                            <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
-                                                <Banknote className="w-10 h-10 text-emerald-500" />
+                                            <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto flex items-center justify-center">
+                                                <Banknote className="w-10 h-10 text-primary" />
                                             </div>
                                             <h2 className="text-2xl font-black text-white uppercase">Pagamento Online</h2>
                                             <p className="text-slate-400 text-xs px-6">Link de pagamento gerado com sucesso. Clique no botão abaixo para concluir.</p>
@@ -751,8 +751,8 @@ export default function BarbershopPage() {
                                         </div>
                                     ) : checkoutData?.qrCode ? (
                                         <div className="text-center py-6 space-y-6">
-                                            <div className="w-20 h-20 bg-emerald-500/10 rounded-full mx-auto flex items-center justify-center">
-                                                <Zap className="w-10 h-10 text-emerald-500" />
+                                            <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto flex items-center justify-center">
+                                                <Zap className="w-10 h-10 text-primary" />
                                             </div>
                                             <h2 className="text-2xl font-black text-white uppercase">Pague via PIX</h2>
                                             <div className="bg-white p-4 rounded-3xl inline-block mx-auto mb-4 border-8 border-white">
@@ -771,7 +771,7 @@ export default function BarbershopPage() {
                                                     <p className="text-[10px] text-slate-400 font-mono truncate">{checkoutData.pixCopiaECola || checkoutData.qrCode}</p>
                                                     <button
                                                         onClick={() => { navigator.clipboard.writeText(checkoutData.pixCopiaECola || checkoutData.qrCode); alert('Copiado!'); }}
-                                                        className="bg-emerald-500 text-white p-2 rounded-lg hover:bg-emerald-600 transition shrink-0"
+                                                        className="bg-primary text-white p-2 rounded-lg hover:bg-primary/90 transition shrink-0"
                                                     >
                                                         <Share2 className="w-4 h-4" />
                                                     </button>
@@ -782,7 +782,7 @@ export default function BarbershopPage() {
                                         </div>
                                     ) : (
                                         <div className="text-center py-6 space-y-6">
-                                            <div className="w-24 h-24 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                            <div className="w-24 h-24 bg-primary rounded-full mx-auto flex items-center justify-center shadow-lg shadow-primary/30">
                                                 <CalendarCheck className="w-10 h-10 text-white" />
                                             </div>
                                             <h2 className="text-3xl font-black text-white uppercase">Agendamento Realizado!</h2>
@@ -793,12 +793,12 @@ export default function BarbershopPage() {
                                     {/* Modal Footer Shared for Step 6 */}
                                     <div className="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 space-y-3">
                                         <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-black text-[10px] tracking-widest">Serviço</span><span className="font-bold text-white">{selectedService?.name || 'Agendamento'}</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-black text-[10px] tracking-widest">Valor Total</span><span className="font-black text-emerald-500">{formatCurrency(totalValue || 0)}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-500 uppercase font-black text-[10px] tracking-widest">Valor Total</span><span className="font-black text-primary">{formatCurrency(totalValue || 0)}</span></div>
                                     </div>
 
                                     <button
                                         onClick={() => router.push('/home')}
-                                        className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-xs uppercase hover:bg-emerald-600 transition tracking-widest shadow-xl shadow-emerald-500/20"
+                                        className="w-full bg-primary text-white py-5 rounded-2xl font-black text-xs uppercase hover:bg-primary/90 transition tracking-widest shadow-xl shadow-primary/20"
                                     >
                                         Ver Meus Agendamentos
                                     </button>
@@ -808,9 +808,9 @@ export default function BarbershopPage() {
                             {step < 6 && (
                                 <div className="space-y-6">
                                     {/* Selected Service Info */}
-                                    <div className="bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/20 flex justify-between items-center">
+                                    <div className="bg-primary/5 p-4 rounded-2xl border border-primary/20 flex justify-between items-center">
                                         <div>
-                                            <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Serviço Selecionado</p>
+                                            <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Serviço Selecionado</p>
                                             <h3 className="font-black text-white">{selectedService.name}</h3>
                                         </div>
                                         <span className="font-black text-white">{formatCurrency(selectedService.price)}</span>
@@ -822,7 +822,7 @@ export default function BarbershopPage() {
                                             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Escolha o Profissional</h3>
                                             <div className="grid grid-cols-2 gap-3">
                                                 {barbershop.staff?.filter(s => ['BARBER', 'ADMIN', 'SUPER_ADMIN'].includes(s.role.toUpperCase())).map(pro => (
-                                                    <div key={pro.id} onClick={() => handleProfessionalSelect(pro)} className={`bg-slate-900/50 p-4 rounded-3xl border transition-all text-center group cursor-pointer ${selectedProfessional?.id === pro.id ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-800 hover:border-slate-600'}`}>
+                                                    <div key={pro.id} onClick={() => handleProfessionalSelect(pro)} className={`bg-slate-900/50 p-4 rounded-3xl border transition-all text-center group cursor-pointer ${selectedProfessional?.id === pro.id ? 'border-primary bg-primary/10' : 'border-slate-800 hover:border-slate-600'}`}>
                                                         <div className="w-14 h-14 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center font-black text-lg text-white group-hover:scale-105 transition overflow-hidden">
                                                             {pro.avatarUrl ? (
                                                                 <img src={pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
@@ -848,8 +848,8 @@ export default function BarbershopPage() {
                                                 {(products || []).slice().sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0)).map(p => {
                                                     const isSel = selectedProducts.find(sp => sp.id === p.id);
                                                     return (
-                                                        <div key={p.id} onClick={() => handleProductToggle(p)} className={`p-3 rounded-2xl border flex items-center gap-4 cursor-pointer transition ${isSel ? 'bg-emerald-500/10 border-emerald-500' : 'bg-slate-900 border-slate-800'}`}>
-                                                            <div className={`w-12 h-12 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center shrink-0 ${isSel ? 'bg-emerald-500/20' : 'bg-slate-800'}`}>
+                                                        <div key={p.id} onClick={() => handleProductToggle(p)} className={`p-3 rounded-2xl border flex items-center gap-4 cursor-pointer transition ${isSel ? 'bg-primary/10 border-primary' : 'bg-slate-900 border-slate-800'}`}>
+                                                            <div className={`w-12 h-12 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center shrink-0 ${isSel ? 'bg-primary/20' : 'bg-slate-800'}`}>
                                                                 {p.imageUrl ? (
                                                                     <img src={p.imageUrl} className="w-full h-full object-cover" alt={p.name} />
                                                                 ) : (
@@ -860,13 +860,13 @@ export default function BarbershopPage() {
                                                                 <div className="flex items-center gap-2 mb-0.5">
                                                                     <p className="font-bold text-white text-xs uppercase">{p.name}</p>
                                                                     {p.isFeatured && (
-                                                                        <span className="bg-emerald-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Sugestão</span>
+                                                                        <span className="bg-primary text-black text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Sugestão</span>
                                                                     )}
                                                                 </div>
-                                                                <p className="text-emerald-500 font-bold text-xs">{formatCurrency(p.price)}</p>
+                                                                <p className="text-primary font-bold text-xs">{formatCurrency(p.price)}</p>
                                                             </div>
                                                             {isSel && (
-                                                                <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center animate-in zoom-in">
+                                                                <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center animate-in zoom-in">
                                                                     <Check className="w-3 h-3 text-white" />
                                                                 </div>
                                                             )}
@@ -905,7 +905,7 @@ export default function BarbershopPage() {
                                                     min={new Date().toISOString().split('T')[0]}
                                                     value={formData.date}
                                                     onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                                    className="w-full bg-slate-800 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500"
+                                                    className="w-full bg-slate-800 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-primary"
                                                 />
                                             </div>
                                             {formData.date && (
@@ -915,7 +915,7 @@ export default function BarbershopPage() {
                                                         availableSlots.length > 0 ? (
                                                             <div className="grid grid-cols-4 gap-2">
                                                                 {availableSlots.map(slot => (
-                                                                    <button key={slot} onClick={() => { setFormData({ ...formData, time: slot }); nextStep(); }} className={`py-3 rounded-xl text-xs font-black transition ${formData.time === slot ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}>{slot}</button>
+                                                                    <button key={slot} onClick={() => { setFormData({ ...formData, time: slot }); nextStep(); }} className={`py-3 rounded-xl text-xs font-black transition ${formData.time === slot ? 'bg-primary text-white shadow-lg' : 'bg-slate-900 text-slate-400 hover:bg-slate-800'}`}>{slot}</button>
                                                                 ))}
                                                             </div>
                                                         ) : (
@@ -929,7 +929,7 @@ export default function BarbershopPage() {
                                                                 </div>
                                                                 <button
                                                                     onClick={() => setWaitlistOpen(true)}
-                                                                    className="px-6 py-3 bg-emerald-500/10 text-emerald-500 text-xs font-black uppercase rounded-xl border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition flex items-center gap-2 mx-auto"
+                                                                    className="px-6 py-3 bg-primary/10 text-primary text-xs font-black uppercase rounded-xl border border-primary/20 hover:bg-primary hover:text-white transition flex items-center gap-2 mx-auto"
                                                                 >
                                                                     <Clock className="w-4 h-4" />
                                                                     Entrar na Lista de Espera
@@ -946,21 +946,21 @@ export default function BarbershopPage() {
                                     {step === 4 && (
                                         <div className="space-y-6 animate-in slide-in-from-right">
                                             <div className="space-y-4">
-                                                <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500 transition" />
-                                                <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500 transition" />
+                                                <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition" />
+                                                <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition" />
                                             </div>
 
                                             {/* Reminder Selection - New UI */}
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                                    <Bell className="w-3 h-3 text-emerald-500" />
+                                                    <Bell className="w-3 h-3 text-primary" />
                                                     Lembretes
                                                 </label>
                                                 <div className="relative">
                                                     <button
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, showReminderOptions: !formData.showReminderOptions })}
-                                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between text-white font-bold text-sm outline-none focus:ring-1 ring-emerald-500 transition"
+                                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition"
                                                     >
                                                         <span>
                                                             {formData.reminderMinutes === '' ? 'Não lembrar' :
@@ -983,7 +983,7 @@ export default function BarbershopPage() {
                                                                 <button
                                                                     key={opt.value}
                                                                     onClick={() => setFormData({ ...formData, reminderMinutes: opt.value, showReminderOptions: false })}
-                                                                    className={`w-full text-left p-4 text-sm font-bold transition hover:bg-slate-800 ${formData.reminderMinutes === opt.value ? 'text-emerald-500 bg-emerald-500/5' : 'text-slate-300'}`}
+                                                                    className={`w-full text-left p-4 text-sm font-bold transition hover:bg-slate-800 ${formData.reminderMinutes === opt.value ? 'text-primary bg-primary/5' : 'text-slate-300'}`}
                                                                 >
                                                                     {opt.label}
                                                                 </button>
@@ -996,35 +996,35 @@ export default function BarbershopPage() {
                                             {/* Payment Selection - Integrated */}
                                             <div className="space-y-4 pt-4 border-t border-slate-800">
                                                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                                    <Banknote className="w-3 h-3 text-emerald-500" />
+                                                    <Banknote className="w-3 h-3 text-primary" />
                                                     Pagamento
                                                 </h3>
 
                                                 <div className="grid grid-cols-1 gap-3">
-                                                    <div onClick={() => setPaymentType('local')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'local' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                    <div onClick={() => setPaymentType('local')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'local' ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'local' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'local' ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>
                                                                 <Banknote className="w-4 h-4" />
                                                             </div>
                                                             <div>
-                                                                <p className={`font-bold text-xs uppercase ${paymentType === 'local' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar no Local</p>
+                                                                <p className={`font-bold text-xs uppercase ${paymentType === 'local' ? 'text-primary' : 'text-slate-300'}`}>Pagar no Local</p>
                                                             </div>
                                                         </div>
-                                                        {paymentType === 'local' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                        {paymentType === 'local' && <div className="w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
                                                     </div>
 
                                                     {/* ONLINE OPTION CONDITIONAL */}
                                                     {barbershop.online_payment_enabled && (
-                                                        <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-emerald-500/10 border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                        <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
                                                             <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>
                                                                     <Zap className="w-4 h-4" />
                                                                 </div>
                                                                 <div>
-                                                                    <p className={`font-bold text-xs uppercase ${paymentType === 'online' ? 'text-emerald-500' : 'text-slate-300'}`}>Pagar Online</p>
+                                                                    <p className={`font-bold text-xs uppercase ${paymentType === 'online' ? 'text-primary' : 'text-slate-300'}`}>Pagar Online</p>
                                                                 </div>
                                                             </div>
-                                                            {paymentType === 'online' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                            {paymentType === 'online' && <div className="w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
                                                         </div>
                                                     )}
                                                 </div>
@@ -1037,7 +1037,7 @@ export default function BarbershopPage() {
                                                             {barbershop.acceptedPaymentMethods?.includes('PIX') && (
                                                                 <button
                                                                     onClick={() => setPaymentMethod('PIX')}
-                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'PIX' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'PIX' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
                                                                 >
                                                                     <span className="text-sm">💠</span> PIX
                                                                 </button>
@@ -1045,7 +1045,7 @@ export default function BarbershopPage() {
                                                             {barbershop.acceptedPaymentMethods?.includes('CREDIT_CARD') && (
                                                                 <button
                                                                     onClick={() => setPaymentMethod('CREDIT_CARD')}
-                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'CREDIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'CREDIT_CARD' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
                                                                 >
                                                                     <span className="text-sm">💳</span> CRÉDITO
                                                                 </button>
@@ -1053,7 +1053,7 @@ export default function BarbershopPage() {
                                                             {barbershop.acceptedPaymentMethods?.includes('DEBIT_CARD') && (
                                                                 <button
                                                                     onClick={() => setPaymentMethod('DEBIT_CARD')}
-                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'DEBIT_CARD' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'DEBIT_CARD' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
                                                                 >
                                                                     <span className="text-sm">🏧</span> DÉBITO
                                                                 </button>
@@ -1061,7 +1061,7 @@ export default function BarbershopPage() {
                                                             {barbershop.acceptedPaymentMethods?.includes('BOLETO') && (
                                                                 <button
                                                                     onClick={() => setPaymentMethod('BOLETO')}
-                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'BOLETO' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                                                                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition flex flex-col items-center justify-center gap-1 ${paymentMethod === 'BOLETO' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'}`}
                                                                 >
                                                                     <span className="text-sm">📄</span> BOLETO
                                                                 </button>
@@ -1092,7 +1092,7 @@ export default function BarbershopPage() {
 
                                             <button
                                                 onClick={handleBook}
-                                                className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 transition shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2"
+                                                className="w-full bg-primary text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
                                             >
                                                 {paymentType === 'online' ? (
                                                     <><Zap className="w-4 h-4" /> Pagar e Agendar</>
@@ -1115,7 +1115,7 @@ export default function BarbershopPage() {
                     <div className="bg-[#111827] w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95">
                         <div className="p-6 bg-[#0b0f19] border-b border-slate-800 flex justify-between items-center">
                             <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-emerald-500" /> Lista de Espera
+                                <Clock className="w-4 h-4 text-primary" /> Lista de Espera
                             </h3>
                             <button onClick={() => setWaitlistOpen(false)} className="text-slate-500 hover:text-white font-bold text-xs">FECHAR</button>
                         </div>
@@ -1127,21 +1127,21 @@ export default function BarbershopPage() {
                             {!formData.name && (
                                 <input
                                     placeholder="Seu Nome"
-                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-primary transition"
                                     value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 />
                             )}
                             {!formData.phone && (
                                 <input
                                     placeholder="Seu WhatsApp"
-                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition"
+                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-primary transition"
                                     value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                 />
                             )}
 
                             <textarea
                                 placeholder="Alguma observação? (Ex: Posso chegar 18h30)"
-                                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-emerald-500 transition h-24 resize-none"
+                                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-primary transition h-24 resize-none"
                                 value={waitlistNote}
                                 onChange={e => setWaitlistNote(e.target.value)}
                             />

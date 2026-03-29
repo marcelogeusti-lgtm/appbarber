@@ -66,7 +66,7 @@ export default function CheckoutPixPage() {
 
     if (loading) return (
         <div className="min-h-screen bg-black flex items-center justify-center">
-            <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
         </div>
     );
 
@@ -75,7 +75,7 @@ export default function CheckoutPixPage() {
             <div className="text-center space-y-4">
                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
                 <p className="text-slate-400 font-medium">{error}</p>
-                <button onClick={() => window.location.reload()} className="text-emerald-500 hover:underline font-bold">Tentar Novamente</button>
+                <button onClick={() => window.location.reload()} className="text-primary hover:underline font-bold">Tentar Novamente</button>
             </div>
         </div>
     );
@@ -102,7 +102,7 @@ export default function CheckoutPixPage() {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-white leading-tight">{shopName}</h2>
-                            <p className="text-xs text-emerald-500 font-medium tracking-wide uppercase">Ambiente Seguro</p>
+                            <p className="text-xs text-primary font-medium tracking-wide uppercase">Ambiente Seguro</p>
                         </div>
                     </div>
 
@@ -129,7 +129,7 @@ export default function CheckoutPixPage() {
 
                     {isPaid ? (
                         <div className="text-center space-y-6 animate-in fade-in zoom-in duration-500">
-                            <div className="w-24 h-24 bg-emerald-500/20 text-emerald-500 rounded-full mx-auto flex items-center justify-center ring-4 ring-emerald-500/10">
+                            <div className="w-24 h-24 bg-primary/20 text-primary rounded-full mx-auto flex items-center justify-center ring-4 ring-primary/10">
                                 <CheckCircle className="w-12 h-12" />
                             </div>
                             <div className="space-y-2">
@@ -138,7 +138,7 @@ export default function CheckoutPixPage() {
                             </div>
                             <button
                                 onClick={() => router.push('/home')}
-                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5"
+                                className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-4 rounded-xl transition shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5"
                             >
                                 Voltar para Início
                             </button>
@@ -152,7 +152,7 @@ export default function CheckoutPixPage() {
 
                             {/* QR Code Card */}
                             <div className="bg-white p-4 rounded-2xl shadow-2xl mx-auto w-fit relative group">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-teal-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
                                 <div className="relative bg-white p-2 rounded-xl">
                                     {payment.qrCodeBase64 ? (
                                         <img
@@ -179,8 +179,8 @@ export default function CheckoutPixPage() {
                                 <button
                                     onClick={handleCopy}
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 ${copied
-                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                                        : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5'
+                                        ? 'bg-primary/20 text-primary/80 border border-primary/50'
+                                        : 'bg-primary/90 hover:bg-primary text-white shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5'
                                         }`}
                                 >
                                     {copied ? (
@@ -208,7 +208,7 @@ export default function CheckoutPixPage() {
 
                                 <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 mt-2">
                                     <p className="text-center text-xs text-slate-300 font-medium leading-relaxed">
-                                        Ou se preferir, abra o app do seu banco pelo celular e escolha <strong className="text-emerald-500 font-bold">Pix Copia e Cola</strong>.
+                                        Ou se preferir, abra o app do seu banco pelo celular e escolha <strong className="text-primary font-bold">Pix Copia e Cola</strong>.
                                     </p>
                                 </div>
                             </div>

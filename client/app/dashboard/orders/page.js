@@ -207,7 +207,7 @@ export default function OrdersPage() {
                 {filteredOrders.map(order => (
                     <Link href={`/dashboard/orders/${order.id}`} key={order.id} className="block group">
                         <div className="bg-card p-5 sm:p-8 rounded-2xl sm:rounded-[2.5rem] border border-border hover:border-primary/50 transition-all relative group overflow-hidden flex flex-col h-full shadow-sm hover:shadow-xl hover:shadow-primary/5">
-                            <div className={`absolute top-0 right-0 px-4 py-2 ${order.status === 'OPEN' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'} font-black text-[8px] uppercase tracking-widest border-l border-b border-border/10`}>
+                            <div className={`absolute top-0 right-0 px-4 py-2 ${order.status === 'OPEN' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-primary/10 text-primary border-primary/20'} font-black text-[8px] uppercase tracking-widest border-l border-b border-border/10`}>
                                 {order.status === 'OPEN' ? 'EM ABERTO' : 'LIQUIDADO'}
                             </div>
 

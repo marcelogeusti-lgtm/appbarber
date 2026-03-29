@@ -115,7 +115,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                 {/* Header */}
                 <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <User className="w-5 h-5 text-emerald-500" />
+                        <User className="w-5 h-5 text-primary" />
                         Novo Cliente
                     </h2>
                     <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
@@ -130,7 +130,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                     <div className="flex justify-center mb-6">
                         <div className="relative group w-24 h-24">
                             <input type="file" onChange={handleAvatarChange} className="absolute inset-0 opacity-0 z-10 cursor-pointer" accept="image/*" />
-                            <div className={`w-full h-full rounded-full bg-slate-950 border-2 flex items-center justify-center overflow-hidden transition-all ${formData.avatarUrl ? 'border-emerald-500' : 'border-slate-800 group-hover:border-emerald-500/50'}`}>
+                            <div className={`w-full h-full rounded-full bg-slate-950 border-2 flex items-center justify-center overflow-hidden transition-all ${formData.avatarUrl ? 'border-primary' : 'border-slate-800 group-hover:border-primary/50'}`}>
                                 {formData.avatarUrl ? (
                                     <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
@@ -157,7 +157,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                             <input
                                 type="text"
                                 required
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-primary outline-none"
                                 placeholder="Ex: João Silva"
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -172,7 +172,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                             <input
                                 type="tel"
                                 required
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-primary outline-none"
                                 placeholder="Ex: 11999999999"
                                 value={formData.phone}
                                 onChange={e => setFormData({ ...formData, phone: e.target.value })}
@@ -186,7 +186,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                             <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
                             <input
                                 type="email"
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-primary outline-none"
                                 placeholder="Ex: joao@email.com"
                                 value={formData.email}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -199,7 +199,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                         <div className="relative">
                             <FileText className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
                             <textarea
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none min-h-[80px]"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-primary outline-none min-h-[80px]"
                                 placeholder="Ex: Prefere corte na tesoura..."
                                 value={formData.notes}
                                 onChange={e => setFormData({ ...formData, notes: e.target.value })}
@@ -218,7 +218,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
                         <button
                             type="submit"
                             disabled={loading || uploading}
-                            className={`flex-1 px-4 py-3 bg-emerald-500 text-slate-950 font-bold rounded-xl hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 ${loading || uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`flex-1 px-4 py-3 bg-primary text-slate-950 font-bold rounded-xl hover:bg-primary/80 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 ${loading || uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> Cadastrar</>}
                         </button>

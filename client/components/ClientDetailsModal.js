@@ -39,19 +39,19 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
         <div className="flex border-b border-slate-800 mb-6">
             <button
                 onClick={() => setActiveTab('details')}
-                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'details' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'details' ? 'border-primary text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
             >
                 Detalhes
             </button>
             <button
                 onClick={() => setActiveTab('history')}
-                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'history' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'history' ? 'border-primary text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
             >
                 Histórico
             </button>
             <button
                 onClick={() => setActiveTab('loyalty')}
-                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'loyalty' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'loyalty' ? 'border-primary text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
             >
                 Fidelidade
             </button>
@@ -87,7 +87,7 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                 <div className="p-6 overflow-y-auto">
                     {loading ? (
                         <div className="flex items-center justify-center py-20">
-                            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                         </div>
                     ) : clientData ? (
                         <>
@@ -107,7 +107,7 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                         </div>
                                         <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
                                             <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">No-Shows</p>
-                                            <p className={`text-lg font-black ${clientData.stats.noShows > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                            <p className={`text-lg font-black ${clientData.stats.noShows > 0 ? 'text-red-500' : 'text-primary'}`}>
                                                 {clientData.stats.noShows}
                                             </p>
                                         </div>
@@ -118,15 +118,15 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Informações de Contato</h3>
                                         <div className="space-y-2">
                                             <div className="flex items-center gap-3 text-sm text-slate-300">
-                                                <Phone className="w-4 h-4 text-emerald-500" />
+                                                <Phone className="w-4 h-4 text-primary" />
                                                 <span>{clientData.client.phone || 'N/A'}</span>
                                             </div>
                                             <div className="flex items-center gap-3 text-sm text-slate-300">
-                                                <Mail className="w-4 h-4 text-emerald-500" />
+                                                <Mail className="w-4 h-4 text-primary" />
                                                 <span>{clientData.client.email || 'N/A'}</span>
                                             </div>
                                             <div className="flex items-center gap-3 text-sm text-slate-300">
-                                                <Calendar className="w-4 h-4 text-emerald-500" />
+                                                <Calendar className="w-4 h-4 text-primary" />
                                                 <span>Nascimento: {clientData.client.birthday ? formatDate(clientData.client.birthday) : 'N/A'}</span>
                                             </div>
                                         </div>
@@ -142,7 +142,7 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                             {clientData.appointments.map(apt => (
                                                 <div key={apt.id} className="bg-slate-800/30 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                                                             <Calendar className="w-5 h-5" />
                                                         </div>
                                                         <div>
@@ -150,7 +150,7 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                                             <p className="text-xs text-slate-500">{formatDate(apt.date)} às {new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
                                                         </div>
                                                     </div>
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${apt.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' :
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${apt.status === 'COMPLETED' ? 'bg-primary/10 text-primary' :
                                                         apt.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
                                                         }`}>
                                                         {apt.status}
@@ -170,10 +170,10 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                     {clientData.subscriptions.length > 0 ? (
                                         <div className="space-y-3">
                                             {clientData.subscriptions.map(sub => (
-                                                <div key={sub.id} className="bg-gradient-to-r from-emerald-900/20 to-slate-900 p-4 rounded-xl border border-emerald-500/20">
+                                                <div key={sub.id} className="bg-gradient-to-r from-emerald-900/20 to-slate-900 p-4 rounded-xl border border-primary/20">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <h4 className="font-bold text-white">{sub.plan?.name || 'Plano Sem Nome'}</h4>
-                                                        <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">ATIVO</span>
+                                                        <span className="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-bold">ATIVO</span>
                                                     </div>
                                                     <p className="text-xs text-slate-400">
                                                         Expira em: {sub.endDate ? formatDate(sub.endDate) : 'Vitalício'}

@@ -97,7 +97,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                 <div className="bg-[#0f1523] px-6 py-4 border-b border-slate-800 flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                            <Scissors className="w-5 h-5 text-emerald-500" />
+                            <Scissors className="w-5 h-5 text-primary" />
                             Nova Comanda de Balcão
                         </h2>
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
@@ -122,7 +122,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                                     type="text"
                                     placeholder="Nome"
                                     required
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 text-sm text-white focus:ring-2 focus:ring-primary outline-none transition-all"
                                     value={formData.guestName}
                                     onChange={e => setFormData({ ...formData, guestName: e.target.value })}
                                 />
@@ -130,7 +130,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                             <input
                                 type="tel"
                                 placeholder="Telefone"
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={formData.guestPhone}
                                 onChange={e => setFormData({ ...formData, guestPhone: e.target.value })}
                             />
@@ -142,7 +142,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quem atendeu?</label>
                         <select
                             required
-                            className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white focus:ring-2 focus:ring-primary outline-none transition-all"
                             value={formData.professionalId}
                             onChange={e => setFormData({ ...formData, professionalId: e.target.value })}
                         >
@@ -162,12 +162,12 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                                     key={srv.id}
                                     onClick={() => toggleService(srv.id)}
                                     className={`p-3 rounded-lg border flex justify-between items-center cursor-pointer transition-all ${selectedServiceIds.includes(srv.id)
-                                        ? 'border-emerald-500 bg-emerald-500/10'
+                                        ? 'border-primary bg-primary/10'
                                         : 'border-slate-800 bg-slate-900 hover:border-slate-600'
                                         }`}
                                 >
                                     <span className="text-sm font-bold text-white uppercase tracking-tight">{srv.name}</span>
-                                    <span className="text-xs font-black text-emerald-500">R$ {srv.price}</span>
+                                    <span className="text-xs font-black text-primary">R$ {srv.price}</span>
                                 </div>
                             ))}
                             {services.length === 0 && <p className="text-[10px] text-slate-600 text-center py-4">Nenhum serviço disponível.</p>}
@@ -186,7 +186,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all disabled:opacity-50"
+                            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 transition-all disabled:opacity-50"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                             Abrir Comanda
