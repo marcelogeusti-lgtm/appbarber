@@ -180,7 +180,20 @@ const getRecommendedBarbershops = async (req, res) => {
 
         // 4. Sorting Logic
         filteredRecommended.sort((a, b) => {
-            // Priority 1: Real Ratings
+            // Priority 1: Proximity (if location is provided)
+            if (userLat && userLng) {
+                if (a.distance !== null && b.distance !== null) {
+                    if (a.distance !== b.distance) {
+                        return a.distance - b.distance; // Ascending distance
+                    }
+                } else if (a.distance !== null) {
+                    return -1;
+                } else if (b.distance !== null) {
+                    return 1;
+                }
+            }
+
+            // Priority 2: Real Ratings
             if (a.hasRealReviews && !b.hasRealReviews) return -1;
             if (!a.hasRealReviews && b.hasRealReviews) return 1;
 
@@ -193,7 +206,7 @@ const getRecommendedBarbershops = async (req, res) => {
                 return b.totalReviews - a.totalReviews;
             }
 
-            // Priority 2: No reviews - Created Date (ASC - Older first)
+            // Priority 3: No reviews - Created Date (ASC - Older first)
             return new Date(a.createdAt) - new Date(b.createdAt);
         });
 
