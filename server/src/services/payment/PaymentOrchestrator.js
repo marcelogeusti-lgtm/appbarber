@@ -332,7 +332,7 @@ class PaymentOrchestrator {
 
     async getGatewayConfig(barbershopId, gatewayName) {
         const prisma = require('../../lib/prisma');
-        const crypto = require('../../lib/crypto');
+        const crypto = require('../../utils/crypto');
 
         let credentials = { accessToken: null, publicKey: null, clientSecret: null };
 
@@ -358,7 +358,6 @@ class PaymentOrchestrator {
                 credentials = { ...creds };
                 
                 // Auto-decrypt
-                const crypto = require('../../utils/crypto');
                 const sensitiveFields = ['secretKey', 'accessToken', 'apiKey', 'clientSecret'];
                 sensitiveFields.forEach(field => {
                     const key = field === 'accessToken' ? (credentials.accessToken ? 'accessToken' : 'access_token') : field;

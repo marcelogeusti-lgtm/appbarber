@@ -431,6 +431,41 @@ exports.createAppointment = async (req, res) => {
 
         const { appointment, order } = result;
 
+        // --- 5. ORCHESTRATE PAYMENT (ONLINE) ---
+        let paymentData = null;
+        try {
+            if (paymentMethod === 'ONLINE' && appointment) {
+                console.log(`[Appointment] 💳 Orchestrating payment for App ${appointment.id}`);
+                const orchestration = await PaymentOrchestrator.createPayment({
+                    amount: order.total,
+                    method: 'PIX',
+                    barbershopId: service.barbershopId,
+                    appointmentId: appointment.id,
+                    orderId: order.id,
+                    description: `Agendamento - ${service.name}`,
+                    payer: {
+                        name: currentUser?.name || 'Cliente',
+                        email: currentUser?.email || 'email@client.com'
+                    },
+                    externalId: appointment.id
+                });
+
+                paymentData = orchestration;
+            }
+        } catch (paymentError) {
+            console.error('[Appointment] 🛑 Payment orchestration failed. REVERTING booking.', paymentError);
+            
+            // Critical Rollback: Free the slot if payment setup crashed
+            await prisma.appointment.delete({
+                where: { id: appointment.id }
+            });
+
+            return res.status(500).json({ 
+                error: 'Falha ao configurar pagamento. O horário foi liberado.', 
+                detail: paymentError.message 
+            });
+        }
+
         try {
             await googleCalendarService.syncAppointmentToGoogle(appointment.id);
         } catch (syncErr) {
