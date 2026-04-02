@@ -12,7 +12,14 @@ function init() {
 
     // 1. Appointment CREATED (Confirmed/Pending)
     eventBus.on('APPOINTMENT_CREATED', async (appointment) => {
-        console.log(`[Event] APPOINTMENT_CREATED: ${appointment.id}`);
+        console.log(`[Event] APPOINTMENT_CREATED: ${appointment.id} (Status: ${appointment.status})`);
+        
+        // Skip automated confirmation message for PENDING appointments (Awaiting Payment)
+        if (appointment.status === 'PENDING') {
+            console.log(`[Event] Skipping confirmation message for PENDING appointment ${appointment.id}`);
+            return;
+        }
+
         try {
             await communicationService.sendConfirmationRequest(appointment);
             
@@ -64,6 +71,10 @@ function init() {
                         appointmentId: appointment.id
                     });
                 }
+            } else if (appointment.status === 'CONFIRMED' && oldStatus === 'PENDING') {
+                // Payment was just approved!
+                console.log(`[Event] Appointment ${appointment.id} was PAID and now CONFIRMED. Sending confirmation.`);
+                await communicationService.sendConfirmationRequest(appointment);
             } else if (appointment.status === 'COMPLETED') {
                 await communicationService.sendThankYouMessage(appointment);
             }

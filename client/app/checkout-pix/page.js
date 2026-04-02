@@ -156,7 +156,9 @@ export default function CheckoutPixPage() {
                                 <div className="relative bg-white p-2 rounded-xl">
                                     {payment.qrCodeBase64 ? (
                                         <img
-                                            src={`data:image/png;base64,${payment.qrCodeBase64}`}
+                                            src={payment.qrCodeBase64.startsWith('data:') 
+                                                ? payment.qrCodeBase64 
+                                                : `data:image/png;base64,${payment.qrCodeBase64}`}
                                             alt="QR Code Pix"
                                             className="w-56 h-56 object-contain"
                                         />

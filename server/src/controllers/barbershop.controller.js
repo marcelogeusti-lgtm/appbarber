@@ -397,8 +397,14 @@ exports.getBarbershopBySlug = async (req, res) => {
             methods.add('DEBIT_CARD');
         }
 
-        // Resulting list from DB (explicitly configured)
-        const acceptedPaymentMethods = barbershop.enabledPaymentMethods || Array.from(methods);
+        // Determine actual available methods based on active gateways
+        const allowedMethods = Array.from(methods);
+        
+        // If shop has specific methods enabled, intersection them with what's actually possible
+        // If not specific methods in DB, just use everything the gateway supports
+        const acceptedPaymentMethods = (barbershop.enabledPaymentMethods || allowedMethods)
+            .filter(m => allowedMethods.includes(m));
+
         const online_payment_enabled = acceptedPaymentMethods.length > 0;
 
         // Remove sensitive gatewayConfigs from the original object

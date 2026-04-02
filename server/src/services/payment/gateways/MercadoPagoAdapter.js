@@ -6,20 +6,30 @@ class MercadoPagoAdapter extends GatewayAdapter {
         super();
     }
 
-    async createPayment({ amount, description, customer, credentials, externalId, method, token, installments, issuerId, paymentMethodId, payer }) {
-        const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
-        if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+    async createPayment({ amount, description, customer, credentials, externalId, method, token, installments, issuerId, paymentMethodId, payer, disbursements }) {
+        const accessToken = credentials?.accessToken;
+        if (!accessToken) throw new Error("Credenciais do Mercado Pago não fornecidas para esta barbearia.");
 
         const client = new MercadoPagoConfig({ accessToken, options: { timeout: 5000 } });
         const payment = new Payment(client);
 
         try {
-            // Payer Info - Strict identification check
-            const identificationNumber = (customer.document || customer.identification?.number || payer?.identification?.number || '').replace(/\D/g, '');
-            const identificationType = customer.identification?.type || payer?.identification?.type || 'CPF';
+            const identificationNumber = (
+                customer?.document || 
+                customer?.identification?.number || 
+                payer?.identification?.number || 
+                customer?.cpf || 
+                payer?.document ||
+                ''
+            ).toString().replace(/\D/g, '');
 
-            if (!identificationNumber) {
-                throw new Error("Documento (CPF/CNPJ) do pagador é obrigatório.");
+            const identificationType = customer?.identification?.type || payer?.identification?.type || 'CPF';
+
+            const isPix = (method && method.toUpperCase() === 'PIX') || 
+                          (paymentMethodId && paymentMethodId.toUpperCase() === 'PIX');
+
+            if (!isPix && (!identificationNumber || identificationNumber.length < 11)) {
+                throw new Error("Documento (CPF/CNPJ) do pagador é inválido ou obrigatório.");
             }
 
             const payerEmail = customer.email || payer?.email;
@@ -27,21 +37,31 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 throw new Error("E-mail do pagador é obrigatório.");
             }
 
+            const firstName = customer.name?.split(' ')[0] || payer?.first_name || 'Cliente';
+            const lastName = customer.name?.split(' ').slice(1).join(' ') || payer?.last_name || 'Pagador';
+
             // Payload for MP SDK
             const body = {
                 transaction_amount: parseFloat(amount),
                 description: description || 'Serviço Barbearia',
                 external_reference: externalId?.toString(),
-                notification_url: `${process.env.BACKEND_URL}/api/webhooks/mercadopago`,
+                notification_url: process.env.BACKEND_URL && !process.env.BACKEND_URL.includes('localhost')
+                    ? `${process.env.BACKEND_URL}/api/webhooks/mercadopago`
+                    : undefined,
                 payer: {
                     email: payerEmail,
-                    first_name: customer.name?.split(' ')[0] || payer?.first_name || 'Cliente',
-                    last_name: customer.name?.split(' ').slice(1).join(' ') || payer?.last_name || '',
-                    identification: {
+                    first_name: firstName,
+                    last_name: lastName,
+                    // Send identification only if available or if NOT PIX
+                    identification: (identificationNumber && identificationNumber.length >= 11) ? {
                         type: identificationType,
                         number: identificationNumber
-                    }
-                }
+                    } : undefined
+                },
+                // Disbursements (Split)
+                disbursements: disbursements && disbursements.length > 0 ? disbursements : undefined,
+                // Security: Enable 3DS (3D Secure) for card payments
+                three_d_secure_mode: method.includes('card') ? 'optional' : undefined
             };
 
             // Method Logic
@@ -53,10 +73,13 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 if (!token) throw new Error("Token do cartão obrigatório.");
                 body.token = token;
 
-                const isDebit = method === 'DEBIT_CARD' || (paymentMethodId && paymentMethodId.toLowerCase().includes('deb'));
+                const isDebit = method === 'DEBIT_CARD' || 
+                               (paymentMethodId && paymentMethodId.toLowerCase().includes('deb')) ||
+                               (payer?.payment_type_id === 'debit_card');
 
                 if (isDebit) {
                     body.installments = 1;
+                    // If no specific debit ID provided, default to a safe value
                     if (!paymentMethodId) body.payment_method_id = 'debvisa';
                 } else {
                     body.installments = Number(installments) || 1;
@@ -122,8 +145,22 @@ class MercadoPagoAdapter extends GatewayAdapter {
             const mpError = err.response?.data;
             let errorMsg = mpError?.message || err.message;
 
-            // Helpful errors for common MP issues
-            if (mpError?.cause?.[0]?.description) {
+            // Mapping common status_detail for user-friendly errors
+            const rejectionMap = {
+                'cc_rejected_insufficient_amount': 'Saldo insuficiente no cartão.',
+                'cc_rejected_high_risk': 'Transação recusada por segurança. Entre em contato com seu banco.',
+                'cc_rejected_bad_filled_security_code': 'Código de segurança (CVV) inválido.',
+                'cc_rejected_call_for_authorize': 'O banco exige autorização para realizar esta compra.',
+                'cc_rejected_card_disabled': 'O cartão está desativado ou bloqueado.',
+                'cc_rejected_invalid_installments': 'O número de parcelas não é permitido para este cartão.',
+                'cc_rejected_duplicated_payment': 'Pagamento duplicado detectado.',
+                'cc_rejected_card_error': 'Ocorreu um erro ao processar o cartão.'
+            };
+
+            const statusDetail = mpError?.status_detail;
+            if (statusDetail && rejectionMap[statusDetail]) {
+                errorMsg = rejectionMap[statusDetail];
+            } else if (mpError?.cause?.[0]?.description) {
                 errorMsg = `${errorMsg}: ${mpError.cause[0].description}`;
             }
 
@@ -358,18 +395,15 @@ class MercadoPagoAdapter extends GatewayAdapter {
             return false;
         }
 
-        // Query Param (data.id) - Use lowercase format for manifest
-        // Express converts query params to object. We need "data.id" specifically.
-        // It might be in req.query['data.id']
+        // data.id is mandatory in query params for v1/v2 webhooks to build the manifest
         const dataId = req.query['data.id'];
 
         if (!dataId) {
-            console.warn('[MP Webhook] Missing data.id in query params.');
+            console.warn('[MP Webhook] Missing data.id in query params. Required for verification.');
             return false;
         }
 
-        // Parse x-signature
-        // Format: ts=...,v1=...
+        // Parse x-signature (format: ts=...,v1=...)
         const parts = xSignature.split(',');
         let ts = null;
         let v1 = null;
@@ -387,22 +421,18 @@ class MercadoPagoAdapter extends GatewayAdapter {
             return false;
         }
 
-        // Secret Key (Not Access Token)
-        // User must provide "Secret Key" in credentials. 
-        // If not available (only access token), we cannot validate HMAC properly.
-        // Falls back to basic check only if secret is missing? 
-        // Security requirement: MUST have secret.
+        // Secret Key from Dashboard
         const secret = credentials?.clientSecret || credentials?.secretKey;
 
         if (!secret) {
-            console.warn('[MP Webhook] No Secret Key / Client Secret available for validation. Skipping HMAC check (INSECURE).');
+            console.warn('[MP Webhook] No Webhook Secret Key available for validation. Skipping check.');
             return true;
         }
 
-        // Manifest Template: id:[data.id_url];request-id:[x-request-id_header];ts:[ts_header];
+        // Exact Manifest string required by MP v2
         const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
 
-        // Create HMAC
+        // Create HMAC-SHA256
         const hmac = crypto.createHmac('sha256', secret);
         hmac.update(manifest);
         const calculatedHash = hmac.digest('hex');

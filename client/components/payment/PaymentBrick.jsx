@@ -14,6 +14,7 @@ const PaymentBrick = ({
     payer,
     onSuccess,
     onError,
+    appointmentId,
     installments = 12,
     enabledMethods = []
 }) => {
@@ -76,19 +77,14 @@ const PaymentBrick = ({
     const handleSubmit = async (param) => {
         const { formData } = param;
         try {
-            // Determine method based on payment_type_id if available (credit_card, debit_card, bank_transfer, etc)
-            const resolvedMethod = formData.payment_type_id || (formData.payment_method_id?.includes('pix') ? 'pix' : 'card');
-
+            // No need for complex manual detection, just send everything in formData
+            // The backend handles the mapping.
             const response = await api.post('/payments/process-brick', {
                 ...formData,
                 barbershopId,
+                appointmentId,
                 description,
-                transaction_amount: Number(amount),
-                method: resolvedMethod, // Pass type to backend
-                payer: {
-                    email: formData.payer.email,
-                    ...formData.payer
-                }
+                transaction_amount: Number(amount)
             });
 
             if (onSuccess) {
@@ -97,7 +93,8 @@ const PaymentBrick = ({
         } catch (error) {
             console.error('Payment Brick Error:', error);
             if (onError) {
-                onError(error.response?.data?.message || error.response?.data?.error || error.message);
+                const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
+                onError(errorMsg);
             }
         }
     };

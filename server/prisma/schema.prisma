@@ -848,7 +848,8 @@ model Payment {
   gateway    String // mercadopago | stripe | velfy
   method     String // pix | card
   externalId String? @map("external_id")
-  status     String // pending | paid | failed | canceled | expired
+  status       String // pending | paid | failed | canceled | expired
+  statusDetail String? @map("status_detail")
   amount     Decimal @db.Decimal(10, 2)
   currency   String  @default("BRL")
 
@@ -873,7 +874,9 @@ model Payment {
 
   // Pix Specifics
   qrCode        String? @map("qr_code") @db.Text
+  qrCodeBase64  String? @map("qr_code_base64") @db.Text
   pixCopiaECola String? @map("pix_copia_cola") @db.Text
+  ticketUrl     String? @map("ticket_url") @db.Text
 
   createdAt DateTime  @default(now()) @map("created_at")
   paidAt    DateTime? @map("paid_at")

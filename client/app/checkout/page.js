@@ -250,6 +250,7 @@ export default function CheckoutPage() {
                     <PaymentBrick
                         amount={data.amount}
                         barbershopId={data.barbershopId}
+                        appointmentId={appointmentId}
                         description={data.description}
                         payer={data.payer}
                         enabledMethods={data.enabledPaymentMethods}

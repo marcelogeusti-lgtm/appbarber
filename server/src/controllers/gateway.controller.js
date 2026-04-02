@@ -42,6 +42,42 @@ exports.saveConfig = async (req, res) => {
             return res.status(400).json({ error: 'Gateway and credentials are required' });
         }
 
+        // --- MANDATORY VALIDATION FOR ACTIVATION ---
+        if (isActive) {
+            // Check if we have credentials in this request OR if they already exist in DB
+            const hasPublicKey = credentials.publicKey && (credentials.publicKey.length > 0);
+            const hasAccessToken = credentials.accessToken && (credentials.accessToken.length > 0);
+
+            // Fetch existing config to see if we already have these keys (masked or encrypted)
+            const existingConfig = await prisma.gatewayConfig.findUnique({
+                where: { barbershopId_gateway: { barbershopId, gateway } }
+            });
+
+            const dbHasPublicKey = existingConfig?.credentials?.publicKey;
+            const dbHasAccessToken = existingConfig?.credentials?.accessToken;
+
+            if (!(hasPublicKey || dbHasPublicKey) || !(hasAccessToken || dbHasAccessToken)) {
+                return res.status(400).json({ 
+                    error: `Para ativar o ${gateway}, é obrigatório configurar a Public Key e o Access Token.` 
+                });
+            }
+        }
+
+        // --- MANDATORY VALIDATION FOR ACTIVATION ---
+        if (isActive) {
+            if (!credentials.publicKey || !credentials.accessToken) {
+                return res.status(400).json({
+                    error: `Para ativar o ${gateway}, é obrigatório preencher o Public Key e o Access Token.`
+                });
+            }
+            // Check if they are still masked while activating
+            if (credentials.publicKey.includes('...') || credentials.accessToken.includes('...')) {
+                // If it's already in DB, it's allowed (masked as returned by GET), 
+                // but the controller logic below handles merging the old encrypted value.
+                // However, we must ensure we HAVE them in DB if we are activating now.
+            }
+        }
+
         // Validate structure based on gateway? (For now, trust frontend/schema)
 
         // Fetch existing config to check for masked values
@@ -72,20 +108,15 @@ exports.saveConfig = async (req, res) => {
 
         sensitiveFields.forEach(field => {
             const val = finalCredentials[field];
-            if (val && typeof val === 'string' && !val.includes('...')) {
-                // It's a new plain text value (or the user pasted a new key that happens to have ... but unlikely for these keys)
-                // We double check if it DOES NOT match the old encrypted value (if needed), but here logical flow is:
-                // If it was masked '...', we replaced it with OLD encrypted value.
-                // If it is NOT masked, it is NEW plain text. So we encrypt it.
-                // We should checks if it's already encrypted format (iv:content)? No, user enters plain text.
-                // Avoid double encryption if something weird happens, but unlikely.
+            if (val && typeof val === 'string') {
+                // Check if it's NOT masked and NOT already encrypted
+                const isMasked = val.includes('...');
+                const isEncrypted = /^[0-9a-f]{32}:[0-9a-f]+$/.test(val);
 
-                // One edge case: if user enters a key that looks like "val...ue", it might be treated as masked?
-                // The mask is `slice(0,4)...slice(-4)`.
-                // We assume user won't enter a Key that matches the mask format exactly.
-
-                // Perform Encryption
-                finalCredentials[field] = crypto.encrypt(val);
+                if (!isMasked && !isEncrypted) {
+                    // It's a new plain text value. Encrypt it.
+                    finalCredentials[field] = crypto.encrypt(val);
+                }
             }
         });
 

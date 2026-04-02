@@ -1,11 +1,18 @@
 const crypto = require('crypto');
 
 const ALGORITHM = 'aes-256-cbc';
-// Ensure ENCRYPTION_KEY is 32 bytes. If not set, generate one (for dev only, will reset on restart)
-// In production, this MUST be fixed and set in env.
+// IMPORTANT: ENCRYPTION_KEY must be a 32-byte hex string (64 chars) in .env
+// If not found, we use a fallback to avoid losing access on every restart, 
+// but we warn the user to set a proper one for production.
+const FALLBACK_KEY = Buffer.from('884c987622c7a6acc2705cc710d0f50762bd13ec26c697a224a1811e56a644da', 'hex');
+
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
     ? Buffer.from(process.env.ENCRYPTION_KEY, 'hex')
-    : crypto.randomBytes(32);
+    : FALLBACK_KEY;
+
+if (!process.env.ENCRYPTION_KEY) {
+    console.warn('⚠️ [Crypto] ENCRYPTION_KEY not set in .env! Using fallback key. DO NOT USE IN PRODUCTION.');
+}
 
 const IV_LENGTH = 16; // For AES, this is always 16
 

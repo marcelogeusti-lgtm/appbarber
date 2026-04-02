@@ -117,7 +117,6 @@ export default function SettingsPage() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
-        { name: 'Conexões', icon: Zap },
         { name: 'Alertas', icon: Bell },
     ];
 
@@ -167,7 +166,6 @@ export default function SettingsPage() {
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} uploadingLogo={uploadingLogo} setUploadingLogo={setUploadingLogo} uploadingBannerIdx={uploadingBannerIdx} setUploadingBannerIdx={setUploadingBannerIdx} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
-                {activeTab === 'Conexões' && isMaster && <IntegrationSettings />}
                 {activeTab === 'Alertas' && <AlertsTab />}
             </div>
         </div>

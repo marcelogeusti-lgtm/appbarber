@@ -1,0 +1,11 @@
+﻿=== ­ƒøá´©Å Mercado Pago Credentials Sync ­ƒøá´©Å ===
+
+Ô£à ENCRYPTION_KEY detected.
+
+Found 2 gateway configurations.
+
+ÔØî [Waniely Benites] No credentials set.
+Ô£à [NextApp] Credentials readable.
+
+=== Ô£à Review Finished ===
+If some credentials are not readable, you should re-save them in the Dashboard.

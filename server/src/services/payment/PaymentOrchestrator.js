@@ -16,7 +16,7 @@ class PaymentOrchestrator {
     }
 
     async createPayment(params) {
-        const { method, barbershopId, customer, amount, description, externalId } = params;
+        const { method, barbershopId, customer, amount, description, externalId, payer } = params;
 
         let gatewayToUse = 'mercadopago'; // Default
 
@@ -160,7 +160,20 @@ class PaymentOrchestrator {
             ...params,
             amount,
             description,
-            customer,
+            customer: {
+                ...customer,
+                document: customer?.document || 
+                          customer?.cpf || 
+                          customer?.identification?.number || 
+                          payer?.identification?.number ||
+                          params?.payer?.identification?.number ||
+                          params?.customer?.identification?.number,
+                name: customer?.name || 
+                      customer?.first_name || 
+                      payer?.first_name || 
+                      params?.payer?.first_name ||
+                      'Cliente'
+            },
             credentials,
             method,
             externalId,
@@ -319,22 +332,16 @@ class PaymentOrchestrator {
 
     async getGatewayConfig(barbershopId, gatewayName) {
         const prisma = require('../../lib/prisma');
-        const crypto = require('../../utils/crypto');
+        const crypto = require('../../lib/crypto');
 
-        let credentials = {};
+        let credentials = { accessToken: null, publicKey: null, clientSecret: null };
 
         if (!barbershopId) {
-            // GLOBAL / PLATFORM CREDENTIALS
-            // Retrieve from Environment Variables
-            if (gatewayName.toUpperCase() === 'MERCADOPAGO') {
-                credentials = {
-                    publicKey: process.env.MP_PUBLIC_KEY,
-                    accessToken: process.env.MP_ACCESS_TOKEN, // Critical for backend ops
-                    clientSecret: process.env.MP_CLIENT_SECRET,
-                    secretKey: process.env.MP_CLIENT_SECRET // mapping
-                };
-            }
-            // Add other gateways if needed
+            // GLOBAL / PLATFORM CREDENTIALS (Only for platform-level subscriptions or fees)
+            console.log(`[Orchestrator] 🌐 Resolving GLOBAL Platform credentials.`);
+            credentials.accessToken = process.env.MP_ACCESS_TOKEN;
+            credentials.publicKey = process.env.MP_PUBLIC_KEY;
+            credentials.clientSecret = process.env.MP_CLIENT_SECRET;
         } else {
             // SHOP SPECIFIC
             const config = await prisma.gatewayConfig.findUnique({
@@ -347,25 +354,48 @@ class PaymentOrchestrator {
             });
 
             if (config && config.credentials) {
-                credentials = { ...config.credentials };
+                const creds = typeof config.credentials === 'string' ? JSON.parse(config.credentials) : config.credentials;
+                credentials = { ...creds };
+                
                 // Auto-decrypt
                 const sensitiveFields = ['secretKey', 'accessToken', 'apiKey', 'clientSecret'];
                 sensitiveFields.forEach(field => {
-                    if (credentials[field]) {
-                        const decrypted = crypto.decrypt(credentials[field]);
-                        if (decrypted) credentials[field] = decrypted;
+                    const key = field === 'accessToken' ? (credentials.accessToken ? 'accessToken' : 'access_token') : field;
+                    const val = credentials[key];
+                    if (val && typeof val === 'string' && val.includes(':')) {
+                        const decrypted = crypto.decrypt(val);
+                        if (decrypted) {
+                            credentials[key === 'access_token' ? 'accessToken' : key] = decrypted;
+                        }
                     }
                 });
             }
         }
 
-        return credentials;
+        // 2. Final Validation & Security Log
+        const finalToken = credentials.accessToken || credentials.access_token;
+        if (!finalToken) {
+            const scope = barbershopId ? `Shop ${barbershopId}` : 'PLATFORM';
+            console.warn(`[Orchestrator] ❌ CRITICAL: No Access Token found for ${scope}`);
+            if (barbershopId) {
+                throw new Error(`Esta barbearia não possui uma conta do Mercado Pago configurada ou ativa.`);
+            }
+        } else {
+            const prefix = String(finalToken).substring(0, 10);
+            const target = barbershopId ? `Shop ${barbershopId}` : 'PLATFORM';
+            console.log(`[SECURITY] 💳 Using MP Token Prefix: ${prefix}... for ${target}`);
+        }
+
+        return {
+            accessToken: finalToken,
+            publicKey: credentials.publicKey || credentials.public_key,
+            clientSecret: credentials.clientSecret || credentials.secretKey
+        };
     }
 
     async getPublicKey(barbershopId) {
-        const gateway = 'MERCADOPAGO';
-        const credentials = await this.getGatewayConfig(barbershopId, gateway);
-        return credentials?.publicKey || process.env.MP_PUBLIC_KEY;
+        const credentials = await this.getGatewayConfig(barbershopId, 'MERCADOPAGO');
+        return credentials?.publicKey;
     }
 }
 

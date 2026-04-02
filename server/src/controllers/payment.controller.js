@@ -147,9 +147,8 @@ exports.createCardPayment = async (req, res) => {
             appointmentId: appointment.id,
             token,
             installments: installments || 1,
-            issuerId,
             paymentMethodId,
-            payer
+            customer: payer
         });
 
         // 5. Automatic Card Saving Logic (Keep here for now or move to service if relevant)
@@ -209,9 +208,15 @@ exports.createBrickPayment = async (req, res) => {
         }
         const finalBarbershopId = barbershopId || enforceShopId;
 
+        const type = req.body.payment_type_id || req.body.method;
+        const mpMethod = payment_method_id?.toLowerCase() || '';
+        
+        const finalMethod = (type === 'pix' || mpMethod === 'pix') ? 'PIX' : 
+                          (type === 'debit_card' || mpMethod.includes('deb')) ? 'DEBIT_CARD' : 'CREDIT_CARD';
+
         const result = await PaymentService.createPayment({
             amount: transaction_amount,
-            method: payment_method_id === 'pix' ? 'PIX' : (payment_method_id?.includes('deb') ? 'DEBIT_CARD' : 'CREDIT_CARD'),
+            method: finalMethod,
             description: description || 'Pagamento via Brick',
             barbershopId: finalBarbershopId,
             userId: req.user.role !== 'CLIENT' ? req.user.id : null,
@@ -221,7 +226,7 @@ exports.createBrickPayment = async (req, res) => {
             installments,
             issuerId: issuer_id,
             paymentMethodId: payment_method_id,
-            payer
+            customer: payer // No need to spread if we want to preserve everything
         });
 
         return res.status(201).json(result);
@@ -247,14 +252,13 @@ exports.getPaymentStatus = async (req, res) => {
         let responseData = { ...payment };
 
         // Generate QR Code Base64 on-the-fly if missing but we have the payload
-        if (payment.status === 'PENDING' && (payment.pixCopiaECola || payment.qrCode)) {
+        if (!responseData.qrCodeBase64 && (payment.pixCopiaECola || payment.qrCode)) {
             try {
                 const qrcode = require('qrcode');
                 const pixString = payment.pixCopiaECola || payment.qrCode;
-                // Generate Base64
-                // We return as full Data URL or just content? Front expects base64 content usually or full src.
-                // Let's return the content to match creation endpoint.
+                // Generate Base64 Data URL
                 const dataUrl = await qrcode.toDataURL(pixString);
+                // Return just the base64 part for consistency with Mercado Pago's format
                 responseData.qrCodeBase64 = dataUrl.split(',')[1];
             } catch (err) {
                 console.error('Failed to generate QR on getStatus:', err);

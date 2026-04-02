@@ -171,6 +171,16 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                             checked={localData.isActive}
                             onChange={async (e) => {
                                 const newActive = e.target.checked;
+                                
+                                // --- PRE-SAVE VALIDATION ---
+                                if (newActive) {
+                                    const { publicKey, accessToken } = localData.credentials;
+                                    if (!publicKey || !accessToken) {
+                                        alert(`Atenção: Para ativar o ${title}, você precisa preencher o Public Key e o Access Token primeiro.`);
+                                        return;
+                                    }
+                                }
+
                                 setLocalData({ ...localData, isActive: newActive });
                                 // AUTO-SAVE ON TOGGLE
                                 await onSave(gateway, { ...localData, isActive: newActive, isToggleOnly: true });
