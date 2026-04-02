@@ -89,6 +89,10 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 if (issuerId) body.issuer_id = issuerId;
             }
 
+            // --- AUDIT LOG (REQUEST) ---
+            console.log(`[MP] CREATING PAYMENT (${method}) - ExternalID: ${externalId}`);
+            console.dir(body, { depth: null });
+
             const idempotencyKey = externalId ? `pay_${externalId}` : `temp_${Date.now()}`;
 
             const response = await payment.create({
@@ -97,6 +101,11 @@ class MercadoPagoAdapter extends GatewayAdapter {
             });
 
             const data = response;
+
+            // --- AUDIT LOG (RESPONSE) ---
+            console.log(`[MP] RESPONSE RECEIVED - Status: ${data.status}`);
+            console.dir(data, { depth: null });
+
             let finalStatus = 'pending';
 
             const statusMap = {
@@ -118,13 +127,14 @@ class MercadoPagoAdapter extends GatewayAdapter {
             let checkoutUrl = null;
             let pixCopiaECola = null;
 
-            if (method === 'PIX' || data.payment_method_id === 'pix') {
+            // Mercadopago v2 SDK might return some data in data.point_of_interaction
+            if (data.payment_method_id === 'pix' || (method === 'PIX')) {
                 const txData = data.point_of_interaction?.transaction_data;
-                qrCode = txData?.qr_code;
-                qrCodeBase64 = txData?.qr_code_base64;
-                pixCopiaECola = qrCode;
-                checkoutUrl = txData?.ticket_url;
-            } else if (method === 'BOLETO') {
+                qrCode = txData?.qr_code || data.qr_code;
+                qrCodeBase64 = txData?.qr_code_base64 || data.qr_code_base64;
+                pixCopiaECola = qrCode || txData?.ticket_url;
+                checkoutUrl = txData?.ticket_url || data.external_resource_url;
+            } else if (data.payment_method_id?.includes('bol') || method === 'BOLETO') {
                 checkoutUrl = data.transaction_details?.external_resource_url;
                 qrCode = data.barcode?.content;
             }

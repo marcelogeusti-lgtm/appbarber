@@ -14,9 +14,9 @@ function init() {
     eventBus.on('APPOINTMENT_CREATED', async (appointment) => {
         console.log(`[Event] APPOINTMENT_CREATED: ${appointment.id} (Status: ${appointment.status})`);
         
-        // Skip automated confirmation message for PENDING appointments (Awaiting Payment)
-        if (appointment.status === 'PENDING') {
-            console.log(`[Event] Skipping confirmation message for PENDING appointment ${appointment.id}`);
+        // Skip automated confirmation message for PENDING or PENDING_PAYMENT appointments (Awaiting Payment)
+        if (appointment.status === 'PENDING' || appointment.status === 'PENDING_PAYMENT') {
+            console.log(`[Event] Skipping confirmation message for ${appointment.status} appointment ${appointment.id}`);
             return;
         }
 

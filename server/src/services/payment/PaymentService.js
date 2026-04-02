@@ -173,9 +173,12 @@ class PaymentService {
                 include: { client: true, professional: true, barbershop: true }
             });
 
-            // Emit Update Event for Automation (Old Status was PENDING for Online)
+            // Emit Update Event for Automation (Old Status was PENDING_PAYMENT for Online)
             const eventBus = require('../events/eventBus');
-            eventBus.emit('APPOINTMENT_UPDATED', { appointment, oldStatus: 'PENDING' });
+            eventBus.emit('APPOINTMENT_UPDATED', { 
+                appointment, 
+                oldStatus: appointment.status === 'PENDING_PAYMENT' ? 'PENDING_PAYMENT' : 'PENDING' 
+            });
             
             // Emit to socket for real-time dashboard update
             try {

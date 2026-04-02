@@ -328,11 +328,11 @@ exports.createAppointment = async (req, res) => {
                     serviceId,
                     barbershopId: service.barbershopId,
                     paymentMethod: method,
-                    // Logic: If Online, Payment is PENDING and Appointment is PENDING.
+                    // Logic: If Online, Payment is PENDING and Appointment is PENDING_PAYMENT.
                     // If Cash, Payment is PENDING (will be PAID at shop) and Appointment is CONFIRMED.
                     // If Subscription, both are PAID/CONFIRMED immediately.
                     paymentStatus: method === 'SUBSCRIPTION' ? 'PAID' : 'PENDING',
-                    status: (method === 'ONLINE') ? 'PENDING' : 'CONFIRMED',
+                    status: (method === 'ONLINE') ? 'PENDING_PAYMENT' : 'CONFIRMED',
                     isSqueezeIn: isSqueezeIn || false,
                     reminderMinutes: reminderMinutes ? parseInt(reminderMinutes) : null
                 }

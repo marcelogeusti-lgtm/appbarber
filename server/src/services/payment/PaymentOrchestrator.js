@@ -358,6 +358,7 @@ class PaymentOrchestrator {
                 credentials = { ...creds };
                 
                 // Auto-decrypt
+                const crypto = require('../../utils/crypto');
                 const sensitiveFields = ['secretKey', 'accessToken', 'apiKey', 'clientSecret'];
                 sensitiveFields.forEach(field => {
                     const key = field === 'accessToken' ? (credentials.accessToken ? 'accessToken' : 'access_token') : field;

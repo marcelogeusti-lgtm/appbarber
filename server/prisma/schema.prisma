@@ -27,6 +27,7 @@ enum AuthProvider {
 
 enum AppointmentStatus {
   PENDING
+  PENDING_PAYMENT
   CONFIRMED
   COMPLETED
   CANCELLED
