@@ -363,6 +363,42 @@ class PaymentOrchestrator {
             credentials.accessToken = process.env.MP_ACCESS_TOKEN;
             credentials.publicKey = process.env.MP_PUBLIC_KEY;
             credentials.clientSecret = process.env.MP_CLIENT_SECRET;
+
+            // --- FALLBACK TO MASTER SHOP IF ENV VARS MISSING ---
+            // If Marcelo hasn't set the env vars in Vercel, we use his 'NextApp' shop as the Platform authority.
+            if (!credentials.accessToken) {
+                try {
+                    const masterShop = await prisma.barbershop.findFirst({
+                        where: { slug: 'next' },
+                        include: { gatewayConfigs: true }
+                    });
+                    const config = masterShop?.gatewayConfigs.find(c => c.gateway === 'MERCADOPAGO');
+                    if (config) {
+                        console.log(`[Orchestrator] Using 'NextApp' (slug: next) fallback for Global Wallet credentials.`);
+                        const rawCreds = typeof config.credentials === 'string' ? JSON.parse(config.credentials) : config.credentials;
+                        
+                        // Extract with fallback for field names
+                        const mAccessToken = rawCreds.accessToken || rawCreds.access_token || rawCreds.secretKey;
+                        const mPublicKey = rawCreds.publicKey || rawCreds.public_key;
+                        const mClientSecret = rawCreds.clientSecret || rawCreds.secretKey || rawCreds.apiKey;
+
+                        credentials.accessToken = mAccessToken;
+                        credentials.publicKey = mPublicKey;
+                        credentials.clientSecret = mClientSecret;
+
+                        // Decrypt sensitive fields if they are encrypted (format iv:hex)
+                        ['accessToken', 'publicKey', 'clientSecret'].forEach(key => {
+                            const val = credentials[key];
+                            if (val && typeof val === 'string' && val.includes(':')) {
+                                const decrypted = crypto.decrypt(val);
+                                if (decrypted) credentials[key] = decrypted;
+                            }
+                        });
+                    }
+                } catch (fallbackErr) {
+                    console.error('[Orchestrator] Master shop fallback failed:', fallbackErr.message);
+                }
+            }
         } else {
             // SHOP SPECIFIC
             const config = await prisma.gatewayConfig.findUnique({
