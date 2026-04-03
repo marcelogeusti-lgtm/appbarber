@@ -137,6 +137,41 @@ exports.createCardPayment = async (req, res) => {
 
         if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' });
 
+        let effectiveToken = token;
+
+        // 1. Save Card First if requested (prevents token reuse error)
+        if (saveCard) {
+            try {
+                console.log(`[PaymentController] pre-saving card for client ${appointment.clientId}`);
+                const savedCardData = await PaymentOrchestrator.saveCard({
+                    barbershopId: appointment.barbershopId,
+                    client: appointment.client,
+                    token: token
+                });
+
+                await prisma.cardToken.create({
+                    data: {
+                        clientId: appointment.clientId,
+                        gateway: savedCardData.gateway.toUpperCase(),
+                        token: savedCardData.token, // This is the Card ID in MP (card_...)
+                        last4: savedCardData.last4,
+                        brand: savedCardData.brand,
+                        expiryMonth: savedCardData.expiryMonth,
+                        expiryYear: savedCardData.expiryYear,
+                        barbershopId: appointment.barbershopId,
+                        isDefault: false
+                    }
+                });
+
+                // Update token to be the Card ID (for subsequent payment)
+                effectiveToken = savedCardData.token;
+            } catch (saveError) {
+                console.error('[PaymentController] Failed to pre-save card:', saveError.message);
+                // Fallback to original token for at least this payment
+            }
+        }
+
+        // 2. Create Payment
         const result = await PaymentService.createPayment({
             amount: appointment.service.price,
             method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
@@ -145,38 +180,11 @@ exports.createCardPayment = async (req, res) => {
             userId: req.user.role !== 'CLIENT' ? userId : null,
             clientId: req.user.role === 'CLIENT' ? userId : null,
             appointmentId: appointment.id,
-            token,
+            token: effectiveToken,
             installments: installments || 1,
             paymentMethodId,
             customer: payer
         });
-
-        // 5. Automatic Card Saving Logic (Keep here for now or move to service if relevant)
-        if (saveCard && (result.status === 'paid' || result.status === 'approved')) {
-            try {
-                await PaymentOrchestrator.saveCard({
-                    barbershopId: appointment.barbershopId,
-                    client: appointment.client,
-                    token: token
-                }).then(async (savedCardData) => {
-                    await prisma.cardToken.create({
-                        data: {
-                            clientId: appointment.clientId,
-                            gateway: savedCardData.gateway.toUpperCase(),
-                            token: savedCardData.token,
-                            last4: savedCardData.last4,
-                            brand: savedCardData.brand,
-                            expiryMonth: savedCardData.expiryMonth,
-                            expiryYear: savedCardData.expiryYear,
-                            barbershopId: appointment.barbershopId,
-                            isDefault: false
-                        }
-                    });
-                });
-            } catch (saveError) {
-                console.error('[PaymentController] Failed to auto-save card:', saveError.message);
-            }
-        }
 
         return res.status(201).json(result);
 

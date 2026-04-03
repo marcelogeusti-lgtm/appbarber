@@ -1,5 +1,6 @@
 const prisma = require('../../lib/prisma');
 const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter');
+const crypto = require('../../utils/crypto');
 
 class PaymentOrchestrator {
     constructor() {
@@ -112,11 +113,10 @@ class PaymentOrchestrator {
             customerId = gc?.customerId;
         }
 
-        // --- SPLIT CALCULATION (Only if using configured Shop credentials, not Global) ---
-        // If Global, we are receiving the full amount on Platform.
-        // We might implement a transfer later.
+        // --- SPLIT CALCULATION ---
         let disbursements = [];
-        if (!useGlobalCredentials && params.appointmentId && gatewayToUse === 'mercadopago') {
+        // If using Global Credentials but paying for a Shop, OR if using Shop credentials directly
+        if (params.appointmentId && gatewayToUse === 'mercadopago') {
             try {
                 const appointment = await prisma.appointment.findUnique({
                     where: { id: params.appointmentId },
@@ -162,6 +162,7 @@ class PaymentOrchestrator {
             description,
             customer: {
                 ...customer,
+                id: customerId, // Mercado Pago Customer ID
                 document: customer?.document || 
                           customer?.cpf || 
                           customer?.identification?.number || 
@@ -198,7 +199,8 @@ class PaymentOrchestrator {
     }
 
     async saveCard({ barbershopId, client, token }) {
-        // Defaulting to MercadoPago
+        // If no barbershopId, we save at PLATFORM level (Universal Card)
+        const effectiveBarbershopId = barbershopId || null;
         const gatewayToUse = 'mercadopago';
         const adapter = this.gateways[gatewayToUse];
 
@@ -215,7 +217,7 @@ class PaymentOrchestrator {
             where: {
                 clientId: client.id,
                 gateway: gatewayToUse.toUpperCase(),
-                barbershopId: barbershopId // strict match (null if null)
+                barbershopId: effectiveBarbershopId // strict match (null if null)
             }
         });
 
@@ -244,7 +246,7 @@ class PaymentOrchestrator {
         }
 
         // 2. Save Card
-        console.log(`[Orchestrator] Saving Card for Customer ${customerId} via ${gatewayToUse}`);
+        console.log(`[Orchestrator] Saving Card for Customer ${customerId} via ${gatewayToUse} (Creds: ${effectiveBarbershopId || 'PLATFORM'})`);
         const savedCard = await adapter.saveCard({
             customerId,
             token,
@@ -326,8 +328,27 @@ class PaymentOrchestrator {
         const adapter = this.gateways[gateway];
         if (!adapter || !adapter.createSubscription) throw new Error(`Gateway '${gateway}' does not support subscriptions.`);
 
-        const credentials = await this.getGatewayConfig(barbershopId, gateway);
-        return await adapter.createSubscription({ ...params, credentials });
+        const effectiveBarbershopId = barbershopId || null;
+        const credentials = await this.getGatewayConfig(effectiveBarbershopId, gateway);
+
+        let customerId = params.customerId;
+        if (!customerId && params.clientId) {
+            const prisma = require('../../lib/prisma');
+            const gc = await prisma.gatewayCustomer.findFirst({
+                where: {
+                    clientId: params.clientId,
+                    gateway: gateway.toUpperCase(),
+                    barbershopId: effectiveBarbershopId
+                }
+            });
+            customerId = gc?.customerId;
+        }
+
+        return await adapter.createSubscription({ 
+            ...params, 
+            customerId,
+            credentials 
+        });
     }
 
     async getGatewayConfig(barbershopId, gatewayName) {

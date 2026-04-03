@@ -116,6 +116,8 @@ class PaymentService {
             // 4. Handle Immediate Approval
             if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
                 await this.handlePaymentApproval(updatedPayment);
+            } else if (paymentResult.status === 'failed' || paymentResult.status === 'rejected' || paymentResult.status === 'cancelled') {
+                await this.handlePaymentFailure(updatedPayment, paymentResult);
             }
 
             return {
@@ -167,26 +169,43 @@ class PaymentService {
 
         // 2. Update Related Entities
         if (p.appointmentId) {
-            const appointment = await prisma.appointment.update({
+            // [Fix] Get current status before update to correctly report in event bus
+            const currentApp = await prisma.appointment.findUnique({ 
                 where: { id: p.appointmentId },
-                data: { status: 'CONFIRMED' },
                 include: { client: true, professional: true, barbershop: true }
             });
+            const oldStatus = currentApp?.status || 'PENDING_PAYMENT';
 
-            // Emit Update Event for Automation (Old Status was PENDING_PAYMENT for Online)
-            const eventBus = require('../events/eventBus');
-            eventBus.emit('APPOINTMENT_UPDATED', { 
-                appointment, 
-                oldStatus: appointment.status === 'PENDING_PAYMENT' ? 'PENDING_PAYMENT' : 'PENDING' 
-            });
-            
-            // Emit to socket for real-time dashboard update
-            try {
-                const socket = require('../../socket');
-                const io = socket.getIO();
-                if (io) io.to(appointment.barbershopId).emit('appointment_updated', appointment);
-            } catch (sErr) { /* ignore */ }
-
+            // ATENÇÃO: Webhook Protection! 
+            // Se o pagamento for aprovado agora, mas o CronJob já tiver cancelado a venda (Timeout),
+            // NÃO devolvemos para CONFIRMED para não engolir o horário que talvez já tenha sido vendido.
+            // Em vez disso, deixamos CANCELLED e avisamos o barbeiro.
+            if (oldStatus === 'CANCELLED') {
+                console.log(`[PaymentService/WebhookProtection] Payment ${p.id} approved late for a CANCELLED appointment ${p.appointmentId}. Sending Notice.`);
+                const eventBus = require('../events/eventBus');
+                eventBus.emit('LATE_WEBHOOK_WARNING', currentApp);
+            } else {
+                // Fluxo Normal
+                const appointment = await prisma.appointment.update({
+                    where: { id: p.appointmentId },
+                    data: { status: 'CONFIRMED' },
+                    include: { client: true, professional: true, barbershop: true }
+                });
+                
+                // Emit Update Event for Automation
+                const eventBus = require('../events/eventBus');
+                eventBus.emit('APPOINTMENT_UPDATED', { 
+                    appointment, 
+                    oldStatus: oldStatus 
+                });
+                
+                // Emit to socket for real-time dashboard update
+                try {
+                    const socket = require('../../socket');
+                    const io = socket.getIO();
+                    if (io) io.to(appointment.barbershopId).emit('appointment_updated', appointment);
+                } catch (sErr) { /* ignore */ }
+            }
         }
 
         if (p.orderId) {
@@ -265,7 +284,7 @@ class PaymentService {
 
                 if (result.status === 'paid' || result.status === 'approved') {
                     await this.handlePaymentApproval(updated);
-                } else if (result.status === 'failed' || result.status === 'rejected') {
+                } else if (result.status === 'failed' || result.status === 'rejected' || result.status === 'cancelled') {
                     await this.handlePaymentFailure(updated, result);
                 }
             }

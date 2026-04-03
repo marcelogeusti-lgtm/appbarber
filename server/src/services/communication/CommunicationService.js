@@ -216,6 +216,46 @@ class CommunicationService {
         }
     }
 
+    // Send Abandoned Cart Reminder
+    async sendAbandonedCartReminder(appointment) {
+        const { client, service, barbershop } = appointment;
+        const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
+
+        let messageContent = `⚠️ *Horário Quase Expirando*\n\nOlá, ${client?.name || 'Cliente'}!\nNotamos que você selecionou o serviço *${service?.name || 'na barbearia'}* na *${barbershop?.name || 'Barbearia'}*, mas fechou a página antes do pagamento.\n\nA vaga ficará reservada por apenas mais alguns minutinhos.\n\nClique no link abaixo para concluir e garantir seu horário:\n🔗 ${bookingLink}`;
+
+        if (client && client.phone) {
+            try {
+                await whatsappService.sendText(client.phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'ABANDONED_CART', messageContent, 'SENT');
+                return true;
+            } catch (error) {
+                console.error('Failed to send WA Abandoned Cart Reminder:', error);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'ABANDONED_CART', messageContent, 'FAILED');
+                return false;
+            }
+        }
+        return false;
+    }
+
+    // Send Late Payment Notice to Barber (Webhook Protection)
+    async sendLatePaymentNoticeToBarber(appointment) {
+        const { client, barbershop, professional } = appointment;
+
+        let messageContent = `🚨 *ATENÇÃO - PAGAMENTO ATRASADO* 🚨\n\nO cliente *${client?.name || 'Desconhecido'}* realizou um pagamento que foi aprovado apenas AGORA pelo banco para uma vaga que o sistema já havia cancelado por expiração de limite de tempo.\n\nSugerimos que entre em contato com ele para:\n1. Encaixá-lo em outro horário (Usando esse pagamento como crédito)\n2. Ou estornar o valor no painel do gateway (Mercado Pago).\n\nPara não causar agendamento duplo, a vaga NÃO foi reativada automaticamente na sua agenda.`;
+
+        // Send to shop whatsapp or professional phone
+        const phone = barbershop?.whatsappPhone || professional?.phone;
+
+        if (phone) {
+            try {
+                await whatsappService.sendText(phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'LATE_WEBHOOK_WARNING', messageContent, 'SENT');
+            } catch (error) {
+                console.error('Failed to send Late Payment WA to Barber:', error);
+            }
+        }
+    }
+
     async log(appointment, channel, direction, type, content, status) {
         try {
             await prisma.communicationLog.create({

@@ -49,6 +49,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
                     ? `${process.env.BACKEND_URL}/api/webhooks/mercadopago`
                     : undefined,
                 payer: {
+                    id: customer?.id || payer?.id, // ID do Cliente no Mercado Pago (Obrigatório para cartões salvos)
                     email: payerEmail,
                     first_name: firstName,
                     last_name: lastName,
@@ -90,7 +91,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
             }
 
             // --- AUDIT LOG (REQUEST) ---
-            console.log(`[MP] CREATING PAYMENT (${method}) - ExternalID: ${externalId}`);
+            console.log(`[MP] CREATING PAYMENT (${method}) - Barbershop: ${credentials?.barbershopId || 'Unknown'} - ExternalID: ${externalId}`);
             console.dir(body, { depth: null });
 
             const idempotencyKey = externalId ? `pay_${externalId}` : `temp_${Date.now()}`;
@@ -127,16 +128,18 @@ class MercadoPagoAdapter extends GatewayAdapter {
             let checkoutUrl = null;
             let pixCopiaECola = null;
 
-            // Mercadopago v2 SDK might return some data in data.point_of_interaction
-            if (data.payment_method_id === 'pix' || (method === 'PIX')) {
-                const txData = data.point_of_interaction?.transaction_data;
+            // Mercadopago v2 SDK might return some data in point_of_interaction
+            // Robust extraction: Check both root and point_of_interaction
+            const txData = data.point_of_interaction?.transaction_data;
+            
+            if (data.payment_method_id === 'pix' || method === 'PIX') {
                 qrCode = txData?.qr_code || data.qr_code;
                 qrCodeBase64 = txData?.qr_code_base64 || data.qr_code_base64;
-                pixCopiaECola = qrCode || txData?.ticket_url;
-                checkoutUrl = txData?.ticket_url || data.external_resource_url;
+                pixCopiaECola = qrCode || txData?.ticket_url || data.ticket_url;
+                checkoutUrl = txData?.ticket_url || data.external_resource_url || data.transaction_details?.external_resource_url;
             } else if (data.payment_method_id?.includes('bol') || method === 'BOLETO') {
-                checkoutUrl = data.transaction_details?.external_resource_url;
-                qrCode = data.barcode?.content;
+                checkoutUrl = data.transaction_details?.external_resource_url || data.external_resource_url;
+                qrCode = data.barcode?.content || data.external_reference;
             }
 
             return {
@@ -269,7 +272,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
         }
     }
 
-    async createSubscription({ planId, cardToken, payerEmail, externalReference, credentials }) {
+    async createSubscription({ planId, token, email, amount, externalReference, credentials }) {
         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
 
@@ -280,9 +283,13 @@ class MercadoPagoAdapter extends GatewayAdapter {
         try {
             const body = {
                 preapproval_plan_id: planId,
-                card_token_id: cardToken,
-                payer_email: payerEmail,
+                card_token_id: token,
+                payer_email: email,
                 external_reference: externalReference,
+                auto_recurring: {
+                    transaction_amount: amount,
+                    currency_id: 'BRL'
+                },
                 status: 'authorized' 
             };
 

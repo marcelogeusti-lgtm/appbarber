@@ -25,7 +25,7 @@ exports.createAppointment = async (req, res) => {
     try {
         // Mapping Snake Case Payload to Internal Variables
         const {
-            cliente_id, cliente_nome, cliente_telefone, email, data_nascimento,
+            cliente_id, cliente_nome, cliente_telefone, email, cpf, documento, data_nascimento,
             barbeiro_id, servicos, produtos = [],
             data, horario,
             criar_conta, senha,
@@ -434,7 +434,9 @@ exports.createAppointment = async (req, res) => {
         // --- 5. ORCHESTRATE PAYMENT (ONLINE) ---
         let paymentData = null;
         try {
-            if (paymentMethod === 'ONLINE' && appointment) {
+            // Normalize check to be case-insensitive
+            const isOnline = paymentMethod && (paymentMethod.toUpperCase() === 'ONLINE' || paymentMethod.toUpperCase() === 'WEB');
+            if (isOnline && appointment) {
                 console.log(`[Appointment] 💳 Orchestrating payment for App ${appointment.id}`);
                 const orchestration = await PaymentOrchestrator.createPayment({
                     amount: order.total,
@@ -444,8 +446,12 @@ exports.createAppointment = async (req, res) => {
                     orderId: order.id,
                     description: `Agendamento - ${service.name}`,
                     payer: {
-                        name: currentUser?.name || 'Cliente',
-                        email: currentUser?.email || 'email@client.com'
+                        name: currentUser?.name || guestName || 'Cliente',
+                        email: currentUser?.email || guestEmail || 'email@client.com',
+                        identification: {
+                            type: 'CPF',
+                            number: cpf || documento || (currentUser ? currentUser.cpf : null)
+                        }
                     },
                     externalId: appointment.id
                 });
@@ -456,12 +462,17 @@ exports.createAppointment = async (req, res) => {
             console.error('[Appointment] 🛑 Payment orchestration failed. REVERTING booking.', paymentError);
             
             // Critical Rollback: Free the slot if payment setup crashed
-            await prisma.appointment.delete({
-                where: { id: appointment.id }
-            });
+            try {
+                await prisma.appointment.delete({
+                    where: { id: appointment.id }
+                });
+            } catch (deleteError) {
+                console.error('[Appointment] 🛑 Failed to delete appointment during rollback:', deleteError.message);
+            }
 
             return res.status(500).json({ 
-                error: 'Falha ao configurar pagamento. O horário foi liberado.', 
+                error: 'Falha ao configurar pagamento. O horário foi liberado.',
+                message: 'Falha ao configurar pagamento. O horário foi liberado.', 
                 detail: paymentError.message 
             });
         }
@@ -513,6 +524,7 @@ exports.createAppointment = async (req, res) => {
             order_id: order.id,
             appointment,
             order,
+            payment: paymentData,
             token: createdToken,
             user: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
             isGuest: !req.user

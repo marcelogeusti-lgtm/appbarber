@@ -88,6 +88,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Erro ao processar pagamento.');
+            throw error; // Propaga para o Brick encerrar o loading e mostrar tela vermelha
         } finally {
             setLoading(null);
         }

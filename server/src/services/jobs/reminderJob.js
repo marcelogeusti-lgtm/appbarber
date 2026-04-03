@@ -54,6 +54,64 @@ const initScheduler = () => {
             console.error('[Scheduler] Error processing reminders:', error);
         }
     });
+
+    // Run every 5 minutes for Abandoned Carts / Pending Payments Cleanup
+    cron.schedule('*/5 * * * *', async () => {
+        console.log('[Scheduler] Checking for abandoned carts and expired payments...');
+        try {
+            const now = new Date();
+            const tenMinsAgo = subMinutes(now, 10);
+            const twentyMinsAgo = subMinutes(now, 20);
+
+            // 1. Send Whatsapp Recovery Message (between 10 and 20 mins ago)
+            const cartsToRecover = await prisma.appointment.findMany({
+                where: {
+                    status: 'PENDING_PAYMENT',
+                    createdAt: {
+                        lte: tenMinsAgo,
+                        gt: twentyMinsAgo
+                    }
+                },
+                include: { client: true, barbershop: true, service: true }
+            });
+
+            for (const app of cartsToRecover) {
+                // Check if already reminded in communication logs
+                const alreadySent = await prisma.communicationLog.findFirst({
+                    where: { appointmentId: app.id, type: 'ABANDONED_CART' }
+                });
+                if (!alreadySent) {
+                    console.log(`[Scheduler] Emitting Abandoned Cart for ${app.id}`);
+                    eventBus.emit('ABANDONED_CART', app);
+                }
+            }
+
+            // 2. Cancel Expired Payments (older than 20 mins)
+            const expiredCarts = await prisma.appointment.findMany({
+                where: {
+                    status: 'PENDING_PAYMENT',
+                    createdAt: { lte: twentyMinsAgo }
+                }
+            });
+
+            if (expiredCarts.length > 0) {
+                console.log(`[Scheduler] Cancelling ${expiredCarts.length} expired payments.`);
+                for (const app of expiredCarts) {
+                    await prisma.appointment.update({
+                        where: { id: app.id },
+                        data: {
+                            status: 'CANCELLED',
+                            statusDetail: 'TIMEOUT'
+                        }
+                    });
+                    // Fire update event to free up timeslot for professionals etc.
+                    eventBus.emit('APPOINTMENT_UPDATED', { appointment: { ...app, status: 'CANCELLED' }, oldStatus: 'PENDING_PAYMENT' });
+                }
+            }
+        } catch (err) {
+            console.error('[Scheduler] Error processing abandoned carts:', err);
+        }
+    });
 };
 
 module.exports = { initScheduler };

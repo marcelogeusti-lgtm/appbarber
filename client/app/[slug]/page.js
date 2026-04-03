@@ -80,15 +80,17 @@ export default function BarbershopPage() {
     const [checkoutData, setCheckoutData] = useState(null);
 
     const [formData, setFormData] = useState({
+        date: '',
+        time: '',
         name: '',
         phone: '',
         email: '',
+        cpf: '',
         birthday: '',
-        date: '',
-        time: '',
         createAccount: false,
         password: '',
-        reminderMinutes: '60'
+        reminderMinutes: '60',
+        showReminderOptions: false
     });
 
     const [availableSlots, setAvailableSlots] = useState([]);
@@ -96,26 +98,46 @@ export default function BarbershopPage() {
 
     const [pendingFees, setPendingFees] = useState([]);
 
-    async function processCardPayment(token, issuerId, paymentMethodId, installments, saveCard = false) {
+    async function processCardPayment(token, issuerId, paymentMethodId, installments, saveCard = false, brickPayer = null) {
         try {
+            const finalPayer = brickPayer || {
+                email: formData.email,
+                name: formData.name,
+                identification: {
+                    type: 'CPF',
+                    number: formData.cpf
+                }
+            };
+
             const payload = {
                 appointmentId: checkoutData.appointmentId,
                 token,
                 issuerId,
                 paymentMethodId,
                 installments,
-                saveCard, // Novo: Envia preferência de salvamento
-                payer: {
-                    email: formData.email,
-                    name: formData.name
-                }
+                saveCard,
+                payer: finalPayer
             };
 
-            await api.post('/payments/card', payload);
-            setCheckoutData(prev => ({ ...prev, status: 'paid' })); // Atualização otimista
+            const res = await api.post('/payments/card', payload);
+            
+            if (res.data.status === 'approved' || res.data.status === 'paid') {
+                setCheckoutData(prev => ({ ...prev, status: 'paid' })); 
+            } else if (res.data.status === 'in_process' || res.data.status === 'pending') {
+                // Pagamento caiu em análise de fraude ou processamento
+                alert('O seu pagamento está em análise de segurança. O horário foi reservado e você será notificado assim que aprovado.');
+                setCheckoutData(prev => ({ ...prev, status: 'paid' })); // Pode ir para a tela de finalizado, pois está reservado
+            } else {
+                // Qualquer outro status (rejected, cancelled, null, erro) = Recusado!
+                const rejectReason = res.data.statusDetail || 'Pagamento recusado pelo emissor ou dados incorretos.';
+                alert(`Ops! ${rejectReason} Tente novamente.`);
+                return Promise.reject(new Error(rejectReason));
+            }
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.error || 'Erro ao processar pagamento.');
+            const msg = err.response?.data?.error || err.message || 'Erro ao processar pagamento.';
+            alert(msg);
+            return Promise.reject(err);
         }
     }
 
@@ -347,8 +369,8 @@ export default function BarbershopPage() {
 
     const handleBook = async () => {
         try {
-            if (!formData.name || !formData.phone || !formData.date || !formData.time) {
-                return alert('Preencha os dados obrigatórios (Nome, Telefone, Data e Hora)');
+            if (!formData.name || !formData.phone || !formData.date || !formData.time || (paymentType === 'online' && !formData.cpf)) {
+                return alert(paymentType === 'online' ? 'Preencha Nome, Telefone e CPF para continuar' : 'Preencha Nome e Telefone para continuar');
             }
 
             const payload = {
@@ -374,6 +396,7 @@ export default function BarbershopPage() {
                 forma_pagamento: paymentType === 'online' ? paymentMethod : 'local',
                 status: paymentType === 'online' ? "pendente" : "confirmado",
                 email: formData.email,
+                cpf: formData.cpf,
                 data_nascimento: formData.birthday,
                 criar_conta: formData.createAccount,
                 senha: formData.password,
@@ -384,7 +407,16 @@ export default function BarbershopPage() {
             const appointmentId = res.data.appointment_id;
 
             if (paymentType === 'online' && (paymentMethod === 'PIX' || paymentMethod === 'BOLETO')) {
-                // SEPARATE REQUEST FOR PIX/BOLETO
+                // [OPTIMIZED] Check if backend already provided payment data during appointment creation
+                const initialPayment = res.data.payment;
+
+                if (initialPayment && (initialPayment.checkoutUrl || initialPayment.paymentId)) {
+                    const targetUrl = initialPayment.checkoutUrl || `/checkout-pix?id=${initialPayment.paymentId}`;
+                    router.push(targetUrl);
+                    return;
+                }
+
+                // Fallback for separate request if not provided (keeping for robustness)
                 try {
                     const payPath = paymentMethod === 'PIX' ? '/payments/pix' : '/payments/create';
                     const payRes = await api.post(payPath, {
@@ -392,19 +424,17 @@ export default function BarbershopPage() {
                         method: paymentMethod
                     });
 
-                    // [NEW] Redirect to Dedicated Checkout Page
-                    // Robust Check: Use checkoutUrl OR construct it if paymentId exists
                     if (paymentMethod === 'PIX' && (payRes.data.checkoutUrl || payRes.data.paymentId)) {
                         const targetUrl = payRes.data.checkoutUrl || `/checkout-pix?id=${payRes.data.paymentId}`;
                         router.push(targetUrl);
-                        return; // Stop execution here
+                        return;
                     }
 
                     setCheckoutData(payRes.data);
                     setStep(6);
                 } catch (payErr) {
                     console.error(`Erro ao gerar ${paymentMethod}:`, payErr);
-                    const msg = payErr.response?.data?.error || `Erro ao gerar ${paymentMethod}. Tente novamente ou pague no local.`;
+                    const msg = payErr.response?.data?.message || payErr.response?.data?.error || `Erro ao gerar ${paymentMethod}. Tente novamente ou pague no local.`;
                     alert(msg);
                     return;
                 }
@@ -722,7 +752,8 @@ export default function BarbershopPage() {
                                                                 cardData.issuer_id,
                                                                 cardData.payment_method_id,
                                                                 cardData.installments,
-                                                                cardData.saveCard
+                                                                cardData.saveCard,
+                                                                cardData.payer
                                                             );
                                                         }}
                                                         onCancel={() => {
@@ -939,7 +970,7 @@ export default function BarbershopPage() {
                                             </div>
                                             {formData.date && (
                                                 <div className="animate-in fade-in space-y-4">
-                                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Horários para {selectedProfessional.name}</h3>
+                                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Horários para {selectedProfessional?.name || 'Profissional'}</h3>
                                                     {loadingSlots ? <p className="text-center text-xs text-slate-500 italic">Buscando disponibilidade...</p> : (
                                                         availableSlots.length > 0 ? (
                                                             <div className="grid grid-cols-4 gap-2">
@@ -977,6 +1008,18 @@ export default function BarbershopPage() {
                                             <div className="space-y-4">
                                                 <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition" />
                                                 <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition" />
+                                                
+                                                {paymentType === 'online' && (
+                                                    <input 
+                                                        placeholder="Seu CPF (obrigatório para pagamento online)" 
+                                                        value={formData.cpf} 
+                                                        onChange={e => {
+                                                            const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                                            setFormData({ ...formData, cpf: val });
+                                                        }} 
+                                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition animate-in slide-in-from-top-2" 
+                                                    />
+                                                )}
                                             </div>
 
                                             {/* Reminder Selection - New UI */}
@@ -1109,8 +1152,8 @@ export default function BarbershopPage() {
                                                 </div>
                                                 {pendingFees?.length > 0 && (
                                                     <div className="flex justify-between text-red-400 font-bold">
-                                                        <span>Taxa No-show ({pendingFees.length}x)</span>
-                                                        <span>{formatCurrency(pendingFees.reduce((s, f) => s + Number(f.feeValue || 0), 0))}</span>
+                                                        <span>Taxa No-show ({pendingFees?.length}x)</span>
+                                                        <span>{formatCurrency(pendingFees?.reduce((s, f) => s + Number(f.feeValue || 0), 0))}</span>
                                                     </div>
                                                 )}
                                                 <div className="flex justify-between text-white font-black text-sm pt-2 border-t border-slate-800">

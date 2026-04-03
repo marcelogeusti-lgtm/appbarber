@@ -71,9 +71,9 @@ function init() {
                         appointmentId: appointment.id
                     });
                 }
-            } else if (appointment.status === 'CONFIRMED' && oldStatus === 'PENDING') {
-                // Payment was just approved!
-                console.log(`[Event] Appointment ${appointment.id} was PAID and now CONFIRMED. Sending confirmation.`);
+            } else if (appointment.status === 'CONFIRMED' && (oldStatus === 'PENDING' || oldStatus === 'PENDING_PAYMENT')) {
+                // Payment was just approved (Online) or manually confirmed (Guest)
+                console.log(`[Event] Appointment ${appointment.id} was PAID/APPROVED and now CONFIRMED. Sending confirmation.`);
                 await communicationService.sendConfirmationRequest(appointment);
             } else if (appointment.status === 'COMPLETED') {
                 await communicationService.sendThankYouMessage(appointment);
@@ -100,6 +100,22 @@ function init() {
             console.error('[Event Error] Failed to process appointment reminder:', error);
         }
     });
-}
+    // 5. Abandoned Cart (Cron Job)
+    eventBus.on('ABANDONED_CART', async (appointment) => {
+        try {
+            await communicationService.sendAbandonedCartReminder(appointment);
+        } catch (error) {
+            console.error('[Event Error] Failed to process abandoned cart reminder:', error);
+        }
+    });
 
+    // 6. Late Webhook Warning
+    eventBus.on('LATE_WEBHOOK_WARNING', async (appointment) => {
+        try {
+            await communicationService.sendLatePaymentNoticeToBarber(appointment);
+        } catch (error) {
+            console.error('[Event Error] Failed to send late webhook warning:', error);
+        }
+    });
+}
 module.exports = { init };

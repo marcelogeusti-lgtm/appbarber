@@ -59,6 +59,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
             await onSubmit({ ...formData, saveCard }); // Pass saveCard preference
         } catch (error) {
             console.error('Payment Error:', error);
+            throw error; // Required by MP Brick to remove loading state
         }
     };
 

@@ -84,8 +84,10 @@ class SubscriptionEngine {
                 // Create preapproval subscription
                 paymentResult = await PaymentOrchestrator.createSubscription({
                     planId: plan.externalId,
-                    email: user.authUser?.email || user.email,
-                    token,
+                    email: userProfile.email,
+                    clientId: client.id,
+                    token: cardId || token, // Use saved cardId if available, else new token
+                    amount: Number(plan.price),
                     gateway,
                     barbershopId: plan.barbershopId,
                     description: `Assinatura: ${plan.name}`

@@ -96,7 +96,7 @@ export default function PaymentSettings() {
                         { name: 'publicKey', label: 'Public Key', placeholder: 'APP_USR-... ou TEST-...' },
                         { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'APP_USR-... ou TEST-...' },
                         { name: 'clientId', label: 'Client ID', placeholder: 'ID numérico da aplicação...' },
-                        { name: 'clientSecret', label: 'Client Secret / Secret Key', type: 'password', placeholder: 'Para validação de segurança (Webhooks)...' }
+                        { name: 'clientSecret', label: 'Assinatura secreta (Webhook)', type: 'password', placeholder: 'Cole a assinatura secreta do webhook aqui...' }
                     ]}
                 />
             </div>
