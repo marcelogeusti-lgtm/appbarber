@@ -33,7 +33,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
     const customization = {
         paymentMethods: {
             minInstallments: 1,
-            maxInstallments: 12, // Allow interest options if configured in MP
+            maxInstallments: forceSave ? 1 : 12,
         },
         visual: {
             style: {
@@ -48,6 +48,9 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
                     inputFocusedBorderColor: '#10B981',
                     labelTextColor: '#94a3b8',
                 }
+            },
+            texts: {
+                paymentButton: forceSave ? 'Salvar Cartão' : 'Pagar Agora'
             }
         }
     };
@@ -69,7 +72,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
                 <div className="bg-slate-900/50 p-4 border-b border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-primary font-bold uppercase text-xs tracking-widest">
                         <CreditCard className="w-4 h-4" />
-                        Pagamento Seguro
+                        {forceSave ? 'Dados do Cartão' : 'Pagamento Seguro'}
                     </div>
                     <Lock className="w-3 h-3 text-slate-500" />
                 </div>
