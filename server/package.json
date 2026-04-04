@@ -10,6 +10,8 @@
     "db:migrate:deploy": "npx prisma migrate deploy",
     "db:push": "npx prisma db push",
     "db:backup": "node src/scripts/backup.js",
+    "safety:snapshot": "node scripts/safety/create_snapshot.js",
+    "safety:dump": "node scripts/safety/dump_database.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -41,6 +43,7 @@
     "morgan": "^1.10.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.12",
+    "passkit-generator": "^3.2.0",
     "pg": "^8.11.0",
     "prisma": "^5.0.0",
     "qrcode": "^1.5.4",

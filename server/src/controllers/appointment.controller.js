@@ -2,7 +2,7 @@ const prisma = require('../lib/prisma');
 const financialService = require('../services/FinancialService');
 const googleCalendarService = require('../services/communication/GoogleCalendarService');
 const axios = require('axios');
-const { format, addMinutes, isBefore } = require('date-fns');
+const { format, addMinutes, subMinutes, isBefore } = require('date-fns');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const saasPlans = require('../config/saasPlans');
@@ -284,7 +284,14 @@ exports.createAppointment = async (req, res) => {
                     gte: dayStartUTC,
                     lte: dayEndUTC
                 },
-                status: { not: 'CANCELLED' }
+                status: { not: 'CANCELLED' },
+                OR: [
+                    { status: { not: 'PENDING_PAYMENT' } },
+                    { 
+                        status: 'PENDING_PAYMENT',
+                        createdAt: { gte: subMinutes(new Date(), 7) } // 5 min + grace
+                    }
+                ]
             },
             include: {
                 service: true,
@@ -502,6 +509,14 @@ exports.createAppointment = async (req, res) => {
                     }
                 });
                 if (fullApp) {
+                    // Sync with Digital Wallet (Fire and forget, don't block response)
+                    try {
+                        const WalletService = require('../services/WalletService');
+                        WalletService.syncWalletUpdates(clientId, service.barbershopId);
+                    } catch (e) {
+                        console.error('[AppointmentController] Wallet sync failed:', e.message);
+                    }
+
                     const eventBus = require('../services/events/eventBus');
                     eventBus.emit('APPOINTMENT_CREATED', fullApp);
 

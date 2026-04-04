@@ -97,6 +97,33 @@ export default function BarbershopPage() {
     const [loadingSlots, setLoadingSlots] = useState(false);
 
     const [pendingFees, setPendingFees] = useState([]);
+    const [payingCard, setPayingCard] = useState(false);
+    const [cardSavedThisSession, setCardSavedThisSession] = useState(false);
+
+    async function handleCardVaultOnly(cardData) {
+        try {
+            setPayingCard(true);
+            // 1. Save Card to Vault (Zero Charge / Tokenization only)
+            const res = await api.post('/payments/cards', {
+                token: cardData.token,
+                barbershopId: barbershop.id,
+                isDefault: true
+            });
+
+            // 2. Update State
+            setCardSavedThisSession(true);
+            setSavedCards(prev => [res.data, ...prev]);
+            setSelectedCardId(res.data.id);
+            toast.success('Cartão salvo com segurança no seu cofre!');
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || 'Erro ao salvar cartão.');
+            throw err;
+        } finally {
+            setPayingCard(false);
+        }
+    }
 
     async function processCardPayment(token, issuerId, paymentMethodId, installments, saveCard = false, brickPayer = null) {
         try {
@@ -658,6 +685,7 @@ export default function BarbershopPage() {
                         alert('Assinatura realizada com sucesso! Aproveite seus benefícios.');
                         loadUserData(barbershop.id);
                     }}
+                    activeSubscription={mySubscription}
                 />}
                 {activeTab === 'avaliacoes' && <ReviewsTab barbershopId={barbershop.id} />}
             </main>
@@ -741,50 +769,77 @@ export default function BarbershopPage() {
                                                 </div>
                                             )}
 
-                                            {selectedCardId === 'new' || savedCards.length === 0 ? (
+                                            {cardSavedThisSession ? (
+                                                <div className="bg-emerald-500/10 border border-emerald-500/30 p-8 rounded-3xl text-center space-y-6 animate-in zoom-in-95">
+                                                    <div className="w-16 h-16 bg-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                                        <Check className="w-8 h-8 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Cartão Cadastrado!</h3>
+                                                        <p className="text-slate-400 text-xs px-4">Seu cartão foi salvo com segurança e está pronto para uso.</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            // For now, confirm manually as per business rule
+                                                            setCheckoutData(prev => ({ ...prev, status: 'paid' })); 
+                                                        }}
+                                                        className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-xs uppercase hover:bg-emerald-600 transition tracking-widest shadow-xl shadow-emerald-500/20"
+                                                    >
+                                                        Concluir Agendamento Agora
+                                                    </button>
+                                                </div>
+                                            ) : selectedCardId === 'new' || savedCards.length === 0 ? (
                                                 <div className="animate-in fade-in slide-in-from-top-4">
                                                     <CardForm
                                                         publicKey={barbershop.gatewayConfigs?.find(g => g.gateway === 'MERCADOPAGO')?.publicKey}
                                                         amount={totalValue}
-                                                        onSubmit={async (cardData) => {
-                                                            await processCardPayment(
-                                                                cardData.token,
-                                                                cardData.issuer_id,
-                                                                cardData.payment_method_id,
-                                                                cardData.installments,
-                                                                cardData.saveCard,
-                                                                cardData.payer
-                                                            );
-                                                        }}
+                                                        onSubmit={handleCardVaultOnly}
                                                         onCancel={() => {
                                                             setStep(4);
                                                             setCheckoutData(null);
                                                         }}
                                                         barbershopId={barbershop.id}
+                                                        forceSave={true}
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4 animate-in fade-in slide-in-from-top-4">
+                                                <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4 animate-in fade-in slide-in-from-top-4 relative overflow-hidden">
+                                                    {payingCard && (
+                                                        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center space-y-3 animate-in fade-in">
+                                                            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                                            <p className="text-[10px] font-black text-white uppercase tracking-widest">Processando Pagamento...</p>
+                                                        </div>
+                                                    )}
+                                                    
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Código de Segurança (CVV)</label>
                                                         <input
                                                             type="text"
                                                             maxLength={4}
-                                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:ring-1 ring-primary outline-none transition"
+                                                            disabled={payingCard}
+                                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:ring-1 ring-primary outline-none transition disabled:opacity-50"
                                                             placeholder="•••"
                                                             value={cvv}
                                                             onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
                                                         />
                                                     </div>
                                                     <button
-                                                        disabled={cvv.length < 3}
-                                                        className="w-full bg-primary text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition disabled:opacity-50"
-                                                        onClick={() => {
-                                                            const card = savedCards.find(c => c.id === selectedCardId);
-                                                            processCardPayment(card.token, null, null, 1, false);
+                                                        disabled={cvv.length < 3 || payingCard}
+                                                        className="w-full bg-primary text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition disabled:opacity-50 flex items-center justify-center gap-2 group"
+                                                        onClick={async () => {
+                                                            try {
+                                                                setPayingCard(true);
+                                                                const card = savedCards.find(c => c.id === selectedCardId);
+                                                                await processCardPayment(card.token, null, null, 1, false);
+                                                            } catch (err) {
+                                                                console.error("Payment failed", err);
+                                                            } finally {
+                                                                setPayingCard(false);
+                                                            }
                                                         }}
                                                     >
-                                                        Confirmar Pagamento com Cartão Salvo
+                                                        <CreditCard className={`w-4 h-4 transition-transform group-hover:scale-110 ${payingCard ? 'animate-pulse' : ''}`} />
+                                                        Confirmar com Cartão Salvo
                                                     </button>
                                                 </div>
                                             )}
@@ -1073,7 +1128,23 @@ export default function BarbershopPage() {
                                                 </h3>
 
                                                 <div className="grid grid-cols-1 gap-3">
-                                                    <div onClick={() => setPaymentType('local')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'local' ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                    {/* SUBSCRIPTION OPTION */}
+                                                    {mySubscription && mySubscription.status === 'ACTIVE' && (
+                                                        <div onClick={() => { setPaymentType('subscription'); setPaymentMethod('SUBSCRIPTION'); }} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'subscription' ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'subscription' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-500'}`}>
+                                                                    <Crown className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className={`font-bold text-xs uppercase ${paymentType === 'subscription' ? 'text-emerald-500' : 'text-slate-300'}`}>Usar meu Plano</p>
+                                                                    <p className="text-[9px] font-medium text-slate-500">{mySubscription.remainingCuts} cortes disponíveis</p>
+                                                                </div>
+                                                            </div>
+                                                            {paymentType === 'subscription' && <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>}
+                                                        </div>
+                                                    )}
+
+                                                    <div onClick={() => { setPaymentType('local'); setPaymentMethod('CASH'); }} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'local' ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
                                                         <div className="flex items-center gap-3">
                                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'local' ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>
                                                                 <Banknote className="w-4 h-4" />
@@ -1087,7 +1158,7 @@ export default function BarbershopPage() {
 
                                                     {/* ONLINE OPTION CONDITIONAL */}
                                                     {barbershop.online_payment_enabled && (
-                                                        <div onClick={() => setPaymentType('online')} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
+                                                        <div onClick={() => { setPaymentType('online'); setPaymentMethod('PIX'); }} className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition ${paymentType === 'online' ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 group hover:border-slate-700'}`}>
                                                             <div className="flex items-center gap-3">
                                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${paymentType === 'online' ? 'bg-primary text-white' : 'bg-slate-800 text-slate-500'}`}>
                                                                     <Zap className="w-4 h-4" />
@@ -1164,9 +1235,11 @@ export default function BarbershopPage() {
 
                                             <button
                                                 onClick={handleBook}
-                                                className="w-full bg-primary text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+                                                className={`w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition shadow-xl flex items-center justify-center gap-2 ${paymentType === 'subscription' ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20' : 'bg-primary text-white hover:bg-primary/90 shadow-primary/20'}`}
                                             >
-                                                {paymentType === 'online' ? (
+                                                {paymentType === 'subscription' ? (
+                                                    <><Crown className="w-4 h-4" /> Usar Plano Selecionado</>
+                                                ) : paymentType === 'online' ? (
                                                     <><Zap className="w-4 h-4" /> Pagar e Agendar</>
                                                 ) : (
                                                     <><CalendarCheck className="w-4 h-4" /> Finalizar Agendamento</>

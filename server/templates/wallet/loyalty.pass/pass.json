@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.com.barbershop.loyalty",
+  "serialNumber": "00000000",
+  "teamIdentifier": "XXXXXXXXXX",
+  "webServiceURL": "https://api.appbarber.com/api/loyalty/wallet/apple/update",
+  "authenticationToken": "securetoken",
+  "barcode": {
+    "message": "00000000",
+    "format": "PKBarcodeFormatQR",
+    "messageEncoding": "iso-8859-1"
+  },
+  "organizationName": "AppBarber",
+  "description": "Cartão Fidelidade",
+  "logoText": "Fidelidade",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "backgroundColor": "rgb(5, 5, 5)",
+  "labelColor": "rgb(16, 185, 129)",
+  "storeCard": {
+    "primaryFields": [
+      {
+        "key": "points",
+        "label": "PONTOS",
+        "value": 0,
+        "changeMessage": "Seus pontos mudaram para %@"
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "clientName",
+        "label": "CLIENTE",
+        "value": "Cliente"
+      }
+    ],
+    "backFields": [
+      {
+        "key": "terms",
+        "label": "Termos e Condições",
+        "value": "Acumule pontos em seus cortes e troque por recompensas exclusivas. Consulte as regras com seu barbeiro."
+      }
+    ]
+  }
+}

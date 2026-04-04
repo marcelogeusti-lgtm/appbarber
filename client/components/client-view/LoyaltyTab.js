@@ -107,6 +107,9 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                     </p>
                 </div>
             </div>
+
+                </div>
+            </div>
         </div>
     );
 }

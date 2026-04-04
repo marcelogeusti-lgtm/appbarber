@@ -241,10 +241,16 @@ class PaymentService {
         // 2. Cancel related appointment if exists
         if (p.appointmentId) {
             console.log(`[PaymentService] 🏳️ Cancelling Appointment ${p.appointmentId} due to payment failure.`);
-            await prisma.appointment.update({
+            const updatedApp = await prisma.appointment.update({
                 where: { id: p.appointmentId },
-                data: { status: 'CANCELLED' }
+                data: { status: 'CANCELLED', statusDetail: 'REJECTED' },
+                include: { client: true, professional: true, barbershop: true, service: true }
             }).catch(err => console.error('[PaymentService] Failed to cancel appointment:', err.message));
+
+            if (updatedApp) {
+                const eventBus = require('../events/eventBus');
+                eventBus.emit('PAYMENT_REJECTED', { appointment: updatedApp, reason });
+            }
         }
 
         // 3. Mark Order as CANCELLED

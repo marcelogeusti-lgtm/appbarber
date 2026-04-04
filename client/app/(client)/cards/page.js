@@ -148,29 +148,15 @@ export default function CardsPage() {
 
             {/* Add Card Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-[#0A0A0A] border border-slate-800 rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl">
-                        <button
-                            onClick={() => setIsAddModalOpen(false)}
-                            className="absolute top-6 right-6 p-2 bg-slate-900 rounded-full text-slate-500 hover:text-white transition z-20"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-
-                        <div className="mb-6">
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Novo Cartão</h2>
-                            <p className="text-xs text-slate-500 mt-2">
-                                Adicione os dados do seu cartão para pagamentos e assinaturas.
-                            </p>
-                        </div>
-
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/95 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="w-full max-w-md relative animate-in zoom-in-95 duration-500">
                         <CardForm
                             amount={1}
-                            description="Verificação"
-                            barbershopId={null} // Force Global/Platform
+                            description="Verificação de Cartão"
+                            barbershopId={null} 
                             onSubmit={handleAddCard}
                             onCancel={() => setIsAddModalOpen(false)}
-                            forceSave={true} // Force save without asking user
+                            forceSave={true} 
                         />
                     </div>
                 </div>

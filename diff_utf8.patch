@@ -1,0 +1,858 @@
+﻿diff --git a/client/app/[slug]/page.js b/client/app/[slug]/page.js
+index 4ea2116..628922f 100644
+--- a/client/app/[slug]/page.js
++++ b/client/app/[slug]/page.js
+@@ -80,15 +80,17 @@ export default function BarbershopPage() {
+     const [checkoutData, setCheckoutData] = useState(null);
+ 
+     const [formData, setFormData] = useState({
++        date: '',
++        time: '',
+         name: '',
+         phone: '',
+         email: '',
++        cpf: '',
+         birthday: '',
+-        date: '',
+-        time: '',
+         createAccount: false,
+         password: '',
+-        reminderMinutes: '60'
++        reminderMinutes: '60',
++        showReminderOptions: false
+     });
+ 
+     const [availableSlots, setAvailableSlots] = useState([]);
+@@ -96,26 +98,46 @@ export default function BarbershopPage() {
+ 
+     const [pendingFees, setPendingFees] = useState([]);
+ 
+-    async function processCardPayment(token, issuerId, paymentMethodId, installments, saveCard = false) {
++    async function processCardPayment(token, issuerId, paymentMethodId, installments, saveCard = false, brickPayer = null) {
+         try {
++            const finalPayer = brickPayer || {
++                email: formData.email,
++                name: formData.name,
++                identification: {
++                    type: 'CPF',
++                    number: formData.cpf
++                }
++            };
++
+             const payload = {
+                 appointmentId: checkoutData.appointmentId,
+                 token,
+                 issuerId,
+                 paymentMethodId,
+                 installments,
+-                saveCard, // Novo: Envia prefer├¬ncia de salvamento
+-                payer: {
+-                    email: formData.email,
+-                    name: formData.name
+-                }
++                saveCard,
++                payer: finalPayer
+             };
+ 
+-            await api.post('/payments/card', payload);
+-            setCheckoutData(prev => ({ ...prev, status: 'paid' })); // Atualiza├º├úo otimista
++            const res = await api.post('/payments/card', payload);
++            
++            if (res.data.status === 'approved' || res.data.status === 'paid') {
++                setCheckoutData(prev => ({ ...prev, status: 'paid' })); 
++            } else if (res.data.status === 'in_process' || res.data.status === 'pending') {
++                // Pagamento caiu em an├ílise de fraude ou processamento
++                alert('O seu pagamento est├í em an├ílise de seguran├ºa. O hor├írio foi reservado e voc├¬ ser├í notificado assim que aprovado.');
++                setCheckoutData(prev => ({ ...prev, status: 'paid' })); // Pode ir para a tela de finalizado, pois est├í reservado
++            } else {
++                // Qualquer outro status (rejected, cancelled, null, erro) = Recusado!
++                const rejectReason = res.data.statusDetail || 'Pagamento recusado pelo emissor ou dados incorretos.';
++                alert(`Ops! ${rejectReason} Tente novamente.`);
++                return Promise.reject(new Error(rejectReason));
++            }
+         } catch (err) {
+             console.error(err);
+-            alert(err.response?.data?.error || 'Erro ao processar pagamento.');
++            const msg = err.response?.data?.error || err.message || 'Erro ao processar pagamento.';
++            alert(msg);
++            return Promise.reject(err);
+         }
+     }
+ 
+@@ -347,8 +369,8 @@ export default function BarbershopPage() {
+ 
+     const handleBook = async () => {
+         try {
+-            if (!formData.name || !formData.phone || !formData.date || !formData.time) {
+-                return alert('Preencha os dados obrigat├│rios (Nome, Telefone, Data e Hora)');
++            if (!formData.name || !formData.phone || !formData.date || !formData.time || (paymentType === 'online' && !formData.cpf)) {
++                return alert(paymentType === 'online' ? 'Preencha Nome, Telefone e CPF para continuar' : 'Preencha Nome e Telefone para continuar');
+             }
+ 
+             const payload = {
+@@ -374,6 +396,7 @@ export default function BarbershopPage() {
+                 forma_pagamento: paymentType === 'online' ? paymentMethod : 'local',
+                 status: paymentType === 'online' ? "pendente" : "confirmado",
+                 email: formData.email,
++                cpf: formData.cpf,
+                 data_nascimento: formData.birthday,
+                 criar_conta: formData.createAccount,
+                 senha: formData.password,
+@@ -384,7 +407,16 @@ export default function BarbershopPage() {
+             const appointmentId = res.data.appointment_id;
+ 
+             if (paymentType === 'online' && (paymentMethod === 'PIX' || paymentMethod === 'BOLETO')) {
+-                // SEPARATE REQUEST FOR PIX/BOLETO
++                // [OPTIMIZED] Check if backend already provided payment data during appointment creation
++                const initialPayment = res.data.payment;
++
++                if (initialPayment && (initialPayment.checkoutUrl || initialPayment.paymentId)) {
++                    const targetUrl = initialPayment.checkoutUrl || `/checkout-pix?id=${initialPayment.paymentId}`;
++                    router.push(targetUrl);
++                    return;
++                }
++
++                // Fallback for separate request if not provided (keeping for robustness)
+                 try {
+                     const payPath = paymentMethod === 'PIX' ? '/payments/pix' : '/payments/create';
+                     const payRes = await api.post(payPath, {
+@@ -392,19 +424,17 @@ export default function BarbershopPage() {
+                         method: paymentMethod
+                     });
+ 
+-                    // [NEW] Redirect to Dedicated Checkout Page
+-                    // Robust Check: Use checkoutUrl OR construct it if paymentId exists
+                     if (paymentMethod === 'PIX' && (payRes.data.checkoutUrl || payRes.data.paymentId)) {
+                         const targetUrl = payRes.data.checkoutUrl || `/checkout-pix?id=${payRes.data.paymentId}`;
+                         router.push(targetUrl);
+-                        return; // Stop execution here
++                        return;
+                     }
+ 
+                     setCheckoutData(payRes.data);
+                     setStep(6);
+                 } catch (payErr) {
+                     console.error(`Erro ao gerar ${paymentMethod}:`, payErr);
+-                    const msg = payErr.response?.data?.error || `Erro ao gerar ${paymentMethod}. Tente novamente ou pague no local.`;
++                    const msg = payErr.response?.data?.message || payErr.response?.data?.error || `Erro ao gerar ${paymentMethod}. Tente novamente ou pague no local.`;
+                     alert(msg);
+                     return;
+                 }
+@@ -722,7 +752,8 @@ export default function BarbershopPage() {
+                                                                 cardData.issuer_id,
+                                                                 cardData.payment_method_id,
+                                                                 cardData.installments,
+-                                                                cardData.saveCard
++                                                                cardData.saveCard,
++                                                                cardData.payer
+                                                             );
+                                                         }}
+                                                         onCancel={() => {
+@@ -939,7 +970,7 @@ export default function BarbershopPage() {
+                                             </div>
+                                             {formData.date && (
+                                                 <div className="animate-in fade-in space-y-4">
+-                                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hor├írios para {selectedProfessional.name}</h3>
++                                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hor├írios para {selectedProfessional?.name || 'Profissional'}</h3>
+                                                     {loadingSlots ? <p className="text-center text-xs text-slate-500 italic">Buscando disponibilidade...</p> : (
+                                                         availableSlots.length > 0 ? (
+                                                             <div className="grid grid-cols-4 gap-2">
+@@ -977,6 +1008,18 @@ export default function BarbershopPage() {
+                                             <div className="space-y-4">
+                                                 <input placeholder="Seu Nome" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition" />
+                                                 <input placeholder="Seu Telefone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition" />
++                                                
++                                                {paymentType === 'online' && (
++                                                    <input 
++                                                        placeholder="Seu CPF (obrigat├│rio para pagamento online)" 
++                                                        value={formData.cpf} 
++                                                        onChange={e => {
++                                                            const val = e.target.value.replace(/\D/g, '').slice(0, 11);
++                                                            setFormData({ ...formData, cpf: val });
++                                                        }} 
++                                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold text-sm outline-none focus:ring-1 ring-primary transition animate-in slide-in-from-top-2" 
++                                                    />
++                                                )}
+                                             </div>
+ 
+                                             {/* Reminder Selection - New UI */}
+@@ -1109,8 +1152,8 @@ export default function BarbershopPage() {
+                                                 </div>
+                                                 {pendingFees?.length > 0 && (
+                                                     <div className="flex justify-between text-red-400 font-bold">
+-                                                        <span>Taxa No-show ({pendingFees.length}x)</span>
+-                                                        <span>{formatCurrency(pendingFees.reduce((s, f) => s + Number(f.feeValue || 0), 0))}</span>
++                                                        <span>Taxa No-show ({pendingFees?.length}x)</span>
++                                                        <span>{formatCurrency(pendingFees?.reduce((s, f) => s + Number(f.feeValue || 0), 0))}</span>
+                                                     </div>
+                                                 )}
+                                                 <div className="flex justify-between text-white font-black text-sm pt-2 border-t border-slate-800">
+diff --git a/client/components/client-view/SubscriptionsTab.js b/client/components/client-view/SubscriptionsTab.js
+index 91df1c4..c123fc7 100644
+--- a/client/components/client-view/SubscriptionsTab.js
++++ b/client/components/client-view/SubscriptionsTab.js
+@@ -88,6 +88,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards
+         } catch (error) {
+             console.error(error);
+             toast.error(error.response?.data?.message || 'Erro ao processar pagamento.');
++            throw error; // Propaga para o Brick encerrar o loading e mostrar tela vermelha
+         } finally {
+             setLoading(null);
+         }
+diff --git a/client/components/payment/CardForm.js b/client/components/payment/CardForm.js
+index 6f03463..33c1ed0 100644
+--- a/client/components/payment/CardForm.js
++++ b/client/components/payment/CardForm.js
+@@ -59,6 +59,7 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
+             await onSubmit({ ...formData, saveCard }); // Pass saveCard preference
+         } catch (error) {
+             console.error('Payment Error:', error);
++            throw error; // Required by MP Brick to remove loading state
+         }
+     };
+ 
+diff --git a/client/components/settings/PaymentSettings.js b/client/components/settings/PaymentSettings.js
+index aec0354..acc9f9a 100644
+--- a/client/components/settings/PaymentSettings.js
++++ b/client/components/settings/PaymentSettings.js
+@@ -96,7 +96,7 @@ export default function PaymentSettings() {
+                         { name: 'publicKey', label: 'Public Key', placeholder: 'APP_USR-... ou TEST-...' },
+                         { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'APP_USR-... ou TEST-...' },
+                         { name: 'clientId', label: 'Client ID', placeholder: 'ID num├®rico da aplica├º├úo...' },
+-                        { name: 'clientSecret', label: 'Client Secret / Secret Key', type: 'password', placeholder: 'Para valida├º├úo de seguran├ºa (Webhooks)...' }
++                        { name: 'clientSecret', label: 'Assinatura secreta (Webhook)', type: 'password', placeholder: 'Cole a assinatura secreta do webhook aqui...' }
+                     ]}
+                 />
+             </div>
+diff --git a/server/scripts/debug_orchestrator.js b/server/scripts/debug_orchestrator.js
+new file mode 100644
+index 0000000..27655cf
+--- /dev/null
++++ b/server/scripts/debug_orchestrator.js
+@@ -0,0 +1,45 @@
++const { PrismaClient } = require('@prisma/client');
++const prisma = new PrismaClient();
++const PaymentOrchestrator = require('../src/services/payment/PaymentOrchestrator');
++
++async function test() {
++    try {
++        console.log('Testing Save Card logic...');
++        const client = await prisma.client.findFirst();
++        if (!client) {
++            console.log('No client found to test.');
++            return;
++        }
++
++        console.log('Using client:', client.id);
++        
++        const mp = require('mercadopago');
++        console.log('MP SDK available:', Object.keys(mp));
++        
++        const adapter = PaymentOrchestrator.gateways.mercadopago;
++        
++        // Let's mock a saveCard call
++        console.log('--- TEST: saveCard ---');
++        try {
++            // This will try to create a customer and save a card.
++            // It will FAIL with the MP API because of the token, but it should NOT hang or crash internally.
++            const result = await PaymentOrchestrator.saveCard({
++                barbershopId: null, // Test Global
++                client: client,
++                token: 'mock_token_123'
++            });
++            console.log('Result:', result);
++        } catch (cardErr) {
++            console.log('Expected/Actual Error from saveCard:', cardErr.message);
++        }
++
++        console.log('Debug script finished checking flow.');
++        
++    } catch (err) {
++        console.error('Test Error:', err);
++    } finally {
++        await prisma.$disconnect();
++    }
++}
++
++test();
+diff --git a/server/src/controllers/appointment.controller.js b/server/src/controllers/appointment.controller.js
+index c363f7f..ef033f3 100644
+--- a/server/src/controllers/appointment.controller.js
++++ b/server/src/controllers/appointment.controller.js
+@@ -25,7 +25,7 @@ exports.createAppointment = async (req, res) => {
+     try {
+         // Mapping Snake Case Payload to Internal Variables
+         const {
+-            cliente_id, cliente_nome, cliente_telefone, email, data_nascimento,
++            cliente_id, cliente_nome, cliente_telefone, email, cpf, documento, data_nascimento,
+             barbeiro_id, servicos, produtos = [],
+             data, horario,
+             criar_conta, senha,
+@@ -434,7 +434,9 @@ exports.createAppointment = async (req, res) => {
+         // --- 5. ORCHESTRATE PAYMENT (ONLINE) ---
+         let paymentData = null;
+         try {
+-            if (paymentMethod === 'ONLINE' && appointment) {
++            // Normalize check to be case-insensitive
++            const isOnline = paymentMethod && (paymentMethod.toUpperCase() === 'ONLINE' || paymentMethod.toUpperCase() === 'WEB');
++            if (isOnline && appointment) {
+                 console.log(`[Appointment] ­ƒÆ│ Orchestrating payment for App ${appointment.id}`);
+                 const orchestration = await PaymentOrchestrator.createPayment({
+                     amount: order.total,
+@@ -444,8 +446,12 @@ exports.createAppointment = async (req, res) => {
+                     orderId: order.id,
+                     description: `Agendamento - ${service.name}`,
+                     payer: {
+-                        name: currentUser?.name || 'Cliente',
+-                        email: currentUser?.email || 'email@client.com'
++                        name: currentUser?.name || guestName || 'Cliente',
++                        email: currentUser?.email || guestEmail || 'email@client.com',
++                        identification: {
++                            type: 'CPF',
++                            number: cpf || documento || (currentUser ? currentUser.cpf : null)
++                        }
+                     },
+                     externalId: appointment.id
+                 });
+@@ -456,12 +462,17 @@ exports.createAppointment = async (req, res) => {
+             console.error('[Appointment] ­ƒøæ Payment orchestration failed. REVERTING booking.', paymentError);
+             
+             // Critical Rollback: Free the slot if payment setup crashed
+-            await prisma.appointment.delete({
+-                where: { id: appointment.id }
+-            });
++            try {
++                await prisma.appointment.delete({
++                    where: { id: appointment.id }
++                });
++            } catch (deleteError) {
++                console.error('[Appointment] ­ƒøæ Failed to delete appointment during rollback:', deleteError.message);
++            }
+ 
+             return res.status(500).json({ 
+-                error: 'Falha ao configurar pagamento. O hor├írio foi liberado.', 
++                error: 'Falha ao configurar pagamento. O hor├írio foi liberado.',
++                message: 'Falha ao configurar pagamento. O hor├írio foi liberado.', 
+                 detail: paymentError.message 
+             });
+         }
+@@ -513,6 +524,7 @@ exports.createAppointment = async (req, res) => {
+             order_id: order.id,
+             appointment,
+             order,
++            payment: paymentData,
+             token: createdToken,
+             user: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
+             isGuest: !req.user
+diff --git a/server/src/controllers/payment.controller.js b/server/src/controllers/payment.controller.js
+index 94b2da6..932544b 100644
+--- a/server/src/controllers/payment.controller.js
++++ b/server/src/controllers/payment.controller.js
+@@ -137,6 +137,41 @@ exports.createCardPayment = async (req, res) => {
+ 
+         if (!appointment) return res.status(404).json({ error: 'Agendamento n├úo encontrado' });
+ 
++        let effectiveToken = token;
++
++        // 1. Save Card First if requested (prevents token reuse error)
++        if (saveCard) {
++            try {
++                console.log(`[PaymentController] pre-saving card for client ${appointment.clientId}`);
++                const savedCardData = await PaymentOrchestrator.saveCard({
++                    barbershopId: appointment.barbershopId,
++                    client: appointment.client,
++                    token: token
++                });
++
++                await prisma.cardToken.create({
++                    data: {
++                        clientId: appointment.clientId,
++                        gateway: savedCardData.gateway.toUpperCase(),
++                        token: savedCardData.token, // This is the Card ID in MP (card_...)
++                        last4: savedCardData.last4,
++                        brand: savedCardData.brand,
++                        expiryMonth: savedCardData.expiryMonth,
++                        expiryYear: savedCardData.expiryYear,
++                        barbershopId: appointment.barbershopId,
++                        isDefault: false
++                    }
++                });
++
++                // Update token to be the Card ID (for subsequent payment)
++                effectiveToken = savedCardData.token;
++            } catch (saveError) {
++                console.error('[PaymentController] Failed to pre-save card:', saveError.message);
++                // Fallback to original token for at least this payment
++            }
++        }
++
++        // 2. Create Payment
+         const result = await PaymentService.createPayment({
+             amount: appointment.service.price,
+             method: paymentMethodId?.includes('debit') ? 'DEBIT_CARD' : 'CREDIT_CARD',
+@@ -145,39 +180,12 @@ exports.createCardPayment = async (req, res) => {
+             userId: req.user.role !== 'CLIENT' ? userId : null,
+             clientId: req.user.role === 'CLIENT' ? userId : null,
+             appointmentId: appointment.id,
+-            token,
++            token: effectiveToken,
+             installments: installments || 1,
+             paymentMethodId,
+             customer: payer
+         });
+ 
+-        // 5. Automatic Card Saving Logic (Keep here for now or move to service if relevant)
+-        if (saveCard && (result.status === 'paid' || result.status === 'approved')) {
+-            try {
+-                await PaymentOrchestrator.saveCard({
+-                    barbershopId: appointment.barbershopId,
+-                    client: appointment.client,
+-                    token: token
+-                }).then(async (savedCardData) => {
+-                    await prisma.cardToken.create({
+-                        data: {
+-                            clientId: appointment.clientId,
+-                            gateway: savedCardData.gateway.toUpperCase(),
+-                            token: savedCardData.token,
+-                            last4: savedCardData.last4,
+-                            brand: savedCardData.brand,
+-                            expiryMonth: savedCardData.expiryMonth,
+-                            expiryYear: savedCardData.expiryYear,
+-                            barbershopId: appointment.barbershopId,
+-                            isDefault: false
+-                        }
+-                    });
+-                });
+-            } catch (saveError) {
+-                console.error('[PaymentController] Failed to auto-save card:', saveError.message);
+-            }
+-        }
+-
+         return res.status(201).json(result);
+ 
+     } catch (error) {
+diff --git a/server/src/services/communication/CommunicationService.js b/server/src/services/communication/CommunicationService.js
+index 11b305f..4a15054 100644
+--- a/server/src/services/communication/CommunicationService.js
++++ b/server/src/services/communication/CommunicationService.js
+@@ -216,6 +216,46 @@ class CommunicationService {
+         }
+     }
+ 
++    // Send Abandoned Cart Reminder
++    async sendAbandonedCartReminder(appointment) {
++        const { client, service, barbershop } = appointment;
++        const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
++
++        let messageContent = `ÔÜá´©Å *Hor├írio Quase Expirando*\n\nOl├í, ${client?.name || 'Cliente'}!\nNotamos que voc├¬ selecionou o servi├ºo *${service?.name || 'na barbearia'}* na *${barbershop?.name || 'Barbearia'}*, mas fechou a p├ígina antes do pagamento.\n\nA vaga ficar├í reservada por apenas mais alguns minutinhos.\n\nClique no link abaixo para concluir e garantir seu hor├írio:\n­ƒöù ${bookingLink}`;
++
++        if (client && client.phone) {
++            try {
++                await whatsappService.sendText(client.phone, messageContent);
++                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'ABANDONED_CART', messageContent, 'SENT');
++                return true;
++            } catch (error) {
++                console.error('Failed to send WA Abandoned Cart Reminder:', error);
++                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'ABANDONED_CART', messageContent, 'FAILED');
++                return false;
++            }
++        }
++        return false;
++    }
++
++    // Send Late Payment Notice to Barber (Webhook Protection)
++    async sendLatePaymentNoticeToBarber(appointment) {
++        const { client, barbershop, professional } = appointment;
++
++        let messageContent = `­ƒÜ¿ *ATEN├ç├âO - PAGAMENTO ATRASADO* ­ƒÜ¿\n\nO cliente *${client?.name || 'Desconhecido'}* realizou um pagamento que foi aprovado apenas AGORA pelo banco para uma vaga que o sistema j├í havia cancelado por expira├º├úo de limite de tempo.\n\nSugerimos que entre em contato com ele para:\n1. Encaix├í-lo em outro hor├írio (Usando esse pagamento como cr├®dito)\n2. Ou estornar o valor no painel do gateway (Mercado Pago).\n\nPara n├úo causar agendamento duplo, a vaga N├âO foi reativada automaticamente na sua agenda.`;
++
++        // Send to shop whatsapp or professional phone
++        const phone = barbershop?.whatsappPhone || professional?.phone;
++
++        if (phone) {
++            try {
++                await whatsappService.sendText(phone, messageContent);
++                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'LATE_WEBHOOK_WARNING', messageContent, 'SENT');
++            } catch (error) {
++                console.error('Failed to send Late Payment WA to Barber:', error);
++            }
++        }
++    }
++
+     async log(appointment, channel, direction, type, content, status) {
+         try {
+             await prisma.communicationLog.create({
+diff --git a/server/src/services/events/appointmentListeners.js b/server/src/services/events/appointmentListeners.js
+index c5fc752..c908440 100644
+--- a/server/src/services/events/appointmentListeners.js
++++ b/server/src/services/events/appointmentListeners.js
+@@ -71,9 +71,9 @@ function init() {
+                         appointmentId: appointment.id
+                     });
+                 }
+-            } else if (appointment.status === 'CONFIRMED' && oldStatus === 'PENDING') {
+-                // Payment was just approved!
+-                console.log(`[Event] Appointment ${appointment.id} was PAID and now CONFIRMED. Sending confirmation.`);
++            } else if (appointment.status === 'CONFIRMED' && (oldStatus === 'PENDING' || oldStatus === 'PENDING_PAYMENT')) {
++                // Payment was just approved (Online) or manually confirmed (Guest)
++                console.log(`[Event] Appointment ${appointment.id} was PAID/APPROVED and now CONFIRMED. Sending confirmation.`);
+                 await communicationService.sendConfirmationRequest(appointment);
+             } else if (appointment.status === 'COMPLETED') {
+                 await communicationService.sendThankYouMessage(appointment);
+@@ -100,6 +100,22 @@ function init() {
+             console.error('[Event Error] Failed to process appointment reminder:', error);
+         }
+     });
+-}
++    // 5. Abandoned Cart (Cron Job)
++    eventBus.on('ABANDONED_CART', async (appointment) => {
++        try {
++            await communicationService.sendAbandonedCartReminder(appointment);
++        } catch (error) {
++            console.error('[Event Error] Failed to process abandoned cart reminder:', error);
++        }
++    });
+ 
++    // 6. Late Webhook Warning
++    eventBus.on('LATE_WEBHOOK_WARNING', async (appointment) => {
++        try {
++            await communicationService.sendLatePaymentNoticeToBarber(appointment);
++        } catch (error) {
++            console.error('[Event Error] Failed to send late webhook warning:', error);
++        }
++    });
++}
+ module.exports = { init };
+diff --git a/server/src/services/jobs/reminderJob.js b/server/src/services/jobs/reminderJob.js
+index 74765a7..560b66b 100644
+--- a/server/src/services/jobs/reminderJob.js
++++ b/server/src/services/jobs/reminderJob.js
+@@ -54,6 +54,64 @@ const initScheduler = () => {
+             console.error('[Scheduler] Error processing reminders:', error);
+         }
+     });
++
++    // Run every 5 minutes for Abandoned Carts / Pending Payments Cleanup
++    cron.schedule('*/5 * * * *', async () => {
++        console.log('[Scheduler] Checking for abandoned carts and expired payments...');
++        try {
++            const now = new Date();
++            const tenMinsAgo = subMinutes(now, 10);
++            const twentyMinsAgo = subMinutes(now, 20);
++
++            // 1. Send Whatsapp Recovery Message (between 10 and 20 mins ago)
++            const cartsToRecover = await prisma.appointment.findMany({
++                where: {
++                    status: 'PENDING_PAYMENT',
++                    createdAt: {
++                        lte: tenMinsAgo,
++                        gt: twentyMinsAgo
++                    }
++                },
++                include: { client: true, barbershop: true, service: true }
++            });
++
++            for (const app of cartsToRecover) {
++                // Check if already reminded in communication logs
++                const alreadySent = await prisma.communicationLog.findFirst({
++                    where: { appointmentId: app.id, type: 'ABANDONED_CART' }
++                });
++                if (!alreadySent) {
++                    console.log(`[Scheduler] Emitting Abandoned Cart for ${app.id}`);
++                    eventBus.emit('ABANDONED_CART', app);
++                }
++            }
++
++            // 2. Cancel Expired Payments (older than 20 mins)
++            const expiredCarts = await prisma.appointment.findMany({
++                where: {
++                    status: 'PENDING_PAYMENT',
++                    createdAt: { lte: twentyMinsAgo }
++                }
++            });
++
++            if (expiredCarts.length > 0) {
++                console.log(`[Scheduler] Cancelling ${expiredCarts.length} expired payments.`);
++                for (const app of expiredCarts) {
++                    await prisma.appointment.update({
++                        where: { id: app.id },
++                        data: {
++                            status: 'CANCELLED',
++                            statusDetail: 'TIMEOUT'
++                        }
++                    });
++                    // Fire update event to free up timeslot for professionals etc.
++                    eventBus.emit('APPOINTMENT_UPDATED', { appointment: { ...app, status: 'CANCELLED' }, oldStatus: 'PENDING_PAYMENT' });
++                }
++            }
++        } catch (err) {
++            console.error('[Scheduler] Error processing abandoned carts:', err);
++        }
++    });
+ };
+ 
+ module.exports = { initScheduler };
+diff --git a/server/src/services/payment/PaymentOrchestrator.js b/server/src/services/payment/PaymentOrchestrator.js
+index 66222fa..64fd314 100644
+--- a/server/src/services/payment/PaymentOrchestrator.js
++++ b/server/src/services/payment/PaymentOrchestrator.js
+@@ -1,5 +1,6 @@
+ const prisma = require('../../lib/prisma');
+ const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter');
++const crypto = require('../../utils/crypto');
+ 
+ class PaymentOrchestrator {
+     constructor() {
+@@ -112,11 +113,10 @@ class PaymentOrchestrator {
+             customerId = gc?.customerId;
+         }
+ 
+-        // --- SPLIT CALCULATION (Only if using configured Shop credentials, not Global) ---
+-        // If Global, we are receiving the full amount on Platform.
+-        // We might implement a transfer later.
++        // --- SPLIT CALCULATION ---
+         let disbursements = [];
+-        if (!useGlobalCredentials && params.appointmentId && gatewayToUse === 'mercadopago') {
++        // If using Global Credentials but paying for a Shop, OR if using Shop credentials directly
++        if (params.appointmentId && gatewayToUse === 'mercadopago') {
+             try {
+                 const appointment = await prisma.appointment.findUnique({
+                     where: { id: params.appointmentId },
+@@ -162,6 +162,7 @@ class PaymentOrchestrator {
+             description,
+             customer: {
+                 ...customer,
++                id: customerId, // Mercado Pago Customer ID
+                 document: customer?.document || 
+                           customer?.cpf || 
+                           customer?.identification?.number || 
+@@ -198,7 +199,8 @@ class PaymentOrchestrator {
+     }
+ 
+     async saveCard({ barbershopId, client, token }) {
+-        // Defaulting to MercadoPago
++        // If no barbershopId, we save at PLATFORM level (Universal Card)
++        const effectiveBarbershopId = barbershopId || null;
+         const gatewayToUse = 'mercadopago';
+         const adapter = this.gateways[gatewayToUse];
+ 
+@@ -215,7 +217,7 @@ class PaymentOrchestrator {
+             where: {
+                 clientId: client.id,
+                 gateway: gatewayToUse.toUpperCase(),
+-                barbershopId: barbershopId // strict match (null if null)
++                barbershopId: effectiveBarbershopId // strict match (null if null)
+             }
+         });
+ 
+@@ -244,7 +246,7 @@ class PaymentOrchestrator {
+         }
+ 
+         // 2. Save Card
+-        console.log(`[Orchestrator] Saving Card for Customer ${customerId} via ${gatewayToUse}`);
++        console.log(`[Orchestrator] Saving Card for Customer ${customerId} via ${gatewayToUse} (Creds: ${effectiveBarbershopId || 'PLATFORM'})`);
+         const savedCard = await adapter.saveCard({
+             customerId,
+             token,
+@@ -326,8 +328,27 @@ class PaymentOrchestrator {
+         const adapter = this.gateways[gateway];
+         if (!adapter || !adapter.createSubscription) throw new Error(`Gateway '${gateway}' does not support subscriptions.`);
+ 
+-        const credentials = await this.getGatewayConfig(barbershopId, gateway);
+-        return await adapter.createSubscription({ ...params, credentials });
++        const effectiveBarbershopId = barbershopId || null;
++        const credentials = await this.getGatewayConfig(effectiveBarbershopId, gateway);
++
++        let customerId = params.customerId;
++        if (!customerId && params.clientId) {
++            const prisma = require('../../lib/prisma');
++            const gc = await prisma.gatewayCustomer.findFirst({
++                where: {
++                    clientId: params.clientId,
++                    gateway: gateway.toUpperCase(),
++                    barbershopId: effectiveBarbershopId
++                }
++            });
++            customerId = gc?.customerId;
++        }
++
++        return await adapter.createSubscription({ 
++            ...params, 
++            customerId,
++            credentials 
++        });
+     }
+ 
+     async getGatewayConfig(barbershopId, gatewayName) {
+diff --git a/server/src/services/payment/PaymentService.js b/server/src/services/payment/PaymentService.js
+index ddaac4b..19fb72e 100644
+--- a/server/src/services/payment/PaymentService.js
++++ b/server/src/services/payment/PaymentService.js
+@@ -116,6 +116,8 @@ class PaymentService {
+             // 4. Handle Immediate Approval
+             if (paymentResult.status === 'paid' || paymentResult.status === 'approved') {
+                 await this.handlePaymentApproval(updatedPayment);
++            } else if (paymentResult.status === 'failed' || paymentResult.status === 'rejected' || paymentResult.status === 'cancelled') {
++                await this.handlePaymentFailure(updatedPayment, paymentResult);
+             }
+ 
+             return {
+@@ -167,26 +169,43 @@ class PaymentService {
+ 
+         // 2. Update Related Entities
+         if (p.appointmentId) {
+-            const appointment = await prisma.appointment.update({
++            // [Fix] Get current status before update to correctly report in event bus
++            const currentApp = await prisma.appointment.findUnique({ 
+                 where: { id: p.appointmentId },
+-                data: { status: 'CONFIRMED' },
+                 include: { client: true, professional: true, barbershop: true }
+             });
+-
+-            // Emit Update Event for Automation (Old Status was PENDING_PAYMENT for Online)
+-            const eventBus = require('../events/eventBus');
+-            eventBus.emit('APPOINTMENT_UPDATED', { 
+-                appointment, 
+-                oldStatus: appointment.status === 'PENDING_PAYMENT' ? 'PENDING_PAYMENT' : 'PENDING' 
+-            });
+-            
+-            // Emit to socket for real-time dashboard update
+-            try {
+-                const socket = require('../../socket');
+-                const io = socket.getIO();
+-                if (io) io.to(appointment.barbershopId).emit('appointment_updated', appointment);
+-            } catch (sErr) { /* ignore */ }
+-
++            const oldStatus = currentApp?.status || 'PENDING_PAYMENT';
++
++            // ATEN├ç├âO: Webhook Protection! 
++            // Se o pagamento for aprovado agora, mas o CronJob j├í tiver cancelado a venda (Timeout),
++            // N├âO devolvemos para CONFIRMED para n├úo engolir o hor├írio que talvez j├í tenha sido vendido.
++            // Em vez disso, deixamos CANCELLED e avisamos o barbeiro.
++            if (oldStatus === 'CANCELLED') {
++                console.log(`[PaymentService/WebhookProtection] Payment ${p.id} approved late for a CANCELLED appointment ${p.appointmentId}. Sending Notice.`);
++                const eventBus = require('../events/eventBus');
++                eventBus.emit('LATE_WEBHOOK_WARNING', currentApp);
++            } else {
++                // Fluxo Normal
++                const appointment = await prisma.appointment.update({
++                    where: { id: p.appointmentId },
++                    data: { status: 'CONFIRMED' },
++                    include: { client: true, professional: true, barbershop: true }
++                });
++                
++                // Emit Update Event for Automation
++                const eventBus = require('../events/eventBus');
++                eventBus.emit('APPOINTMENT_UPDATED', { 
++                    appointment, 
++                    oldStatus: oldStatus 
++                });
++                
++                // Emit to socket for real-time dashboard update
++                try {
++                    const socket = require('../../socket');
++                    const io = socket.getIO();
++                    if (io) io.to(appointment.barbershopId).emit('appointment_updated', appointment);
++                } catch (sErr) { /* ignore */ }
++            }
+         }
+ 
+         if (p.orderId) {
+@@ -265,7 +284,7 @@ class PaymentService {
+ 
+                 if (result.status === 'paid' || result.status === 'approved') {
+                     await this.handlePaymentApproval(updated);
+-                } else if (result.status === 'failed' || result.status === 'rejected') {
++                } else if (result.status === 'failed' || result.status === 'rejected' || result.status === 'cancelled') {
+                     await this.handlePaymentFailure(updated, result);
+                 }
+             }
+diff --git a/server/src/services/payment/SubscriptionEngine.js b/server/src/services/payment/SubscriptionEngine.js
+index a5e8674..f5aa1c4 100644
+--- a/server/src/services/payment/SubscriptionEngine.js
++++ b/server/src/services/payment/SubscriptionEngine.js
+@@ -84,8 +84,10 @@ class SubscriptionEngine {
+                 // Create preapproval subscription
+                 paymentResult = await PaymentOrchestrator.createSubscription({
+                     planId: plan.externalId,
+-                    email: user.authUser?.email || user.email,
+-                    token,
++                    email: userProfile.email,
++                    clientId: client.id,
++                    token: cardId || token, // Use saved cardId if available, else new token
++                    amount: Number(plan.price),
+                     gateway,
+                     barbershopId: plan.barbershopId,
+                     description: `Assinatura: ${plan.name}`
+diff --git a/server/src/services/payment/gateways/MercadoPagoAdapter.js b/server/src/services/payment/gateways/MercadoPagoAdapter.js
+index 3ab4072..dea3b29 100644
+--- a/server/src/services/payment/gateways/MercadoPagoAdapter.js
++++ b/server/src/services/payment/gateways/MercadoPagoAdapter.js
+@@ -49,6 +49,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
+                     ? `${process.env.BACKEND_URL}/api/webhooks/mercadopago`
+                     : undefined,
+                 payer: {
++                    id: customer?.id || payer?.id, // ID do Cliente no Mercado Pago (Obrigat├│rio para cart├Áes salvos)
+                     email: payerEmail,
+                     first_name: firstName,
+                     last_name: lastName,
+@@ -90,7 +91,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
+             }
+ 
+             // --- AUDIT LOG (REQUEST) ---
+-            console.log(`[MP] CREATING PAYMENT (${method}) - ExternalID: ${externalId}`);
++            console.log(`[MP] CREATING PAYMENT (${method}) - Barbershop: ${credentials?.barbershopId || 'Unknown'} - ExternalID: ${externalId}`);
+             console.dir(body, { depth: null });
+ 
+             const idempotencyKey = externalId ? `pay_${externalId}` : `temp_${Date.now()}`;
+@@ -127,16 +128,18 @@ class MercadoPagoAdapter extends GatewayAdapter {
+             let checkoutUrl = null;
+             let pixCopiaECola = null;
+ 
+-            // Mercadopago v2 SDK might return some data in data.point_of_interaction
+-            if (data.payment_method_id === 'pix' || (method === 'PIX')) {
+-                const txData = data.point_of_interaction?.transaction_data;
++            // Mercadopago v2 SDK might return some data in point_of_interaction
++            // Robust extraction: Check both root and point_of_interaction
++            const txData = data.point_of_interaction?.transaction_data;
++            
++            if (data.payment_method_id === 'pix' || method === 'PIX') {
+                 qrCode = txData?.qr_code || data.qr_code;
+                 qrCodeBase64 = txData?.qr_code_base64 || data.qr_code_base64;
+-                pixCopiaECola = qrCode || txData?.ticket_url;
+-                checkoutUrl = txData?.ticket_url || data.external_resource_url;
++                pixCopiaECola = qrCode || txData?.ticket_url || data.ticket_url;
++                checkoutUrl = txData?.ticket_url || data.external_resource_url || data.transaction_details?.external_resource_url;
+             } else if (data.payment_method_id?.includes('bol') || method === 'BOLETO') {
+-                checkoutUrl = data.transaction_details?.external_resource_url;
+-                qrCode = data.barcode?.content;
++                checkoutUrl = data.transaction_details?.external_resource_url || data.external_resource_url;
++                qrCode = data.barcode?.content || data.external_reference;
+             }
+ 
+             return {
+@@ -269,7 +272,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
+         }
+     }
+ 
+-    async createSubscription({ planId, cardToken, payerEmail, externalReference, credentials }) {
++    async createSubscription({ planId, token, email, amount, externalReference, credentials }) {
+         const accessToken = credentials?.accessToken || process.env.MP_ACCESS_TOKEN;
+         if (!accessToken) throw new Error("Mercado Pago Access Token missing.");
+ 
+@@ -280,9 +283,13 @@ class MercadoPagoAdapter extends GatewayAdapter {
+         try {
+             const body = {
+                 preapproval_plan_id: planId,
+-                card_token_id: cardToken,
+-                payer_email: payerEmail,
++                card_token_id: token,
++                payer_email: email,
+                 external_reference: externalReference,
++                auto_recurring: {
++                    transaction_amount: amount,
++                    currency_id: 'BRL'
++                },
+                 status: 'authorized' 
+             };
+ 

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import CardForm from '../payment/CardForm';
 import { toast } from 'sonner';
 
-export default function SubscriptionsTab({ plans = [], barbershopId, savedCards = [], onSubscribeSuccess }) {
+export default function SubscriptionsTab({ plans = [], barbershopId, savedCards = [], onSubscribeSuccess, activeSubscription }) {
     const router = useRouter();
     const [loading, setLoading] = useState(null); // planId being processed
     const [selectedPlan, setSelectedPlan] = useState(null);
@@ -14,6 +14,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
     // UI States
     const [showCardSelection, setShowCardSelection] = useState(false);
     const [showNewCardForm, setShowNewCardForm] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const formatCurrency = (val) => {
         const num = Number(val);
@@ -41,12 +42,16 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                 cardId: cardId
             });
 
-            setShowCardSelection(false);
-            if (onSubscribeSuccess) onSubscribeSuccess();
-            else {
-                toast.success('Assinatura realizada com sucesso!');
-                router.refresh();
-            }
+            setIsSuccess(true);
+            setTimeout(() => {
+                setShowCardSelection(false);
+                setIsSuccess(false);
+                if (onSubscribeSuccess) onSubscribeSuccess();
+                else {
+                    toast.success('Assinatura realizada com sucesso!');
+                    router.refresh();
+                }
+            }, 3000);
 
         } catch (error) {
             console.error(error);
@@ -79,12 +84,16 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                 cardId: savedCardId
             });
 
-            setShowNewCardForm(false);
-            if (onSubscribeSuccess) onSubscribeSuccess();
-            else {
-                toast.success('Assinatura realizada com sucesso!');
-                router.refresh();
-            }
+            setIsSuccess(true);
+            setTimeout(() => {
+                setShowNewCardForm(false);
+                setIsSuccess(false);
+                if (onSubscribeSuccess) onSubscribeSuccess();
+                else {
+                    toast.success('Assinatura realizada com sucesso!');
+                    router.refresh();
+                }
+            }, 3000);
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Erro ao processar pagamento.');
@@ -96,6 +105,41 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
 
     return (
         <div className="space-y-6 pb-24 relative animate-in fade-in slide-in-from-bottom-4">
+            
+            {/* --- ACTIVE PLAN USAGE SUMMARY --- */}
+            {activeSubscription && (
+                <div className="bg-slate-900/50 border border-emerald-500/20 rounded-[2.5rem] p-6 mb-8 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Crown className="w-20 h-20 text-emerald-500" />
+                    </div>
+                    
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                <Crown className="w-4 h-4 text-emerald-500" />
+                            </div>
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Sua Assinatura Ativa</span>
+                        </div>
+                        
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">{activeSubscription.plan?.name}</h2>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">Expira em {new Date(activeSubscription.endDate).toLocaleDateString()}</p>
+                        
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-end">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">Cortes Consumidos</span>
+                                <span className="text-sm font-black text-white">{activeSubscription.plan?.quantityOfCuts - activeSubscription.remainingCuts} / {activeSubscription.plan?.quantityOfCuts}</span>
+                            </div>
+                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-emerald-500 transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
+                                    style={{ width: `${((activeSubscription.plan?.quantityOfCuts - activeSubscription.remainingCuts) / activeSubscription.plan?.quantityOfCuts) * 100}%` }}
+                                ></div>
+                            </div>
+                            <p className="text-[9px] text-slate-500 italic text-right">Benefícios resetam em cada ciclo de renovação.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* --- MODAL: SELECT CARD (ONE-CLICK) --- */}
             {showCardSelection && selectedPlan && (
@@ -106,42 +150,59 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                             <button onClick={() => setShowCardSelection(false)} className="p-2 hover:bg-slate-800 rounded-full transition"><X className="w-4 h-4 text-slate-400" /></button>
                         </div>
 
-                        <div className="p-6 space-y-4">
-                            <div className="text-center mb-6">
-                                <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Você está assinando</p>
-                                <h2 className="text-2xl font-black text-white uppercase">{selectedPlan.name}</h2>
-                                <p className="text-primary font-bold text-lg">{formatCurrency(selectedPlan.price)}<span className="text-sm text-slate-500 font-normal">/mês</span></p>
-                            </div>
+                        <div className="p-6 space-y-4 relative min-h-[300px]">
+                            {isSuccess ? (
+                                <div className="absolute inset-0 bg-[#111] z-20 flex flex-col items-center justify-center space-y-6 animate-in zoom-in-95 duration-500">
+                                    <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center animate-bounce">
+                                        <Crown className="w-10 h-10 text-primary fill-primary" />
+                                    </div>
+                                    <div className="text-center space-y-2">
+                                        <h3 className="text-xl font-black text-white uppercase tracking-tighter">Assinatura Ativa!</h3>
+                                        <p className="text-slate-400 text-xs px-8">Bem-vindo ao clube. Seus benefícios já estão liberados!</p>
+                                    </div>
+                                    <div className="w-12 h-1 bg-primary/20 rounded-full overflow-hidden">
+                                        <div className="h-full bg-primary animate-[progress_3s_ease-in-out]"></div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="text-center mb-6">
+                                        <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Você está assinando</p>
+                                        <h2 className="text-2xl font-black text-white uppercase">{selectedPlan.name}</h2>
+                                        <p className="text-primary font-bold text-lg">{formatCurrency(selectedPlan.price)}<span className="text-sm text-slate-500 font-normal">/mês</span></p>
+                                    </div>
 
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Escolha o cartão para cobrança</p>
-                            <div className="space-y-2 max-h-60 overflow-y-auto">
-                                {savedCards.map(card => (
-                                    <button
-                                        key={card.id}
-                                        onClick={() => handleOneClickSubscribe(card.id)}
-                                        disabled={loading === selectedPlan.id}
-                                        className="w-full flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-primary/10 hover:border-primary/50 transition group text-left"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition">
-                                                <CreditCard className="w-5 h-5 text-slate-400 group-hover:text-white" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-white text-xs uppercase">{card.brand} •••• {card.last4}</p>
-                                                <p className="text-[10px] text-slate-500">Expira em {card.expiryMonth}/{card.expiryYear}</p>
-                                            </div>
-                                        </div>
-                                        {loading === selectedPlan.id ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary" />}
-                                    </button>
-                                ))}
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Escolha o cartão para cobrança</p>
+                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                        {savedCards.map(card => (
+                                            <button
+                                                key={card.id}
+                                                onClick={() => handleOneClickSubscribe(card.id)}
+                                                disabled={loading === selectedPlan.id}
+                                                className="w-full flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-primary/10 hover:border-primary/50 transition group text-left"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition">
+                                                        <CreditCard className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-white text-xs uppercase">{card.brand} •••• {card.last4}</p>
+                                                        <p className="text-[10px] text-slate-500">Expira em {card.expiryMonth}/{card.expiryYear}</p>
+                                                    </div>
+                                                </div>
+                                                {loading === selectedPlan.id ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary" />}
+                                            </button>
+                                        ))}
 
-                                <button
-                                    onClick={() => { setShowCardSelection(false); setShowNewCardForm(true); }}
-                                    className="w-full p-4 border border-dashed border-slate-700 rounded-2xl text-slate-500 text-xs font-bold uppercase hover:text-white hover:border-slate-500 transition"
-                                >
-                                    Usar outro cartão
-                                </button>
-                            </div>
+                                        <button
+                                            onClick={() => { setShowCardSelection(false); setShowNewCardForm(true); }}
+                                            className="w-full p-4 border border-dashed border-slate-700 rounded-2xl text-slate-500 text-xs font-bold uppercase hover:text-white hover:border-slate-500 transition"
+                                        >
+                                            Usar outro cartão
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

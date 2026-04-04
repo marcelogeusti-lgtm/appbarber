@@ -50,3 +50,41 @@ exports.updateLoyaltySettings = async (req, res) => {
         res.status(500).json({ message: 'Error updating loyalty settings' });
     }
 };
+
+exports.getAppleWalletPass = async (req, res) => {
+    try {
+        const WalletService = require('../services/WalletService');
+        const { barbershopId } = req.query;
+        const clientId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const passBuffer = await WalletService.generateApplePass(clientId, barbershopId);
+
+        res.setHeader('Content-Type', 'application/vnd.apple.pkpass');
+        res.setHeader('Content-Disposition', 'attachment; filename=fidelidade.pkpass');
+        res.send(passBuffer);
+
+    } catch (error) {
+        console.error('[LoyaltyController] Apple Wallet Error:', error);
+        res.status(500).json({ message: error.message || 'Erro ao gerar passe da Apple Wallet' });
+    }
+};
+
+exports.getGoogleWalletUrl = async (req, res) => {
+    try {
+        const WalletService = require('../services/WalletService');
+        const { barbershopId } = req.query;
+        const clientId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const saveUrl = await WalletService.generateGoogleWalletUrl(clientId, barbershopId);
+
+        res.json({ saveUrl });
+
+    } catch (error) {
+        console.error('[LoyaltyController] Google Wallet Error:', error);
+        res.status(500).json({ message: error.message || 'Erro ao gerar link da Google Wallet' });
+    }
+};

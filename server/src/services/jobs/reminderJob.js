@@ -55,28 +55,27 @@ const initScheduler = () => {
         }
     });
 
-    // Run every 5 minutes for Abandoned Carts / Pending Payments Cleanup
-    cron.schedule('*/5 * * * *', async () => {
+    // Run every minute for Abandoned Carts / Pending Payments Cleanup
+    cron.schedule('* * * * *', async () => {
         console.log('[Scheduler] Checking for abandoned carts and expired payments...');
         try {
             const now = new Date();
-            const tenMinsAgo = subMinutes(now, 10);
-            const twentyMinsAgo = subMinutes(now, 20);
+            const fiveMinsAgo = subMinutes(now, 5);
+            const sevenMinsAgo = subMinutes(now, 7);
 
-            // 1. Send Whatsapp Recovery Message (between 10 and 20 mins ago)
+            // 1. Send Whatsapp Recovery Message (at exactly 5-6 mins ago)
             const cartsToRecover = await prisma.appointment.findMany({
                 where: {
                     status: 'PENDING_PAYMENT',
                     createdAt: {
-                        lte: tenMinsAgo,
-                        gt: twentyMinsAgo
+                        lte: fiveMinsAgo,
+                        gt: sevenMinsAgo
                     }
                 },
-                include: { client: true, barbershop: true, service: true }
+                include: { client: true, barbershop: true, service: true, professional: true }
             });
 
             for (const app of cartsToRecover) {
-                // Check if already reminded in communication logs
                 const alreadySent = await prisma.communicationLog.findFirst({
                     where: { appointmentId: app.id, type: 'ABANDONED_CART' }
                 });
@@ -86,26 +85,33 @@ const initScheduler = () => {
                 }
             }
 
-            // 2. Cancel Expired Payments (older than 20 mins)
+            // 2. Cancel Expired Payments (older than 7 mins)
             const expiredCarts = await prisma.appointment.findMany({
                 where: {
                     status: 'PENDING_PAYMENT',
-                    createdAt: { lte: twentyMinsAgo }
-                }
+                    createdAt: { lte: sevenMinsAgo }
+                },
+                include: { client: true, barbershop: true, service: true, professional: true }
             });
 
             if (expiredCarts.length > 0) {
                 console.log(`[Scheduler] Cancelling ${expiredCarts.length} expired payments.`);
                 for (const app of expiredCarts) {
-                    await prisma.appointment.update({
+                    const updatedApp = await prisma.appointment.update({
                         where: { id: app.id },
                         data: {
                             status: 'CANCELLED',
                             statusDetail: 'TIMEOUT'
-                        }
+                        },
+                        include: { client: true, barbershop: true, service: true, professional: true }
                     });
-                    // Fire update event to free up timeslot for professionals etc.
-                    eventBus.emit('APPOINTMENT_UPDATED', { appointment: { ...app, status: 'CANCELLED' }, oldStatus: 'PENDING_PAYMENT' });
+                    
+                    // Fire update event with full included data for the listener
+                    eventBus.emit('APPOINTMENT_UPDATED', { 
+                        appointment: updatedApp, 
+                        oldStatus: 'PENDING_PAYMENT',
+                        reason: 'TIMEOUT'
+                    });
                 }
             }
         } catch (err) {

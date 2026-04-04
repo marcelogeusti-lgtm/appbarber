@@ -75,11 +75,25 @@ function init() {
                 // Payment was just approved (Online) or manually confirmed (Guest)
                 console.log(`[Event] Appointment ${appointment.id} was PAID/APPROVED and now CONFIRMED. Sending confirmation.`);
                 await communicationService.sendConfirmationRequest(appointment);
+            } else if (appointment.status === 'CANCELLED' && appointment.statusDetail === 'TIMEOUT') {
+                // Task: Handle Timeout Notification
+                console.log(`[Event] Appointment ${appointment.id} timed out. Sending notification.`);
+                await communicationService.sendPaymentTimeoutNotice(appointment);
             } else if (appointment.status === 'COMPLETED') {
                 await communicationService.sendThankYouMessage(appointment);
             }
         } catch (error) {
             console.error('[Event Error] Failed to process status update:', error.message);
+        }
+    });
+
+    // 2.1 Payment REJECTED
+    eventBus.on('PAYMENT_REJECTED', async ({ appointment, reason }) => {
+        console.log(`[Event] PAYMENT_REJECTED: ${appointment.id}. Reason: ${reason}`);
+        try {
+            await communicationService.sendPaymentFailedNotice(appointment, reason);
+        } catch (error) {
+            console.error('[Event Error] Failed to send payment failed notice:', error.message);
         }
     });
 

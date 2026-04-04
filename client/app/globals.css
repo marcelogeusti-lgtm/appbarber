@@ -213,3 +213,9 @@
     scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
   }
 }
+
+/* Card Vault Fix: Stop sticky/fixed behavior on card form */
+.card-cartao {
+  position: relative !important;
+  top: auto !important;
+}

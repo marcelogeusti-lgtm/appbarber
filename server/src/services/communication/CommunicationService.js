@@ -256,6 +256,43 @@ class CommunicationService {
         }
     }
 
+    // Send Payment Failed Notice (Rejected/Refused)
+    async sendPaymentFailedNotice(appointment, reason) {
+        const { client, barbershop, service } = appointment;
+        const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
+        
+        const reasonMsg = reason ? `\nMotivo informado: *${reason}*` : '';
+
+        let messageContent = `❌ *Pagamento Recusado*\n\nOlá, ${client?.name || 'Cliente'}.\nSeu pagamento para o serviço *${service?.name}* na *${barbershop?.name}* não foi aprovado pelo cartão.${reasonMsg}\n\nO horário ainda está reservado por mais alguns minutos. Tente novamente com outro cartão ou via PIX:\n🔗 ${bookingLink}`;
+
+        if (client && client.phone) {
+            try {
+                await whatsappService.sendText(client.phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'PAYMENT_FAILED', messageContent, 'SENT');
+            } catch (error) {
+                console.error('Failed to send WA Payment Failed:', error);
+            }
+        }
+    }
+
+    // Send Payment Timeout Notice (Expired Booking)
+    async sendPaymentTimeoutNotice(appointment) {
+        const { client, barbershop, service, date } = appointment;
+        const formattedDate = new Date(date).toLocaleDateString('pt-BR');
+        const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
+
+        let messageContent = `⏰ *Reserva Expirada*\n\nOlá, ${client?.name || 'Cliente'}.\nComo o pagamento não foi concluído nos últimos 7 minutos, sua vaga para *${service?.name}* em *${formattedDate}* foi liberada na agenda.\n\nSe ainda quiser este horário, corra e tente agendar novamente:\n🔗 ${bookingLink}`;
+
+        if (client && client.phone) {
+            try {
+                await whatsappService.sendText(client.phone, messageContent);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', 'PAYMENT_TIMEOUT', messageContent, 'SENT');
+            } catch (error) {
+                console.error('Failed to send WA Payment Timeout:', error);
+            }
+        }
+    }
+
     async log(appointment, channel, direction, type, content, status) {
         try {
             await prisma.communicationLog.create({
