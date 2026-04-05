@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Calendar, Clock, MapPin, User as UserIcon, XCircle, Loader2, Filter, CheckCircle, AlertCircle, ChevronDown, Search } from 'lucide-react';
 import api from '../../../lib/clientApi';
 import { useClientAuth } from '../../../contexts/ClientAuthContext';

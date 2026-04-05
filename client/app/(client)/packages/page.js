@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/clientApi';
-import { Package, Calendar, Scissors, ChevronLeft } from 'lucide-react';
+import { Package, Calendar, Scissors, ChevronLeft, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function MyPackagesPage() {
