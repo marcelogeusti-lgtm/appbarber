@@ -55,7 +55,6 @@ export default function SubscriptionsPage() {
             setLoading(true);
             const token = safeGetItem('clientToken');
             if (!token) {
-                // Not logged in: we can skip my-active check
                 setLoading(false);
                 return;
             }
@@ -83,7 +82,7 @@ export default function SubscriptionsPage() {
     const fetchCards = async () => {
         try {
             setLoadingCards(true);
-            const res = await api.get('/cards');
+            const res = await api.get('/payments/cards'); // Updated to match the Wallet endpoint
             setSavedCards(res.data);
             if (res.data.length > 0) {
                 setSelectedCardId(res.data[0].id);
@@ -101,7 +100,7 @@ export default function SubscriptionsPage() {
         if (!token) {
             // Unauthenticated: save context and redirect
             safeSetItem('pending_subscription', JSON.stringify(plan));
-            router.push(`/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+            router.push(`/profile?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
             return;
         }
 
@@ -117,7 +116,7 @@ export default function SubscriptionsPage() {
                 planId: plan.id,
                 paymentMethod,
                 cardId: paymentMethod === 'CREDIT_CARD' ? selectedCardId : null,
-                gateway: 'velify' // Orchestrator will auto-detect if not provided, but keeping for safety
+                gateway: 'velify' 
             });
 
             setCheckoutData(res.data.payment);
@@ -137,106 +136,110 @@ export default function SubscriptionsPage() {
     // --- PAYMENT SELECTION VIEW ---
     if (selectedPlan && !checkoutData) {
         return (
-            <div className="min-h-screen bg-[#050505] text-white p-6 pb-24">
-                <div className="flex items-center gap-4 mb-8">
-                    <button onClick={() => setSelectedPlan(null)} className="p-2 bg-slate-900 rounded-full">
+            <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-8 pb-32 max-w-xl mx-auto">
+                <header className="flex items-center gap-4 mb-10 px-1">
+                    <button onClick={() => setSelectedPlan(null)} className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-slate-400">
                         <ChevronLeft className="w-5 h-5 text-white" />
                     </button>
-                    <h1 className="text-xl font-bold uppercase tracking-tighter">Escolha o Pagamento</h1>
-                </div>
+                    <div>
+                        <h1 className="text-xl font-black text-white uppercase italic tracking-tight">Checkout</h1>
+                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Finalize sua adesão</p>
+                    </div>
+                </header>
 
-                <div className="max-w-md mx-auto space-y-6">
+                <div className="space-y-8 px-1">
                     {/* Plan Summary */}
-                    <div className="bg-[#111111] border border-white/5 rounded-[2.5rem] p-6 flex justify-between items-center">
-                        <div>
-                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Plano Selecionado</p>
-                            <h3 className="font-black text-white uppercase">{selectedPlan.name}</h3>
+                    <div className="glass-premium rounded-[2.5rem] p-8 border-white/5 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="flex justify-between items-center relative z-10">
+                            <div>
+                                <p className="text-[9px] text-primary font-black uppercase tracking-[0.3em] mb-1">Membro Exclusive</p>
+                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedPlan.name}</h3>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-2xl font-black text-white leading-none tracking-tight">R$ {Number(selectedPlan.price).toFixed(0)}</p>
+                                <p className="text-[8px] text-slate-400 font-black uppercase mt-1">por faturamento</p>
+                            </div>
                         </div>
-                        <p className="font-black text-primary">R$ {Number(selectedPlan.price).toFixed(2)}</p>
                     </div>
 
-                    <div className="space-y-3">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Método de Pagamento</p>
+                    <div className="space-y-4">
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4">Método de Pagamento</p>
 
-                        <div
-                            onClick={() => setPaymentMethod('PIX')}
-                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'PIX' ? 'bg-primary/10 border-primary' : 'bg-[#111111] border-white/5 opacity-60'}`}
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'PIX' ? 'bg-primary text-white' : 'bg-slate-900'}`}>
-                                        <Zap size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="font-black text-xs uppercase">PIX (Instantâneo)</p>
-                                        <p className="text-[10px] text-slate-500">Aprovação em segundos</p>
-                                    </div>
+                        <div className="grid grid-cols-1 gap-4">
+                            <button
+                                onClick={() => setPaymentMethod('PIX')}
+                                className={`p-6 rounded-[2.5rem] border transition-all relative overflow-hidden flex items-center gap-4 ${paymentMethod === 'PIX' ? 'glass-premium border-primary shadow-lg shadow-primary/10' : 'glass-premium border-white/5 opacity-40'}`}
+                            >
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === 'PIX' ? 'bg-primary text-black' : 'bg-slate-900 text-slate-500'}`}>
+                                    <Zap size={22} className="fill-current" />
                                 </div>
-                                {paymentMethod === 'PIX' && <div className="w-4 h-4 bg-primary rounded-full"></div>}
-                            </div>
-                        </div>
+                                <div className="text-left">
+                                    <p className={`text-[11px] font-black uppercase tracking-widest ${paymentMethod === 'PIX' ? 'text-white' : 'text-slate-400'}`}>PIX Instantâneo</p>
+                                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Ativação imediata</p>
+                                </div>
+                                {paymentMethod === 'PIX' && <div className="absolute top-4 right-4 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20 animate-in zoom-in duration-300"><Check className="w-3 h-3 text-black" strokeWidth={4} /></div>}
+                            </button>
 
-                        <div
-                            onClick={() => setPaymentMethod('CREDIT_CARD')}
-                            className={`p-5 rounded-[2rem] border cursor-pointer transition-all ${paymentMethod === 'CREDIT_CARD' ? 'bg-primary/10 border-primary' : 'bg-[#111111] border-white/5 opacity-60'}`}
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === 'CREDIT_CARD' ? 'bg-primary text-white' : 'bg-slate-900'}`}>
-                                        <CreditCard size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="font-black text-xs uppercase">Cartão de Crédito</p>
-                                        <p className="text-[10px] text-slate-500">Pague com cartões salvos ou novo</p>
-                                    </div>
+                            <button
+                                onClick={() => setPaymentMethod('CREDIT_CARD')}
+                                className={`p-6 rounded-[2.5rem] border transition-all relative overflow-hidden flex items-center gap-4 ${paymentMethod === 'CREDIT_CARD' ? 'glass-premium border-primary shadow-lg shadow-primary/10' : 'glass-premium border-white/5 opacity-40'}`}
+                            >
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === 'CREDIT_CARD' ? 'bg-primary text-black' : 'bg-slate-900 text-slate-500'}`}>
+                                    <CreditCard size={22} className="fill-current" />
                                 </div>
-                                {paymentMethod === 'CREDIT_CARD' && <div className="w-4 h-4 bg-primary rounded-full"></div>}
-                            </div>
+                                <div className="text-left">
+                                    <p className={`text-[11px] font-black uppercase tracking-widest ${paymentMethod === 'CREDIT_CARD' ? 'text-white' : 'text-slate-400'}`}>Cartão de Crédito</p>
+                                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Recorrência automática</p>
+                                </div>
+                                {paymentMethod === 'CREDIT_CARD' && <div className="absolute top-4 right-4 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20 animate-in zoom-in duration-300"><Check className="w-3 h-3 text-black" strokeWidth={4} /></div>}
+                            </button>
                         </div>
                     </div>
 
                     {paymentMethod === 'CREDIT_CARD' && (
                         <div className="animate-in slide-in-from-top-4 space-y-4">
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Meus Cartões</p>
+                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4 text-center">Seus Cartões Salvos</p>
 
                             {savedCards.length > 0 ? (
                                 <div className="space-y-3">
                                     {savedCards.map(card => (
-                                        <div
+                                        <button
                                             key={card.id}
                                             onClick={() => setSelectedCardId(card.id)}
-                                            className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${selectedCardId === card.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 opacity-50'}`}
+                                            className={`w-full p-5 rounded-[2rem] border transition-all flex items-center justify-between ${selectedCardId === card.id ? 'glass-premium border-primary/30' : 'glass-premium border-white/5 opacity-50'}`}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <CreditCard className="w-4 h-4 text-slate-400" />
-                                                <p className="text-xs font-bold uppercase">•••• {card.last4} ({card.brand})</p>
+                                            <div className="flex items-center gap-4">
+                                                <CreditCard className="w-4 h-4 text-primary" />
+                                                <p className="text-[10px] font-black text-white tracking-[0.2em] uppercase italic">•••• {card.last4} ({card.brand})</p>
                                             </div>
                                             {selectedCardId === card.id && <Check className="w-4 h-4 text-primary" />}
-                                        </div>
+                                        </button>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-[10px] text-slate-600 text-center italic py-2">Nenhum cartão salvo encontrado.</p>
+                                <div className="p-10 glass-premium rounded-[2rem] border-white/5 text-center">
+                                    <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.3em] mb-6 leading-relaxed">Nenhum cartão digital encontrado em sua carteira.</p>
+                                    <button
+                                        className="px-8 py-4 glass-premium border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all"
+                                        onClick={() => router.push('/cards')}
+                                    >
+                                        <Plus className="w-3 h-3 inline mr-1" /> Vincular Novo
+                                    </button>
+                                </div>
                             )}
-
-                            <button
-                                className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-[10px] font-bold text-slate-500 uppercase hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-2"
-                                onClick={() => alert('Integração de checkout do cartão está sendo finalizada no gateway.')}
-                            >
-                                <Plus className="w-3 h-3" /> Adicionar Novo Cartão
-                            </button>
                         </div>
                     )}
 
                     <button
                         onClick={() => handleSubscribe(selectedPlan)}
                         disabled={actionLoading || (paymentMethod === 'CREDIT_CARD' && savedCards.length === 0)}
-                        className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-30 mt-8 shadow-2xl shadow-primary/20"
+                        className="w-full bg-primary text-black font-black py-5 rounded-[2.5rem] text-[10px] uppercase tracking-[0.3em] transition-all active:scale-95 disabled:opacity-30 mt-8 shadow-2xl shadow-primary/20 flex items-center justify-center gap-2"
                     >
-                        {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Confirmar e Pagar <ArrowRight className="w-4 h-4" /></>}
+                        {actionLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : <>Assinar Agora <ArrowRight className="w-4 h-4" strokeWidth={4} /></>}
                     </button>
 
-                    {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center mt-4">{error}</p>}
+                    {error && <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.2em] p-4 rounded-2xl text-center mt-6">{error}</div>}
                 </div>
             </div>
         );
@@ -245,60 +248,71 @@ export default function SubscriptionsPage() {
     // --- CHECKOUT VIEW (PIX / Payment Info) ---
     if (checkoutData) {
         return (
-            <div className="min-h-screen bg-[#050505] text-white p-6 pb-24">
-                <div className="flex items-center gap-4 mb-8">
-                    <button onClick={() => setCheckoutData(null)} className="p-2 bg-slate-900 rounded-full">
+            <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-8 pb-32">
+                <header className="flex items-center gap-4 mb-10 px-1">
+                    <button onClick={() => setCheckoutData(null)} className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-slate-400">
                         <ChevronLeft className="w-5 h-5 text-white" />
                     </button>
-                    <h1 className="text-xl font-bold uppercase tracking-tighter">Pagamento da Assinatura</h1>
-                </div>
+                    <div>
+                        <h1 className="text-xl font-black text-white uppercase italic tracking-tight">Pagamento</h1>
+                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Aguardando confirmação</p>
+                    </div>
+                </header>
 
-                <div className="max-w-md mx-auto bg-[#111111] border border-white/5 rounded-[2.5rem] p-8 text-center space-y-8">
-                    <div className="space-y-2">
-                        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-                            <Zap className="w-8 h-8 text-primary" />
+                <div className="max-w-md mx-auto glass-premium border-white/5 rounded-[3rem] p-10 text-center relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full -translate-y-1/2 -translate-x-1/2" />
+                    
+                    <div className="space-y-6 relative z-10">
+                        <div className="w-20 h-20 glass-premium rounded-[2rem] flex items-center justify-center mx-auto border-primary/20 shadow-inner">
+                            <Zap className="w-10 h-10 text-primary" />
                         </div>
-                        <h2 className="text-xl font-black uppercase">{selectedPlan?.name}</h2>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest leading-none">
-                            R$ {(() => {
-                                const price = Number(selectedPlan?.price);
-                                return !isNaN(price) ? price.toFixed(2) : '0.00';
-                            })()} / mês
-                        </p>
+                        <div>
+                            <h2 className="text-2xl font-black uppercase italic tracking-tighter leading-none mb-2">{selectedPlan?.name}</h2>
+                            <div className="flex items-center justify-center gap-2">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Premium Active</span>
+                                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(37,99,235,1)]"></span>
+                            </div>
+                        </div>
+                        <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <p className="text-3xl font-black text-white tracking-tighter italic">R$ {Number(selectedPlan?.price).toFixed(2)}</p>
+                            <p className="text-[8px] text-slate-500 font-black uppercase tracking-[0.4em] mt-1">Cobrança Mensal</p>
+                        </div>
                     </div>
 
                     {checkoutData.qrCode ? (
-                        <div className="space-y-6">
-                            <div className="bg-white p-4 rounded-3xl inline-block shadow-2xl">
-                                {/* Normally use a QRCode component, here using placeholder or img if available */}
+                        <div className="space-y-8 mt-10 relative z-10">
+                            <div className="bg-white p-3 rounded-[3rem] inline-block shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-8 border-white/5">
                                 {checkoutData.qrCodeBase64 ? (
-                                    <img src={`data:image/png;base64,${checkoutData.qrCodeBase64}`} alt="PIX" className="w-48 h-48" />
+                                    <img src={`data:image/png;base64,${checkoutData.qrCodeBase64}`} alt="PIX" className="w-56 h-56 rounded-2xl" />
                                 ) : (
-                                    <div className="w-48 h-48 bg-slate-100 flex items-center justify-center text-black text-[8px] font-mono break-all p-4">
+                                    <div className="w-56 h-56 bg-slate-100 flex items-center justify-center text-black text-[8px] font-mono break-all p-8">
                                         {checkoutData.qrCode}
                                     </div>
                                 )}
                             </div>
-                            <div className="space-y-3">
-                                <p className="text-xs text-slate-400 font-medium">Escaneie o QR Code acima ou copie a chave abaixo:</p>
+                            <div className="space-y-4">
+                                <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] max-w-xs mx-auto leading-relaxed">Escaneie com seu banco ou use a chave copia e cola abaixo.</p>
                                 <button
-                                    onClick={() => { navigator.clipboard.writeText(checkoutData.qrCode); alert('Copiado!'); }}
-                                    className="w-full py-4 bg-slate-900 border border-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition truncate px-4"
+                                    onClick={() => { navigator.clipboard.writeText(checkoutData.qrCode); toast.success('Código copiado!'); }}
+                                    className="w-full py-5 glass-premium border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] rounded-[2rem] active:scale-95 transition-all shadow-lg shadow-primary/5"
                                 >
-                                    Copiar Código PIX
+                                    Copiar Chave Digital
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="py-12">
-                            <p className="text-sm text-slate-400">Processando checkout...</p>
+                        <div className="py-20">
+                            <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
+                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em]">Validando transação...</p>
                         </div>
                     )}
 
-                    <div className="pt-4 border-t border-white/5 flex items-start gap-3 text-left">
-                        <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                        <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                            Sua assinatura será ativada instantaneamente após a confirmação do pagamento. Você receberá um e-mail de confirmação.
+                    <div className="mt-10 pt-8 border-t border-white/5 flex items-start gap-4 text-left">
+                        <div className="w-10 h-10 glass-premium rounded-xl shrink-0 flex items-center justify-center text-primary">
+                            <ShieldCheck className="w-6 h-6" />
+                        </div>
+                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
+                            Upgrade criptografado. Após pagar, sua experiência premium será liberada imediatamente em todos os dispositivos.
                         </p>
                     </div>
                 </div>
@@ -307,86 +321,91 @@ export default function SubscriptionsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24 max-w-7xl mx-auto">
-            <div className="flex items-center gap-4 mb-8">
-                <button onClick={() => router.back()} className="p-2 bg-slate-900 rounded-full hover:bg-primary/20 transition">
+        <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-8 pb-32 max-w-7xl mx-auto overflow-x-hidden">
+            
+            {/* Header */}
+            <header className="flex items-center gap-4 mb-10 px-1">
+                <button onClick={() => router.back()} className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-slate-400 active:scale-95 transition-all">
                     <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
-                <h1 className="text-xl font-black uppercase tracking-tighter">Clube de Assinatura</h1>
-            </div>
+                <div>
+                    <h1 className="text-xl font-black text-white uppercase italic tracking-tight">Experiência</h1>
+                    <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Membro Exclusive</p>
+                </div>
+            </header>
 
             {/* MY ACTIVE SUBSCRIPTION */}
             {subscription && (
-                <div className="mb-12">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Sua Assinatura Atual</p>
-                    <div className="bg-gradient-to-br from-emerald-900/20 to-black border border-primary/30 rounded-[2.5rem] p-8 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 bg-primary text-black text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-bl-2xl shadow-xl">ATIVA</div>
+                <div className="mb-14 px-1">
+                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] mb-5 ml-4">Seu Status Atual</p>
+                    <div className="glass-premium border-primary/30 rounded-[3rem] p-10 relative overflow-hidden shadow-2xl">
+                        <div className="absolute top-0 right-0 bg-primary text-black text-[9px] font-black uppercase tracking-[0.2em] py-2 px-6 rounded-bl-[1.5rem] shadow-xl">MEMBRO VIP</div>
+                        
+                        {/* Background Glow */}
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
-                                <Repeat className="w-6 h-6 text-primary" />
+                        <div className="flex items-center gap-6 mb-10 relative z-10 transition-transform active:scale-[0.99]">
+                            <div className="w-16 h-16 glass-premium rounded-[1.5rem] flex items-center justify-center border-primary/20 shadow-inner group-hover:scale-110 transition-all">
+                                <Repeat className="w-8 h-8 text-primary" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black uppercase tracking-tight">{subscription.plan?.name}</h2>
-                                <p className="text-primary/60 text-xs font-bold uppercase tracking-widest">Renova em: {new Date(subscription.endDate).toLocaleDateString('pt-BR')}</p>
+                                <h2 className="text-2xl font-black uppercase italic tracking-tighter leading-none mb-2">{subscription.plan?.name}</h2>
+                                <p className="text-primary/60 text-[9px] font-black uppercase tracking-[0.2em]">Próxima renovação: {new Date(subscription.endDate).toLocaleDateString('pt-BR')}</p>
                             </div>
                         </div>
 
-                        <div className="space-y-3 mb-8">
+                        <div className="grid grid-cols-1 gap-4 mb-10 relative z-10">
                             {subscription.plan?.benefits?.map((benefit, idx) => (
-                                <div key={idx} className="flex items-center gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                                        <Check className="w-3 h-3 text-primary" />
+                                <div key={idx} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <div className="w-6 h-6 rounded-full glass-premium flex items-center justify-center border-primary/20">
+                                        <Check className="w-3.5 h-3.5 text-primary" strokeWidth={4} />
                                     </div>
-                                    <span className="text-sm font-medium text-slate-300">{benefit}</span>
+                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{benefit}</span>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="flex gap-4">
-                            <button className="flex-1 bg-white text-black font-black py-4 rounded-2xl hover:bg-slate-200 transition text-[10px] uppercase tracking-widest">
-                                Gerenciar Plano
-                            </button>
-                        </div>
+                        <button className="w-full glass-premium border-white/10 text-white font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.3em] active:scale-95 transition-all shadow-xl relative z-10">
+                            Gerenciar Minha Assinatura
+                        </button>
                     </div>
                 </div>
             )}
 
             {/* EXPLORE PLANS */}
-            <div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">
-                    {subscription ? 'Outros Planos Disponíveis' : 'Planos para você'}
+            <div className="px-1">
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] mb-6 ml-4">
+                    {subscription ? 'Explorar Outros Planos' : 'Selecione seu Plano'}
                 </p>
 
                 {plans.length > 0 ? (
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         {plans.filter(p => p.id !== subscription?.planId).map(plan => (
-                            <div key={plan.id} className="bg-[#111111] border border-white/5 rounded-[2.5rem] p-8 space-y-6 hover:border-primary/30 transition-all">
-                                <div className="flex justify-between items-start">
+                            <div key={plan.id} className="glass-premium border-white/5 rounded-[3rem] p-10 relative overflow-hidden shadow-2xl transition-all active:scale-[0.99]">
+                                {/* Status Badge if applicable or decoration */}
+                                <div className="absolute top-8 right-8 text-[8px] font-black uppercase tracking-[0.4em] text-slate-700">Recommended</div>
+
+                                <div className="flex justify-between items-start mb-8">
                                     <div>
-                                        <h3 className="text-xl font-black uppercase tracking-tight leading-none mb-2">{plan.name}</h3>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-xs font-black text-primary uppercase tracking-tighter">R$</span>
-                                            <span className="text-3xl font-black">
-                                                {(() => {
-                                                    const price = Number(plan.price);
-                                                    return !isNaN(price) ? price.toFixed(2) : '0.00';
-                                                })()}
-                                            </span>
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">/mês</span>
+                                        <h3 className="text-xl font-black uppercase italic tracking-tight leading-none mb-3">{plan.name}</h3>
+                                        <div className="flex items-baseline gap-1.5 p-1">
+                                            <span className="text-3xl font-black text-white italic tracking-tighter">R$ {Number(plan.price).toFixed(0)}</span>
+                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">/ mês</span>
                                         </div>
                                     </div>
-                                    <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-slate-500">
-                                        <Smartphone size={24} />
+                                    <div className="w-14 h-14 glass-premium rounded-[1.5rem] flex items-center justify-center border-white/5 shadow-inner">
+                                        <Zap className="w-7 h-7 text-primary" />
                                     </div>
                                 </div>
 
                                 {plan.benefits?.length > 0 && (
-                                    <div className="space-y-3 pt-2 border-t border-white/5">
-                                        {plan.benefits.map((b, idx) => (
-                                            <div key={idx} className="flex items-center gap-3">
-                                                <Check className="w-4 h-4 text-primary" />
-                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">{b}</span>
+                                    <div className="space-y-4 mb-10 pt-6 border-t border-white/5">
+                                        {plan.benefits.slice(0, 3).map((b, idx) => (
+                                            <div key={idx} className="flex items-center gap-4">
+                                                <div className="w-5 h-5 rounded-full flex items-center justify-center opacity-30 shrink-0">
+                                                    <Check className="w-3.5 h-3.5 text-primary" strokeWidth={4} />
+                                                </div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">{b}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -395,30 +414,30 @@ export default function SubscriptionsPage() {
                                 <button
                                     onClick={() => handleSubscribe(plan)}
                                     disabled={actionLoading}
-                                    className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="w-full bg-primary text-black font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.3em] shadow-lg shadow-primary/10 active:scale-95 transition-all flex items-center justify-center gap-3"
                                 >
-                                    {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Assinar Agora <ArrowRight className="w-4 h-4" /></>}
+                                    {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Upgrade Agora <ArrowRight className="w-4 h-4" strokeWidth={4} /></>}
                                 </button>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-12 text-center bg-[#111111] border border-dashed border-white/10 rounded-[2.5rem] space-y-6">
-                        <div className="w-20 h-20 bg-slate-950 rounded-full flex items-center justify-center border border-white/5">
-                            <SearchIcon className="w-10 h-10 text-slate-600" />
+                    <div className="flex flex-col items-center justify-center py-20 text-center glass-premium border-white/5 rounded-[3rem] space-y-8 px-8">
+                        <div className="w-24 h-24 glass-premium rounded-full flex items-center justify-center border-white/5 relative overflow-hidden">
+                            <SearchIcon className="w-10 h-10 text-slate-800" strokeWidth={1} />
                         </div>
-                        <div className="space-y-2">
-                            <h3 className="text-sm font-bold text-white uppercase tracking-widest">Nenhum plano disponível</h3>
-                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Sua barbearia ainda não publicou ofertas no clube.</p>
+                        <div className="space-y-3">
+                            <h3 className="text-lg font-black text-white uppercase italic tracking-tight italic">Clube em Lançamento</h3>
+                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] leading-relaxed">Planos exclusivos de assinatura sendo preparados para este local.</p>
                         </div>
-                        <button onClick={() => router.push('/search')} className="bg-slate-900 text-white font-bold py-3 px-6 rounded-xl text-[10px] uppercase tracking-widest border border-white/5">
-                            Explorar Barbearias
+                        <button onClick={() => router.push('/search')} className="px-10 py-5 glass-premium border-primary/20 text-primary uppercase text-[10px] font-black tracking-widest rounded-[1.5rem] active:scale-95 transition-all">
+                            Explorar Clubes
                         </button>
                     </div>
                 )}
             </div>
 
-            {error && <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold uppercase tracking-widest text-center">{error}</div>}
+            {error && <div className="mt-10 p-6 glass-premium border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.3em] rounded-[2rem] text-center shadow-xl">{error}</div>}
         </div>
     );
 }

@@ -187,280 +187,225 @@ export default function ClientHome() {
 
     if (authLoading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white font-sans">Carregando...</div>;
 
+    const points = user?.points || 0;
+    const tier = points >= 5000 ? 'GOLD' : points >= 1000 ? 'SILVER' : 'BRONZE';
+    const nextTier = tier === 'BRONZE' ? 'SILVER' : tier === 'SILVER' ? 'GOLD' : 'MAX';
+    const pointsToNext = tier === 'BRONZE' ? 1000 : tier === 'SILVER' ? 5000 : 0;
+    const progress = pointsToNext > 0 ? Math.min((points / pointsToNext) * 100, 100) : 100;
+
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-primary/30 pb-24">
-            <main className="max-w-xl lg:max-w-6xl mx-auto px-5 pt-8">
-
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+        <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-6 pb-24 font-sans no-scrollbar overflow-x-hidden">
+            
+            {/* 1. HEADER RE-STYLING */}
+            <header className="flex items-center justify-between mb-8 px-1">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 p-0.5 overflow-hidden shadow-inner">
+                        <img 
+                            src={user?.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} 
+                            alt="U" 
+                            className="w-full h-full object-cover rounded-full" 
+                        />
+                    </div>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase italic">
-                            {user ? <>Olá, <span className="text-primary">{user.name.split(' ')[0]}</span></> : 'Seja bem vindo(a)'}
-                        </h1>
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mt-1 italic">{formatDate()}</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mb-1">Bem-vindo(a),</p>
+                        <h2 className="text-base font-black tracking-tight leading-none uppercase">{user?.name.split(' ')[0] || 'Cliente'}</h2>
                     </div>
                 </div>
+                <div className="flex items-center gap-3">
+                    <button className="w-10 h-10 rounded-xl glass-premium flex items-center justify-center text-slate-400 group active:scale-95 transition-all">
+                        <SearchIcon className="w-5 h-5 group-hover:text-primary transition-colors" />
+                    </button>
+                    <button className="w-10 h-10 rounded-xl glass-premium flex items-center justify-center text-slate-400 group active:scale-95 transition-all relative">
+                        <Bell className="w-5 h-5 group-hover:text-primary transition-colors" />
+                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                    </button>
+                </div>
+            </header>
 
-                {/* Hero Carousel */}
-                <div className="relative mb-16 aspect-[21/9] md:aspect-[3/1] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl group">
-                    {slides.map((slide, idx) => (
-                        <div
-                            key={idx}
-                            className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
-                        >
-                            <img src={slide.image} alt="Carousel" className="w-full h-full object-cover brightness-[0.4]" />
-                            <div className="absolute inset-x-0 bottom-0 p-8 md:p-12 pt-20 bg-gradient-to-t from-black/90 to-transparent">
-                                <h2 className="text-xl md:text-3xl font-black leading-tight max-w-[80%] drop-shadow-2xl uppercase italic tracking-tight">
-                                    {slide.text}
-                                </h2>
+            {/* 2. SEARCH BAR (PREMIUM) */}
+            <div className="mb-8 px-1">
+                <div className="glass-premium rounded-[1.5rem] p-1 flex items-center shadow-lg border-white/5">
+                    <div className="flex-1 flex items-center gap-3 px-4 py-3">
+                        <SearchIcon className="w-5 h-5 text-slate-500" strokeWidth={1.5} />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar barbearias ou serviços..." 
+                            className="bg-transparent border-none outline-none text-sm font-medium w-full placeholder:text-slate-600"
+                        />
+                    </div>
+                    <button className="bg-primary text-black p-3 rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                        <MapPin className="w-5 h-5" strokeWidth={2} />
+                    </button>
+                </div>
+            </div>
+
+            {/* 3. LOYALTY CARD (LUXURY) */}
+            <div className="mb-10 px-1">
+                <div className="luxury-card rounded-[2.5rem] p-8 shadow-2xl relative group overflow-hidden">
+                    {/* Background effects */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                    
+                    <div className="flex justify-between items-start mb-10 relative z-10">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Star className="w-4 h-4 text-primary fill-current" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Status do Membro</span>
                             </div>
+                            <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">{tier} MEMBER</h3>
                         </div>
-                    ))}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                        {slides.map((_, idx) => (
-                            <div
-                                key={idx}
-                                className={`h-1 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-primary w-8' : 'bg-white/20 w-4'}`}
+                        <div className="text-right">
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Saldo Atual</p>
+                            <p className="text-3xl font-black text-neon-blue tracking-tighter">{points} pts</p>
+                        </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-10 relative z-10">
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Progresso para nível {nextTier}</span>
+                            <span className="text-[9px] font-black text-primary uppercase tracking-widest">{Math.round(progress)}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <div 
+                                className="h-full bg-primary rounded-full transition-all duration-1000 ease-out glow-blue shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
+                                style={{ width: `${progress}%` }} 
                             />
-                        ))}
+                        </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex gap-3 relative z-10">
+                        <button className="flex-1 glass-premium hover:bg-white/5 border-white/10 rounded-2xl py-4 flex items-center justify-center gap-2 transition-all active:scale-95 group">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" className="w-4 h-4 invert opacity-60 group-hover:opacity-100 transition-opacity" alt="" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-200">Apple Wallet</span>
+                        </button>
+                        <button className="flex-1 glass-premium hover:bg-white/5 border-white/10 rounded-2xl py-4 flex items-center justify-center gap-2 transition-all active:scale-95 group">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Google_Wallet_logo_2022.svg" className="w-4 h-4 group-hover:scale-110 transition-transform" alt="" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-200">Google Pay</span>
+                        </button>
+                    </div>
+
+                    {/* Member ID watermark */}
+                    <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-end relative z-10 opacity-30">
+                        <div>
+                            <p className="text-[7px] font-bold uppercase tracking-[0.3em] text-slate-400 mb-1">MEMBER ID</p>
+                            <p className="text-[10px] font-mono tracking-widest text-white">#{user?.id ? user.id.slice(0, 8).toUpperCase() : 'APP-2024'}</p>
+                        </div>
+                        <img src="/logos/logo_full.png" className="h-4 opacity-50" alt="" />
                     </div>
                 </div>
+            </div>
 
-                {/* 1. SEÇÃO DE RECOMENDADOS (TOPO) */}
-                <div className="space-y-8 mb-20">
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col gap-1">
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight italic">Recomendados para você</h2>
-                            {usingFallback && !loadingData && (
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Nenhuma barbearia em 15km. Exibindo principais barbearias da plataforma:</p>
-                            )}
-                        </div>
-                        {barbershops.length > 0 && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => scrollCarousel('left')}
-                                    className="p-3 bg-[#0A0A0B] border border-white/5 rounded-full hover:border-primary/50 transition-all text-white/50 hover:text-white"
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                <button
-                                    onClick={() => scrollCarousel('right')}
-                                    className="p-3 bg-[#0A0A0B] border border-white/5 rounded-full hover:border-primary/50 transition-all text-white/50 hover:text-white"
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
-                            </div>
-                        )}
-                    </div>
+            {/* 4. RECOMENDADOS SECTION (PREMIUM CAROUSEL) */}
+            <div className="mb-12">
+                <div className="flex items-center justify-between mb-6 px-1">
+                    <h2 className="text-lg font-black text-white uppercase italic tracking-tight">Especialmente para você</h2>
+                    <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Ver tudo</button>
+                </div>
 
-                    <div
-                        ref={carouselRef}
-                        className="flex overflow-x-auto gap-8 pb-8 no-scrollbar snap-x scroll-smooth -mx-5 px-5"
-                    >
-                        {loadingData ? (
-                            Array(3).fill(0).map((_, i) => (
-                                <div key={i} className="h-64 min-w-[300px] bg-[#0A0A0B] animate-pulse rounded-[2.5rem] border border-white/5" />
-                            ))
-                        ) : barbershops.length > 0 ? barbershops.map(shop => (
-                            <div
-                                key={shop.id || shop._id}
-                                className="min-w-[300px] md:min-w-[340px] snap-center bg-[#0A0A0B] border border-white/5 rounded-[2.5rem] p-6 flex flex-col gap-6 hover:border-primary/30 transition-all group cursor-pointer active:scale-[0.98] shadow-xl"
-                                onClick={() => handleVisitShop(shop)}
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div className="w-16 h-16 rounded-full border-2 border-primary/20 p-1 flex items-center justify-center relative bg-slate-900 overflow-hidden shadow-inner group-hover:scale-105 transition-all">
-                                        <div className="w-full h-full rounded-full overflow-hidden">
-                                            {shop.logoUrl ? (
-                                                <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center font-black text-xs text-primary bg-primary/5 uppercase">
-                                                    {shop.name.substring(0, 3)}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-1.5">
-                                        {shop.averageRating && (
-                                            <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-xl flex items-center gap-1.5 border border-white/10">
-                                                <Star className="w-3 h-3 text-primary fill-current" />
-                                                <span className="text-[10px] font-black text-white">{shop.averageRating}</span>
-                                            </div>
-                                        )}
-                                        {shop.distance !== null && (
-                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                                                <MapPin className="w-3 h-3" />
-                                                {shop.distance} km
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <h3 className="font-black text-base text-white group-hover:text-primary transition-colors uppercase tracking-tight truncate">{shop.name}</h3>
-                                    <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest truncate">
-                                        {shop.address || 'Endereço não informado'}
-                                    </p>
-                                    {shop.totalReviews > 0 && (
-                                        <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest italic">{shop.totalReviews} avaliações</p>
+                <div className="flex overflow-x-auto gap-5 no-scrollbar snap-x snap-mandatory -mx-5 px-5">
+                    {loadingData ? (
+                        Array(3).fill(0).map((_, i) => (
+                            <div key={i} className="min-w-[280px] h-64 glass-premium rounded-[2.5rem] animate-pulse" />
+                        ))
+                    ) : barbershops.length > 0 ? barbershops.map(shop => (
+                        <div 
+                            key={shop.id || shop._id}
+                            onClick={() => handleVisitShop(shop)}
+                            className="min-w-[280px] snap-center glass-premium rounded-[2.5rem] p-5 border-white/5 relative group cursor-pointer active:scale-95 transition-all overflow-hidden"
+                        >
+                            <div className="relative mb-5">
+                                <div className="aspect-square rounded-[2rem] overflow-hidden border border-white/10 group-hover:scale-105 transition-all duration-500 shadow-xl">
+                                    {shop.logoUrl ? (
+                                        <img src={shop.logoUrl} className="w-full h-full object-cover" alt="" />
+                                    ) : (
+                                        <div className="w-full h-full bg-slate-900 flex items-center justify-center font-black text-2xl text-primary">{shop.name[0]}</div>
                                     )}
                                 </div>
-
-                                <button className="w-full py-4 bg-white/5 border border-white/5 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] group-hover:bg-primary group-hover:text-black transition-all flex items-center justify-center gap-2">
-                                    Agendar <ChevronRight className="w-3 h-3" />
-                                </button>
-                            </div>
-                        )) : !loadingData && (
-                            <div className="w-full py-12 bg-[#0A0A0B] border border-white/5 rounded-[2.5rem] text-center border-dashed">
-                                <p className="text-slate-500 text-xs font-black uppercase tracking-widest italic">Nenhuma barbearia encontrada em até 15km.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-
-                    {/* 2. ÚLTIMO AGENDAMENTO */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-xl font-black text-white uppercase tracking-tight italic">Último agendamento</h2>
-                        </div>
-
-                        {user && lastAppointment ? (
-                            <div
-                                className="p-[1px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-[2rem] group"
-                                onClick={() => router.push('/agendamentos')}
-                            >
-                                <div className="bg-[#050505] rounded-[1.95rem] p-6 flex items-center justify-between gap-6 hover:bg-white/5 transition-all cursor-pointer">
-                                    <div className="flex flex-1 min-w-0 items-center gap-5">
-                                        <div className="w-16 h-16 rounded-full border-2 border-white/10 p-0.5 overflow-hidden shrink-0">
-                                            <img
-                                                src={lastAppointment.barbershop?.logoUrl || "https://cdn.simpleicons.org/barber/white"}
-                                                alt="Logo"
-                                                className="w-full h-full object-cover rounded-full"
-                                            />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <h3 className="font-black text-lg text-white uppercase tracking-tight truncate">
-                                                {lastAppointment.service?.name || "Corte e Conexão..."}
-                                            </h3>
-                                            <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest truncate">
-                                                {lastAppointment.barbershop?.name}
-                                            </p>
-                                        </div>
+                                {shop.averageRating && (
+                                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-xl border border-white/10 px-2.5 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-lg">
+                                        <Star className="w-3 h-3 text-primary fill-current" />
+                                        <span className="text-[11px] font-black text-white leading-none">{shop.averageRating}</span>
                                     </div>
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="space-y-1 mb-6">
+                                <h3 className="font-black text-lg text-white uppercase tracking-tight truncate group-hover:text-primary transition-colors">{shop.name}</h3>
+                                <div className="flex items-center gap-1 text-slate-500">
+                                    <MapPin className="w-3 h-3" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest truncate">{shop.address || 'Próximo a você'}</span>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-10 text-center border-dashed">
-                                <p className="text-slate-600 text-[10px] font-black uppercase tracking-widest italic">{loadingData ? "Buscando dados..." : "Nenhum agendamento encontrado"}</p>
-                            </div>
-                        )}
-                    </div>
 
-                    {/* 3. MEUS FAVORITOS */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <h2 className="text-xl font-black text-white uppercase tracking-tight italic">Favoritos</h2>
-                            </div>
-                            <button
-                                onClick={() => router.push('/favorites')}
-                                className="px-4 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all"
-                            >
-                                Editar lista
+                            <button className="w-full py-4 bg-primary text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 group-hover:scale-[1.02] transition-all">
+                                Agendar agora
                             </button>
                         </div>
-
-                        <div className="space-y-4">
-                            {favorites.length > 0 ? favorites.slice(0, 5).map(shop => (
-                                <div
-                                    key={shop.id || shop._id}
-                                    className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-6 flex items-center justify-between gap-6 hover:border-primary/30 transition-all cursor-pointer group"
-                                    onClick={() => handleVisitShop(shop)}
-                                >
-                                    <div className="flex flex-1 min-w-0 items-center gap-5">
-                                        <div className="w-16 h-16 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden shrink-0 relative">
-                                            <img src={shop.logoUrl || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
-                                            <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
-                                                <Star className="w-2 h-2 text-primary fill-current" />
-                                                <span className="text-[7px] font-black text-white">{shop.averageRating || "5.0"}</span>
-                                            </div>
-                                        </div>
-                                        <div className="min-w-0">
-                                            <h4 className="font-black text-lg text-white uppercase tracking-tight truncate group-hover:text-primary transition-colors">{shop.name}</h4>
-                                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest truncate italic">
-                                                {shop.address || "Endereço indisponível"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </div>
-                                </div>
-                            )) : (
-                                <div className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-10 text-center border-dashed">
-                                    <p className="text-slate-600 text-[10px] font-black uppercase tracking-widest italic">Você ainda não favoritou nada</p>
-                                </div>
-                            )}
+                    )) : (
+                        <div className="w-full py-10 glass-premium rounded-[2rem] border-dashed text-center text-slate-600 text-[10px] font-black uppercase tracking-widest">
+                            Nenhum resultado próximo
                         </div>
-                    </div>
+                    )}
+                </div>
+            </div>
 
-                    {/* 4. ÚLTIMOS ACESSOS */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <h2 className="text-xl font-black text-white uppercase tracking-tight italic">Últimos acessos</h2>
+            {/* 5. FAVORITOS / AGENDAMENTO */}
+            <div className="grid grid-cols-1 gap-8 mb-8 px-1">
+                {user && lastAppointment && (
+                    <div className="glass-premium rounded-[2rem] p-6 relative overflow-hidden group border-primary/10">
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-sm font-black text-white uppercase italic tracking-tight">Próximo Agendamento</h2>
+                            <span className="text-[8px] font-black text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-widest glow-blue">Confirmado</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                                <img src={lastAppointment.barbershop?.logoUrl || "https://api.dicebear.com/7.x/initials/svg?seed=BC"} className="w-full h-full object-cover" />
                             </div>
-                            <button className="px-4 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">
-                                Editar lista
+                            <div className="flex-1">
+                                <h4 className="font-black text-white uppercase tracking-tight">{lastAppointment.service?.name}</h4>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">{lastAppointment.barbershop?.name}</p>
+                            </div>
+                            <button onClick={() => router.push('/agendamentos')} className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-primary group active:scale-95 transition-all">
+                                <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                             </button>
                         </div>
-
-                        <div className="space-y-4">
-                            {lastAccess.length > 0 ? (
-                                (() => {
-                                    const shop = lastAccess[0];
-                                    return (
-                                        <div
-                                            key={shop.id || shop._id}
-                                            className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-6 flex items-center justify-between gap-6 hover:border-primary/30 transition-all cursor-pointer group"
-                                            onClick={() => router.push(`/${shop.slug}`)}
-                                        >
-                                            <div className="flex flex-1 min-w-0 items-center gap-5">
-                                                <div className="w-16 h-16 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden shrink-0 relative">
-                                                    <img src={shop.logoUrl || "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=100"} alt={shop.name} className="w-full h-full object-cover rounded-full" />
-                                                    <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 flex items-center gap-0.5 shadow-lg">
-                                                        <Star className="w-2 h-2 text-primary fill-current" />
-                                                        <span className="text-[7px] font-black text-white">{shop.averageRating || "5.0"}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <h4 className="font-black text-lg text-white uppercase tracking-tight truncate group-hover:text-primary transition-colors">{shop.name}</h4>
-                                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest truncate italic">
-                                                        {shop.address || "Endereço indisponível"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all shrink-0">
-                                                <ChevronRight className="w-5 h-5" />
-                                            </div>
-                                        </div>
-                                    );
-                                })()
-                            ) : (
-                                <div className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] p-10 text-center border-dashed">
-                                    <p className="text-slate-600 text-[10px] font-black uppercase tracking-widest italic">Nenhum histórico recente</p>
-                                </div>
-                            )}
-                        </div>
                     </div>
+                )}
 
+                <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-black text-white uppercase italic tracking-tight">Barbearias Favoritas</h2>
+                    <Link href="/favorites" className="text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors">Ver favoritos</Link>
                 </div>
+                
+                <div className="space-y-4">
+                    {favorites.length > 0 ? favorites.slice(0, 3).map(shop => (
+                        <div 
+                            key={shop.id || shop._id}
+                            onClick={() => handleVisitShop(shop)}
+                            className="glass-premium rounded-[2rem] p-4 flex items-center gap-4 border-white/5 group cursor-pointer active:scale-[0.98] transition-all"
+                        >
+                            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                                <img src={shop.logoUrl || "https://api.dicebear.com/7.x/initials/svg?seed=F"} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-black text-white uppercase tracking-tight truncate group-hover:text-primary transition-colors">{shop.name}</h4>
+                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest truncate">{shop.address || 'Endereço favorito'}</p>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 glass-premium rounded-xl">
+                                <Star className="w-3 h-3 text-primary fill-current" />
+                                <span className="text-[10px] font-black text-white">{shop.averageRating || "5.0"}</span>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="py-6 glass-premium rounded-[2rem] border-dashed text-center text-slate-700 text-[10px] font-black uppercase tracking-widest">
+                            Nenhum favorito selecionado
+                        </div>
+                    )}
+                </div>
+            </div>
 
-            </main>
         </div>
     );
 }

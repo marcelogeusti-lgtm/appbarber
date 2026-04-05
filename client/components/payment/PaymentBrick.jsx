@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
-import { useRouter } from 'next/navigation';
 import api from '../../lib/clientApi';
 import { Loader2 } from 'lucide-react';
 
@@ -20,8 +19,6 @@ const PaymentBrick = ({
 }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [publicKey, setPublicKey] = useState(null);
-    const router = useRouter();
-
     useEffect(() => {
         const fetchPublicKey = async () => {
             try {

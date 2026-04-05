@@ -2,10 +2,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
-import { CreditCard, Lock, AlertCircle } from 'lucide-react';
+import { CreditCard, Lock } from 'lucide-react';
 import api from '../../lib/clientApi';
 
-export default function CardForm({ publicKey: initialKey, amount, description, onSubmit, onCancel, barbershopId, forceSave }) {
+export default function CardForm({ publicKey: initialKey, amount, onSubmit, onCancel, barbershopId, forceSave }) {
     const [ready, setReady] = useState(false);
     const [publicKey, setPublicKey] = useState(initialKey);
     const [saveCard, setSaveCard] = useState(forceSave || false); // Default to true if forceSave
@@ -138,10 +138,10 @@ export default function CardForm({ publicKey: initialKey, amount, description, o
 
             <div className="mt-8 flex flex-col items-center gap-6">
                 <div className="flex items-center gap-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-                    <img src="https://img.icons8.com/color/48/000000/visa.png" className="h-5" />
-                    <img src="https://img.icons8.com/color/48/000000/mastercard.png" className="h-5" />
-                    <img src="https://img.icons8.com/color/48/000000/amex.png" className="h-5" />
-                    <img src="https://img.icons8.com/color/48/000000/elo.png" className="h-5" />
+                    <img src="https://img.icons8.com/color/48/000000/visa.png" alt="Visa" className="h-5" />
+                    <img src="https://img.icons8.com/color/48/000000/mastercard.png" alt="Mastercard" className="h-5" />
+                    <img src="https://img.icons8.com/color/48/000000/amex.png" alt="Amex" className="h-5" />
+                    <img src="https://img.icons8.com/color/48/000000/elo.png" alt="Elo" className="h-5" />
                 </div>
                 
                 {onCancel && (

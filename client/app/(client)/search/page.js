@@ -93,19 +93,27 @@ export default function SearchPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 md:p-12 lg:max-w-none mx-auto">
+        <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-6 pb-24 font-sans no-scrollbar">
 
             {/* Header / Greeting */}
-            <div className="mb-8">
-                <h1 className="text-2xl md:text-3xl font-black mb-1">Seja bem vindo(a)</h1>
-                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-                    {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-                </p>
-            </div>
+            <header className="flex items-center justify-between mb-8 px-1">
+                <div>
+                    <h1 className="text-xl font-black text-white uppercase italic tracking-tight">Buscar</h1>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                        {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}
+                    </p>
+                </div>
+                <button 
+                    onClick={() => router.push('/home')}
+                    className="w-10 h-10 rounded-xl glass-premium flex items-center justify-center text-slate-400 active:scale-95 transition-all"
+                >
+                    <ChevronRight className="w-5 h-5 rotate-180" />
+                </button>
+            </header>
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="space-y-6 mb-12">
-                <div className="bg-[#151821] rounded-2xl p-2 flex items-center border border-white/5 focus-within:border-primary/50 transition-all shadow-lg shadow-black/20">
+            {/* Search Bar & Filters */}
+            <div className="space-y-6 mb-12 px-1">
+                <div className="glass-premium rounded-[1.5rem] p-1 flex items-center shadow-lg border-white/5 focus-within:border-primary/30 transition-all">
                     <div className="p-3 text-primary">
                         <SearchIcon className="w-6 h-6" />
                     </div>
@@ -113,86 +121,83 @@ export default function SearchPage() {
                         value={term}
                         onChange={e => setTerm(e.target.value)}
                         placeholder="Pesquisar pelo nome..."
-                        className="bg-transparent border-none outline-none text-white placeholder-slate-500 text-base font-medium w-full px-2 py-3"
+                        className="bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-medium w-full px-2 py-3"
                     />
-                    {/* Optional: Add clear button if term exists */}
                 </div>
 
                 {/* Filters */}
-                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-1">
                     <FilterBtn type="NAME" label="Nome" icon={Filter} />
                     <FilterBtn type="CITY" label="Cidade" icon={MapPin} />
                     <FilterBtn type="NEARBY" label="Próximas" icon={LocateFixed} />
                 </div>
-            </form>
+            </div>
 
             {/* Results Section */}
-            <div>
-                {results.length > 0 && <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Empresas próximas</h2>}
+            <div className="px-1">
+                {results.length > 0 && <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Resultados encontrados</h2>}
 
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-4">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="bg-[#151821] h-24 rounded-2xl animate-pulse"></div>
+                            <div key={i} className="glass-premium h-24 rounded-[2rem] animate-pulse"></div>
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="space-y-4">
                         {results.length > 0 ? (
                             results.map(shop => (
                                 <div
-                                    key={shop.id}
+                                    key={shop.id || shop._id}
                                     onClick={() => router.push(`/${shop.slug}`)}
-                                    className="bg-[#151821] p-4 rounded-3xl border border-white/5 hover:border-primary/30 hover:bg-[#1A1D27] transition-all cursor-pointer group flex items-center gap-4"
+                                    className="glass-premium p-4 rounded-[2rem] border-white/5 hover:border-primary/20 transition-all cursor-pointer group flex items-center gap-4 active:scale-[0.98]"
                                 >
                                     {/* Logo / Avatar */}
-                                    <div className="w-16 h-16 rounded-full bg-slate-800 flex-shrink-0 relative overflow-hidden flex items-center justify-center border-2 border-slate-700/50 group-hover:border-primary/50 transition">
+                                    <div className="w-14 h-14 rounded-2xl bg-slate-900 flex-shrink-0 relative overflow-hidden flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition">
                                         {shop.logoUrl ? (
                                             <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <span className="text-xl font-bold text-slate-500">{shop.name[0]}</span>
+                                            <span className="text-lg font-black text-slate-500 uppercase">{shop.name[0]}</span>
                                         )}
 
                                         {/* Status Dot */}
-                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-primary border-2 border-[#151821] rounded-full"></div>
+                                        <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-primary border-2 border-[#0A0A0B] rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
-                                            <h3 className="font-bold text-white text-base truncate pr-2 group-hover:text-primary transition">{shop.name}</h3>
-                                            <div className="bg-slate-800 rounded-full px-2 py-0.5 flex items-center gap-1" title={`${shop.totalReviews || 0} avaliações`}>
-                                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                                <span className="text-[10px] font-bold text-white">
+                                            <h3 className="font-black text-white text-base truncate pr-2 group-hover:text-primary transition uppercase tracking-tight">{shop.name}</h3>
+                                            <div className="flex items-center gap-1 glass-premium px-2 py-1 rounded-xl">
+                                                <Star className="w-2.5 h-2.5 text-primary fill-current" />
+                                                <span className="text-[10px] font-black text-white">
                                                     {shop.averageRating ? shop.averageRating : '5.0'}
                                                 </span>
-                                                <span className="text-[9px] text-slate-400 font-medium">({shop.totalReviews || 0})</span>
                                             </div>
                                         </div>
 
-                                        <p className="text-slate-500 text-xs truncate mt-1">{shop.address || 'Endereço não informado'}</p>
+                                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest truncate mt-1">{shop.address || 'Endereço disponível'}</p>
 
                                         {shop.distance !== undefined && shop.distance !== null && (
-                                            <p className="text-primary text-[10px] font-bold mt-1 uppercase tracking-wider flex items-center gap-1">
-                                                <MapPin className="w-3 h-3" /> {shop.distance} km
+                                            <p className="text-primary text-[10px] font-black mt-1 uppercase tracking-widest flex items-center gap-1 italic">
+                                                <MapPin className="w-2.5 h-2.5" /> {shop.distance} km
                                             </p>
                                         )}
                                     </div>
 
-                                    <div className="text-slate-600 group-hover:text-white transition-transform group-hover:translate-x-1">
+                                    <div className="text-slate-700 group-hover:text-primary transition-all group-hover:translate-x-0.5">
                                         <ChevronRight className="w-5 h-5" />
                                     </div>
                                 </div>
                             ))
                         ) : (
                             // Empty State
-                            <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
-                                <div className="w-32 h-32 bg-[#151821] rounded-full flex items-center justify-center mb-6 relative">
-                                    <SearchIcon className="w-12 h-12 text-slate-600" />
-                                    <span className="absolute bottom-1 right-1 w-4 h-4 bg-primary rounded-full border-2 border-[#050505]"></span>
-                                    <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="w-24 h-24 glass-premium rounded-full flex items-center justify-center mb-6 relative">
+                                    <SearchIcon className="w-8 h-8 text-slate-700" strokeWidth={1} />
+                                    <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-20"></div>
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Encontre um estabelecimento</h3>
-                                <p className="text-slate-500 text-sm max-w-xs mx-auto">Pesquise pelo nome ou cidade do estabelecimento para começar seu agendamento.</p>
+                                <h3 className="text-lg font-black text-white uppercase italic tracking-tight mb-2">Busque sua barbearia</h3>
+                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] max-w-xs mx-auto">Toda rede de parceiros na palma da sua mão.</p>
                             </div>
                         )}
                     </div>

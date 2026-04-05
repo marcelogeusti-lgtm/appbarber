@@ -123,42 +123,64 @@ function ClientLayoutContent({ children }) {
                 </div>
 
                 {/* MOBILE BOTTOM NAVIGATION */}
-                <nav className="fixed bottom-0 left-0 right-0 bg-[#08080A]/95 backdrop-blur-lg border-t border-white/5 pb-safe pt-2 px-6 z-50 md:hidden">
-                    <div className="flex justify-between items-center px-4">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = pathname === tab.href;
-                            const handleClick = (e) => {
-                                if (!user && tab.name === 'Agendamentos') {
-                                    e.preventDefault();
-                                    openLoginModal();
-                                }
-                            };
-                            return (
-                                <Link
-                                    key={tab.href}
-                                    href={tab.href}
-                                    onClick={handleClick}
-                                    className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-300'}`}
-                                >
-                                    <Icon className={`w-6 h-6 mb-1 ${isActive ? 'fill-current' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
-                                    <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'opacity-100' : 'opacity-70'}`}>
-                                        {tab.name}
-                                    </span>
-                                </Link>
-                            );
-                        })}
-                        {/* Mobile Menu Icon for more */}
-                        <button
-                            onClick={() => user ? setIsProfileOpen(true) : openLoginModal()}
-                            className="flex flex-col items-center justify-center p-2 text-slate-500 hover:text-slate-300"
+                <nav className="fixed bottom-0 left-0 right-0 bg-[#08080A]/80 backdrop-blur-2xl border-t border-white/5 pb-safe pt-2 px-6 z-50 md:hidden h-20 flex items-center justify-around">
+                    {/* Início */}
+                    <Link
+                        href="/home"
+                        className={`flex flex-col items-center justify-center transition-all duration-300 ${pathname === '/home' ? 'text-primary' : 'text-slate-500'}`}
+                    >
+                        <Home className={`w-5 h-5 mb-1 ${pathname === '/home' ? 'fill-current opacity-20' : ''}`} strokeWidth={1.5} />
+                        <span className="text-[10px] font-medium tracking-wide">Início</span>
+                        {pathname === '/home' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
+                    </Link>
+
+                    {/* Agendamentos */}
+                    <Link
+                        href="/agendamentos"
+                        onClick={(e) => { if (!user) { e.preventDefault(); openLoginModal(); } }}
+                        className={`flex flex-col items-center justify-center transition-all duration-300 ${pathname === '/agendamentos' ? 'text-primary' : 'text-slate-500'}`}
+                    >
+                        <Calendar className={`w-5 h-5 mb-1 ${pathname === '/agendamentos' ? 'fill-current opacity-20' : ''}`} strokeWidth={1.5} />
+                        <span className="text-[10px] font-medium tracking-wide">Agenda</span>
+                        {pathname === '/agendamentos' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
+                    </Link>
+
+                    {/* FLOATING ACTION BUTTON: AGENDAR */}
+                    <div className="relative -top-6">
+                        <Link
+                            href="/search"
+                            className="bg-primary hover:bg-primary/90 text-black w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse-glow transition-transform active:scale-95"
                         >
-                            <User className="w-6 h-6 mb-1" strokeWidth={2} />
-                            <span className="text-[9px] font-black uppercase tracking-widest opacity-70">
-                                {user ? 'Conta' : 'Entrar'}
-                            </span>
-                        </button>
+                            <Calendar className="w-7 h-7" strokeWidth={2.5} />
+                        </Link>
+                        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary tracking-wide">Agendar</span>
                     </div>
+
+                    {/* Notificações / Favoritos? User says structure: Início, Buscar, Agendamentos, Conta. */}
+                    {/* Let's follow his list: Início, Agendamentos (already did), Buscar (Floating), Notifications/Account. */}
+                    
+                    <button
+                        onClick={() => setIsNotificationsOpen(true)}
+                        className={`flex flex-col items-center justify-center transition-all duration-300 ${isNotificationsOpen ? 'text-primary' : 'text-slate-500'}`}
+                    >
+                        <Bell className={`w-5 h-5 mb-1 ${isNotificationsOpen ? 'fill-current opacity-20' : ''}`} strokeWidth={1.5} />
+                        <span className="text-[10px] font-medium tracking-wide">Avisos</span>
+                    </button>
+
+                    <button
+                        onClick={() => user ? setIsProfileOpen(true) : openLoginModal()}
+                        className={`flex flex-col items-center justify-center transition-all duration-300 ${isProfileOpen ? 'text-primary' : 'text-slate-500'}`}
+                    >
+                        <div className="w-5 h-5 mb-1 rounded-full border border-slate-500 overflow-hidden bg-slate-800">
+                            {user?.avatarUrl ? (
+                                <img src={user.avatarUrl} alt="U" className="w-full h-full object-cover" />
+                            ) : (
+                                <User className="w-full h-full p-0.5" strokeWidth={1.5} />
+                            )}
+                        </div>
+                        <span className="text-[10px] font-medium tracking-wide">{user ? 'Perfil' : 'Entrar'}</span>
+                        {isProfileOpen && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
+                    </button>
                 </nav>
             </div>
         </div>

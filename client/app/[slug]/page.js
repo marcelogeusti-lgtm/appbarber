@@ -2,10 +2,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
-    MapPin, Search, Star, Heart, Share2,
+    MapPin, Star, Heart, Share2,
     ChevronLeft, ShoppingBag, Clock, CalendarCheck,
-    Banknote, CreditCard, ArrowLeft, Users, Bell, Zap,
-    ExternalLink, AlertCircle, Check
+    Banknote, CreditCard, Bell, Zap,
+    ExternalLink, Check, Crown, Scissors
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
@@ -17,13 +17,13 @@ const ServicesTab = dynamic(() => import('../../components/client-view/ServicesT
     loading: () => <TabSkeleton />,
     ssr: false // Optimization: These are interactive tabs, mostly client-side
 });
-const DetailsTab = dynamic(() => import('../../components/client-view/DetailsTab'), { loading: () => <TabSkeleton /> });
-const ProfessionalsTab = dynamic(() => import('../../components/client-view/ProfessionalsTab'), { loading: () => <TabSkeleton /> });
-const ProductsTab = dynamic(() => import('../../components/client-view/ProductsTab'), { loading: () => <TabSkeleton /> });
-const LoyaltyTab = dynamic(() => import('../../components/client-view/LoyaltyTab'), { loading: () => <TabSkeleton /> });
-const PackagesTab = dynamic(() => import('../../components/client-view/PackagesTab'), { loading: () => <TabSkeleton /> });
-const SubscriptionsTab = dynamic(() => import('../../components/client-view/SubscriptionsTab'), { loading: () => <TabSkeleton /> });
-const ReviewsTab = dynamic(() => import('../../components/client-view/ReviewsTab'), { loading: () => <TabSkeleton /> });
+const DetailsTab = dynamic(() => import('../../components/client-view/DetailsTab'), { loading: () => <TabSkeleton />, ssr: false });
+const ProfessionalsTab = dynamic(() => import('../../components/client-view/ProfessionalsTab'), { loading: () => <TabSkeleton />, ssr: false });
+const ProductsTab = dynamic(() => import('../../components/client-view/ProductsTab'), { loading: () => <TabSkeleton />, ssr: false });
+const LoyaltyTab = dynamic(() => import('../../components/client-view/LoyaltyTab'), { loading: () => <TabSkeleton />, ssr: false });
+const PackagesTab = dynamic(() => import('../../components/client-view/PackagesTab'), { loading: () => <TabSkeleton />, ssr: false });
+const SubscriptionsTab = dynamic(() => import('../../components/client-view/SubscriptionsTab'), { loading: () => <TabSkeleton />, ssr: false });
+const ReviewsTab = dynamic(() => import('../../components/client-view/ReviewsTab'), { loading: () => <TabSkeleton />, ssr: false });
 
 function TabSkeleton() {
     return (
@@ -34,6 +34,13 @@ function TabSkeleton() {
         </div>
     )
 }
+
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    }).format(value);
+};
 
 export default function BarbershopPage() {
     const params = useParams();

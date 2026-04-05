@@ -12,6 +12,7 @@ export default function HistoryPage() {
     const [filterShop, setFilterShop] = useState('ALL');
     const [shops, setShops] = useState([]);
     const [activeTab, setActiveTab] = useState('scheduled'); // scheduled, completed, cancelled
+    const router = useRouter();
 
     useEffect(() => {
         if (!authLoading && user) {
@@ -24,7 +25,6 @@ export default function HistoryPage() {
     const fetchAppointments = async () => {
         try {
             const res = await api.get('/appointments/me');
-            console.log(`[DEBUG] Received ${res.data.length} appointments for ${user.email}`);
             setAppointments(res.data);
 
             // Extract unique shops for filter
@@ -59,145 +59,110 @@ export default function HistoryPage() {
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-[#050505] text-white font-sans p-6 md:p-12 flex flex-col items-center justify-center text-center">
-                <div className="relative w-32 h-32 mb-8">
-                    <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
-                    <div className="relative flex items-center justify-center w-full h-full bg-[#111] border border-white/5 rounded-full shadow-2xl">
-                        <AlertCircle className="w-12 h-12 text-primary" />
-                    </div>
+            <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] to-black text-white px-5 flex flex-col items-center justify-center text-center">
+                <div className="w-24 h-24 glass-premium rounded-full flex items-center justify-center mb-8 relative">
+                    <AlertCircle className="w-10 h-10 text-primary" />
+                    <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-20"></div>
                 </div>
-                <h2 className="text-xl font-black text-white uppercase tracking-tight mb-2">Acesso Restrito</h2>
-                <p className="text-slate-500 text-sm font-medium mb-8">Você precisa estar logado para visualizar seus agendamentos.</p>
+                <h2 className="text-xl font-black text-white uppercase italic tracking-tight mb-2">Acesso Restrito</h2>
+                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest max-w-xs mb-8">Faça login para gerenciar seus horários agendados.</p>
                 <button
                     onClick={openLoginModal}
-                    className="px-10 py-4 bg-primary text-black font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-primary/90 transition shadow-xl shadow-primary/20"
+                    className="px-12 py-4 bg-primary text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-primary/90 transition shadow-xl shadow-primary/20"
                 >
-                    Fazer Login
+                    Entrar Agora
                 </button>
             </div>
         );
     }
 
-    // 1. First, Apply Shop Filter
-    const filteredByShop = filterShop === 'ALL'
-        ? appointments
-        : appointments.filter(a => a.barbershopId === filterShop);
-
-    // 2. Then, bucket them for Tabs
-    const now = new Date();
-    // Start of today in local time for comparison
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Filters and Logic...
+    const filteredByShop = filterShop === 'ALL' ? appointments : appointments.filter(a => a.barbershopId === filterShop);
+    const startOfToday = new Date();
+    startOfToday.setHours(0,0,0,0);
 
     const scheduled = filteredByShop.filter(a => {
         const appDate = new Date(a.date);
-        // Upcoming: Status is active AND (is today or in the future)
-        const isActiveStatus = ['PENDING', 'CONFIRMED', 'SCHEDULED'].includes(a.status);
-        const isTodayOrFuture = appDate >= startOfToday;
-
-        return isActiveStatus && isTodayOrFuture;
+        const isActive = ['PENDING', 'CONFIRMED', 'SCHEDULED', 'PENDING_PAYMENT'].includes(a.status);
+        return isActive && appDate >= startOfToday;
     }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const completed = filteredByShop.filter(a => {
         const appDate = new Date(a.date);
-        // Completed: Explicit status OR (is active status but date has passed)
-        const isExplicitlyCompleted = a.status === 'COMPLETED';
-        const isPastActive = ['PENDING', 'CONFIRMED', 'SCHEDULED'].includes(a.status) && appDate < startOfToday;
-
-        return isExplicitlyCompleted || isPastActive;
+        return a.status === 'COMPLETED' || (['PENDING', 'CONFIRMED', 'SCHEDULED'].includes(a.status) && appDate < startOfToday);
     }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const cancelled = filteredByShop.filter(a =>
-        ['CANCELLED', 'NO_SHOW'].includes(a.status)
-    ).sort((a, b) => new Date(b.date) - new Date(a.date));
-    // 3. Determine what to show based on Active Tab
+    const cancelled = filteredByShop.filter(a => ['CANCELLED', 'NO_SHOW'].includes(a.status)).sort((a, b) => new Date(b.date) - new Date(a.date));
     const listToShow = activeTab === 'scheduled' ? scheduled : activeTab === 'completed' ? completed : cancelled;
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans p-6 md:p-12 lg:max-w-none mx-auto pb-32">
+        <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-6 pb-24 font-sans no-scrollbar">
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+            {/* Header */}
+            <header className="flex items-center justify-between mb-8 px-1">
                 <div>
-                    <h1 className="text-3xl font-black text-white uppercase tracking-tight">Meus Agendamentos</h1>
+                    <h1 className="text-xl font-black text-white uppercase italic tracking-tight">Agenda</h1>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Seus horários marcados</p>
                 </div>
-
-                {/* Filter Dropdown */}
-                <div className="relative w-full md:w-80">
+                <div className="relative">
+                    <button className="w-10 h-10 rounded-xl glass-premium flex items-center justify-center text-slate-400">
+                        <Filter className="w-5 h-5" />
+                    </button>
+                    {/* Select hidden over the button for native experience or custom dropdown */}
                     <select
                         value={filterShop}
                         onChange={(e) => setFilterShop(e.target.value)}
-                        className="w-full bg-[#111] text-white text-xs font-bold uppercase tracking-widest p-4 rounded-xl border border-white/5 outline-none appearance-none cursor-pointer focus:border-primary transition shadow-xl"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
                     >
-                        <option value="ALL">Filtrar por estabelecimento</option>
+                        <option value="ALL">Todos os locais</option>
                         {shops.map(([id, name]) => (
                             <option key={id} value={id}>{name}</option>
                         ))}
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                 </div>
-            </div>
+            </header>
 
-            {/* TABS HEADER */}
-            <div className="flex items-center gap-2 mb-12 overflow-x-auto no-scrollbar border-b border-white/5">
+            {/* TABS (PREMIUM) */}
+            <div className="flex items-center gap-2 mb-8 glass-premium p-1.5 rounded-2xl">
                 <button
                     onClick={() => setActiveTab('scheduled')}
-                    className={`px-8 py-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'scheduled' ? 'text-primary border-b-2 border-primary' : 'text-slate-500 hover:text-white'}`}
+                    className={`flex-1 py-3 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'scheduled' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'}`}
                 >
-                    Agendados
-                    {scheduled.length > 0 && (
-                        <span className="ml-2 bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px]">{scheduled.length}</span>
-                    )}
+                    Próximos
                 </button>
                 <button
                     onClick={() => setActiveTab('completed')}
-                    className={`px-8 py-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'completed' ? 'text-primary border-b-2 border-primary' : 'text-slate-500 hover:text-white'}`}
+                    className={`flex-1 py-3 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'completed' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white'}`}
                 >
-                    Concluídos
+                    Histórico
                 </button>
                 <button
                     onClick={() => setActiveTab('cancelled')}
-                    className={`px-8 py-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'cancelled' ? 'text-red-500 border-b-2 border-red-500' : 'text-slate-500 hover:text-white'}`}
+                    className={`flex-1 py-3 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'cancelled' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-slate-500 hover:text-white'}`}
                 >
                     Cancelados
                 </button>
             </div>
 
-            {/* CONTENT AREA */}
-            <div className="space-y-6">
+            {/* List */}
+            <div className="space-y-6 px-1">
                 {listToShow.length === 0 ? (
-                    // Empty State for specific tab (SaaS Style)
-                    <div className="flex flex-col items-center justify-center py-32 text-center">
-                        <div className="relative w-32 h-32 mb-8">
-                            <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
-                            <div className="relative flex items-center justify-center w-full h-full bg-[#111] border border-white/5 rounded-full shadow-2xl">
-                                <svg className="w-12 h-12 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M11 12.5l2 2m0-2l-2 2" />
-                                </svg>
-                                <div className="absolute -bottom-1 -right-1 p-2 bg-primary/10 border border-primary/20 rounded-full">
-                                    <Search className="w-4 h-4 text-primary" />
-                                </div>
-                            </div>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <div className="w-20 h-20 glass-premium rounded-full flex items-center justify-center mb-6 relative">
+                            <Calendar className="w-8 h-8 text-slate-700" strokeWidth={1} />
                         </div>
-                        <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">
-                            {activeTab === 'scheduled' ? 'Nenhum agendamento em aberto' :
-                                activeTab === 'completed' ? 'Nenhum histórico de serviços' :
-                                    'Nenhum agendamento cancelado'}
-                        </p>
+                        <h3 className="text-lg font-black text-white uppercase italic tracking-tight mb-2">Nada por aqui</h3>
+                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] max-w-xs mx-auto mb-8">Parece que você ainda não tem registros nesta categoria.</p>
                         {activeTab === 'scheduled' && (
-                            <Link href="/search" className="mt-8 px-10 py-4 bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-primary/90 transition shadow-xl shadow-primary/20">
+                            <button onClick={() => router.push('/search')} className="px-10 py-4 bg-primary text-black font-black uppercase tracking-widest text-[9px] rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all">
                                 Novo Agendamento
-                            </Link>
+                            </button>
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="space-y-6">
                         {listToShow.map(app => (
-                            <AppointmentCard
-                                key={app.id}
-                                app={app}
-                                onCancel={handleCancel}
-                                showCancel={activeTab === 'scheduled'}
-                            />
+                            <AppointmentCard key={app.id} app={app} onCancel={handleCancel} showCancel={activeTab === 'scheduled'} />
                         ))}
                     </div>
                 )}
@@ -206,51 +171,52 @@ export default function HistoryPage() {
     );
 }
 
-// Subcomponent for Card
 function AppointmentCard({ app, onCancel, showCancel }) {
     const isCancelled = app.status === 'CANCELLED' || app.status === 'NO_SHOW';
-    const isCompleted = app.status === 'COMPLETED';
-    const accentColor = isCancelled ? 'red' : isCompleted ? 'primary' : 'primary';
-
+    const isPendingPayment = app.status === 'PENDING_PAYMENT';
+    
     return (
-        <div className={`bg-[#111] rounded-[2.5rem] p-8 border transition-all group ${isCancelled ? 'border-red-500/10 hover:border-red-500/30' : 'border-white/5 hover:border-primary/30'}`}>
-            <div className="flex justify-between items-start mb-8">
-                <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 bg-[#0A0A0A] rounded-3xl flex flex-col items-center justify-center border border-white/5 shadow-inner">
-                        <span className="text-3xl font-black text-white">{new Date(app.date).getDate()}</span>
-                        <span className={`text-[10px] uppercase font-black tracking-widest text-${accentColor}`}>
+        <div className={`glass-premium p-6 rounded-[2.5rem] border-white/5 relative group transition-all active:scale-[0.99] overflow-hidden`}>
+            {/* Background Accent */}
+            <div className={`absolute top-0 right-0 w-32 h-32 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 opacity-10 ${isCancelled ? 'bg-red-500' : 'bg-primary'}`} />
+            
+            <div className="flex justify-between items-start mb-6 relative z-10">
+                <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 glass-premium rounded-2xl flex flex-col items-center justify-center border-white/10 shadow-inner">
+                        <span className="text-xl font-black text-white leading-none">{new Date(app.date).getDate()}</span>
+                        <span className={`text-[8px] uppercase font-black tracking-widest ${isCancelled ? 'text-red-500' : 'text-primary'} mt-0.5`}>
                             {new Date(app.date).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()}
                         </span>
                     </div>
                     <div>
-                        <h3 className="font-black text-xl text-white group-hover:text-primary transition-colors uppercase tracking-tight">{app.service?.name}</h3>
-                        <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 mt-1">
-                            <Clock className="w-3.5 h-3.5" /> {new Date(app.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        <h3 className="font-black text-base text-white group-hover:text-primary transition-colors uppercase tracking-tight">{app.service?.name}</h3>
+                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mt-1">
+                            <Clock className="w-3 h-3" /> {new Date(app.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                     </div>
                 </div>
-                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${app.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
-                    {app.status === 'PENDING' ? 'Agendado' : app.status === 'CONFIRMED' ? 'Confirmado' : app.status === 'CANCELLED' ? 'Cancelado' : 'Concluído'}
-                </span>
+                <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${isCancelled ? 'bg-red-500/10 text-red-500' : isPendingPayment ? 'bg-yellow-500/10 text-yellow-500' : 'bg-primary/10 text-primary'} border border-white/5`}>
+                    {app.status === 'PENDING' ? 'Aguardando' : app.status === 'CONFIRMED' ? 'Confirmado' : isCancelled ? 'Cancelado' : isPendingPayment ? 'Pgto Pendente' : 'Concluído'}
+                </div>
             </div>
 
-            <div className="space-y-4 mb-8 bg-[#0A0A0A] p-6 rounded-[2rem] border border-white/5">
-                <div className="flex items-center gap-4">
-                    <div className="p-2 bg-white/5 rounded-xl">
-                        <UserIcon className="w-4 h-4 text-primary" />
+            <div className="space-y-3 mb-6 bg-white/5 p-4 rounded-2xl border border-white/5 relative z-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 glass-premium rounded-xl flex items-center justify-center text-primary">
+                        <MapPin className="w-4 h-4" />
                     </div>
-                    <div>
-                        <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Profissional</p>
-                        <p className="text-sm font-black text-white uppercase tracking-tight">{app.professional?.name}</p>
+                    <div className="min-w-0">
+                        <p className="text-[7px] text-slate-500 font-bold uppercase tracking-widest">Local</p>
+                        <p className="text-[11px] font-black text-white uppercase tracking-tight truncate">{app.barbershop?.name}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <div className="p-2 bg-white/5 rounded-xl">
-                        <MapPin className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 glass-premium rounded-xl flex items-center justify-center text-primary">
+                        <UserIcon className="w-4 h-4" />
                     </div>
-                    <div>
-                        <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Estabelecimento</p>
-                        <p className="text-sm font-black text-white uppercase tracking-tight">{app.barbershop?.name}</p>
+                    <div className="min-w-0">
+                        <p className="text-[7px] text-slate-500 font-bold uppercase tracking-widest">Profissional</p>
+                        <p className="text-[11px] font-black text-white uppercase tracking-tight truncate">{app.professional?.name}</p>
                     </div>
                 </div>
             </div>
@@ -258,11 +224,11 @@ function AppointmentCard({ app, onCancel, showCancel }) {
             {showCancel && (
                 <button
                     onClick={() => onCancel(app.id)}
-                    className="w-full py-4 rounded-2xl border border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-2xl glass-premium border-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2 relative z-10"
                 >
-                    <XCircle className="w-4 h-4" /> Cancelar Horário
+                    <XCircle className="w-3.5 h-3.5" /> Cancelar Horário
                 </button>
             )}
         </div>
-    )
+    );
 }

@@ -12,7 +12,7 @@ export default function MyPackagesPage() {
     useEffect(() => {
         async function fetchSub() {
             try {
-                const res = await api.get('/subscription/my-active');
+                const res = await api.get('/subscriptions/my-active');
                 setSubscription(res.data);
             } catch (error) {
                 console.error('Erro ao buscar assinatura:', error);
@@ -23,66 +23,86 @@ export default function MyPackagesPage() {
         fetchSub();
     }, []);
 
-    if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Carregando...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-black text-white p-6">
-            <header className="flex items-center gap-4 mb-8">
-                <button onClick={() => router.back()} className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center">
-                    <ChevronLeft className="w-6 h-6 text-white" />
+        <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-8 pb-32 max-w-7xl mx-auto overflow-x-hidden uppercase">
+            
+            {/* Header */}
+            <header className="flex items-center gap-4 mb-10 px-1">
+                <button onClick={() => router.back()} className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-slate-400 active:scale-95 transition-all">
+                    <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
-                <h1 className="text-xl font-bold uppercase">Meus Pacotes e Assinaturas</h1>
+                <div>
+                    <h1 className="text-xl font-black text-white italic tracking-tight">Meus Pacotes</h1>
+                    <p className="text-slate-500 text-[9px] font-bold tracking-[0.2em] mt-0.5">Assinaturas e Créditos</p>
+                </div>
             </header>
 
-            {subscription ? (
-                <div className="bg-gradient-to-br from-zinc-900 to-black border border-primary/30 rounded-3xl p-6 relative overflow-hidden">
-                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
+            <div className="px-1">
+                {subscription ? (
+                    <div className="glass-premium border-primary/30 rounded-[3rem] p-10 relative overflow-hidden shadow-2xl transition-all active:scale-[0.99]">
+                        <div className="absolute top-8 right-8 w-12 h-12 glass-premium rounded-2xl flex items-center justify-center border-primary/20 shadow-inner">
+                            <Package className="w-6 h-6 text-primary" />
+                        </div>
 
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <h2 className="text-2xl font-black text-white uppercase">{subscription.plan.name}</h2>
-                                <p className="text-primary text-xs font-bold uppercase tracking-widest">Ativo</p>
-                            </div>
-                            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                                <Package className="w-6 h-6 text-primary" />
+                        <div className="mb-10 relative z-10 transition-transform active:scale-[0.99]">
+                            <p className="text-[9px] font-black text-primary tracking-[0.4em] mb-2">Plano de Benefícios</p>
+                            <h2 className="text-2xl font-black italic tracking-tighter leading-none mb-1">{subscription.plan?.name}</h2>
+                            <div className="flex items-center gap-2 mt-3">
+                                <span className="text-[10px] font-black text-white opacity-40 tracking-[0.2em]">MEMBRO VIP</span>
+                                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(37,99,235,1)]"></span>
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="bg-black/50 p-4 rounded-2xl flex items-center gap-4">
-                                <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
-                                    <Scissors className="w-5 h-5 text-white" />
+                        <div className="grid grid-cols-1 gap-6 mb-10 relative z-10">
+                            <div className="glass-premium p-6 rounded-[2rem] flex items-center gap-5 border-white/5 bg-white/5 transition-all hover:bg-white/10">
+                                <div className="w-14 h-14 glass-premium rounded-2xl flex items-center justify-center border-primary/20 shadow-inner">
+                                    <Scissors className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-zinc-500 text-[10px] font-bold uppercase">Cortes Restantes</p>
-                                    <p className="text-xl font-bold text-white">{subscription.remainingCuts}</p>
+                                    <p className="text-slate-500 text-[9px] font-black tracking-widest uppercase">Cortes Restantes</p>
+                                    <p className="text-2xl font-black text-white italic tracking-tighter">{subscription.remainingCuts || 0} DE {subscription.plan?.limit || '∞'}</p>
                                 </div>
                             </div>
 
-                            <div className="bg-black/50 p-4 rounded-2xl flex items-center gap-4">
-                                <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
-                                    <Calendar className="w-5 h-5 text-white" />
+                            <div className="glass-premium p-6 rounded-[2rem] flex items-center gap-5 border-white/5 bg-white/5 transition-all hover:bg-white/10">
+                                <div className="w-14 h-14 glass-premium rounded-2xl flex items-center justify-center border-primary/20 shadow-inner">
+                                    <Calendar className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-zinc-500 text-[10px] font-bold uppercase">Válido Até</p>
-                                    <p className="text-sm font-bold text-white">
+                                    <p className="text-slate-500 text-[9px] font-black tracking-widest uppercase">Válido Até</p>
+                                    <p className="text-xl font-black text-white italic tracking-tighter">
                                         {new Date(subscription.endDate).toLocaleDateString('pt-BR')}
                                     </p>
                                 </div>
                             </div>
                         </div>
+
+                        <button className="w-full glass-premium border-white/10 text-white font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.3em] active:scale-95 transition-all shadow-xl relative z-10">
+                            Gerenciar Minha Assinatura
+                        </button>
                     </div>
-                </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                    <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mb-4">
-                        <Package className="w-8 h-8 text-zinc-600" />
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-24 text-center glass-premium border-white/5 rounded-[3rem] space-y-8 px-8">
+                        <div className="w-24 h-24 glass-premium rounded-full flex items-center justify-center border-white/5 relative overflow-hidden">
+                            <Package className="w-10 h-10 text-slate-800" strokeWidth={1} />
+                            <div className="absolute inset-0 rounded-full border border-primary/20 animate-pulse opacity-20"></div>
+                        </div>
+                        <div className="space-y-3">
+                            <h3 className="text-lg font-black text-white italic tracking-tight italic">Nenhum Pacote Ativo</h3>
+                            <p className="text-slate-500 text-[10px] font-bold tracking-[0.2em] leading-relaxed max-w-xs mx-auto text-center">Você ainda não possui assinaturas ou pacotes de serviços contratados.</p>
+                        </div>
+                        <button onClick={() => router.push('/search')} className="px-10 py-5 glass-premium border-primary/20 text-primary uppercase text-[10px] font-black tracking-widest rounded-[1.5rem] active:scale-95 transition-all">
+                            Explorar Ofertas
+                        </button>
                     </div>
-                    <h3 className="text-zinc-400 font-bold uppercase">Nenhum plano ativo</h3>
-                    <p className="text-zinc-600 text-xs mt-2 max-w-[200px]">Adquira um pacote ou assinatura na página da sua barbearia favorita.</p>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }
