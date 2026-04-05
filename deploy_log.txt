@@ -1,0 +1,17 @@
+=======================================
+   ðŸš€ DEPLOY DE RESTAURACAO (ESTAVEL)
+   Sincronizando estado limpo na nuvem...
+=======================================
+
+[1/2] Sincronizando API (Backend)...
+'npx' nÆo ‚ reconhecido como um comando interno
+ou externo, um programa oper vel ou um arquivo em lotes.
+
+[2/2] Sincronizando APP (Frontend)...
+'npx' nÆo ‚ reconhecido como um comando interno
+ou externo, um programa oper vel ou um arquivo em lotes.
+
+âœ… DEPLOY DE RESTAURACAO CONCLUIDO!
+O site www.corteconexao.com.br agora esta estavel.
+Pressione qualquer tecla para continuar. . . 
+Deseja finalizar o arquivo em lotes (S/N)? Deseja finalizar o arquivo em lotes (S/N)? 
