@@ -51,8 +51,7 @@ export default function BarbershopPage() {
 
     const [barbershop, setBarbershop] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('inicio');
-    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('servicos');
     // Cards State
     const [savedCards, setSavedCards] = useState([]);
     const [selectedCardId, setSelectedCardId] = useState('');
@@ -526,7 +525,6 @@ export default function BarbershopPage() {
     if (!barbershop) return <div className="min-h-screen bg-black text-white flex items-center justify-center font-black">BARBEARIA NÃO ENCONTRADA</div>;
 
     const tabs = [
-        { id: 'inicio', label: 'INÍCIO' },
         { id: 'servicos', label: 'SERVIÇOS' },
         { id: 'detalhes', label: 'DETALHES' },
         { id: 'profissionais', label: 'PROFISSIONAIS' },
@@ -680,51 +678,6 @@ export default function BarbershopPage() {
 
             {/* Content Area */}
             <main className="px-6 py-8 min-h-[50vh]">
-                {activeTab === 'inicio' && (
-                    <div className="flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 space-y-6 max-w-lg mx-auto py-4">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white drop-shadow-lg">Bem-vindo à {barbershop.name}</h2>
-                            <p className="text-slate-400 text-[11px] tracking-widest uppercase font-bold px-4 leading-relaxed">
-                                {barbershop.bio || 'Referência em estilo e qualidade. Escolha seu serviço e agende seu horário com nossos especialistas.'}
-                            </p>
-                        </div>
-                        
-                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent my-4"></div>
-                        
-                        <button 
-                            onClick={() => setIsBookingModalOpen(true)}
-                            className="w-full bg-primary text-black font-black uppercase tracking-[0.2em] py-5 rounded-[2rem] hover:bg-white hover:text-black transition-all active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(37,99,235,0.4)] border border-primary/50 relative overflow-hidden group"
-                        >
-                            <span className="relative z-10 flex items-center justify-center gap-3 text-[14px]">
-                                <CalendarCheck className="w-5 h-5" />
-                                Agendar Horário
-                            </span>
-                        </button>
-                        
-                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent my-4"></div>
-                        
-                        <div className="grid grid-cols-2 gap-4 w-full">
-                            <button onClick={() => setActiveTab('servicos')} className="glass-premium p-4 rounded-3xl flex items-center gap-3 text-left hover:border-primary/50 transition group border border-white/5">
-                                <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary transition">
-                                    <Scissors className="w-5 h-5 text-primary group-hover:text-black transition" />
-                                </div>
-                                <div>
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Ver Catálogo</p>
-                                    <p className="text-[11px] font-black uppercase text-white">Serviços</p>
-                                </div>
-                            </button>
-                            <button onClick={() => setActiveTab('profissionais')} className="glass-premium p-4 rounded-3xl flex items-center gap-3 text-left hover:border-primary/50 transition group border border-white/5">
-                                <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-white transition">
-                                    <Star className="w-5 h-5 text-white group-hover:text-black transition" />
-                                </div>
-                                <div>
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Nossa Equipe</p>
-                                    <p className="text-[11px] font-black uppercase text-white">Barbeiros</p>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                )}
                 {activeTab === 'servicos' && <ServicesTab services={barbershop.services || []} onSelect={handleServiceSelect} />}
                 {activeTab === 'detalhes' && <DetailsTab barbershop={barbershop} />}
                 {activeTab === 'profissionais' && <ProfessionalsTab professionals={barbershop.staff || []} />}
@@ -745,51 +698,33 @@ export default function BarbershopPage() {
             </main>
 
             {/* BOOKING MODAL */}
-            {(selectedService || isBookingModalOpen) && (
+            {selectedService && (
                 <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4">
                     <div className="bg-[#111827] w-full max-w-lg h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] border border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in">
 
                         {/* Modal Header */}
                         <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-[#0b0f19]">
                             <div className="flex items-center gap-4">
-                                {(step > 1 && step < 5) || (selectedService && isBookingModalOpen && step === 1) ? (
-                                    <button onClick={() => {
-                                        if (step === 1 && isBookingModalOpen) {
-                                            setSelectedService(null);
-                                        } else {
-                                            prevStep();
-                                        }
-                                    }} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition">
+                                {step > 1 && step < 5 && (
+                                    <button onClick={prevStep} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition">
                                         <ChevronLeft className="w-5 h-5 text-white" />
                                     </button>
-                                ) : null}
+                                )}
                                 <div>
                                     <h2 className="text-lg font-black uppercase text-white tracking-tight leading-none">Agendamento</h2>
                                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
-                                        {!selectedService ? 'Escolha o Serviço' : step === 6 ? 'Confirmado' : `Passo ${step} de 5`}
+                                        {step === 6 ? 'Confirmado' : `Passo ${step} de 5`}
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={() => { setSelectedService(null); setStep(1); setCheckoutData(null); setIsBookingModalOpen(false); }} className="text-slate-500 hover:text-white transition font-bold text-xs uppercase tracking-widest bg-slate-900 px-4 py-2 rounded-xl">
+                            <button onClick={() => { setSelectedService(null); setStep(1); setCheckoutData(null); }} className="text-slate-500 hover:text-white transition font-bold text-xs uppercase tracking-widest bg-slate-900 px-4 py-2 rounded-xl">
                                 Fechar
                             </button>
                         </div>
 
                         {/* Modal Content */}
-                        <div className="flex-1 overflow-y-auto p-6 bg-[#050505]">
+                        <div className="flex-1 overflow-y-auto p-6">
 
-                            {!selectedService ? (
-                                <div className="space-y-6 animate-in fade-in">
-                                    <div className="px-2">
-                                        <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1">Qual serviço você deseja?</h3>
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Selecione para continuar</p>
-                                    </div>
-                                    <div className="-mx-6 border-t border-slate-800/50 pt-6">
-                                        <ServicesTab services={barbershop.services || []} onSelect={handleServiceSelect} />
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
                             {/* Step 6: Success / Checkout State */}
                             {step === 6 && (
                                 <div className="space-y-6 animate-in zoom-in">
@@ -1320,8 +1255,6 @@ export default function BarbershopPage() {
                                         </div>
                                     )}
                                 </div>
-                            )}
-                            </>
                             )}
                         </div>
                     </div>
