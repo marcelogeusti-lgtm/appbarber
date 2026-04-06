@@ -9,7 +9,7 @@ import {
     FileText, LogOut, Loader2, ArrowLeft,
     Lock, Phone, ArrowRight, LogIn, Star
 } from 'lucide-react';
-import { useClientAuth } from '../../../contexts/ClientAuthContext';
+import { useClientAuth } from '../../../../contexts/ClientAuthContext';
 
 const GoogleIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24">
@@ -117,12 +117,19 @@ export default function ProfileMenuPage() {
 
                     <div className="glass-premium rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden border-white/5">
                         {/* Glow effect */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full" />
+                        
+                        {/* FLOATING ACTION BUTTON: SEARCH / LOGO ICON (CLEAN & MINIMAL STYLE) */}
+                        <div className="relative -top-6">
+                            <Link
+                                href="/search"
+                                className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-95 overflow-hidden bg-white/5 border border-white/5"
+                            >
+                                <img src="/assets/logo_icon.png" alt="Search" className="w-13 h-13 object-contain opacity-90 hover:opacity-100 transition-opacity" />
+                            </Link>
+                        </div>
 
                         <div className="text-center mb-10">
-                            <div className="w-20 h-20 mx-auto mb-6 glass-premium rounded-3xl flex items-center justify-center border-white/10 shadow-inner group">
-                                <img src="/logos/logo_icon.png" alt="AppBarber" className="w-12 h-12 object-contain brightness-125 group-hover:scale-110 transition-transform" />
-                            </div>
                             <h2 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tight">
                                 {activeTab === 'login' ? 'Bem-vindo' : 'Junte-se a nós'}
                             </h2>

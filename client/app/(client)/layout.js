@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, Calendar, User } from 'lucide-react';
-import { useClientAuth } from '../../contexts/ClientAuthContext';
-import FooterCliente from '../../components/client-view/FooterCliente';
-import NotificationsModal from '../../components/client-view/NotificationsModal';
-import ProfileDropdown from '../../components/client-view/ProfileDropdown';
+import { useClientAuth } from '../../../contexts/ClientAuthContext';
+import FooterCliente from '../../../components/client-view/FooterCliente';
+import NotificationsModal from '../../../components/client-view/NotificationsModal';
+import ProfileDropdown from '../../../components/client-view/ProfileDropdown';
 import { ChevronDown, Bell } from 'lucide-react';
 
 function ClientLayoutContent({ children }) {
@@ -154,13 +154,13 @@ function ClientLayoutContent({ children }) {
                         {pathname === '/agendamentos' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
                     </Link>
 
-                    {/* FLOATING ACTION BUTTON: SEARCH / NEXT LOGO (LARGER LOGO) */}
+                    {/* FLOATING ACTION BUTTON: SEARCH / LOGO ICON (CLEAN & MINIMAL STYLE) */}
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-gradient-to-br from-blue-600 to-blue-900 border-2 border-white/10"
+                            className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-95 overflow-hidden"
                         >
-                            <img src="/logos/logo_icon.png" alt="Next" className="w-13 h-13 object-contain brightness-125" />
+                            <img src="/logos/logo_icon.png" alt="Search" className="w-13 h-13 object-contain opacity-90 hover:opacity-100 transition-opacity" />
                         </Link>
                     </div>
 
