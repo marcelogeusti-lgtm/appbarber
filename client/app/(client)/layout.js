@@ -41,7 +41,7 @@ function ClientLayoutContent({ children }) {
                 <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
                         <Link href="/home">
-                            <img src="/logos/logo_icon.png" alt="NEXT" className="h-8 w-auto rounded-lg" />
+                            <img src="/logos/logo_full.png" alt="NEXT" className="h-8 w-auto" />
                         </Link>
                     </div>
 
@@ -123,7 +123,7 @@ function ClientLayoutContent({ children }) {
                 </div>
 
                 {/* MOBILE BOTTOM NAVIGATION */}
-                <nav className="fixed bottom-0 left-0 right-0 bg-[#08080A]/80 backdrop-blur-2xl border-t border-white/5 pb-safe pt-2 px-6 z-50 md:hidden h-20 flex items-center justify-around">
+                <nav className="fixed bottom-0 left-0 right-0 bg-black/75 backdrop-blur-[10px] border-t border-white/5 pb-safe pt-2 px-6 z-50 md:hidden h-20 flex items-center justify-around">
                     {/* Início */}
                     <Link
                         href="/home"
@@ -149,9 +149,9 @@ function ClientLayoutContent({ children }) {
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-[#0A0A0B]"
+                            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-black/40 animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-white/5 border border-white/10 backdrop-blur-md"
                         >
-                            <img src="/logos/logo_icon.png" alt="Next" className="w-full h-full object-contain p-1" />
+                            <img src="/logos/logo_icon.png" alt="Next" className="w-full h-full object-contain p-2" />
                         </Link>
                     </div>
 
@@ -166,20 +166,22 @@ function ClientLayoutContent({ children }) {
                         <span className="text-[10px] font-medium tracking-wide">Avisos</span>
                     </button>
 
-                    <button
-                        onClick={() => user ? setIsProfileOpen(true) : openLoginModal()}
-                        className={`flex flex-col items-center justify-center transition-all duration-300 ${isProfileOpen ? 'text-primary' : 'text-slate-500'}`}
+                    {/* Menu / Perfil */}
+                    <Link
+                        href="/profile"
+                        onClick={(e) => { if (!user) { e.preventDefault(); openLoginModal(); } }}
+                        className={`flex flex-col items-center justify-center transition-all duration-300 ${pathname === '/profile' ? 'text-primary' : 'text-slate-500'}`}
                     >
-                        <div className="w-5 h-5 mb-1 rounded-full border border-slate-500 overflow-hidden bg-slate-800">
+                        <div className={`w-5 h-5 mb-1 rounded-full border transition-colors ${pathname === '/profile' ? 'border-primary' : 'border-slate-500'} overflow-hidden bg-slate-800`}>
                             {user?.avatarUrl ? (
                                 <img src={user.avatarUrl} alt="U" className="w-full h-full object-cover" />
                             ) : (
                                 <User className="w-full h-full p-0.5" strokeWidth={1.5} />
                             )}
                         </div>
-                        <span className="text-[10px] font-medium tracking-wide">{user ? 'Perfil' : 'Entrar'}</span>
-                        {isProfileOpen && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
-                    </button>
+                        <span className="text-[10px] font-medium tracking-wide">Menu</span>
+                        {pathname === '/profile' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
+                    </Link>
                 </nav>
             </div>
         </div>

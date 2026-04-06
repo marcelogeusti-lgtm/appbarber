@@ -1,0 +1,3 @@
+error: pathspec 'fix:' did not match any file(s) known to git
+error: pathspec 'logo' did not match any file(s) known to git
+error: pathspec 'update\ ' did not match any file(s) known to git
