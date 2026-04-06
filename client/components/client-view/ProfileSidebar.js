@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { User, MapPin, ShieldCheck, Key, LogOut } from 'lucide-react';
-import { useClientAuth } from '../../../contexts/ClientAuthContext';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
 import { motion } from 'framer-motion';
 
 export default function ProfileSidebar() {
