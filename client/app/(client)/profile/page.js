@@ -125,7 +125,7 @@ export default function ProfileMenuPage() {
                                 href="/search"
                                 className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-95 overflow-hidden bg-white/5 border border-white/5"
                             >
-                                <img src="/assets/logo_icon.png" alt="Search" className="w-13 h-13 object-contain opacity-90 hover:opacity-100 transition-opacity" />
+                                <img src="/logos/logo_icon.png" alt="Search" className="w-13 h-13 object-contain opacity-90 hover:opacity-100 transition-opacity" />
                             </Link>
                         </div>
 
