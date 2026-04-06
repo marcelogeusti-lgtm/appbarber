@@ -145,15 +145,14 @@ function ClientLayoutContent({ children }) {
                         {pathname === '/agendamentos' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
                     </Link>
 
-                    {/* FLOATING ACTION BUTTON: AGENDAR */}
+                    {/* FLOATING ACTION BUTTON: SEARCH / NEXT LOGO */}
                     <div className="relative -top-6">
                         <Link
                             href="/search"
                             className="bg-primary hover:bg-primary/90 text-black w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse-glow transition-transform active:scale-95"
                         >
-                            <Calendar className="w-7 h-7" strokeWidth={2.5} />
+                            <img src="/logos/logo_icon.svg" alt="Next" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0)' }} />
                         </Link>
-                        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary tracking-wide">Agendar</span>
                     </div>
 
                     {/* Notificações / Favoritos? User says structure: Início, Buscar, Agendamentos, Conta. */}
