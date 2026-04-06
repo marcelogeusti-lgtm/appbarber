@@ -52,7 +52,7 @@ export default function ProfileDropdown({ isOpen, onClose }) {
                             <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center font-black text-primary bg-primary/5">
-                                {user?.name?.[0].toUpperCase()}
+                                {user?.name?.[0]?.toUpperCase() || 'U'}
                             </div>
                         )}
                     </div>

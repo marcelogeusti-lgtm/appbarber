@@ -154,15 +154,15 @@ function ClientLayoutContent({ children }) {
                         {pathname === '/agendamentos' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
                     </Link>
 
-                    {/* FLOATING ACTION BUTTON: SEARCH / LOGO ICON (CLEAN & MINIMAL STYLE) */}
+                    {/* FLOATING ACTION BUTTON: LOGO ICON (CLEAN & MINIMAL STYLE) */}
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="w-[62px] h-[62px] rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 overflow-hidden bg-gradient-to-br from-[#7C3AED] to-[#9333EA] border-2 border-white/20 shadow-[0_0_15px_rgba(147,51,234,0.6),0_0_25px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_#9333EA] hover:scale-110 z-20"
+                            className="w-[62px] h-[62px] rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 overflow-hidden bg-[#111111] border border-white/10 shadow-2xl hover:scale-110 z-20 group"
                         >
-                            <img src="/logos/logo_icon.png" alt="Search" className="w-[70%] h-[70%] object-contain brightness-125 contrast-125" />
+                            <img src="/logos/logo_icon.png" alt="Search" className="w-[65%] h-[65%] object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
                         </Link>
-                        <div className="absolute -inset-2 bg-[#9333EA]/30 blur-2xl rounded-full -z-10 animate-pulse" />
+                        <div className="absolute -inset-1 bg-white/5 blur-xl rounded-full -z-10" />
                     </div>
 
                     {/* Notificações / Favoritos? User says structure: Início, Buscar, Agendamentos, Conta. */}
