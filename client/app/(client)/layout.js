@@ -154,13 +154,13 @@ function ClientLayoutContent({ children }) {
                         {pathname === '/agendamentos' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
                     </Link>
 
-                    {/* FLOATING ACTION BUTTON: SEARCH / NEXT LOGO (BLUE GLOW STYLE) */}
+                    {/* FLOATING ACTION BUTTON: SEARCH / NEXT LOGO (CLEAN & MINIMAL STYLE) */}
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.5)] animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-gradient-to-br from-blue-500 to-blue-900 border-4 border-[#08080A]"
+                            className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-95 overflow-hidden bg-transparent"
                         >
-                            <img src="/logos/logo_icon.png" alt="Next" className="w-10 h-10 object-contain p-1 brightness-125" />
+                            <img src="/logos/logo_icon.png" alt="Next" className="w-12 h-12 object-contain p-1 opacity-90 hover:opacity-100 transition-opacity" />
                         </Link>
                     </div>
 
