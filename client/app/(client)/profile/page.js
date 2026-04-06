@@ -9,7 +9,7 @@ import {
     FileText, LogOut, Loader2, ArrowLeft,
     Lock, Phone, ArrowRight, LogIn, Star
 } from 'lucide-react';
-import { useClientAuth } from '../../contexts/ClientAuthContext';
+import { useClientAuth } from '../../../contexts/ClientAuthContext';
 
 const GoogleIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24">
