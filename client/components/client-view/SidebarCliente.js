@@ -48,7 +48,7 @@ export default function SidebarCliente({ isOpen, onClose }) {
                     {/* Logo Area */}
                     <div className="p-6 border-b border-white/5 flex items-center justify-between">
                         <Link href="/home" className="flex items-center gap-2" onClick={onClose}>
-                            <img src="/logos/logo_full.png" alt="NEXT" className="h-7 w-auto" />
+                            <img src="/logos/logo_icon.png" alt="NEXT" className="h-8 w-auto rounded-lg" />
                         </Link>
                         <button onClick={onClose} className="lg:hidden text-slate-400 hover:text-white">
                             <X className="w-6 h-6" />

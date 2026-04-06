@@ -1,0 +1,16 @@
+﻿node.exe : Vercel CLI 50.22.1
+No C:\Users\wanie\AppData\Roaming\npm\vercel.ps1:24 
+caractere:5
++     & "node$exe"  
+"$basedir/node_modules/vercel/dist/vc.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CL 
+   I 50.22.1:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Retrieving projectÔÇª
+Error: The provided path ÔÇ£~\Downloads\MARCELO\EU\App 
+Barbeiro\client\clientÔÇØ does not exist. To change 
+your Project Settings, go to 
+https://vercel.com/appbarber/appbarber/settings

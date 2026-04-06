@@ -41,7 +41,7 @@ function ClientLayoutContent({ children }) {
                 <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
                         <Link href="/home">
-                            <img src="/logos/logo_full.png" alt="NEXT" className="h-7 w-auto" />
+                            <img src="/logos/logo_icon.png" alt="NEXT" className="h-8 w-auto rounded-lg" />
                         </Link>
                     </div>
 
@@ -149,9 +149,9 @@ function ClientLayoutContent({ children }) {
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="bg-primary hover:bg-primary/90 text-black w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse-glow transition-transform active:scale-95"
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-[#0A0A0B]"
                         >
-                            <img src="/logos/logo_icon.svg" alt="Next" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0)' }} />
+                            <img src="/logos/logo_icon.png" alt="Next" className="w-full h-full object-contain p-1" />
                         </Link>
                     </div>
 

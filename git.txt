@@ -1,0 +1,22 @@
+﻿On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   deploy_out.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	client/build_utf8.log
+	client/deploy_error_utf8.txt
+	client/read.js
+	client/run.js
+	client/run_tsc.js
+	git.txt
+	git_log_page.txt
+	git_log_page_utf8.txt
+	old_page.js
+
+no changes added to commit (use "git add" and/or "git commit -a")

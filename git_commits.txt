@@ -1,0 +1,5 @@
+﻿6b1771d Restore classic home UI and settings
+be13a60  Restore classic home view and booking modal
+50e89b2  Fix missing imports causing build failure
+15a1c33  Final merge fix
+4e4bd3d  Sync premium UI design

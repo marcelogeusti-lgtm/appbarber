@@ -15,7 +15,7 @@ export default function FooterCliente() {
                     {/* Brand & Social */}
                     <div className="space-y-6">
                         <Link href="/home">
-                            <img src="/logos/logo_full.png" alt="appbarber" className="h-8 w-auto opacity-90" />
+                            <img src="/logos/logo_icon.png" alt="appbarber" className="h-10 w-auto rounded-xl opacity-90" />
                         </Link>
                         <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
                             Uma nova experiência para uma antiga tradição.

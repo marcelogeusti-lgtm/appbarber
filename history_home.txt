@@ -1,0 +1,28 @@
+﻿4e4bd3d  Sync premium UI design
+bf6555b feat: implement trending & quality recommendation engine and fix last access UI
+1c17b22 fix: ensure last access is always an array and fix address overflow UI
+04c9504 fix: centralize notifications and stabilize UI
+cf62ef3 Fix: Treat QuotaExceededError in localStorage with user-friendly message
+32b520d fix(ui): atualiza url da imagem quebrada no slider principal
+289e67c fix: adiciona fallback para exibir recomendacoes globais caso nao haja barbearias no raio de 15km
+4d5eaf0 feat: implementacao do carrossel inteligente na home
+7d0e782 feat: improve client area logic, ui and auth guards
+2c3cc6f UI: Reorganized Client Home layout
+8752a68 Fix: Behavior and Authentication improvements in Client area
+e93bc94 Fix: Profile menu link error and frontend/backend performance optimizations
+2b828c0 Fix: Client dashboard content and auth modal hooks
+9904641 Restoration: SaaS landing at root and Client Home at /home with new design
+f443d1e Refactor: Unified client experience, renamed appointments, and layout improvements
+50d92d8 fix: barber photos, waitlist automation, services ui
+413d87b style: remove green accents and update logo in client view
+d439175 feat: implement PWA push notifications with Firebase
+b81e5ac style: standardize barbershop avatars and remove badges
+9a76078 style: fix barbershop image borders and sync in client home
+3297441 Fix: Client Profile Photo Upload with compression, Logout redirect, and Barbershop photo sync
+a2f34f3  Fix Critical Auth
+be16d60 feat: enforce strict session isolation for client and barber apps
+97ddcce feat(client): update home to green theme, rename to barberon and link cards to barbershop page
+40c8313 feat(client): implement home page matching design spec and update layout
+17e45cf refactor: consolidate client booking areas, remove /agendamento route
+087267c Feat: Implement Client History, Packages pages and Auto-Redirect on Home
+2c2e582 feat: Nova Area do Cliente, Auto-Cadastro e L├│gica de Pausa
