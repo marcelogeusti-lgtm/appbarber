@@ -32,6 +32,15 @@ function ClientLayoutContent({ children }) {
         { name: 'Agendamentos', href: '/agendamentos', icon: Calendar },
     ];
 
+    const handleMenuClick = (e) => {
+        if (!user) {
+            e.preventDefault();
+            openLoginModal();
+        } else {
+            router.push('/profile');
+        }
+    };
+
     return (
         <div className="flex h-screen bg-[#050505] text-white overflow-hidden">
             <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
@@ -145,13 +154,13 @@ function ClientLayoutContent({ children }) {
                         {pathname === '/agendamentos' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
                     </Link>
 
-                    {/* FLOATING ACTION BUTTON: SEARCH / NEXT LOGO */}
+                    {/* FLOATING ACTION BUTTON: SEARCH / NEXT LOGO (BLUE GLOW STYLE) */}
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-black/40 animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-white/5 border border-white/10 backdrop-blur-md"
+                            className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(37,99,235,0.5)] animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-gradient-to-br from-blue-500 to-blue-900 border-4 border-[#08080A]"
                         >
-                            <img src="/logos/logo_icon.png" alt="Next" className="w-full h-full object-contain p-2" />
+                            <img src="/logos/logo_icon.png" alt="Next" className="w-10 h-10 object-contain p-1 brightness-125" />
                         </Link>
                     </div>
 
@@ -166,10 +175,9 @@ function ClientLayoutContent({ children }) {
                         <span className="text-[10px] font-medium tracking-wide">Avisos</span>
                     </button>
 
-                    {/* Menu / Perfil */}
-                    <Link
-                        href="/profile"
-                        onClick={(e) => { if (!user) { e.preventDefault(); openLoginModal(); } }}
+                    {/* Menu / Perfil (Unified Handler) */}
+                    <button
+                        onClick={handleMenuClick}
                         className={`flex flex-col items-center justify-center transition-all duration-300 ${pathname === '/profile' ? 'text-primary' : 'text-slate-500'}`}
                     >
                         <div className={`w-5 h-5 mb-1 rounded-full border transition-colors ${pathname === '/profile' ? 'border-primary' : 'border-slate-500'} overflow-hidden bg-slate-800`}>
@@ -181,7 +189,7 @@ function ClientLayoutContent({ children }) {
                         </div>
                         <span className="text-[10px] font-medium tracking-wide">Menu</span>
                         {pathname === '/profile' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
-                    </Link>
+                    </button>
                 </nav>
             </div>
         </div>
