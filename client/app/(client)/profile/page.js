@@ -7,7 +7,7 @@ import {
     Key, MapPin, Heart, CreditCard, UserPlus,
     Package, ShieldCheck, Clock, MessageSquare,
     FileText, LogOut, Loader2, ArrowLeft,
-    Lock, Phone, ArrowRight, LogIn
+    Lock, Phone, ArrowRight, LogIn, Star
 } from 'lucide-react';
 import { useClientAuth } from '../../../contexts/ClientAuthContext';
 
