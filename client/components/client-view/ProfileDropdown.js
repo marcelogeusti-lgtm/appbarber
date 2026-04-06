@@ -5,7 +5,7 @@ import {
     MapPin, ShieldCheck, Settings, MessageSquare,
     FileText
 } from 'lucide-react';
-import { useClientAuth } from '../../../contexts/ClientAuthContext';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 export default function ProfileDropdown({ isOpen, onClose }) {
     const { user, logout } = useClientAuth();

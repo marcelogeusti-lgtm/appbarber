@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, Calendar, User } from 'lucide-react';
-import { useClientAuth } from '../../../contexts/ClientAuthContext';
-import FooterCliente from '../../../components/client-view/FooterCliente';
-import NotificationsModal from '../../../components/client-view/NotificationsModal';
-import ProfileDropdown from '../../../components/client-view/ProfileDropdown';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
+import FooterCliente from '../../components/client-view/FooterCliente';
+import NotificationsModal from '../../components/client-view/NotificationsModal';
+import ProfileDropdown from '../../components/client-view/ProfileDropdown';
 import { ChevronDown, Bell } from 'lucide-react';
 
 function ClientLayoutContent({ children }) {

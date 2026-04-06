@@ -1,5 +1,5 @@
 'use client';
-import ProfileSidebar from '../../../../components/client-view/ProfileSidebar';
+import ProfileSidebar from '../../../components/client-view/ProfileSidebar';
 
 export default function ProfileLayout({ children }) {
     return (
