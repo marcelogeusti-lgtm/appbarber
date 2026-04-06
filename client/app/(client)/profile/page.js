@@ -9,7 +9,7 @@ import {
     FileText, LogOut, Loader2, ArrowLeft,
     Lock, Phone, ArrowRight, LogIn, Star
 } from 'lucide-react';
-import { useClientAuth } from '../../../contexts/ClientAuthContext';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 const GoogleIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24">
@@ -123,9 +123,9 @@ export default function ProfileMenuPage() {
                         <div className="relative -top-6">
                             <Link
                                 href="/search"
-                                className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-95 overflow-hidden bg-white/5 border border-white/5"
+                                className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 overflow-hidden bg-gradient-to-br from-[#7c3aed] to-[#9333ea] border-2 border-white/20 shadow-[0_0_15px_rgba(147,51,234,0.6)] hover:shadow-[0_0_25px_rgba(147,51,234,0.8)]"
                             >
-                                <img src="/logos/logo_icon.png" alt="Search" className="w-13 h-13 object-contain opacity-90 hover:opacity-100 transition-opacity" />
+                                <img src="/logos/logo_icon.png" alt="Search" className="w-[70%] h-[70%] object-contain opacity-90 hover:opacity-100 transition-opacity" />
                             </Link>
                         </div>
 
@@ -384,11 +384,11 @@ export default function ProfileMenuPage() {
             <div className="flex items-center justify-between mb-12 px-1">
                 <div className="flex items-center gap-5">
                     <div className="w-20 h-20 rounded-[2rem] border-2 border-white/5 p-1 glass-premium shadow-2xl relative group">
-                        {user.avatarUrl ? (
+                        {user?.avatarUrl ? (
                             <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-[1.8rem]" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-slate-800 rounded-[1.8rem] text-3xl font-black text-primary">
-                                {user.name?.[0]?.toUpperCase() || 'U'}
+                            <div className="w-full h-full flex items-center justify-center font-black text-primary bg-primary/5">
+                                {user?.name?.[0]?.toUpperCase() || 'U'}
                             </div>
                         )}
                         <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-xl border-4 border-[#080809] flex items-center justify-center shadow-lg">
@@ -396,7 +396,7 @@ export default function ProfileMenuPage() {
                         </span>
                     </div>
                     <div>
-                        <h1 className="text-xl font-black tracking-tighter leading-tight uppercase italic">{user.name}</h1>
+                        <h1 className="text-xl font-black tracking-tighter leading-tight uppercase italic">{user?.name || 'Usuário'}</h1>
                         <p className="text-[9px] text-primary font-black uppercase tracking-[0.2em] mt-1 glow-blue">Membro Diamante</p>
                     </div>
                 </div>

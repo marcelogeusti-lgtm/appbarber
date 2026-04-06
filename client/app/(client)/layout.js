@@ -108,12 +108,12 @@ function ClientLayoutContent({ children }) {
                                             <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-primary">
-                                                {user.name?.[0].toUpperCase()}
+                                                {user?.name?.[0]?.toUpperCase()}
                                             </div>
                                         )}
                                     </div>
                                     <div className="hidden lg:flex items-center gap-2 pr-2">
-                                        <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">{user.name.split(' ')[0]}</span>
+                                        <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">{user?.name?.split(' ')[0]}</span>
                                         <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                                     </div>
                                 </button>
@@ -158,10 +158,11 @@ function ClientLayoutContent({ children }) {
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-95 overflow-hidden"
+                            className="w-[62px] h-[62px] rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 overflow-hidden bg-gradient-to-br from-[#7C3AED] to-[#9333EA] border-2 border-white/20 shadow-[0_0_15px_rgba(147,51,234,0.6),0_0_25px_rgba(147,51,234,0.4)] hover:shadow-[0_0_30px_#9333EA] hover:scale-110 z-20"
                         >
-                            <img src="/logos/logo_icon.png" alt="Search" className="w-13 h-13 object-contain opacity-90 hover:opacity-100 transition-opacity" />
+                            <img src="/logos/logo_icon.png" alt="Search" className="w-[70%] h-[70%] object-contain brightness-125 contrast-125" />
                         </Link>
+                        <div className="absolute -inset-2 bg-[#9333EA]/30 blur-2xl rounded-full -z-10 animate-pulse" />
                     </div>
 
                     {/* Notificações / Favoritos? User says structure: Início, Buscar, Agendamentos, Conta. */}
