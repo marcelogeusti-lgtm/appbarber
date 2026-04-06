@@ -154,15 +154,14 @@ function ClientLayoutContent({ children }) {
                         {pathname === '/agendamentos' && <div className="w-1 h-1 bg-primary rounded-full mt-1 glow-blue" />}
                     </Link>
 
-                    {/* FLOATING ACTION BUTTON: LOGO ICON (CLEAN & MINIMAL STYLE) */}
+                    {/* FLOATING ACTION BUTTON: SEARCH / NEXT LOGO (LARGER LOGO) */}
                     <div className="relative -top-6">
                         <Link
                             href="/search"
-                            className="w-[62px] h-[62px] rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 overflow-hidden bg-[#111111] border border-white/10 shadow-2xl hover:scale-110 z-20 group"
+                            className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] animate-pulse-glow transition-transform active:scale-95 overflow-hidden bg-gradient-to-br from-blue-600 to-blue-900 border-2 border-white/10 z-20"
                         >
-                            <img src="/logos/logo_icon.png" alt="Search" className="w-[65%] h-[65%] object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                            <img src="/logos/logo_icon.png" alt="Next" className="w-[80%] h-[80%] object-contain brightness-125" />
                         </Link>
-                        <div className="absolute -inset-1 bg-white/5 blur-xl rounded-full -z-10" />
                     </div>
 
                     {/* Notificações / Favoritos? User says structure: Início, Buscar, Agendamentos, Conta. */}
