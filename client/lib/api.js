@@ -14,9 +14,9 @@ const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-            // Point to the dedicated Vercel backend (Verified Active Project)
-            url = 'https://appbarber-api.vercel.app/api';
-            console.log('[DEBUG] getBaseUrl Dedicated Vercel:', url);
+            // Unified Deployment: Site and API on the same domain
+            url = '/api';
+            console.log('[DEBUG] getBaseUrl Unified:', url);
             return url;
         }
     }

@@ -1,0 +1,123 @@
+const cron = require('node-cron');
+const prisma = require('../../lib/prisma');
+const { addMinutes, subMinutes } = require('date-fns');
+const eventBus = require('../events/eventBus');
+
+const initScheduler = () => {
+    console.log('[Scheduler] Reminder Job initialized (Every 10 mins).');
+
+    // Run every 10 minutes
+    cron.schedule('*/10 * * * *', async () => {
+        console.log('[Scheduler] Checking for upcoming appointments...');
+
+        try {
+            const now = new Date();
+            // Look for appointments roughly 1 hour from now (50 to 70 mins window)
+            const startWindow = addMinutes(now, 50);
+            const endWindow = addMinutes(now, 70);
+
+            const appointments = await prisma.appointment.findMany({
+                where: {
+                    status: 'CONFIRMED',
+                    reminderSent: false,
+                    date: {
+                        gte: startWindow,
+                        lte: endWindow
+                    }
+                },
+                include: {
+                    client: true,
+                    barbershop: true,
+                    professional: true,
+                    service: true
+                }
+            });
+
+            if (appointments.length > 0) {
+                console.log(`[Scheduler] Found ${appointments.length} appointments to remind.`);
+
+                for (const app of appointments) {
+                    // Emit Event
+                    eventBus.emit('APPOINTMENT_REMINDER', app);
+
+                    // Mark as sent immediately to avoid duplicates in next run
+                    await prisma.appointment.update({
+                        where: { id: app.id },
+                        data: { reminderSent: true }
+                    });
+                }
+            } else {
+                console.log('[Scheduler] No appointments found for reminder.');
+            }
+
+        } catch (error) {
+            console.error('[Scheduler] Error processing reminders:', error);
+        }
+    });
+
+    // Run every minute for Abandoned Carts / Pending Payments Cleanup
+    cron.schedule('* * * * *', async () => {
+        console.log('[Scheduler] Checking for abandoned carts and expired payments...');
+        try {
+            const now = new Date();
+            const fiveMinsAgo = subMinutes(now, 5);
+            const sevenMinsAgo = subMinutes(now, 7);
+
+            // 1. Send Whatsapp Recovery Message (at exactly 5-6 mins ago)
+            const cartsToRecover = await prisma.appointment.findMany({
+                where: {
+                    status: 'PENDING_PAYMENT',
+                    createdAt: {
+                        lte: fiveMinsAgo,
+                        gt: sevenMinsAgo
+                    }
+                },
+                include: { client: true, barbershop: true, service: true, professional: true }
+            });
+
+            for (const app of cartsToRecover) {
+                const alreadySent = await prisma.communicationLog.findFirst({
+                    where: { appointmentId: app.id, type: 'ABANDONED_CART' }
+                });
+                if (!alreadySent) {
+                    console.log(`[Scheduler] Emitting Abandoned Cart for ${app.id}`);
+                    eventBus.emit('ABANDONED_CART', app);
+                }
+            }
+
+            // 2. Cancel Expired Payments (older than 7 mins)
+            const expiredCarts = await prisma.appointment.findMany({
+                where: {
+                    status: 'PENDING_PAYMENT',
+                    createdAt: { lte: sevenMinsAgo }
+                },
+                include: { client: true, barbershop: true, service: true, professional: true }
+            });
+
+            if (expiredCarts.length > 0) {
+                console.log(`[Scheduler] Cancelling ${expiredCarts.length} expired payments.`);
+                for (const app of expiredCarts) {
+                    const updatedApp = await prisma.appointment.update({
+                        where: { id: app.id },
+                        data: {
+                            status: 'CANCELLED',
+                            statusDetail: 'TIMEOUT'
+                        },
+                        include: { client: true, barbershop: true, service: true, professional: true }
+                    });
+                    
+                    // Fire update event with full included data for the listener
+                    eventBus.emit('APPOINTMENT_UPDATED', { 
+                        appointment: updatedApp, 
+                        oldStatus: 'PENDING_PAYMENT',
+                        reason: 'TIMEOUT'
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('[Scheduler] Error processing abandoned carts:', err);
+        }
+    });
+};
+
+module.exports = { initScheduler };

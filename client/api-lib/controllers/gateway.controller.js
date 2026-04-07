@@ -1,0 +1,187 @@
+const prisma = require('../lib/prisma');
+
+// Helper to mask secrets
+function maskCredentials(gateway, credentials) {
+    if (!credentials) return {};
+    const masked = { ...credentials };
+
+    // Mask common secret fields
+    const secretFields = ['apiKey', 'secretKey', 'accessToken', 'clientSecret'];
+
+    secretFields.forEach(field => {
+        if (masked[field] && masked[field].length > 4) {
+            masked[field] = `${masked[field].slice(0, 4)}...${masked[field].slice(-4)}`;
+        }
+    });
+
+    return masked;
+}
+
+exports.saveConfig = async (req, res) => {
+    try {
+        const { credentials, isActive } = req.body;
+        const gateway = req.body.gateway?.toUpperCase();
+        let barbershopId = req.user.barbershopId || req.user.barbershop?.id;
+
+        // Fallback: If not in token, look up from DB
+        if (!barbershopId) {
+            const user = await prisma.user.findUnique({
+                where: { id: req.user.id },
+                include: {
+                    ownedBarbershops: { select: { id: true } }
+                }
+            });
+            barbershopId = user?.ownedBarbershops?.[0]?.id;
+        }
+
+        if (!barbershopId) {
+            return res.status(400).json({ error: 'Barbershop ID context missing. Please ensure you are linked to a barbershop.' });
+        }
+
+        if (!gateway || !credentials) {
+            return res.status(400).json({ error: 'Gateway and credentials are required' });
+        }
+
+        // --- MANDATORY VALIDATION FOR ACTIVATION ---
+        if (isActive) {
+            // Check if we have credentials in this request OR if they already exist in DB
+            const hasPublicKey = credentials.publicKey && (credentials.publicKey.length > 0);
+            const hasAccessToken = credentials.accessToken && (credentials.accessToken.length > 0);
+
+            // Fetch existing config to see if we already have these keys (masked or encrypted)
+            const existingConfig = await prisma.gatewayConfig.findUnique({
+                where: { barbershopId_gateway: { barbershopId, gateway } }
+            });
+
+            const dbHasPublicKey = existingConfig?.credentials?.publicKey;
+            const dbHasAccessToken = existingConfig?.credentials?.accessToken;
+
+            if (!(hasPublicKey || dbHasPublicKey) || !(hasAccessToken || dbHasAccessToken)) {
+                return res.status(400).json({ 
+                    error: `Para ativar o ${gateway}, é obrigatório configurar a Public Key e o Access Token.` 
+                });
+            }
+        }
+
+        // --- MANDATORY VALIDATION FOR ACTIVATION ---
+        if (isActive) {
+            if (!credentials.publicKey || !credentials.accessToken) {
+                return res.status(400).json({
+                    error: `Para ativar o ${gateway}, é obrigatório preencher o Public Key e o Access Token.`
+                });
+            }
+            // Check if they are still masked while activating
+            if (credentials.publicKey.includes('...') || credentials.accessToken.includes('...')) {
+                // If it's already in DB, it's allowed (masked as returned by GET), 
+                // but the controller logic below handles merging the old encrypted value.
+                // However, we must ensure we HAVE them in DB if we are activating now.
+            }
+        }
+
+        // Validate structure based on gateway? (For now, trust frontend/schema)
+
+        // Fetch existing config to check for masked values
+        const existingConfig = await prisma.gatewayConfig.findUnique({
+            where: {
+                barbershopId_gateway: {
+                    barbershopId,
+                    gateway
+                }
+            }
+        });
+
+        let finalCredentials = { ...credentials };
+
+        if (existingConfig && existingConfig.credentials) {
+            const oldCreds = existingConfig.credentials;
+            // Merge: If current field is masked (e.g. contains '...'), use the old value
+            Object.keys(credentials).forEach(key => {
+                if (typeof credentials[key] === 'string' && credentials[key].includes('...')) {
+                    finalCredentials[key] = oldCreds[key];
+                }
+            });
+        }
+
+        // Encrypt Sensitive Fields if they are new (not merged from old masked values)
+        const crypto = require('../utils/crypto');
+        const sensitiveFields = ['secretKey', 'apiKey', 'accessToken', 'clientSecret'];
+
+        sensitiveFields.forEach(field => {
+            const val = finalCredentials[field];
+            if (val && typeof val === 'string') {
+                // Check if it's NOT masked and NOT already encrypted
+                const isMasked = val.includes('...');
+                const isEncrypted = /^[0-9a-f]{32}:[0-9a-f]+$/.test(val);
+
+                if (!isMasked && !isEncrypted) {
+                    // It's a new plain text value. Encrypt it.
+                    finalCredentials[field] = crypto.encrypt(val);
+                }
+            }
+        });
+
+        if (isActive) {
+            // Deactivate all other gateways for this barbershop in a transaction for safety
+            await prisma.gatewayConfig.updateMany({
+                where: {
+                    barbershopId,
+                    gateway: { not: gateway.toUpperCase() }
+                },
+                data: { isActive: false }
+            });
+        }
+
+        const config = await prisma.gatewayConfig.upsert({
+            where: {
+                barbershopId_gateway: {
+                    barbershopId,
+                    gateway
+                }
+            },
+            update: {
+                credentials: finalCredentials,
+                isActive: !!isActive, // Ensure boolean
+                updatedAt: new Date()
+            },
+            create: {
+                barbershopId,
+                gateway,
+                credentials: finalCredentials,
+                isActive: !!isActive
+            }
+        });
+
+        return res.json({
+            message: 'Config saved',
+            config: {
+                ...config,
+                credentials: maskCredentials(gateway, config.credentials)
+            }
+        });
+
+    } catch (error) {
+        console.error('Save Gateway Config Error:', error);
+        return res.status(500).json({ error: 'Failed to save configuration' });
+    }
+};
+
+exports.getConfigs = async (req, res) => {
+    try {
+        const barbershopId = req.user.barbershopId || req.user.barbershop?.id;
+
+        const configs = await prisma.gatewayConfig.findMany({
+            where: { barbershopId }
+        });
+
+        const maskedConfigs = configs.map(cfg => ({
+            ...cfg,
+            credentials: maskCredentials(cfg.gateway, cfg.credentials)
+        }));
+
+        return res.json(maskedConfigs);
+
+    } catch (error) {
+        console.error('Get Gateway Config Error:', error);
+        return res.status(500).json({ error: 'Failed to fetch configurations' });
+    }
+};

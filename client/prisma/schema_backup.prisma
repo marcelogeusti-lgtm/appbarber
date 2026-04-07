@@ -1,0 +1,602 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Enums
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  BARBER
+  BARBER_CONSULTA
+  CLIENT
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  FACEBOOK
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  ONLINE
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  SUBSCRIPTION
+}
+
+enum CommissionType {
+  SERVICE
+  PRODUCT
+  SUBSCRIPTION
+  EXTRA
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+enum OrderStatus {
+  OPEN
+  CLOSED
+  PAID
+  CANCELLED
+}
+
+// Models
+
+model AuthUser {
+  id        String       @id @default(uuid())
+  email     String       @unique
+  password  String?
+  provider  AuthProvider @default(EMAIL)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  client    Client?
+  user      User?    // Professional User
+}
+
+model Client {
+  id          String   @id @default(uuid())
+  name        String
+  phone       String?  @unique
+  
+  authUserId  String?   @unique
+  authUser    AuthUser? @relation(fields: [authUserId], references: [id])
+  
+  avatarUrl   String?
+  birthDate   DateTime?
+  gender      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+  orders       Order[]
+  packages     ClientPackage[]
+  noShowRecords NoShowRecord[]
+  
+  // Keep preferences/notifications?
+  notifications Notification[]
+  theme         String @default("dark")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  nickname  String?
+  email     String?  @unique // Keep for legacy/lookup, but AuthUser handles login
+  // password removed (moved to AuthUser) but kept optional for legacy during migration if needed, or just rely on AuthUser
+  password  String? 
+  phone     String?  @unique
+  landline  String?
+  cpf       String?  @unique
+  cnpj      String?  @unique
+  rg        String?
+  gender    String?
+  birthday  DateTime?
+  role      Role     @default(BARBER) // Primarily BARBER/ADMIN now
+  avatarUrl String?
+  active    Boolean  @default(true)
+  notes     String?  @db.Text
+  tempPasswordExpires DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Link to AuthUser (Optional during migration)
+  authUserId String?   @unique
+  authUser   AuthUser? @relation(fields: [authUserId], references: [id])
+
+  // Relations
+  ownedBarbershops Barbershop[] @relation("BarbershopOwner")
+  
+  // If user is staff (Barber/Admin)
+  workedBarbershopId String?
+  workedBarbershop   Barbershop? @relation("BarbershopStaff", fields: [workedBarbershopId], references: [id])
+  
+  // If user is a professional (has specific profile)
+  professionalProfile Professional?
+
+  // Pro Specific
+  proAppointments    Appointment[] @relation("ProAppointments")
+  commissions        Commission[]
+  waitlistEntries    Waitlist[] @relation("ProWaitlist")
+  professionalOrders Order[] @relation("ProfessionalOrders")
+  commissionOverrides ProfessionalServiceCommission[]
+  
+  // Notifications (Pro)
+  notifications Notification[]
+  theme         String @default("dark")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  
+  // Generic User link (Pro)
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id])
+  
+  // Client Link
+  clientId  String?
+  client    Client?   @relation(fields: [clientId], references: [id])
+
+  title     String
+  message   String
+  type      String   // appointment, payment, order, system
+  isRead    Boolean  @default(false)
+  
+  appointmentId String?
+  orderId       String?
+
+  createdAt DateTime @default(now())
+}
+
+model Barbershop {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  address   String?
+  phone     String?
+  logoUrl   String?
+  bannerUrls String[] @default([])
+  webhookUrl String?
+
+  // Geolocalização
+  latitude  Float?
+  longitude Float?
+  
+  // No-Show Settings
+  noShowEnabled Boolean @default(false)
+  noShowPercent Float   @default(0)
+  noShowText    String?
+  
+  subscriptionStatus String @default("ACTIVE") // ACTIVE, OVERDUE, CANCELED
+  saasPlan       String @default("BASIC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId   String
+  owner     User     @relation("BarbershopOwner", fields: [ownerId], references: [id])
+
+  staff     User[]   @relation("BarbershopStaff")
+  services  Service[]
+  products  Product[]
+  appointments Appointment[]
+  transactions Transaction[]
+  waitlist     Waitlist[]
+  packages     BarbershopPackage[]
+  commissions  Commission[]
+  orders       Order[]
+  noShowRecords NoShowRecord[]
+  webhooks     Webhook[]
+
+}
+
+enum NoShowStatus {
+  PENDING
+  CHARGED
+  WAIVED
+}
+
+model NoShowRecord {
+  id            String   @id @default(uuid())
+  
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id])
+  
+  appointmentId String   @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  
+  barbershopId  String
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  percentage    Float
+  baseValue     Float
+  feeValue      Float
+  
+  status        NoShowStatus @default(PENDING)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Professional {
+  id        String @id @default(uuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id])
+  bio       String?
+  position  String? // Cargo (Ex: Barbeiro Sênior, Auxiliar)
+  
+  // Visibility
+  showInApp     Boolean @default(true)
+  showPublicly  Boolean @default(true)
+  
+  // Appointment settings
+  appointmentInterval Int @default(30)
+  
+  // Address
+  zipCode      String?
+  street       String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+  country      String? @default("Brasil")
+
+  commissionPercent Float? @default(0)
+
+  schedules Schedule[]
+  services  Service[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  deletedAt DateTime?
+}
+
+enum CommissionCalculationType {
+  PERCENTAGE
+  FIXED
+}
+
+model ProfessionalServiceCommission {
+  id             String @id @default(uuid())
+  serviceId      String
+  service        Service @relation(fields: [serviceId], references: [id])
+  professionalId String
+  professional   User    @relation(fields: [professionalId], references: [id])
+  
+  type           CommissionCalculationType
+  value          Decimal @db.Decimal(10, 2)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([serviceId, professionalId])
+}
+
+model Service {
+  id           String @id @default(uuid())
+  name         String
+  description  String?
+  price        Decimal  @db.Decimal(10, 2)
+  duration     Int      // Minutes
+  active       Boolean  @default(true)
+  
+  // Commission Config
+  commissionType  CommissionCalculationType @default(PERCENTAGE)
+  commissionValue Decimal                   @default(0) @db.Decimal(10, 2)
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  appointments Appointment[]
+  waitlist     Waitlist[]
+  orderItems   OrderItem[]
+  packages     BarbershopPackage[]
+  
+  commissionOverrides ProfessionalServiceCommission[]
+  professionals       Professional[]
+}
+
+model Schedule {
+  id             String @id @default(uuid())
+  dayOfWeek      Int    // 0=Sunday, 1=Monday...
+  startTime      String // "09:00"
+  endTime        String // "18:00"
+  breakStart     String? // "12:00"
+  breakEnd       String? // "13:00"
+  isOff          Boolean @default(false)
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id])
+}
+
+model Appointment {
+  id        String   @id @default(uuid())
+  date      DateTime
+  status    AppointmentStatus @default(PENDING)
+  notes     String?
+  isSqueezeIn Boolean @default(false)
+  
+  reminderMinutes Int? // Minutes before appointment to send reminder
+  reminderSent    Boolean @default(false)
+  
+  // Linked to Client now
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+
+  professionalId String
+  professional   User     @relation("ProAppointments", fields: [professionalId], references: [id])
+
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id])
+
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod?
+
+  transactions Transaction[]
+  commissions  Commission[]
+  order        Order?
+  noShowRecord NoShowRecord?
+  packageUsage  PackageUsage[]
+
+  @@index([professionalId])
+  @@index([date])
+  @@index([status])
+  @@index([professionalId, date, status])
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  costPrice   Decimal? @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  active      Boolean  @default(true)
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  orderItems   OrderItem[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Transaction {
+  id           String   @id @default(uuid())
+  description  String
+  amount       Decimal  @db.Decimal(10, 2)
+  type         TransactionType
+  category     String?  // Ex: Aluguel, Produto, Marketing
+  date         DateTime @default(now())
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Waitlist {
+  id           String   @id @default(uuid())
+  clientName   String
+  clientPhone  String
+  date         DateTime
+  notes        String?
+  status       String   @default("WAITING") // WAITING, NOTIFIED, COMPLETED, CANCELLED
+
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  serviceId    String
+  service      Service    @relation(fields: [serviceId], references: [id])
+
+  professionalId String?
+  professional   User?      @relation("ProWaitlist", fields: [professionalId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+// --- Package / Loyalty Module ---
+
+model BarbershopPackage {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  price         Decimal  @db.Decimal(10, 2)
+  
+  // Rules
+  validityDays  Int      // How many days it lasts
+  services      Service[] // Services included in this package
+  
+  // Credits
+  totalQuantity Int      // Total credits (e.g., 5 cuts)
+  
+  active        Boolean  @default(true)
+  
+  barbershopId  String
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  clientPackages ClientPackage[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ClientPackage {
+  id              String   @id @default(uuid())
+  
+  clientId        String
+  client          Client     @relation(fields: [clientId], references: [id])
+  
+  packageId       String
+  package         BarbershopPackage @relation(fields: [packageId], references: [id])
+  
+  startDate       DateTime @default(now())
+  endDate         DateTime
+  
+  totalQuantity   Int
+  remainingQuantity Int
+  
+  status          String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  usageHistory    PackageUsage[]
+}
+
+model PackageUsage {
+  id              String   @id @default(uuid())
+  
+  clientPackageId String
+  clientPackage   ClientPackage @relation(fields: [clientPackageId], references: [id])
+  
+  appointmentId   String
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
+  
+  usedAt          DateTime @default(now())
+}
+
+model Commission {
+  id              String   @id @default(uuid())
+  
+  barberId        String
+  barber          User     @relation(fields: [barberId], references: [id])
+  
+  barbershopId    String
+  barbershop      Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  appointmentId   String?
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
+  
+  type            CommissionType
+  description     String?
+  amount          Float
+  percentage      Float?
+  status          CommissionStatus @default(PENDING)
+  
+  paidAt          DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  
+  appointmentId   String   @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  
+  barbershopId    String
+  barbershop      Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+  
+  professionalId  String
+  professional    User     @relation("ProfessionalOrders", fields: [professionalId], references: [id])
+  
+  status          OrderStatus @default(OPEN)
+  
+  subtotal        Float    @default(0)
+  discount        Float    @default(0)
+  total           Float    @default(0)
+  
+  paymentMethod   PaymentMethod?
+  paymentStatus   PaymentStatus @default(PENDING)
+  paidAt          DateTime?
+  
+  notes           String?
+  
+  items           OrderItem[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  type        String   // "SERVICE" or "PRODUCT"
+  
+  serviceId   String?
+  service     Service? @relation(fields: [serviceId], references: [id])
+  
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  
+  quantity    Int      @default(1)
+  unitPrice   Float
+  total       Float
+  
+  createdAt   DateTime @default(now())
+}
+
+model Webhook {
+  id           String   @id @default(uuid())
+  url          String
+  secret       String?
+  events       String[] // e.g. ["payment.approved", "whatsapp.received"]
+  active       Boolean  @default(true)
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CommunicationLog {
+  id           String   @id @default(uuid())
+  barbershopId String
+  clientId     String
+  channel      String?
+  direction    String?
+  type         String?
+  content      String?
+  status       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

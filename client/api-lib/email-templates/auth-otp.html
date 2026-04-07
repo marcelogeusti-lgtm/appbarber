@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código de Verificação - Next App</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, helvetica, arial, sans-serif;
+            background-color: #0f172a;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #1e293b;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .footer {
+            padding: 30px;
+            background-color: #111827;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .otp-box {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: 10px;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px dashed rgba(59, 130, 246, 0.3);
+            padding: 20px;
+            border-radius: 16px;
+            margin: 30px 0;
+            display: inline-block;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p {
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .alert {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{logoUrl}}" alt="Next App" height="40"
+                style="display: block; margin: 0 auto; max-height: 40px; width: auto;">
+        </div>
+        <div class="content">
+            <h2 style="margin-top: 0; color: #f8fafc;">Verificação de Segurança</h2>
+            <p>Você solicitou um código para acessar sua conta ou realizar uma alteração de segurança.</p>
+
+            <div class="otp-box">{{otp}}</div>
+
+            <p>Este código é válido por <strong>10 minutos</strong> e deve ser usado apenas uma vez.</p>
+
+            <div class="alert">
+                <strong>Atenção:</strong> Se você não solicitou este código, ignore este e-mail. Alguém pode ter
+                digitado seu e-mail por engano. Sua conta continua segura.
+            </div>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 Next App Cloud. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+
+</html>
