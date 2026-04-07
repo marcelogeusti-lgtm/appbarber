@@ -4,8 +4,6 @@ const { protect, authorize } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-router.get('/test', (req, res) => res.json({ status: 'Nfe Routes Active', v: 3 }));
-
 // List all NFes for a shop
 router.get('/shop/:barbershopId', protect, authorize('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'), NfeController.list);
 
