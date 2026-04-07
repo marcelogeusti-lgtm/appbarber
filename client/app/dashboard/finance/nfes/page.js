@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { 
     ScrollText, Search, Filter, Download, AlertCircle, 
-    ArrowLeft, Plus, X, MessageSquare, Mail, Play, Loader2, Info
+    ArrowLeft, Plus, X, MessageSquare, Mail, Play, Loader2, Info,
+    CheckCircle2, Clock, RefreshCcw, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../../../lib/api';
