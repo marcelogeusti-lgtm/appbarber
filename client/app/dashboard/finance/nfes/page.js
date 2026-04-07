@@ -530,6 +530,3 @@ export default function NfeListingPage() {
         </div>
     );
 }
-        </div>
-    );
-}
