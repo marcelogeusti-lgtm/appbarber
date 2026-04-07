@@ -10,7 +10,8 @@ import {
     PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3,
     PlayCircle
 } from 'lucide-react';
-import { safeSetItem } from '../lib/storage';
+import { useQueryClient } from '@tanstack/react-query';
+import api from '../lib/api';
 
 export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, onClose }) {
     const pathname = usePathname();
@@ -33,10 +34,39 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
 
     const isActive = (path) => pathname === path;
 
+    const queryClient = useQueryClient();
+
+    const prefetchData = (href) => {
+        if (!barbershop?.id) return;
+
+        if (href === '/dashboard/finance') {
+            queryClient.prefetchQuery({
+                queryKey: ['finance-stats', barbershop.id, 'month'],
+                queryFn: async () => {
+                    const start = new Date();
+                    start.setMonth(start.getMonth() - 1);
+                    const res = await api.get(`/finance/stats?barbershopId=${barbershop.id}&startDate=${start.toISOString()}&endDate=${new Date().toISOString()}`);
+                    return res.data;
+                }
+            });
+        }
+        if (href === '/dashboard/finance/nfes') {
+            queryClient.prefetchQuery({
+                queryKey: ['nfes', barbershop.id, 'ALL'],
+                queryFn: async () => {
+                    const res = await api.get(`/nfes/shop/${barbershop.id}`);
+                    return res.data;
+                }
+            });
+        }
+        // Add more pre-fetches for other key tabs if needed
+    };
+
     const MenuItem = ({ href, icon: Icon, label, badge }) => (
         <Link
             href={href}
             onClick={() => onClose && onClose()} // Close on mobile click
+            onMouseEnter={() => prefetchData(href)}
             className={`group flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 overflow-hidden whitespace-nowrap ${isActive(href)
                 ? 'bg-primary/5 text-primary'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'

@@ -371,6 +371,8 @@ model Barbershop {
   reviews               Review[]
   notificationTemplates NotificationTemplate[]
   nfes                  Nfe[]
+
+  fiscalConfig          Json?     @map("fiscal_config") // Stores NFe tokens, env, etc.
 }
 
 
@@ -553,6 +555,7 @@ model Appointment {
   review Review?
   nfe    Nfe?
 
+  @@index([barbershopId])
   @@index([professionalId])
   @@index([date])
   @@index([status])
@@ -617,6 +620,9 @@ model Transaction {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([barbershopId])
+  @@index([date])
 }
 
 enum CashShiftStatus {
@@ -799,6 +805,9 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   nfe       Nfe?
+
+  @@index([barbershopId])
+  @@index([status])
 }
 
 
@@ -1204,5 +1213,6 @@ model Nfe {
   @@index([clientId])
   @@index([barbershopId])
   @@index([status])
+  @@index([barbershopId, status])
 }
 

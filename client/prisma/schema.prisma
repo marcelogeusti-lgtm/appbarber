@@ -138,6 +138,9 @@ model Client {
   addresses ClientAddress[]
   payments  Payment[]
   nfes      Nfe[]
+
+  @@index([active])
+}
 }
 
 
@@ -372,6 +375,12 @@ model Barbershop {
   notificationTemplates NotificationTemplate[]
   nfes                  Nfe[]
   favoriteBarbershops   FavoriteBarbershop[]
+  
+  // Fiscal Config (SaaS Settings)
+  fiscalConfig          Json? // { token: string, environment: 'sandbox'|'production', etc }
+
+  @@index([ownerId])
+  @@index([slug])
 }
 
 
@@ -800,6 +809,10 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   nfe       Nfe?
+
+  @@index([barbershopId])
+  @@index([clientId])
+  @@index([status])
 }
 
 
