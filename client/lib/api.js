@@ -14,9 +14,9 @@ const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-            // Point to the relative /api on the same server (Unified Architecture)
+            // Unified Deployment: Site and API on the same domain
             url = '/api';
-            console.log('[DEBUG] getBaseUrl Unified:', url);
+            console.log('[DEBUG] getBaseUrl Federated Unified:', url);
             return url;
         }
     }
