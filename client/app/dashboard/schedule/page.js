@@ -289,12 +289,13 @@ export default function SchedulePage() {
         }
     };
 
-    const handleCompleteAppointment = async (appointmentId, paymentMethod) => {
+    const handleCompleteAppointment = async (appointmentId, paymentMethod, options = {}) => {
         try {
             setLoading(true);
-            await api.patch(`/appointments/${appointmentId}`, {
+            await api.patch(`/appointments/${appointmentId}/status`, {
                 status: 'COMPLETED',
-                paymentMethod: paymentMethod // Optional, only if passed (Local Payment)
+                paymentMethod: paymentMethod, // Optional, only if passed (Local Payment)
+                emitNfe: options.emitNfe
             });
 
             // Refresh

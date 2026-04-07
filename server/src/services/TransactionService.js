@@ -161,6 +161,32 @@ class TransactionService {
                 });
             }
 
+            // 7. EMIT NFE (IF REQUESTED)
+            if (params.emitNfe) {
+                // Fetch the clientId if not available in current closure
+                let finalClientId = null;
+                if (appointmentId) {
+                    const apt = await tx.appointment.findUnique({ where: { id: appointmentId }, select: { clientId: true } });
+                    finalClientId = apt?.clientId;
+                } else if (orderId) {
+                    const ord = await tx.order.findUnique({ where: { id: orderId }, select: { clientId: true } });
+                    finalClientId = ord?.clientId;
+                }
+
+                if (finalClientId) {
+                    const nfeService = require('./NfeService');
+                    // We don't necessarily 'await' the full process if we want fast response, 
+                    // but for MOCK simplicity we wait here.
+                    nfeService.emitNfe({
+                        barbershopId,
+                        clientId: finalClientId,
+                        appointmentId,
+                        orderId,
+                        amount
+                    }).catch(e => console.error('[TransactionService] Background NFe Error:', e));
+                }
+            }
+
             return transaction;
 
         } catch (error) {

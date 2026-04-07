@@ -125,6 +125,9 @@ model Client {
   notifications Notification[]
   theme         String         @default("dark")
   active        Boolean        @default(true)
+  cpf           String?        @unique
+  cnpj          String?        @unique
+  requiresNfe   Boolean        @default(false)
 
   // Payment Gateway Customers (For Reusability)
   gatewayCustomers GatewayCustomer[]
@@ -132,10 +135,11 @@ model Client {
   reviews   Review[]
   favorites FavoriteBarbershop[]
 
-  points    Int             @default(0)
   addresses ClientAddress[]
   payments  Payment[]
+  nfes      Nfe[]
 }
+
 
 // Phase 16: Credential Field Standardization [x]
 // - [x] Add `Client ID` and `Client Secret` fields to `PaymentSettings.js`
@@ -364,10 +368,11 @@ model Barbershop {
   auditLogs    AuditLog[]
 
   loyaltyProgram        LoyaltyProgram?
-  favoritedBy           FavoriteBarbershop[]
   reviews               Review[]
   notificationTemplates NotificationTemplate[]
+  nfes                  Nfe[]
 }
+
 
 model GatewayConfig {
   id           String     @id @default(uuid())
@@ -546,6 +551,7 @@ model Appointment {
   clientSubscription   ClientSubscription? @relation(fields: [clientSubscriptionId], references: [id])
 
   review Review?
+  nfe    Nfe?
 
   @@index([professionalId])
   @@index([date])
@@ -792,7 +798,9 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  nfe       Nfe?
 }
+
 
 model OrderItem {
   id String @id @default(uuid())
@@ -1159,3 +1167,42 @@ model Tutorial {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+enum NfeStatus {
+  PROCESSING
+  EMITTED
+  ERROR
+  CANCELLED
+}
+
+model Nfe {
+  id        String   @id @default(uuid())
+  number    String?  // Invoice number from provider
+  protocol  String?  // Protocol from Gov/Provider
+  status    NfeStatus @default(PROCESSING)
+  amount    Decimal  @db.Decimal(10, 2)
+  pdfUrl    String?  @db.Text
+  xmlUrl    String?  @db.Text
+  errorMsg  String?  @db.Text
+  
+  // Relations
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  
+  appointmentId String? @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  
+  orderId String? @unique
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([barbershopId])
+  @@index([status])
+}
+

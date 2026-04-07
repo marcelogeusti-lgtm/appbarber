@@ -179,6 +179,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             <MenuItem href="/dashboard/finance/dashboard" icon={PieChart} label="Dashboard" />
                             <MenuItem href="/dashboard/finance" icon={Wallet} label="Movimentações" />
                             <MenuItem href="/dashboard/reports/commissions" icon={DollarSign} label="Comissões" />
+                            <MenuItem href="/dashboard/finance/nfes" icon={ScrollText} label="Notas Fiscais" />
                             <MenuItem href="/dashboard/finance/integrations" icon={CreditCard} label="Integrações" />
                         </MenuGroup>
                     )}

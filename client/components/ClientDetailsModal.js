@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, User, Calendar, DollarSign, Award, Clock, Phone, Mail, MapPin, Package } from 'lucide-react';
+import { X, User, Calendar, DollarSign, Award, Clock, Phone, Mail, MapPin, Package, ScrollText, Download, RefreshCcw } from 'lucide-react';
 import api from '../lib/api';
 
 export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) {
@@ -54,6 +54,12 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                 className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'loyalty' ? 'border-primary text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
             >
                 Fidelidade
+            </button>
+            <button
+                onClick={() => setActiveTab('fiscal')}
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'fiscal' ? 'border-primary text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+            >
+                Fiscal
             </button>
         </div>
     );
@@ -185,6 +191,47 @@ export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) 
                                         <div className="text-center py-8 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
                                             <Package className="w-8 h-8 text-slate-600 mx-auto mb-2" />
                                             <p className="text-sm text-slate-500">Nenhuma assinatura ativa.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'fiscal' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Notas Fiscais Emitidas</h3>
+                                    {clientData.nfes && clientData.nfes.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {clientData.nfes.map(nfe => (
+                                                <div key={nfe.id} className="bg-slate-800/30 p-3 rounded-xl border border-slate-800 flex items-center justify-between group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${nfe.status === 'EMITTED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-700 text-slate-400'}`}>
+                                                            <ScrollText className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-white">{formatCurrency(nfe.amount)}</p>
+                                                            <p className="text-[10px] text-slate-500 uppercase font-black">{formatDate(nfe.createdAt)} • #{nfe.number || '---'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border ${
+                                                            nfe.status === 'EMITTED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                                                            nfe.status === 'ERROR' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-slate-700 text-slate-400 border-slate-600'
+                                                        }`}>
+                                                            {nfe.status === 'EMITTED' ? 'Emitida' : nfe.status === 'ERROR' ? 'Erro' : 'Processando'}
+                                                        </span>
+                                                        {nfe.status === 'EMITTED' && nfe.pdfUrl && (
+                                                            <a href={nfe.pdfUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-slate-700 hover:bg-primary/20 text-slate-400 hover:text-primary rounded-lg transition-all">
+                                                                <Download className="w-4 h-4" />
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
+                                            <ScrollText className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                                            <p className="text-sm text-slate-500">Nenhuma nota fiscal emitida.</p>
                                         </div>
                                     )}
                                 </div>

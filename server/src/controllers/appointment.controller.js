@@ -11,6 +11,7 @@ const whatsappNotifier = require('../services/notificationService/whatsappNotifi
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } = require('date-fns-tz');
 const FeatureFlagService = require('../services/FeatureFlagService');
+const NfeService = require('../services/NfeService');
 const TIMEZONE = 'America/Sao_Paulo';
 
 const generateToken = (user) => {
@@ -709,7 +710,7 @@ exports.getAppointmentById = async (req, res) => {
 exports.updateAppointmentStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body; // CONFIRMED, COMPLETED, CANCELLED
+        const { status, emitNfe } = req.body; // CONFIRMED, COMPLETED, CANCELLED
 
         // 1. Fetch current appointment Check Security
         const curApp = await prisma.appointment.findUnique({
@@ -830,6 +831,24 @@ exports.updateAppointmentStatus = async (req, res) => {
                             where: { id: appointment.clientId },
                             data: { points: { increment: pointsToGain } }
                         });
+                    }
+                }
+
+                // --- NFE ISSUANCE ---
+                if (emitNfe && appointment.clientId) {
+                    try {
+                        const amount = Number(appointment.order?.total || appointment.service.price);
+                        
+                        // Fire and forget (don't block the client waiting for API completion)
+                        NfeService.emitNfe({
+                            barbershopId: appointment.barbershopId,
+                            appointmentId: appointment.id,
+                            orderId: appointment.order?.id,
+                            clientId: appointment.clientId,
+                            amount: amount
+                        }).catch(e => console.error('[NfeService.emitNfe] Background error:', e));
+                    } catch (nfeErr) {
+                        console.error('[NfeQueue] Could not trigger Nfe emission:', nfeErr);
                     }
                 }
 

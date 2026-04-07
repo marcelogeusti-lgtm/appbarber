@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar, User, Scissors, Clock, FileText, Pencil, CheckCircle, DollarSign, CreditCard, Zap } from 'lucide-react';
+import { X, Calendar, User, Scissors, Clock, FileText, Pencil, CheckCircle, DollarSign, CreditCard, Zap, ScrollText } from 'lucide-react';
 import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
@@ -18,14 +18,18 @@ export default function AppointmentDetailsModal({
 }) {
     const { user } = useClientAuth();
     const [showPaymentSelector, setShowPaymentSelector] = useState(false);
-    const [isCancelling, setIsCancelling] = useState(false);
+    const [emitNfe, setEmitNfe] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     
     const isProfessional = user?.role !== 'CLIENT';
 
     useEffect(() => {
         setMounted(true);
-        if (isOpen) setShowPaymentSelector(false);
+        if (isOpen) {
+            setShowPaymentSelector(false);
+            setEmitNfe(appointment?.client?.requiresNfe || false);
+        }
     }, [isOpen, appointment]);
 
     const handleFinishClick = () => {
@@ -39,8 +43,7 @@ export default function AppointmentDetailsModal({
     };
 
     const handlePaymentSelect = (method) => {
-        // Here we could implement more complex logic like entering amount, but for now strict strict to just method selection as requested for flow
-        onComplete(appointment.id, method);
+        onComplete(appointment.id, method, { emitNfe });
     };
 
     const handleCancel = async () => {
@@ -120,7 +123,14 @@ export default function AppointmentDetailsModal({
                             <div>
                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cliente</p>
                                 <p className="text-white font-bold">{appointment.client?.name || 'Cliente não identificado'}</p>
-                                <p className="text-xs text-slate-400">{appointment.client?.phone}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <p className="text-xs text-slate-400">{appointment.client?.phone}</p>
+                                    {appointment.client?.requiresNfe && (
+                                        <span className="flex items-center gap-1 text-[8px] font-black uppercase text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20">
+                                            <ScrollText className="w-2.5 h-2.5" /> Exige NFe
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -190,6 +200,25 @@ export default function AppointmentDetailsModal({
                                         <div className="flex justify-between items-center mb-2">
                                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Selecione o Pagamento</p>
                                             <button onClick={() => setShowPaymentSelector(false)} className="text-[10px] text-red-400 hover:text-red-300 uppercase font-black">Cancelar</button>
+                                        </div>
+
+                                        {/* NFe Toggle */}
+                                        <div 
+                                            onClick={() => setEmitNfe(!emitNfe)}
+                                            className={`flex items-center justify-between p-3 rounded-xl border border-dashed cursor-pointer transition-all ${emitNfe ? 'border-primary/50 bg-primary/5' : 'border-slate-800 hover:bg-slate-800/50'}`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg ${emitNfe ? 'bg-primary/20 text-primary' : 'bg-slate-800 text-slate-400'}`}>
+                                                    <ScrollText className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-white uppercase tracking-tighter leading-none mb-1">Emitir Nota Fiscal</p>
+                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Automatizada via E-mail</p>
+                                                </div>
+                                            </div>
+                                            <div className={`w-10 h-5 rounded-full relative transition-colors ${emitNfe ? 'bg-primary' : 'bg-slate-700'}`}>
+                                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${emitNfe ? 'left-6' : 'left-1'}`} />
+                                            </div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2">
                                             <button onClick={() => handlePaymentSelect('CASH')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-primary transition-colors">

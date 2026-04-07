@@ -25,6 +25,7 @@ export default function OrderDetailsPage() {
     const [discountValue, setDiscountValue] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState('');
     const [processing, setProcessing] = useState(false);
+    const [emitNfe, setEmitNfe] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -37,6 +38,7 @@ export default function OrderDetailsPage() {
         try {
             const res = await api.get(`/orders/${id}`);
             setOrder(res.data);
+            if (res.data?.client?.requiresNfe) setEmitNfe(true);
             setLoading(false);
         } catch (err) {
             console.error(err);
@@ -125,7 +127,8 @@ export default function OrderDetailsPage() {
         try {
             await api.post(`/orders/${id}/pay`, {
                 paymentMethod: isAutomatic ? 'PIX' : selectedMethod,
-                discount: order.discount || 0
+                discount: order.discount || 0,
+                emitNfe
             });
 
             // Refresh order
@@ -479,6 +482,25 @@ export default function OrderDetailsPage() {
                                     )}
                                 </div>
                             )}
+
+                            {/* NFe Toggle */}
+                            <div 
+                                onClick={() => setEmitNfe(!emitNfe)}
+                                className={`mb-6 flex items-center justify-between p-3 rounded-xl border border-dashed cursor-pointer transition-all ${emitNfe ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-lg ${emitNfe ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                        <Receipt className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-foreground uppercase tracking-tighter leading-none mb-1">Emitir Nota Fiscal</p>
+                                        <p className="text-[9px] text-muted-foreground uppercase font-bold">Automatizada via E-mail</p>
+                                    </div>
+                                </div>
+                                <div className={`w-10 h-5 rounded-full relative transition-colors ${emitNfe ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
+                                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${emitNfe ? 'left-6' : 'left-1'}`} />
+                                </div>
+                            </div>
 
                             <button
                                 onClick={() => handleConfirmPayment(false)}
