@@ -33,8 +33,26 @@ app.get(['/', '/api'], (req, res) => {
         message: 'AppBarber Cloud API is running (Unified)',
         version: '1.0.0',
         timestamp: new Date(),
-        v: 2
+        v: 3
     });
+});
+
+// Diagnostic
+app.get('/api/diag', async (req, res) => {
+    try {
+        const prisma = require('./lib/prisma');
+        const dbConnected = await prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
+        
+        res.json({
+            status: 'Diagnostic Info',
+            cwd: process.cwd(),
+            dbConnected,
+            envKeys: Object.keys(process.env).filter(k => !k.includes('SESSION') && !k.includes('SECRET')),
+            nodeVersion: process.version
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Routes
