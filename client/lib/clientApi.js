@@ -7,11 +7,11 @@ const getBaseUrl = () => {
         return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') + '/api';
     }
 
-    // Priority 2: Runtime detection (Vercel vs Local)
+    // Priority 2: Runtime detection (Vercel Unified)
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
         if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-            return 'https://appbarber-api.vercel.app/api';
+            return '/api';
         }
     }
 
