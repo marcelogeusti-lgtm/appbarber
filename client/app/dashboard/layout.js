@@ -11,6 +11,9 @@ import NewTransactionModal from '../../components/NewTransactionModal';
 import { SocketProvider } from '../../contexts/SocketContext';
 import { safeGetItem, safeRemoveItem, safeClear } from '../../lib/storage';
 
+import { useQuery } from '@tanstack/react-query';
+import api from '../../lib/api';
+
 export default function DashboardLayout({ children }) {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -34,7 +37,6 @@ export default function DashboardLayout({ children }) {
                     setUser(JSON.parse(userData));
                     setLoading(false);
                 } else {
-                    // Token exists but no user data? Invalid state.
                     safeClear();
                     router.push('/login');
                 }
@@ -47,6 +49,17 @@ export default function DashboardLayout({ children }) {
 
         checkAuth();
     }, [router]);
+
+    // Centralized Barbershop Data using React Query
+    const { data: barbershopData } = useQuery({
+        queryKey: ['barbershop-me'],
+        queryFn: async () => {
+            const res = await api.get('/barbershops/me');
+            return res.data;
+        },
+        enabled: !!user,
+        staleTime: 1000 * 60 * 30, // 30 minutes cache for shop metadata
+    });
 
     // PROTECT ADMIN ROUTES
     useEffect(() => {
@@ -95,30 +108,23 @@ export default function DashboardLayout({ children }) {
 
     if (!user) return null;
 
-    const currentBarbershop = user?.barbershop || user?.workedBarbershop || user?.ownedBarbershops?.[0];
+    // Use query data if available, fallback to user object
+    const currentBarbershop = barbershopData || user?.barbershop || user?.workedBarbershop || user?.ownedBarbershops?.[0];
 
     const isSubscriptionActive = () => {
-        // PROTECTED: Master accounts and Super Admins are exempt from subscription locks
         if (user?.role === 'SUPER_ADMIN' || user?.isMaster || user?.role === 'CLIENT') return true;
+        
+        // Prioritize data from fresh query if it has the fields
         const shop = currentBarbershop;
-
         if (!shop) return false;
 
-        // Allow ACTIVE or TRIAL
         if (shop.subscriptionStatus === 'ACTIVE') return true;
-
         if (shop.subscriptionStatus === 'TRIAL') {
-            // Optional: check date on frontend too, but backend is source of truth.
-            // For UX, we assume if it's TRIAL it's valid, or backend would return 403 on data fetch.
-            // But let's check if we have the date to show "Expired" message eventually.
             if (shop.trialEndsAt) {
-                const now = new Date();
-                const trialEnd = new Date(shop.trialEndsAt);
-                return now < trialEnd;
+                return new Date() < new Date(shop.trialEndsAt);
             }
-            return true; // If no date but status is TRIAL, assume valid (legacy/fallback)
+            return true;
         }
-
         return false;
     };
 
@@ -127,7 +133,6 @@ export default function DashboardLayout({ children }) {
     return (
         <SocketProvider>
             <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20">
-                {/* Sidebar Component - Responsive */}
                 <Sidebar
                     user={user}
                     barbershop={currentBarbershop}
@@ -137,7 +142,6 @@ export default function DashboardLayout({ children }) {
                     onClose={() => setIsMobileMenuOpen(false)}
                 />
 
-                {/* Cashier Panel */}
                 <CashierPanel
                     isOpen={isCashierOpen}
                     onClose={() => setIsCashierOpen(false)}
@@ -152,25 +156,20 @@ export default function DashboardLayout({ children }) {
                     }}
                 />
 
-                {/* New Order Modal */}
                 <NewOrderModal
                     isOpen={isNewOrderOpen}
                     onClose={() => setIsNewOrderOpen(false)}
                     user={user}
                 />
 
-                {/* New Transaction Modal */}
                 <NewTransactionModal
                     isOpen={isTransactionOpen}
                     onClose={() => setIsTransactionOpen(false)}
                     user={user}
                     type="EXPENSE"
-                    onSuccess={() => {
-                        // Could trigger a refresh if we had a global context, but panel refreshes on open
-                    }}
+                    onSuccess={() => {}}
                 />
 
-                {/* Main Content */}
                 <div className="flex-1 flex flex-col min-h-screen relative w-full">
                     <TopBar
                         user={user}

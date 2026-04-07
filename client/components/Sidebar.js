@@ -39,6 +39,18 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
     const prefetchData = (href) => {
         if (!barbershop?.id) return;
 
+        // Core Dashboard & Owner Charts
+        if (href === '/dashboard' || href === '/dashboard/owner') {
+            queryClient.prefetchQuery({
+                queryKey: ['dashboard-stats', barbershop.id],
+                queryFn: async () => {
+                    const res = await api.get(`/dashboard/stats?barbershopId=${barbershop.id}`);
+                    return res.data;
+                }
+            });
+        }
+
+        // Finance
         if (href === '/dashboard/finance') {
             queryClient.prefetchQuery({
                 queryKey: ['finance-stats', barbershop.id, 'month'],
@@ -50,6 +62,8 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 }
             });
         }
+        
+        // Fiscal (NFes)
         if (href === '/dashboard/finance/nfes') {
             queryClient.prefetchQuery({
                 queryKey: ['nfes', barbershop.id, 'ALL'],
@@ -59,7 +73,27 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 }
             });
         }
-        // Add more pre-fetches for other key tabs if needed
+
+        // Cadastros
+        if (href === '/dashboard/clients') {
+            queryClient.prefetchQuery({
+                queryKey: ['clients', barbershop.id],
+                queryFn: async () => {
+                    const res = await api.get(`/clients?barbershopId=${barbershop.id}&limit=50`);
+                    return res.data;
+                }
+            });
+        }
+
+        if (href === '/dashboard/services') {
+            queryClient.prefetchQuery({
+                queryKey: ['services', barbershop.id],
+                queryFn: async () => {
+                    const res = await api.get(`/services?barbershopId=${barbershop.id}&active=true&limit=1000`);
+                    return res.data;
+                }
+            });
+        }
     };
 
     const MenuItem = ({ href, icon: Icon, label, badge }) => (

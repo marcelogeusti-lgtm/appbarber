@@ -14,9 +14,21 @@ import Pagination from '../../../components/ui/Pagination';
 import Skeleton from '../../../components/ui/Skeleton';
 import PrintButton from '../../../components/PrintButton';
 import { useSocket } from '../../../contexts/SocketContext';
+import { useQuery } from '@tanstack/react-query';
 
 export default function SchedulePage() {
     const socket = useSocket();
+    
+    // Centralized Barbershop Data from Cache
+    const { data: barbershop } = useQuery({
+        queryKey: ['barbershop-me'],
+        queryFn: async () => {
+            const res = await api.get('/barbershops/me');
+            return res.data;
+        },
+        staleTime: 1000 * 60 * 30,
+    });
+
     const [appointments, setAppointments] = useState([]);
     const [waitlist, setWaitlist] = useState([]);
     const [professionals, setProfessionals] = useState([]);
@@ -36,8 +48,7 @@ export default function SchedulePage() {
     const [loadedRange, setLoadedRange] = useState({ start: null, end: null });
     const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
-    const [barbershopName, setBarbershopName] = useState('Nossa Barbearia');
-
+    
     // Pagination States
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(25);
@@ -45,9 +56,14 @@ export default function SchedulePage() {
     const [totalPages, setTotalPages] = useState(0);
     const [user, setUser] = useState(null);
 
+    // Sync barbershopId when query data arrives
+    useEffect(() => {
+        if (barbershop?.id) {
+            setBarbershopId(barbershop.id);
+        }
+    }, [barbershop]);
+
     const fetchData = () => {
-        // This function is now more of a trigger for the main useEffect
-        // It will cause the useEffect to re-run and fetch data based on current viewMode
         if (viewMode === 'day') {
             fetchAppointments();
         } else {
@@ -56,29 +72,25 @@ export default function SchedulePage() {
     };
 
     useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            setUser(JSON.parse(userStr));
+        }
         fetchResources();
     }, []);
 
     useEffect(() => {
         if (!barbershopId) return;
 
-        // Reset page when date or view mode changes
-        // but we only paginate in 'day' view
         if (viewMode === 'day') {
             fetchAppointments();
         } else {
-            // For week/month, we stick to the old bulk loading for now or a different strategy
             fetchAllAppointmentsInRange();
         }
 
-        // Socket listener for real-time updates
         if (socket && barbershopId) {
-            console.log('Joining barbershop room:', barbershopId);
             socket.emit('join_barbershop', barbershopId);
-
             socket.on('new_appointment', (data) => {
-                console.log('New appointment received via socket, refreshing...');
-                // Refresh data
                 if (viewMode === 'day') {
                     fetchAppointments();
                 } else {
@@ -95,41 +107,23 @@ export default function SchedulePage() {
     }, [currentDate, viewMode, barbershopId, page, limit, socket]);
 
     const fetchResources = async () => {
-        console.log('[DEBUG] fetchResources started');
         try {
             const userStr = localStorage.getItem('user');
-            if (!userStr) {
-                console.log('[DEBUG] No user in localStorage');
-                return;
-            }
+            if (!userStr) return;
             const user = JSON.parse(userStr);
-            console.log('[DEBUG] User from storage:', user.id, user.email);
-            setUser(user);
-            let bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
             
-            // Barbershop Info (get fresh ID if missing)
-            const shopRes = await api.get('/barbershops/me');
-            console.log('[DEBUG] /barbershops/me response:', shopRes.data);
-            if (shopRes.data) {
-                if (shopRes.data.name) setBarbershopName(shopRes.data.name);
-                if (shopRes.data.id) {
-                    bId = shopRes.data.id;
-                    console.log('[DEBUG] Setting barbershopId from API:', bId);
-                    setBarbershopId(bId);
-                }
-            } else {
-                console.log('[DEBUG] No shop data from API, using fallback bId:', bId);
-                setBarbershopId(bId);
-            }
+            // Derive shop ID from cached data or user object
+            const bId = barbershop?.id || user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+            if (bId && !barbershopId) setBarbershopId(bId);
+
+            if (!bId) return;
 
             // Professionals
-            if (professionals.length === 0 && bId) {
+            if (professionals.length === 0) {
                 const proRes = await api.get(`/professionals?barbershopId=${bId}`);
-                console.log('[DEBUG] Professionals count:', proRes.data?.length);
                 const pros = Array.isArray(proRes.data) ? proRes.data : (proRes.data.data || []);
                 setProfessionals(pros);
 
-                // AUTO-SELECT for BARBER
                 if (user.role === 'BARBER') {
                     const myPro = pros.find(p => p.email === user.email);
                     if (myPro) setSelectedPro(myPro.id);
@@ -137,13 +131,12 @@ export default function SchedulePage() {
             }
 
             // Services
-            if (services.length === 0 && bId) {
+            if (services.length === 0) {
                 const srvRes = await api.get(`/services?barbershopId=${bId}&active=true&limit=1000`);
-                console.log('[DEBUG] Services count:', srvRes.data?.length);
                 setServices(Array.isArray(srvRes.data) ? srvRes.data : (srvRes.data.data || []));
             }
         } catch (err) {
-            console.error('[DEBUG] fetchResources error:', err);
+            console.error('fetchResources error:', err);
         }
     };
 

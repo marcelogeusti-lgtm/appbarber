@@ -9,7 +9,18 @@ import {
 import IntegrationSettings from '../../../components/settings/IntegrationSettings';
 import Link from 'next/link';
 
+import { useQuery } from '@tanstack/react-query';
+
 export default function SettingsPage() {
+    const { data: barbershopData, refetch: refetchShop } = useQuery({
+        queryKey: ['barbershop-me'],
+        queryFn: async () => {
+            const res = await api.get('/barbershops/me');
+            return res.data;
+        },
+        staleTime: 1000 * 60 * 30,
+    });
+
     const [barbershop, setBarbershop] = useState({
         name: '',
         slug: '',
@@ -33,20 +44,22 @@ export default function SettingsPage() {
         facebookUrl: '',
         youtubeUrl: ''
     });
+
+    // Sync state with query data
+    useEffect(() => {
+        if (barbershopData) {
+            const data = { ...barbershopData };
+            if (!data.bannerUrls) data.bannerUrls = [];
+            setBarbershop(data);
+        }
+    }, [barbershopData]);
+
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState(null);
     const [activeTab, setActiveTab] = useState('Geral');
     const [isMaster, setIsMaster] = useState(false);
-
-    // Template editing state
-    const [editingTemplateId, setEditingTemplateId] = useState(null);
-    const [editContent, setEditContent] = useState('');
-
-    // Image upload loading states
-    const [uploadingLogo, setUploadingLogo] = useState(false);
-    const [uploadingBannerIdx, setUploadingBannerIdx] = useState(null);
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
@@ -60,16 +73,7 @@ export default function SettingsPage() {
     const fetchInitialData = async () => {
         setLoading(true);
         try {
-            const [bRes, tRes] = await Promise.all([
-                api.get('/barbershops/me'),
-                api.get('/notifications/templates')
-            ]);
-            const data = bRes.data;
-            // Ensure bannerUrls is an array
-            if (!data.bannerUrls) data.bannerUrls = [];
-            const bData = bRes.data;
-            if (!bData.bannerUrls) bData.bannerUrls = [];
-            setBarbershop(bData);
+            const tRes = await api.get('/notifications/templates');
             setTemplates(tRes.data);
         } catch (err) {
             console.error(err);
@@ -94,14 +98,13 @@ export default function SettingsPage() {
                     });
                 }
             }
-            const [bRes, tRes] = await Promise.all([
-                api.get('/barbershops/me'),
-                api.get('/notifications/templates')
+            
+            // Refetch fresh data to update cache
+            await Promise.all([
+                refetchShop(),
+                api.get('/notifications/templates').then(r => setTemplates(r.data))
             ]);
-            const data = bRes.data;
-            if (!data.bannerUrls) data.bannerUrls = [];
-            setBarbershop(data);
-            setTemplates(tRes.data);
+
             setEditingTemplateId(null);
             setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' });
             setTimeout(() => setMessage(null), 3000);

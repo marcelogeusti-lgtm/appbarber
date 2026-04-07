@@ -623,6 +623,7 @@ model Transaction {
 
   @@index([barbershopId])
   @@index([date])
+  @@index([barbershopId, date, type])
 }
 
 enum CashShiftStatus {
@@ -808,6 +809,8 @@ model Order {
 
   @@index([barbershopId])
   @@index([status])
+  @@index([barbershopId, updatedAt, status])
+  @@index([barbershopId, createdAt])
 }
 
 
