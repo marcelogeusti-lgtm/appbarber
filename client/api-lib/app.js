@@ -90,13 +90,16 @@ app.use('/api/tutorials', require('./routes/tutorial.routes'));
 app.use('/api/nfes', require('./routes/nfe.routes'));
 // app.use('/api/audit-logs', require('./routes/auditLog.routes')); // Future
 
-// Initialize Notification Service (Listeners)
-const notificationService = require('./services/notificationService');
-notificationService.init();
+// Initialize services only if not in a serverless environment (Optimization for Vercel)
+if (!process.env.VERCEL) {
+    // Initialize Notification Service (Listeners)
+    const notificationService = require('./services/notificationService');
+    notificationService.init();
 
-// Initialize Appointment Event Listeners (WhatsApp Automation)
-const appointmentListeners = require('./services/events/appointmentListeners');
-appointmentListeners.init();
+    // Initialize Appointment Event Listeners (WhatsApp Automation)
+    const appointmentListeners = require('./services/events/appointmentListeners');
+    appointmentListeners.init();
+}
 
 // Master / Educational Platform
 app.use('/api', require('./routes/master.routes'));

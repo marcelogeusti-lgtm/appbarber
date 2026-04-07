@@ -5,7 +5,7 @@ import api from '../../../../lib/api';
 import {
     Receipt, User, Calendar, Clock, Plus, Trash2,
     CreditCard, CheckCircle, AlertCircle, Scissors, Package, Percent, X,
-    Zap, DollarSign, Globe, Loader2
+    Zap, DollarSign, Globe, Loader2, ScrollText, Download, MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -335,26 +335,65 @@ export default function OrderDetailsPage() {
 
                         <div className="space-y-4">
                             {isClosed && (
-                                <>
-                                    <div className="p-6 bg-primary/10 rounded-3xl border border-primary/20 flex items-center gap-5">
-                                        <div className="p-3 bg-primary text-primary-foreground rounded-2xl">
-                                            <CheckCircle className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black uppercase tracking-widest text-primary">Liquidado via {order.paymentMethod || 'Caixa'}</p>
-                                            <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
+                                <div className="space-y-4">
+                                    <div className="p-6 bg-primary/10 rounded-3xl border border-primary/20 flex flex-col gap-4">
+                                        <div className="flex items-center gap-5">
+                                            <div className="p-3 bg-primary text-primary-foreground rounded-2xl">
+                                                <CheckCircle className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black uppercase tracking-widest text-primary">Liquidado via {order.paymentMethod || 'Caixa'}</p>
+                                                <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    
-                                    <button
-                                        onClick={handleRetroactiveNfe}
-                                        disabled={processing}
-                                        className="w-full mt-4 bg-muted hover:bg-muted/80 text-foreground px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-border disabled:opacity-50"
-                                    >
-                                        {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
-                                        Gerar Nota Fiscal Retroativa
-                                    </button>
-                                </>
+
+                                    {/* NFe Integration Section */}
+                                    {order.nfe ? (
+                                        <div className="p-6 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Nota Fiscal Emitida</p>
+                                                    <p className="text-xs font-bold text-white uppercase italic">Status: {order.nfe.status === 'EMITTED' ? 'AUTORIZADA' : order.nfe.status}</p>
+                                                </div>
+                                                <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-500">
+                                                    <ScrollText className="w-5 h-5" />
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {order.nfe.pdfUrl && (
+                                                    <a 
+                                                        href={order.nfe.pdfUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center justify-center gap-2 p-3 bg-emerald-500 text-white rounded-xl font-bold text-[10px] uppercase hover:bg-emerald-600 transition"
+                                                    >
+                                                        <Download className="w-4 h-4" /> PDF
+                                                    </a>
+                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        const msg = `Olá! Aqui está sua nota fiscal: ${order.nfe.pdfUrl}`;
+                                                        window.open(`https://wa.me/${(order.client?.phone || order.guestPhone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                                                    }}
+                                                    className="flex items-center justify-center gap-2 p-3 bg-green-600 text-white rounded-xl font-bold text-[10px] uppercase hover:bg-green-700 transition"
+                                                >
+                                                    <MessageSquare className="w-4 h-4" /> WhatsApp
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={handleRetroactiveNfe}
+                                            disabled={processing}
+                                            className="w-full mt-4 bg-muted hover:bg-muted/80 text-foreground px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-border disabled:opacity-50"
+                                        >
+                                            {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
+                                            Gerar Nota Fiscal Retroativa
+                                        </button>
+                                    )}
+                                </div>
                             )}
 
                             {!isClosed && order.balance > 0 && (
