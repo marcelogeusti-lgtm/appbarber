@@ -60,6 +60,11 @@ export default function SettingsPage() {
     const [message, setMessage] = useState(null);
     const [activeTab, setActiveTab] = useState('Geral');
     const [isMaster, setIsMaster] = useState(false);
+    
+    const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [uploadingBannerIdx, setUploadingBannerIdx] = useState(null);
+    const [editingTemplateId, setEditingTemplateId] = useState(null);
+    const [editContent, setEditContent] = useState('');
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
