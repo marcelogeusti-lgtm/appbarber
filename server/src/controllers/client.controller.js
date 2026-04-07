@@ -133,8 +133,8 @@ exports.searchClients = async (req, res) => {
         if (!search || search.length < 3) return res.json({ data: [] });
 
         // Optimization: Find clients linked to this barbershop
-        // We look in Appointments and Orders as they are the main links
-        const [appointmentClients, orderClients] = await Promise.all([
+        // We look in Appointments, Orders, and CommunicationLogs as they are the links
+        const [appointmentClients, orderClients, logClients] = await Promise.all([
             prisma.appointment.findMany({
                 where: { barbershopId },
                 select: { clientId: true },
@@ -144,13 +144,19 @@ exports.searchClients = async (req, res) => {
                 where: { barbershopId },
                 select: { clientId: true },
                 distinct: ['clientId']
+            }),
+            prisma.communicationLog.findMany({
+                where: { barbershopId },
+                select: { clientId: true },
+                distinct: ['clientId']
             })
         ]);
 
         const linkedClientIds = [
             ...new Set([
                 ...appointmentClients.map(c => c.clientId),
-                ...orderClients.map(c => c.clientId)
+                ...orderClients.map(c => c.clientId),
+                ...logClients.map(c => c.clientId)
             ])
         ];
 
