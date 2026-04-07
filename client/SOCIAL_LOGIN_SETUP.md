@@ -16,7 +16,7 @@ O Firebase gerencia a autenticação.
     - `www.corteconexao.com.br`
     - `localhost` (para testes locais)
 
-    - Seu domínio no Render (ex: `seunome-appbarber.onrender.com`)
+    - Seu domínio na Vercel (ex: `appbarber.vercel.app`)
 
 ## 2. Google Cloud (Para obter permissão do Google)
 

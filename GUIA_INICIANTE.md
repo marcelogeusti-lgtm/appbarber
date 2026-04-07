@@ -26,9 +26,9 @@ Para rodar no seu computador (testes locais), recomendo baixar a **Versão 16 ou
 
 - Se você usar o **Supabase** (banco na nuvem), você **não é obrigado** a instalar o PostgreSQL no seu computador, pois o sistema vai conectar direto na internet. Mas é bom ter instalado para ter as ferramentas de comando se precisar.
 
-## Opção Recomendada (Grátis ou Barata para começar)
+## Opção Recomendada (100% Vercel & Supabase)
 
-Para iniciantes, eu recomendo separar as coisas para ficar mais fácil e muitas vezes gratuito:
+Para este projeto, padronizamos o uso da **Vercel** para tudo (Site e Servidor), o que o torna extremamente rápido e confiável.
 
 ### 1. Banco de Dados (PostgreSQL)
 
@@ -38,28 +38,28 @@ Lugar onde ficam os dados.
 - **Custo**: Grátis para começar.
 - **O que você vai pegar lá**: Uma URL que começa com `postgresql://...` (essa é a que colocamos no arquivo `.env`).
 
-### 2. Backend (O código "server")
-
-Onde o sistema processa os agendamentos.
-
-- **Recomendação**: [Render](https://render.com) ou [Railway](https://railway.app).
-- **Custo**: Render tem plano grátis (um pouco lento) ou pago ($7/mês). Railway é pago (~$5/mês).
-- **Como funciona**: Você conecta seu GitHub e ele "puxa" o código da pasta `server`.
-
-### 3. Frontend (O site "client")
-
-O que o cliente vê.
+### 2. Sistema Completo (Frontend e Backend na Vercel)
 
 - **Recomendação**: [Vercel](https://vercel.com).
-- **Custo**: Grátis.
-- **Como funciona**: Você conecta seu GitHub e ele "puxa" o código da pasta `client`.
+- **Custo**: Grátis para começar.
+- **Como funciona**: Você conecta seu GitHub e ele gerencia tanto o site (`client`) quanto a API (`server`).
 
-## Se você quiser usar VPS (Servidor Próprio)
+---
 
-Se você comprou uma **VPS** (um computador virtual na nuvem, ex: DigitalOcean, AWS, Hostinger VPS), você tem controle total.
+## Passo a Passo para Colocar no Ar
 
-- **Prós**: Tudo em um lugar só.
-- **Contras**: Mais difícil de configurar (precisa instalar Linux, configurar firewall, etc).
+### 1. GitHub (Sua Nuvem de Código)
+1. Crie uma conta no [GitHub.com](https://github.com).
+2. Crie um repositório chamado `appbarber`.
+3. Suba seus arquivos (pastas `client` e `server`).
+
+### 2. Vercel (Hospedagem do Site)
+1. Acesse [vercel.com](https://vercel.com) e importe seu repositório.
+2. **Frontend**: Aponte o **Root Directory** para a pasta `client`.
+3. **Backend**: Crie um segundo projeto na Vercel apontando o **Root Directory** para a pasta `server`.
+
+### 3. Ligação Final
+No projeto do **Frontend** na Vercel, adicione uma variável de ambiente chamada `NEXT_PUBLIC_API_URL` com o link que a Vercel te deu para o projeto do **Backend**.
 
 ---
 
@@ -79,60 +79,3 @@ Parece algo assim:
 1. Crie uma conta no **GitHub** (para guardar seu código).
 2. Crie uma conta no **Supabase** (crie um projeto novo e copie a senha do banco).
 3. Me avise quando tiver feito isso, que eu te ensino a conectar!
-
-## 🚀 Como colocar o código no GitHub (Sem Terminal)
-
-Como seu terminal não reconheceu o Git, você pode fazer o envio manual:
-
-1. Crie uma conta no [GitHub.com](https://github.com).
-2. Crie um **Novo Repositório** (botão "New"). Dê o nome de `appbarber`.
-3. Na tela do repositório vazio, clique no link **"uploading an existing file"**.
-4. Arraste **todo o conteúdo** da pasta do projeto para lá.
-   - *Dica*: Arraste as pastas `client` e `server` (mas NÃO arraste a pasta `node_modules` se ela existir).
-5. Clique em "Commit changes".
-
-Agora seu código está na nuvem!
-
-## 🌍 Como colocar o Site no Ar (Vercel)
-
-Agora que o código está no GitHub, vamos colocar o site online usando a **Vercel** (que é grátis e excelente para Next.js).
-
-1. Acesse [vercel.com](https://vercel.com) e crie uma conta (Login com GitHub).
-2. Clique em **"Add New..."** -> **"Project"**.
-3. Na lista "Import Git Repository", encontre seu projeto `appbarber` e clique em **Import**.
-4. **⚡ CONFIGURAÇÃO IMPORTANTE** (Não pule essa etapa):
-   - No campo **Framework Preset**, deixe `Next.js`.
-   - No campo **Root Directory**, clique em "Edit" e selecione a pasta `client`. (Isso é crucial porque seu projeto tem 2 pastas).
-5. Clique em **Deploy**.
-
-A Vercel vai instalar tudo e te dar um link (ex: `appbarber.vercel.app`).
-
-### Configurando a API (Depois)
-
-Quando o deploy terminar, o site vai abrir. Porém, ele ainda vai tentar conectar no `localhost` (seu computador).
-Futuramente, para conectar no seu n8n ou Backend, você vai:
-
-1. Ir no painel da Vercel -> Settings -> Environment Variables.
-2. Adicionar uma variável chamada `NEXT_PUBLIC_API_URL`.
-3. Colocar o link do seu Webhook do n8n (ou do backend Render).
-
-## 🧠 Como ligar o Cérebro (Backend no Render)
-
-O site está bonito (Vercel) e o Banco está pronto (Supabase). Agora falta o "cérebro" que liga um no outro. Vamos usar o **Render**.
-
-1. Crie conta em [render.com](https://render.com) (Login com GitHub).
-2. Clique em **New +** -> **Web Service**.
-3. Conecte seu repositório `appbarber` (ou `marcelogeusti-lgtm/appbarber`).
-4. **⚡ CONFIGURAÇÃO IMPORTANTE:**
-   - **Name:** `barber-api` (ou o que quiser).
-   - **Root Directory:** `server` (MUITO IMPORTANTE).
-   - **Environment:** `Node`.
-   - **Build Command:** `npm install` (se der erro, tente `npm install && npx prisma generate`).
-   - **Start Command:** `npm start`.
-5. Role para baixo até **Environment Variables** e adicione:
-   - Key: `DATABASE_URL` | Value: (O link do seu Supabase).
-   - Key: `JWT_SECRET` | Value: `sua_senha_secreta_super_dificil` (invente uma).
-6. Clique em **Create Web Service**.
-
-Ele vai demorar uns 5 minutos. Quando terminar, vai te dar um link (ex: `https://barber-api.onrender.com`).
-Esse é o link que você vai colocar lá na Vercel (passo anterior) em `NEXT_PUBLIC_API_URL`!

@@ -1,1 +1,1 @@
-https://barber-api-uz05.onrender.com
+https://appbarber-api.vercel.app

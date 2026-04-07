@@ -141,8 +141,6 @@ model Client {
 
   @@index([active])
 }
-}
-
 
 // Phase 16: Credential Field Standardization [x]
 // - [x] Add `Client ID` and `Client Secret` fields to `PaymentSettings.js`
