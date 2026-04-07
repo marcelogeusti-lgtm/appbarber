@@ -371,6 +371,7 @@ model Barbershop {
   reviews               Review[]
   notificationTemplates NotificationTemplate[]
   nfes                  Nfe[]
+  favoriteBarbershops   FavoriteBarbershop[]
 }
 
 
