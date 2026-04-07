@@ -147,6 +147,19 @@ export default function OrderDetailsPage() {
         }
     };
 
+    const handleRetroactiveNfe = async () => {
+        if (!confirm('Deseja emitir uma nota fiscal retroativa para esta comanda?')) return;
+        setProcessing(true);
+        try {
+            await api.post(`/nfes/retroactive/order/${id}`);
+            toast.success('Emissão solicitada com sucesso! Verifique o painel fiscal.');
+        } catch (err) {
+            toast.error('Erro ao emitir nota: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setProcessing(false);
+        }
+    };
+
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
     if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Sincronizando comanda...</div>;
@@ -322,15 +335,26 @@ export default function OrderDetailsPage() {
 
                         <div className="space-y-4">
                             {isClosed && (
-                                <div className="p-6 bg-primary/10 rounded-3xl border border-primary/20 flex items-center gap-5">
-                                    <div className="p-3 bg-primary text-primary-foreground rounded-2xl">
-                                        <CheckCircle className="w-6 h-6" />
+                                <>
+                                    <div className="p-6 bg-primary/10 rounded-3xl border border-primary/20 flex items-center gap-5">
+                                        <div className="p-3 bg-primary text-primary-foreground rounded-2xl">
+                                            <CheckCircle className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-widest text-primary">Liquidado via {order.paymentMethod || 'Caixa'}</p>
+                                            <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-primary">Liquidado via {order.paymentMethod || 'Caixa'}</p>
-                                        <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
-                                    </div>
-                                </div>
+                                    
+                                    <button
+                                        onClick={handleRetroactiveNfe}
+                                        disabled={processing}
+                                        className="w-full mt-4 bg-muted hover:bg-muted/80 text-foreground px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-border disabled:opacity-50"
+                                    >
+                                        {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
+                                        Gerar Nota Fiscal Retroativa
+                                    </button>
+                                </>
                             )}
 
                             {!isClosed && order.balance > 0 && (

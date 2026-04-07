@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { 
     ScrollText, Search, Filter, Download, AlertCircle, 
     CheckCircle2, Clock, RefreshCcw, ExternalLink, ChevronRight,
-    ArrowLeft
+    ArrowLeft, Plus, X
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../../../lib/api';
@@ -15,6 +15,11 @@ export default function NfeListingPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+
+    const [showManualModal, setShowManualModal] = useState(false);
+    const [clients, setClients] = useState([]);
+    const [manualForm, setManualForm] = useState({ clientId: '', amount: '', description: '' });
+    const [manualLoading, setManualLoading] = useState(false);
 
     useEffect(() => {
         if (currentBarbershop?.id) {
@@ -53,6 +58,40 @@ export default function NfeListingPage() {
         n.number?.includes(search)
     );
 
+    const fetchClients = async () => {
+        try {
+            const res = await api.get(`/clients?barbershopId=${currentBarbershop.id}&limit=100`);
+            setClients(res.data.data || []);
+        } catch (err) {
+            console.error('Error fetching clients', err);
+        }
+    };
+
+    const handleOpenManualModal = () => {
+        fetchClients();
+        setShowManualModal(true);
+    };
+
+    const handleManualSubmit = async (e) => {
+        e.preventDefault();
+        if (!manualForm.clientId || !manualForm.amount) return alert('Preencha os campos obrigatórios');
+        
+        setManualLoading(true);
+        try {
+            await api.post(`/nfes/manual`, {
+                barbershopId: currentBarbershop.id,
+                ...manualForm
+            });
+            setShowManualModal(false);
+            setManualForm({ clientId: '', amount: '', description: '' });
+            fetchNfes();
+        } catch (error) {
+            alert('Erro ao emitir nota avulsa: ' + (error.response?.data?.error || error.message));
+        } finally {
+            setManualLoading(false);
+        }
+    };
+
     const getStatusBadge = (status) => {
         switch (status) {
             case 'EMITTED':
@@ -81,6 +120,14 @@ export default function NfeListingPage() {
                         Notas <span className="text-primary italic">Fiscais</span>
                     </h1>
                     <p className="text-slate-400 text-sm font-medium">Gestão de emissões automáticas de NFS-e.</p>
+                </div>
+                <div>
+                    <button 
+                        onClick={handleOpenManualModal}
+                        className="bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+                    >
+                        <Plus className="w-4 h-4" /> Nova Nota Avulsa
+                    </button>
                 </div>
             </div>
 
@@ -229,6 +276,69 @@ export default function NfeListingPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Manual Modal */}
+            {showManualModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowManualModal(false)}></div>
+                    <div className="relative bg-[#111827] border border-slate-700 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col p-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="text-lg font-black text-white uppercase tracking-tighter">Nota Fiscal Avulsa</h3>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Geração Manual sem Comanda</p>
+                            </div>
+                            <button onClick={() => setShowManualModal(false)} className="p-2 text-slate-400 hover:text-white bg-slate-800/50 rounded-xl transition-all">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleManualSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Cliente *</label>
+                                <select 
+                                    required
+                                    value={manualForm.clientId}
+                                    onChange={(e) => setManualForm({...manualForm, clientId: e.target.value})}
+                                    className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                                >
+                                    <option value="">Selecione um cliente cadastrado...</option>
+                                    {clients.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Valor (R$) *</label>
+                                <input 
+                                    type="number" 
+                                    step="0.01"
+                                    required
+                                    placeholder="0.00"
+                                    value={manualForm.amount}
+                                    onChange={(e) => setManualForm({...manualForm, amount: e.target.value})}
+                                    className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Descrição do Serviço</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ex: Corte e Barba (Avulso)"
+                                    value={manualForm.description}
+                                    onChange={(e) => setManualForm({...manualForm, description: e.target.value})}
+                                    className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                                />
+                            </div>
+                            <button 
+                                type="submit"
+                                disabled={manualLoading}
+                                className="w-full bg-primary hover:bg-primary/90 text-white mt-4 py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {manualLoading ? <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span> : 'Gerar NFe Avulsa'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

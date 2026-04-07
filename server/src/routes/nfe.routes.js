@@ -24,4 +24,13 @@ router.get('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'C
 // Retry emission if error
 router.post('/:id/retry', protect, authorize('ADMIN', 'SUPER_ADMIN'), NfeController.retry);
 
+// Retroactive emission for closed orders
+router.post('/retroactive/order/:orderId', protect, authorize('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'), NfeController.emitRetroactiveOrder);
+
+// Retroactive emission for completed appointments
+router.post('/retroactive/appointment/:appointmentId', protect, authorize('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'), NfeController.emitRetroactiveAppointment);
+
+// Manual emission
+router.post('/manual', protect, authorize('ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'), NfeController.emitManual);
+
 module.exports = router;

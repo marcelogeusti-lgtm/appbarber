@@ -21,6 +21,7 @@ export default function AppointmentDetailsModal({
     const [emitNfe, setEmitNfe] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
+    const [isGeneratingNfe, setIsGeneratingNfe] = useState(false);
     
     const isProfessional = user?.role !== 'CLIENT';
 
@@ -60,6 +61,19 @@ export default function AppointmentDetailsModal({
             alert('Erro ao cancelar agendamento: ' + (error.response?.data?.message || 'Erro interno'));
         } finally {
             setIsCancelling(false);
+        }
+    };
+
+    const handleRetroactiveNfe = async () => {
+        if (!confirm('Deseja emitir uma nota fiscal retroativa para este agendamento?')) return;
+        setIsGeneratingNfe(true);
+        try {
+            await api.post(`/nfes/retroactive/appointment/${appointment.id}`);
+            alert('Emissão solicitada com sucesso! Verifique o painel fiscal.');
+        } catch (err) {
+            alert('Erro ao emitir nota: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setIsGeneratingNfe(false);
         }
     };
 
@@ -246,6 +260,19 @@ export default function AppointmentDetailsModal({
                                     Cancelar Agendamento
                                 </button>
                             )}
+                        </div>
+                    )}
+
+                    {appointment.status === 'COMPLETED' && isProfessional && (
+                        <div className="pt-4 mt-2 border-t border-slate-800">
+                             <button
+                                onClick={handleRetroactiveNfe}
+                                disabled={isGeneratingNfe}
+                                className="w-full bg-slate-800/50 hover:bg-slate-800 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 border border-slate-700 disabled:opacity-50"
+                            >
+                                {isGeneratingNfe ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScrollText className="w-4 h-4" />}
+                                Gerar Nota Fiscal Retroativa
+                            </button>
                         </div>
                     )}
 
