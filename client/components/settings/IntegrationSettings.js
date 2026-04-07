@@ -14,8 +14,35 @@ export default function IntegrationSettings() {
 }
 
 function GoogleCalendarCard() {
-    const [loading, setLoading] = useState(false);
-    const [connected, setConnected] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState({ connected: false });
+
+    const checkStatus = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/integration/google/status');
+            setStatus(res.data);
+        } catch (error) {
+            console.error('Error checking Google status:', error);
+            setStatus({ connected: false });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        checkStatus();
+
+        // Listen for message from popup
+        const handleMessage = (event) => {
+            if (event.data === 'google-connected') {
+                checkStatus();
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
 
     const handleConnect = async () => {
         setLoading(true);
@@ -23,7 +50,7 @@ function GoogleCalendarCard() {
             const res = await api.get('/integration/google/auth-url');
             if (res.data.url) {
                 const width = 500;
-                const height = 600;
+                const height = 650;
                 const left = (window.innerWidth - width) / 2;
                 const top = (window.innerHeight - height) / 2;
                 window.open(res.data.url, 'GoogleAuth', `width=${width},height=${height},top=${top},left=${left}`);
@@ -35,34 +62,45 @@ function GoogleCalendarCard() {
         }
     };
 
+    const isConnected = status.connected;
+
     return (
         <div className="p-8 rounded-[2rem] border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden mb-6">
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
                 <div className="flex gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner shrink-0 group-hover:scale-110 transition-transform">
-                        <Calendar className="w-6 h-6 text-primary" />
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-inner shrink-0 group-hover:scale-110 transition-transform ${isConnected ? 'bg-primary/10 border-primary/20' : 'bg-zinc-100 border-zinc-200'}`}>
+                        <Calendar className={`w-6 h-6 ${isConnected ? 'text-primary' : 'text-zinc-400'}`} />
                     </div>
                     <div>
                         <h3 className="text-lg font-black text-foreground flex items-center gap-3 uppercase tracking-tight">
                             Google Calendar
-                            {connected && <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">CONECTADO</span>}
+                            {isConnected && <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">CONECTADO</span>}
+                            {!loading && !isConnected && status.error && <span className="text-[9px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">EXPIRADO / ERRO</span>}
                         </h3>
                         <p className="text-muted-foreground text-xs mt-2 font-medium italic leading-relaxed opacity-80 max-w-lg">
-                            Sincronize seus agendamentos automaticamente com sua agenda do Google para evitar conflitos de horário.
+                            {isConnected 
+                                ? `Sincronizado com ${status.email || 'sua conta Google'}. Seus agendamentos aparecem na sua agenda pessoal automaticamente.`
+                                : 'Sincronize seus agendamentos automaticamente com sua agenda do Google para evitar conflitos de horário.'
+                            }
                         </p>
+                        {status.error && isConnected && (
+                            <p className="text-red-500 text-[10px] font-bold mt-2 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" /> Atenção: Há um problema com sua conexão. Tente reconectar.
+                            </p>
+                        )}
                     </div>
                 </div>
 
                 <button
                     onClick={handleConnect}
-                    disabled={loading || connected}
-                    className={`flex items-center gap-3 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${connected
-                        ? 'bg-primary/10 text-primary cursor-default'
+                    disabled={loading}
+                    className={`flex items-center gap-3 px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isConnected
+                        ? 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
                         : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 hover:scale-105 active:scale-95'
                         }`}
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                        connected ? 'OPERACIONAL' : <><ExternalLink className="w-4 h-4" /> CONECTAR</>
+                        isConnected ? 'RECONECTAR' : <><ExternalLink className="w-4 h-4" /> CONECTAR</>
                     )}
                 </button>
             </div>

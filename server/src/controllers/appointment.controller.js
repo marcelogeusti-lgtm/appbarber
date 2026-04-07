@@ -12,6 +12,7 @@ const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } = require('date-fns-tz');
 const FeatureFlagService = require('../services/FeatureFlagService');
 const NfeService = require('../services/NfeService');
+const internalNotifier = require('../services/notificationService/internalNotifier');
 const TIMEZONE = 'America/Sao_Paulo';
 
 const generateToken = (user) => {
@@ -489,6 +490,13 @@ exports.createAppointment = async (req, res) => {
             await googleCalendarService.syncAppointmentToGoogle(appointment.id);
         } catch (syncErr) {
             console.error('[Sync] Google Calendar Error:', syncErr.message);
+            // Notify Professional about sync failure
+            if (appointment.professionalId) {
+                await internalNotifier.createGoogleSyncErrorNotification(
+                    appointment.professionalId, 
+                    syncErr.message || 'Erro desconhecido'
+                );
+            }
         }
 
         setImmediate(async () => {

@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, AlertTriangle, Calendar } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import TopBar from '../../components/TopBar';
 import CashierPanel from '../../components/CashierPanel';
@@ -59,6 +59,17 @@ export default function DashboardLayout({ children }) {
         },
         enabled: !!user,
         staleTime: 1000 * 60 * 30, // 30 minutes cache for shop metadata
+    });
+
+    // Proactive Google Calendar Status Check
+    const { data: googleStatus } = useQuery({
+        queryKey: ['google-calendar-status'],
+        queryFn: async () => {
+            const res = await api.get('/integration/google/status');
+            return res.data;
+        },
+        enabled: !!user && (user.role === 'ADMIN' || user.role === 'BARBER'),
+        staleTime: 1000 * 60 * 60, // Check once per hour
     });
 
     // PROTECT ADMIN ROUTES
@@ -180,6 +191,38 @@ export default function DashboardLayout({ children }) {
                     />
 
                     <main className="flex-1 p-4 md:p-6 overflow-x-hidden relative">
+                        {/* Proactive Connection Banner */}
+                        {!loading && googleStatus && googleStatus.error && !localStorage.getItem('hide-google-banner') && (
+                            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                                        <AlertTriangle className="w-5 h-5 text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-amber-900 uppercase tracking-tight">Sincronização Google Pendente</p>
+                                        <p className="text-xs text-amber-700">Sua agenda do Google pode não estar sincronizando corretamente. Por favor, reconecte sua conta.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => router.push('/dashboard/settings?tab=integracoes')}
+                                        className="bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors"
+                                    >
+                                        Reconectar
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            localStorage.setItem('hide-google-banner', 'true');
+                                            // Force re-render would be needed here, but for now it will hide on next load
+                                        }}
+                                        className="p-2 text-amber-400 hover:text-amber-600 transition-colors"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {isLocked ? (
                             <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
                                 <div className="bg-card border border-border p-6 rounded-xl max-w-md w-full text-center shadow-soft">

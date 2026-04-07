@@ -451,8 +451,18 @@ exports.socialLogin = async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Social Login Error:', error);
-        res.status(500).json({ message: 'Erro no login social.' });
+        console.error('------- SOCIAL LOGIN CRITICAL ERROR -------');
+        console.error('Body:', req.body);
+        console.error('Error:', error);
+        
+        let message = 'Erro no login social.';
+        if (error.code === 'P2002') message = 'Uma conta com este e-mail já existe com um método de login diferente.';
+        
+        res.status(500).json({ 
+            message,
+            detail: error.message,
+            code: error.code 
+        });
     }
 };
 

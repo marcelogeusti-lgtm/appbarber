@@ -7,20 +7,63 @@ const prisma = require('../../lib/prisma');
  */
 class GoogleCalendarService {
     constructor() {
-        this.oauth2Client = new google.auth.OAuth2(
-            process.env.GOOGLE_CLIENT_ID,
-            process.env.GOOGLE_CLIENT_SECRET,
-            process.env.GOOGLE_REDIRECT_URI
+        this.clientId = process.env.GOOGLE_CLIENT_ID;
+        this.clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+        this.redirectUri = process.env.GOOGLE_REDIRECT_URI;
+    }
+
+    /**
+     * Creates a configured OAuth2 client for a specific user.
+     * Attaches a listener to save refreshed tokens automatically.
+     */
+    async getClient(userId, initialTokens) {
+        if (!userId || !initialTokens) return null;
+
+        const auth = new google.auth.OAuth2(
+            this.clientId,
+            this.clientSecret,
+            this.redirectUri
         );
+
+        auth.setCredentials(initialTokens);
+
+        // --- TOKEN REFRESH PERSISTENCE ---
+        // When the library automatically refreshes the access_token using the refresh_token,
+        // it emits a 'tokens' event. we MUST save this back to the database.
+        auth.on('tokens', async (newTokens) => {
+            try {
+                // Merge new tokens with old tokens (refresh_token is often only in the first one)
+                const updatedTokens = {
+                    ...initialTokens,
+                    ...newTokens
+                };
+
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: { googleTokens: updatedTokens }
+                });
+                console.log(`[GoogleCalendar] ♻️ Tokens automatically rotated and saved for User ${userId}`);
+            } catch (err) {
+                console.error(`[GoogleCalendar] ❌ Failed to save rotated tokens for User ${userId}:`, err.message);
+            }
+        });
+
+        return auth;
     }
 
     /**
      * Generates an Auth URL for the professional to connect their account.
      */
     generateAuthUrl(professionalId) {
-        return this.oauth2Client.generateAuthUrl({
+        const auth = new google.auth.OAuth2(
+            this.clientId,
+            this.clientSecret,
+            this.redirectUri
+        );
+
+        return auth.generateAuthUrl({
             access_type: 'offline',
-            prompt: 'consent',
+            prompt: 'consent', // Force consent to ensure refresh_token is returned
             scope: [
                 'https://www.googleapis.com/auth/calendar.events',
                 'https://www.googleapis.com/auth/calendar.readonly'
@@ -31,13 +74,16 @@ class GoogleCalendarService {
 
     /**
      * Exchanges auth code for tokens and saves them in the database.
-     * Note: Requires a field in the User/Professional model to store tokens.
      */
     async handleCallback(code, professionalId) {
-        const { tokens } = await this.oauth2Client.getToken(code);
+        const auth = new google.auth.OAuth2(
+            this.clientId,
+            this.clientSecret,
+            this.redirectUri
+        );
 
-        // Save tokens to User via Professional
-        // professionalId is passed as 'state'
+        const { tokens } = await auth.getToken(code);
+
         if (professionalId) {
             const professional = await prisma.professional.findUnique({
                 where: { id: professionalId }
@@ -46,9 +92,9 @@ class GoogleCalendarService {
             if (professional && professional.userId) {
                 await prisma.user.update({
                     where: { id: professional.userId },
-                    data: { googleTokens: tokens } // JSON field
+                    data: { googleTokens: tokens }
                 });
-                console.log(`[GoogleCalendar] Tokens saved for User ${professional.userId}`);
+                console.log(`[GoogleCalendar] ✅ Tokens successfully initialized and saved for User ${professional.userId}`);
             }
         }
 
@@ -65,15 +111,20 @@ class GoogleCalendarService {
                 include: { professional: true, client: true, service: true, barbershop: true }
             });
 
-            if (!appointment || !appointment.professional.googleTokens) return;
+            if (!appointment || !appointment.professional.googleTokens) {
+                console.log(`[GoogleCalendar] skipping sync for App ${appointmentId}: No tokens found.`);
+                return null;
+            }
 
-            this.oauth2Client.setCredentials(appointment.professional.googleTokens);
-            const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+            const client = await this.getClient(appointment.professional.id, appointment.professional.googleTokens);
+            if (!client) return null;
+
+            const calendar = google.calendar({ version: 'v3', auth: client });
 
             const event = {
                 summary: `${appointment.service.name} - ${appointment.client.name}`,
                 location: appointment.barbershop.address,
-                description: `Agendamento via Barbe-On\nProfissional: ${appointment.professional.name}`,
+                description: `Agendamento via Barbe-On\nProfissional: ${appointment.professional.name}\nStatus: ${appointment.status}`,
                 start: {
                     dateTime: appointment.date.toISOString(),
                     timeZone: 'America/Sao_Paulo',
@@ -89,21 +140,36 @@ class GoogleCalendarService {
                 resource: event,
             });
 
-            console.log(`[GoogleCalendar] Event created: ${response.data.htmlLink}`);
+            console.log(`[GoogleCalendar] 🚀 Event created: ${response.data.htmlLink}`);
             return response.data;
         } catch (error) {
-            console.error('[GoogleCalendar] Sync Error:', error.message);
+            // Re-throw or return structured error to be handled by controller
+            console.error('[GoogleCalendar] 🛑 Sync Error:', error.message);
+            throw error; 
         }
     }
 
     /**
-     * Blocks slots in the App based on Google Calendar busy periods.
+     * Placeholder for status check
      */
+    async checkConnectionStatus(userId) {
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user?.googleTokens) return { connected: false };
+            
+            const client = await this.getClient(userId, user.googleTokens);
+            // Attempt a tiny API call to verify
+            const calendar = google.calendar({ version: 'v3', auth: client });
+            await calendar.calendarList.list({ maxResults: 1 });
+            
+            return { connected: true, email: user.email };
+        } catch (err) {
+            return { connected: false, error: err.message };
+        }
+    }
+
     async blockSlotsFromGoogle(professionalId) {
-        // Implementation:
-        // 1. Fetch freebusy or list events from Google
-        // 2. Identify external events (not created by our App)
-        // 3. Create 'SQUEEZE_IN' or 'BLOCK' records in our system
+        // Future implementation
     }
 }
 

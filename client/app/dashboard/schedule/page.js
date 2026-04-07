@@ -408,7 +408,7 @@ export default function SchedulePage() {
                         <>
                             {viewMode === 'day' && (
                                 <>
-                                    <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} barbershopName={barbershopName} />
+                                    <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} barbershopName={barbershop?.name} />
                                     <Pagination
                                         currentPage={page}
                                         totalPages={totalPages}

@@ -48,3 +48,18 @@ exports.createReminderNotification = async (appointment) => {
         throw new Error(`Internal Reminder Error: ${error.message}`);
     }
 };
+exports.createGoogleSyncErrorNotification = async (professionalId, message) => {
+    try {
+        await prisma.notification.create({
+            data: {
+                userId: professionalId,
+                title: "Erro de Sincronização Google ⚠️",
+                message: `Não foi possível sincronizar um agendamento com seu Google Calendar: ${message}. Clique para tentar reconectar.`,
+                type: 'system',
+                link: '/dashboard/settings?tab=integracoes'
+            }
+        });
+    } catch (error) {
+        console.error(`[InternalNotifier] ❌ Error creating Google Sync Error notification:`, error.message);
+    }
+};
