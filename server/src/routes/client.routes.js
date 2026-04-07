@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { listClients, getClientDetails, createClient } = require('../controllers/client.controller');
+const { listClients, getClientDetails, createClient, searchClients } = require('../controllers/client.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 
 router.use(protect);
 
 router.get('/', authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), listClients);
+router.get('/search', authorize('ADMIN', 'SUPER_ADMIN', 'BARBER', 'RECEPTIONIST'), searchClients);
 router.post('/', authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), createClient);
 router.get('/:id', authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), getClientDetails);
 

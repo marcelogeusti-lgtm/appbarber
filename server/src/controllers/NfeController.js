@@ -134,17 +134,41 @@ class NfeController {
      */
     static async emitManual(req, res) {
         try {
-            const { barbershopId, clientId, amount, description } = req.body;
+            const { barbershopId, clientId, amount, description, cpf, cnpj } = req.body;
             
             if (!barbershopId || !clientId || !amount) {
                 return res.status(400).json({ error: 'Faltam dados obrigatórios.' });
+            }
+
+            if (Number(amount) <= 0) {
+                return res.status(400).json({ error: 'O valor deve ser maior que zero.' });
+            }
+
+            const prisma = require('../lib/prisma');
+
+            // Strategy B: Capture and save CPF/CNPJ if provided and missing
+            if (cpf || cnpj) {
+                const client = await prisma.client.findUnique({ where: { id: clientId } });
+                if (client) {
+                    const updateData = {};
+                    if (cpf && !client.cpf) updateData.cpf = cpf;
+                    if (cnpj && !client.cnpj) updateData.cnpj = cnpj;
+
+                    if (Object.keys(updateData).length > 0) {
+                        await prisma.client.update({
+                            where: { id: clientId },
+                            data: updateData
+                        });
+                        console.log(`[NfeController] Updated client ${clientId} documentation during emission.`);
+                    }
+                }
             }
 
             const nfe = await NfeService.emitNfe({
                 barbershopId,
                 clientId,
                 amount: Number(amount),
-                // Notice there's no orderId or appointmentId
+                description // Pass description to service if needed for PDF
             });
 
             res.json(nfe);

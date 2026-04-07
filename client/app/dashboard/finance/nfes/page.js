@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import { 
     ScrollText, Search, Filter, Download, AlertCircle, 
-    CheckCircle2, Clock, RefreshCcw, ExternalLink, ChevronRight,
-    ArrowLeft, Plus, X
+    ArrowLeft, Plus, X, MessageSquare, Mail, Play, Loader2, Info
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../../../lib/api';
@@ -17,8 +16,18 @@ export default function NfeListingPage() {
     const [statusFilter, setStatusFilter] = useState('ALL');
 
     const [showManualModal, setShowManualModal] = useState(false);
-    const [clients, setClients] = useState([]);
-    const [manualForm, setManualForm] = useState({ clientId: '', amount: '', description: '' });
+    const [clientSearch, setClientSearch] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [searchingClient, setSearchingClient] = useState(false);
+    const [selectedClient, setSelectedClient] = useState(null);
+    
+    const [manualForm, setManualForm] = useState({ 
+        amount: '', 
+        description: '', 
+        date: new Date().toISOString().split('T')[0],
+        cpf: '',
+        cnpj: ''
+    });
     const [manualLoading, setManualLoading] = useState(false);
 
     useEffect(() => {
@@ -58,35 +67,88 @@ export default function NfeListingPage() {
         n.number?.includes(search)
     );
 
-    const fetchClients = async () => {
+    // Smart Search with Debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (clientSearch.length >= 3) {
+                handleSearchClients();
+            } else {
+                setSearchResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [clientSearch]);
+
+    const handleSearchClients = async () => {
         try {
-            const res = await api.get(`/clients?barbershopId=${currentBarbershop.id}&limit=100`);
-            setClients(res.data.data || []);
+            setSearchingClient(true);
+            const res = await api.get(`/clients/search?barbershopId=${currentBarbershop.id}&search=${clientSearch}`);
+            setSearchResults(res.data.data || []);
         } catch (err) {
-            console.error('Error fetching clients', err);
+            console.error('Error searching clients', err);
+        } finally {
+            setSearchingClient(false);
         }
     };
 
+    const handleSelectClient = (client) => {
+        setSelectedClient(client);
+        setClientSearch('');
+        setSearchResults([]);
+        // Pre-fill docs if existing
+        setManualForm(prev => ({
+            ...prev,
+            cpf: client.cpf || '',
+            cnpj: client.cnpj || ''
+        }));
+    };
+
     const handleOpenManualModal = () => {
-        fetchClients();
+        setClientSearch('');
+        setSelectedClient(null);
+        setManualForm({ 
+            amount: '', 
+            description: '', 
+            date: new Date().toISOString().split('T')[0],
+            cpf: '',
+            cnpj: ''
+        });
         setShowManualModal(true);
     };
 
-    const handleManualSubmit = async (e) => {
-        e.preventDefault();
-        if (!manualForm.clientId || !manualForm.amount) return alert('Preencha os campos obrigatórios');
+    const handleManualSubmit = async (e, type = 'EMAIL') => {
+        if (e) e.preventDefault();
+        
+        if (!selectedClient?.id || !manualForm.amount) {
+            return alert('Preencha os campos obrigatórios');
+        }
+
+        // Logic B: CPF is required for Nfe
+        if (!manualForm.cpf && !manualForm.cnpj) {
+            return alert('Informe o CPF ou CNPJ para emitir a nota fiscal.');
+        }
         
         setManualLoading(true);
         try {
-            await api.post(`/nfes/manual`, {
+            const response = await api.post(`/nfes/manual`, {
                 barbershopId: currentBarbershop.id,
+                clientId: selectedClient.id,
                 ...manualForm
             });
+
+            const nfe = response.data;
+            
+            if (type === 'WA') {
+                const message = `Olá ${selectedClient.name}! Aqui está sua nota fiscal da ${currentBarbershop.name}: ${nfe.pdfUrl}`;
+                window.open(`https://wa.me/${selectedClient.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+            } else if (type === 'PDF') {
+                window.open(nfe.pdfUrl, '_blank');
+            }
+
             setShowManualModal(false);
-            setManualForm({ clientId: '', amount: '', description: '' });
             fetchNfes();
         } catch (error) {
-            alert('Erro ao emitir nota avulsa: ' + (error.response?.data?.error || error.message));
+            alert('Erro ao emitir nota: ' + (error.response?.data?.error || error.message));
         } finally {
             setManualLoading(false);
         }
@@ -277,68 +339,197 @@ export default function NfeListingPage() {
                 </div>
             </div>
 
-            {/* Manual Modal */}
+            {/* Manual Modal SaaS REFACTOR */}
             {showManualModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowManualModal(false)}></div>
-                    <div className="relative bg-[#111827] border border-slate-700 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col p-6 animate-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="relative bg-[#0d0d0f] border border-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col p-8 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h3 className="text-lg font-black text-white uppercase tracking-tighter">Nota Fiscal Avulsa</h3>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Geração Manual sem Comanda</p>
+                                <h3 className="text-xl font-black text-white uppercase tracking-tighter">Emissão de NFS-e <span className="text-primary italic">Manual</span></h3>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Foco em serviços e agilidade</p>
                             </div>
                             <button onClick={() => setShowManualModal(false)} className="p-2 text-slate-400 hover:text-white bg-slate-800/50 rounded-xl transition-all">
-                                <X className="w-4 h-4" />
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleManualSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Cliente *</label>
-                                <select 
-                                    required
-                                    value={manualForm.clientId}
-                                    onChange={(e) => setManualForm({...manualForm, clientId: e.target.value})}
-                                    className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
-                                >
-                                    <option value="">Selecione um cliente cadastrado...</option>
-                                    {clients.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
-                                    ))}
-                                </select>
+
+                        <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                            
+                            {/* Step 1: Client Selection */}
+                            <div className="space-y-3">
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Buscar Cliente *</label>
+                                {!selectedClient ? (
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                        <input 
+                                            type="text" 
+                                            autoFocus
+                                            placeholder="Nome, Telefone ou CPF..."
+                                            value={clientSearch}
+                                            onChange={(e) => setClientSearch(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                                        />
+                                        {searchingClient && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />}
+                                        
+                                        {searchResults.length > 0 && (
+                                            <div className="absolute top-full left-0 w-full mt-2 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-20">
+                                                {searchResults.map(c => (
+                                                    <button 
+                                                        key={c.id}
+                                                        onClick={() => handleSelectClient(c)}
+                                                        className="w-full text-left p-4 hover:bg-slate-800 border-b border-slate-800/50 last:border-0 transition-colors flex justify-between items-center"
+                                                    >
+                                                        <div>
+                                                            <p className="text-sm font-bold text-white">{c.name}</p>
+                                                            <p className="text-[10px] text-slate-500 uppercase font-black">{c.phone || 'Sem telefone'}</p>
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-slate-700" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {clientSearch.length >= 3 && !searchingClient && searchResults.length === 0 && (
+                                            <div className="absolute top-full left-0 w-full mt-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center z-20">
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Nenhum cliente encontrado</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-2xl">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">
+                                                <CheckCircle2 className="w-5 h-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-white uppercase">{selectedClient.name}</p>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{selectedClient.phone}</p>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => setSelectedClient(null)} 
+                                            className="text-[10px] text-slate-500 hover:text-red-400 font-black uppercase tracking-widest"
+                                        >
+                                            Trocar
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Valor (R$) *</label>
-                                <input 
-                                    type="number" 
-                                    step="0.01"
-                                    required
-                                    placeholder="0.00"
-                                    value={manualForm.amount}
-                                    onChange={(e) => setManualForm({...manualForm, amount: e.target.value})}
-                                    className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Descrição do Serviço</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Ex: Corte e Barba (Avulso)"
-                                    value={manualForm.description}
-                                    onChange={(e) => setManualForm({...manualForm, description: e.target.value})}
-                                    className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
-                                />
-                            </div>
-                            <button 
-                                type="submit"
-                                disabled={manualLoading}
-                                className="w-full bg-primary hover:bg-primary/90 text-white mt-4 py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                                {manualLoading ? <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span> : 'Gerar NFe Avulsa'}
-                            </button>
-                        </form>
+
+                            {/* Step 2: Documents (Strategy B Capture) */}
+                            {selectedClient && (
+                                <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">CPF (Obrigatório)*</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="000.000.000-00"
+                                                value={manualForm.cpf}
+                                                onChange={(e) => setManualForm({...manualForm, cpf: e.target.value})}
+                                                className={`w-full bg-slate-900 border ${!selectedClient.cpf ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-slate-800'} rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold`}
+                                            />
+                                            {!selectedClient.cpf && (
+                                                <p className="text-[8px] text-yellow-500 font-black uppercase tracking-widest mt-1.5 ml-1 flex items-center gap-1">
+                                                    <Info className="w-2.5 h-2.5" /> Será salvo no cadastro
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">CNPJ (Opcional)</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="00.000.000/0001-00"
+                                                value={manualForm.cnpj}
+                                                onChange={(e) => setManualForm({...manualForm, cnpj: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 border-t border-slate-800 pt-6">
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Descrição do Serviço *</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="Ex: Corte de Cabelo e Design de Barba"
+                                                value={manualForm.description}
+                                                onChange={(e) => setManualForm({...manualForm, description: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Valor (R$) *</label>
+                                            <input 
+                                                type="number" 
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                value={manualForm.amount}
+                                                onChange={(e) => setManualForm({...manualForm, amount: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 font-black text-lg"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Data Prestação</label>
+                                            <input 
+                                                type="date" 
+                                                value={manualForm.date}
+                                                onChange={(e) => setManualForm({...manualForm, date: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold uppercase"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Multi-Channel Execution Section */}
+                                    <div className="pt-6 border-t border-slate-800 space-y-3">
+                                        <p className="text-[10px] font-black text-white uppercase tracking-widest text-center mb-4">Escolha como Despachar:</p>
+                                        
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <button 
+                                                onClick={(e) => handleManualSubmit(e, 'EMAIL')}
+                                                disabled={manualLoading}
+                                                className="flex flex-col items-center gap-2 p-4 bg-slate-900 hover:bg-primary/10 border border-slate-800 hover:border-primary/50 rounded-2xl transition-all group disabled:opacity-50"
+                                            >
+                                                <Mail className="w-5 h-5 text-slate-500 group-hover:text-primary" />
+                                                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-white">E-mail Auto</span>
+                                            </button>
+                                            
+                                            <button 
+                                                onClick={(e) => handleManualSubmit(e, 'WA')}
+                                                disabled={manualLoading}
+                                                className="flex flex-col items-center gap-2 p-4 bg-slate-900 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/50 rounded-2xl transition-all group disabled:opacity-50"
+                                            >
+                                                <MessageSquare className="w-5 h-5 text-slate-500 group-hover:text-emerald-500" />
+                                                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-white">WhatsApp</span>
+                                            </button>
+
+                                            <button 
+                                                onClick={(e) => handleManualSubmit(e, 'PDF')}
+                                                disabled={manualLoading}
+                                                className="flex flex-col items-center gap-2 p-4 bg-slate-900 hover:bg-white/10 border border-slate-800 hover:border-white/50 rounded-2xl transition-all group disabled:opacity-50"
+                                            >
+                                                <Download className="w-5 h-5 text-slate-500 group-hover:text-white" />
+                                                <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-white">Baixar PDF</span>
+                                            </button>
+                                        </div>
+
+                                        {manualLoading && (
+                                            <div className="flex items-center justify-center gap-3 py-4 bg-primary/5 border border-primary/20 rounded-2xl animate-pulse">
+                                                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Processando Emissão Fiscal...</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
         </div>
     );
 }

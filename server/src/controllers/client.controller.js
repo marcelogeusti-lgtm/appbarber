@@ -126,6 +126,40 @@ exports.listClients = async (req, res) => {
     }
 };
 
+exports.searchClients = async (req, res) => {
+    try {
+        const { barbershopId, search } = req.query;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+        if (!search || search.length < 3) return res.json({ data: [] });
+
+        const clients = await prisma.client.findMany({
+            where: {
+                active: true,
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { phone: { contains: search } },
+                    { cpf: { contains: search } },
+                    { cnpj: { contains: search } }
+                ]
+            },
+            select: {
+                id: true,
+                name: true,
+                phone: true,
+                cpf: true,
+                cnpj: true,
+                authUser: { select: { email: true } }
+            },
+            take: 10
+        });
+
+        res.json({ data: clients });
+    } catch (error) {
+        console.error('Search Clients Error:', error);
+        res.status(500).json({ message: 'Error searching clients' });
+    }
+};
+
 exports.createClient = async (req, res) => {
     try {
         const { name, phone, email, notes, barbershopId, avatarUrl } = req.body;
