@@ -140,7 +140,7 @@ export default function DashboardPage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
                 <ActionBox icon={Scissors} title="Gerenciar Serviços" desc="Adicione novos cortes, barbas e tratamentos." href="/dashboard/services" />
-                <ActionBox icon={CheckCircle} title="Perfil Fiscal" desc="Ative sua emissão de nota fiscal automática." href="/dashboard/settings?tab=Fiscal" />
+                <ActionBox icon={CheckCircle} title="Ajustes Gerais" desc="Configure as informações e preferências da sua barbearia." href="/dashboard/settings?tab=Geral" />
             </div>
         </div>
     );

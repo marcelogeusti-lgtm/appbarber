@@ -15,18 +15,9 @@ export default function PreferencesPage() {
     const [saving, setSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error'
 
-    // Fiscal States
-    const [requiresNfe, setRequiresNfe] = useState(false);
-    const [cpf, setCpf] = useState('');
-    const [cnpj, setCnpj] = useState('');
-    const [type, setType] = useState('PF'); // PF or PJ
-
     useEffect(() => {
         if (user) {
-            setRequiresNfe(user.requiresNfe || false);
-            setCpf(user.cpf || '');
-            setCnpj(user.cnpj || '');
-            if (user.cnpj) setType('PJ');
+            // No fiscal preferences here anymore
         }
     }, [user]);
 
@@ -36,9 +27,7 @@ export default function PreferencesPage() {
             setSaveStatus(null);
             
             await clientApi.patch('/clients/profile', {
-                requiresNfe,
-                cpf: type === 'PF' ? cpf : null,
-                cnpj: type === 'PJ' ? cnpj : null
+                // No fiscal fields sent
             });
             
             await refreshUser();
@@ -129,82 +118,6 @@ export default function PreferencesPage() {
                         </div>
                     </div>
 
-                    {/* Fiscal / NFe Section */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between px-1">
-                            <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Configurações Fiscais</h2>
-                            {requiresNfe && (
-                                <span className="text-[8px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">Ativado</span>
-                            )}
-                        </div>
-
-                        <div className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800/50 backdrop-blur-xl space-y-6">
-                            
-                            {/* Toggle NFe */}
-                            <div 
-                                onClick={() => setRequiresNfe(!requiresNfe)}
-                                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
-                                    requiresNfe 
-                                    ? 'bg-primary/5 border-primary/20 ring-4 ring-primary/5' 
-                                    : 'bg-slate-950/50 border-slate-800 hover:border-slate-700'
-                                }`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-                                        requiresNfe ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-slate-800 text-slate-500'
-                                    }`}>
-                                        <ScrollText className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-black text-white text-xs uppercase tracking-tighter">Sempre solicitar Nota Fiscal</h3>
-                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">A nota será emitida automaticamente no pós-atendimento</p>
-                                    </div>
-                                </div>
-                                <div className={`w-10 h-5 rounded-full relative transition-all ${requiresNfe ? 'bg-primary' : 'bg-slate-700'}`}>
-                                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${requiresNfe ? 'left-6' : 'left-1 shadow-inner'}`} />
-                                </div>
-                            </div>
-
-                            {/* Fiscal ID Inputs */}
-                            {requiresNfe && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    {/* Type Toggle */}
-                                    <div className="flex p-1 bg-slate-950 border border-slate-800 rounded-2xl">
-                                        <button 
-                                            onClick={() => setType('PF')}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                type === 'PF' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
-                                            }`}
-                                        >
-                                            <User className="w-3.5 h-3.5" /> Pessoa Física
-                                        </button>
-                                        <button 
-                                            onClick={() => setType('PJ')}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                type === 'PJ' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
-                                            }`}
-                                        >
-                                            <Building className="w-3.5 h-3.5" /> Pessoa Jurídica
-                                        </button>
-                                    </div>
-
-                                    {/* Input Field */}
-                                    <div className="space-y-1.5 px-1">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
-                                            {type === 'PF' ? 'CPF do Beneficiário' : 'CNPJ da Empresa'}
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            placeholder={type === 'PF' ? '000.000.000-00' : '00.000.000/0000-00'}
-                                            value={type === 'PF' ? cpf : cnpj}
-                                            onChange={(e) => type === 'PF' ? setCpf(e.target.value) : setCnpj(e.target.value)}
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 px-5 text-sm font-bold text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                                        />
-                                        <p className="text-[9px] text-slate-600 font-medium ml-1">Apenas números. Dados criptografados para sua segurança.</p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
                     </div>
 
                 </div>

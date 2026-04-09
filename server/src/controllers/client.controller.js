@@ -354,9 +354,7 @@ exports.updateClientProfile = async (req, res) => {
                 gender: gender || null,
                 birthDate: formattedBirthDate,
                 avatarUrl, // Optional update
-                cpf: cpf || null,
-                cnpj: cnpj || null,
-                requiresNfe: requiresNfe === undefined ? undefined : requiresNfe
+                // Fiscal fields (cpf, cnpj, requiresNfe) are ignored here as clients should not request invoices via system
             }
         });
 
