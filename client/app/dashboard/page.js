@@ -127,10 +127,12 @@ export default function DashboardPage() {
 
                 <div className="bg-primary p-8 rounded-xl text-primary-foreground flex flex-col justify-between relative overflow-hidden shadow-2xl shadow-primary/20">
                     <div className="relative z-10">
-                        <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-2">Suporte <br/>Exclusivo</h3>
-                        <p className="text-xs opacity-70 font-medium">Precisa de ajuda com o sistema ou fluxos fiscais?</p>
+                        <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-2">Aprenda o <br/>Sistema</h3>
+                        <p className="text-xs opacity-70 font-medium">Veja como configurar e usar todas as funções passo a passo</p>
                     </div>
-                    <button className="relative z-10 bg-white/10 hover:bg-white/20 border border-white/20 text-white w-full py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all mt-6">Falar com Consultor</button>
+                    <Link href="/dashboard/tutorials" className="relative z-10 bg-white/10 hover:bg-white/20 border border-white/20 text-white w-full py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all mt-6 text-center">
+                        Começar agora
+                    </Link>
                     <div className="absolute -right-4 -bottom-4 opacity-10">
                         <TrendingUp size={160} />
                     </div>
