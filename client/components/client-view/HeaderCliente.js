@@ -40,7 +40,7 @@ export default function HeaderCliente({ onMenuOpen }) {
         if (!nextAppointment) return 'Nenhum agendamento pendente';
         const date = new Date(nextAppointment.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
         const time = nextAppointment.time || '';
-        return `Próximo: ${date} às ${time} - ${nextAppointment.barbershop?.name || 'Barbearia'}`;
+        return `Próximo: ${date} às ${time} - ${nextAppointment.barbershop?.commercialName || nextAppointment.barbershop?.name || 'Minha Barbearia'}`;
     };
 
     return (

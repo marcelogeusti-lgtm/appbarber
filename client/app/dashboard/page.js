@@ -1,7 +1,7 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
 import {
-    Copy, ExternalLink, Scissors, CheckCircle, ShoppingBag, ArrowRight, Calendar as CalendarIcon, TrendingUp, DollarSign, Globe, RotateCw, Users as UsersIcon, Loader2
+    Copy, ExternalLink, Scissors, CheckCircle, ShoppingBag, ArrowRight, Calendar as CalendarIcon, TrendingUp, DollarSign, Globe, Users as UsersIcon, Loader2, PlayCircle, BookOpen, Hand
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '../../lib/api';
@@ -47,7 +47,8 @@ export default function DashboardPage() {
                 revenueToday: res.data.revenueToday || 0,
                 appointmentsToday: res.data.appointmentsToday || 0,
                 clientsTotal: res.data.clientsTotal || 0,
-                openCommands: res.data.openCommands || 0
+                openCommands: res.data.openCommands || 0,
+                onboarding: res.data.onboarding || { hasServices: false, hasGateway: false, hasNfe: false }
             };
         },
         enabled: !!bId,
@@ -63,84 +64,236 @@ export default function DashboardPage() {
         alert('Link copiado!');
     };
 
-    const shopName = barbershop?.commercialName || barbershop?.name || user?.barbershop?.name || user?.name;
+    const shopName = barbershop?.commercialName || barbershop?.name || user?.barbershop?.name || user?.name || 'Minha Barbearia';
 
-    return (
-        <div className="bg-background text-foreground space-y-6 animate-in fade-in duration-500">
-            {/* Header Section */}
-            <div className="bg-card rounded-xl p-6 border border-border flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-lg">
-                        {shopName?.[0]}
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2 uppercase tracking-tighter">
-                            Olá, {shopName}
-                        </h1>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
-                            <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">Gestão Ativa</span>
-                        </div>
-                    </div>
-                </div>
+    const onboarding_completed = Boolean(
+        user?.name && 
+        barbershop?.phone && 
+        (barbershop?.name || barbershop?.commercialName) && 
+        stats?.onboarding?.hasServices
+    );
 
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => refetch()}
-                        className="h-9 w-9 bg-card border border-border hover:border-primary/50 rounded-lg text-muted-foreground hover:text-primary transition-all flex items-center justify-center"
-                    >
-                        <RotateCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
-                    <Link
-                        href="/search"
-                        target="_blank"
-                        className="h-9 px-4 bg-primary text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-primary/10"
-                    >
-                        Marketplace <ExternalLink className="w-3 h-3" />
-                    </Link>
+    const renderWelcomeHeader = () => (
+        <div className="bg-primary text-primary-foreground rounded-2xl p-8 mb-6 shadow-xl relative overflow-hidden">
+            <div className="relative z-10 max-w-2xl">
+                <h1 className="text-3xl font-black uppercase tracking-tighter mb-4 flex items-center gap-3">
+                    <Hand className="w-8 h-8" /> Bem-vindo(a) ao {shopName}
+                </h1>
+                <p className="text-sm font-medium opacity-90 leading-relaxed">
+                    Gerencie sua empresa, agende clientes e receba pagamentos automaticamente.
+                    Siga os passos abaixo para ativar seu sistema completo em menos de 2 minutos.
+                </p>
+            </div>
+            <div className="absolute -right-10 -bottom-10 opacity-10">
+                <Globe size={240} />
+            </div>
+        </div>
+    );
+
+    const renderStandardHeader = () => (
+        <div className="bg-card rounded-xl p-6 border border-border flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+            <div className="flex items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2 uppercase tracking-tighter">
+                        Olá, {shopName}
+                    </h1>
+                    <div className="flex items-center gap-2 mt-0.5">
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                        <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">Gestão Ativa</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex items-center gap-3">
+                <Link
+                    href="/search"
+                    target="_blank"
+                    className="h-9 px-4 bg-primary text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-primary/10"
+                >
+                    Marketplace <ExternalLink className="w-3 h-3" />
+                </Link>
+            </div>
+        </div>
+    );
+
+    const renderEducationalBlock = () => (
+        <div className="bg-card rounded-xl p-8 border border-border space-y-6 flex-1">
+            <h3 className="text-lg font-black uppercase tracking-tighter flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-primary" /> Como o sistema funciona:
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center mb-3">1</div>
+                    <h4 className="font-bold text-sm">Compartilhe o link</h4>
+                    <p className="text-xs text-muted-foreground">Coloque na bio do Instagram ou envie no WhatsApp.</p>
+                </div>
+                <div className="space-y-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center mb-3">2</div>
+                    <h4 className="font-bold text-sm">O cliente agenda</h4>
+                    <p className="text-xs text-muted-foreground">Eles escolhem o serviço e o horário sozinhos, 24h.</p>
+                </div>
+                <div className="space-y-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center mb-3">3</div>
+                    <h4 className="font-bold text-sm">O sistema organiza</h4>
+                    <p className="text-xs text-muted-foreground">Você acompanha as métricas, recebe e gerencia aqui.</p>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderSupportBlock = () => (
+        <div className="bg-muted p-8 rounded-xl flex flex-col justify-between border border-border h-full">
+            <div>
+                <h3 className="text-lg font-black uppercase tracking-tighter mb-2">Central de Ajuda</h3>
+                <p className="text-xs text-muted-foreground mb-6">Acesse tutoriais interativos e suporte especializado sempre que precisar.</p>
+            </div>
+            <Link href="/dashboard/tutorials" className="w-full bg-card hover:bg-card/80 border border-border text-foreground py-3 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all text-center">
+                Ver Tutoriais
+            </Link>
+        </div>
+    );
+
+    const renderMetrics = () => {
+        if (!onboarding_completed) return null;
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <StatCard title="Faturamento Hoje" value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats?.revenueToday)} icon={DollarSign} />
                 <StatCard title="Agendamentos" value={stats?.appointmentsToday} icon={CalendarIcon} />
                 <StatCard title="Clientes" value={stats?.clientsTotal} icon={UsersIcon} />
                 <StatCard title="Comandas Abertas" value={stats?.openCommands} icon={ShoppingBag} color="text-amber-500" />
             </div>
+        );
+    };
 
-            {/* Link & Marketing Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-card rounded-xl p-8 border border-border space-y-6">
-                    <div>
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Seu Link de Agendamento</h3>
-                        <p className="text-sm text-muted-foreground mb-4">Compartilhe este link em seu Instagram e WhatsApp para receber agendamentos automáticos.</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <div className="flex-1 bg-muted rounded-xl border border-border px-4 py-3 flex items-center relative group">
-                            <span className="text-xs font-mono text-slate-500 truncate mr-8">{publicUrl || 'Carregando...'}</span>
-                            <button onClick={copyToClipboard} className="absolute right-2 p-2 hover:bg-card rounded-lg text-muted-foreground hover:text-primary"><Copy className="w-4 h-4" /></button>
-                        </div>
-                        <a href={publicUrl} target="_blank" rel="noreferrer" className="bg-slate-900 border border-slate-800 text-white px-6 rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all font-black text-[10px] uppercase tracking-widest">Abrir</a>
-                    </div>
+    return (
+        <div className="bg-background text-foreground space-y-6 animate-in fade-in duration-500 pb-12 w-full max-w-6xl mx-auto">
+            {!onboarding_completed ? renderWelcomeHeader() : renderStandardHeader()}
+
+            {!onboarding_completed && (
+                <div className="mb-8">
+                    <OnboardingChecklist 
+                        isProfileComplete={Boolean(user?.name && barbershop?.phone && barbershop?.name)} 
+                        hasServices={stats?.onboarding?.hasServices} 
+                        stats={stats} 
+                    />
                 </div>
+            )}
 
-                <div className="bg-primary p-8 rounded-xl text-primary-foreground flex flex-col justify-between relative overflow-hidden shadow-2xl shadow-primary/20">
-                    <div className="relative z-10">
-                        <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-2">Suporte <br/>Exclusivo</h3>
-                        <p className="text-xs opacity-70 font-medium">Precisa de ajuda com o sistema ou fluxos fiscais?</p>
+            {renderMetrics()}
+
+            {onboarding_completed && (
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                   <ActionBox icon={Scissors} title="Gerenciar Serviços" desc="Adicione novos cortes, barbas e tratamentos." href="/dashboard/services" />
+                   <ActionBox icon={CheckCircle} title="Configurações Fiscais" desc="Ative sua emissão de nota fiscal automática." href="/dashboard/finance/nfes" />
+               </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {onboarding_completed && (
+                    <div className="lg:col-span-2 bg-card rounded-xl p-8 border border-border space-y-6">
+                        <div>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Seu Link de Agendamento</h3>
+                            <p className="text-sm text-muted-foreground mb-4">Compartilhe este link em seu Instagram e WhatsApp para receber agendamentos automáticos.</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="flex-1 bg-muted rounded-xl border border-border px-4 py-3 flex items-center relative group">
+                                <span className="text-xs font-mono text-slate-500 truncate mr-8">{publicUrl || 'Carregando...'}</span>
+                                <button onClick={copyToClipboard} className="absolute right-2 p-2 hover:bg-card rounded-lg text-muted-foreground hover:text-primary"><Copy className="w-4 h-4" /></button>
+                            </div>
+                            <a href={publicUrl} target="_blank" rel="noreferrer" className="bg-slate-900 border border-slate-800 text-white px-6 rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all font-black text-[10px] uppercase tracking-widest">Abrir</a>
+                        </div>
                     </div>
-                    <button className="relative z-10 bg-white/10 hover:bg-white/20 border border-white/20 text-white w-full py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all mt-6">Falar com Consultor</button>
-                    <div className="absolute -right-4 -bottom-4 opacity-10">
-                        <TrendingUp size={160} />
+                )}
+                
+                {!onboarding_completed && (
+                    <div className="lg:col-span-2 flex">
+                        {renderEducationalBlock()}
                     </div>
+                )}
+
+                <div className="flex flex-col h-full">
+                    {renderSupportBlock()}
                 </div>
             </div>
+        </div>
+    );
+}
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-                <ActionBox icon={Scissors} title="Gerenciar Serviços" desc="Adicione novos cortes, barbas e tratamentos." href="/dashboard/services" />
-                <ActionBox icon={CheckCircle} title="Configurações Fiscais" desc="Ative sua emissão de nota fiscal automática." href="/dashboard/finance/nfes" />
+// Subcomponents
+
+function OnboardingChecklist({ isProfileComplete, hasServices, stats }) {
+    const steps = [
+        {
+            title: 'Configurar Perfil Básico',
+            completed: isProfileComplete,
+            href: '/dashboard/owner',
+            required: true
+        },
+        {
+            title: 'Criar Mínimo de 1 Serviço',
+            completed: hasServices,
+            href: '/dashboard/services',
+            required: true
+        },
+        {
+            title: 'Habilitar Agendamento',
+            completed: isProfileComplete && hasServices, // Auto-complete if basics are there
+            href: '/dashboard/settings',
+            required: true
+        },
+        {
+            title: 'Configurar Pagamentos Pix/Cartão',
+            completed: stats?.onboarding?.hasGateway,
+            href: '/dashboard/settings',
+            required: false
+        },
+        {
+            title: 'Configurar Notas Fiscais (NFS-e)',
+            completed: stats?.onboarding?.hasNfe,
+            href: '/dashboard/finance/nfes',
+            required: false
+        }
+    ];
+
+    const completedCount = steps.filter(s => s.completed).length;
+
+    return (
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div className="p-6 border-b border-border bg-muted/30">
+                <div className="flex justify-between items-end mb-4">
+                    <div>
+                        <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-2">
+                            🚀 Configure seu Sistema
+                        </h2>
+                        <p className="text-xs text-muted-foreground mt-1">Siga os passos abaixo, alguns são essenciais.</p>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                        {completedCount} de {steps.length} Concluídos
+                    </span>
+                </div>
+                {/* Progress bar */}
+                <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+                    <div className="bg-primary h-2 transition-all duration-500 rounded-full" style={{ width: `${(completedCount / steps.length) * 100}%` }}></div>
+                </div>
+            </div>
+            <div className="divide-y divide-border">
+                {steps.map((step, idx) => (
+                    <Link key={idx} href={step.href} className="flex items-center gap-4 p-5 hover:bg-muted/50 transition-colors group">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 shrink-0 ${step.completed ? 'bg-primary border-primary text-white' : 'border-border text-muted-foreground'}`}>
+                            {step.completed ? <CheckCircle className="w-3.5 h-3.5" /> : <span className="text-[10px] font-bold">{idx + 1}</span>}
+                        </div>
+                        <div className="flex-1">
+                            <h4 className={`text-sm font-bold ${step.completed ? 'text-muted-foreground line-through' : 'text-foreground group-hover:text-primary transition-colors'}`}>
+                                {step.title}
+                            </h4>
+                        </div>
+                        <div>
+                            {!step.required && <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mr-4 hidden md:inline">Opcional</span>}
+                            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                        </div>
+                    </Link>
+                ))}
             </div>
         </div>
     );

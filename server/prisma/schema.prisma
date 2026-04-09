@@ -324,9 +324,12 @@ model Barbershop {
   noShowPercent Float   @default(0)
   noShowText    String?
 
-  subscriptionStatus    String          @default("ACTIVE") // ACTIVE, OVERDUE, CANCELED, TRIAL
+  subscriptionStatus    SaaSSubscriptionStatus @default(TRIAL)
+  trialStartedAt        DateTime?              @default(now())
   trialEndsAt           DateTime?
-  saasPlan              String          @default("BASIC")
+  nextBillingDate       DateTime?
+  saasPlan              String                 @default("BASIC")
+  isTestAccount         Boolean                @default(false)
   enabledPaymentMethods PaymentMethod[] @default([CASH, PIX, CREDIT_CARD, DEBIT_CARD])
 
   // WhatsApp Automation Settings
@@ -1067,11 +1070,24 @@ model UserSystemUpdateRead {
   @@unique([userId, systemUpdateId])
 }
 
+enum SaaSSubscriptionStatus {
+  TRIAL
+  ACTIVE
+  OVERDUE
+  CANCELLED
+  BLOCKED
+}
+
 model FeatureFlag {
   id           String      @id @default(uuid())
   key          String
   description  String?
   enabled      Boolean     @default(false)
+  
+  // New expressivity fields
+  allowedPlans String[] @default([]) // e.g. ["PRO", "ENTERPRISE"]
+  allowedUsers String[] @default([]) // IDs of specific test barbershops or users
+
   barbershopId String? // Optional: Enable for specific tenant (null for global)
   barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
 

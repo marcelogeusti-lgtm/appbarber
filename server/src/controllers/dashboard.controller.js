@@ -21,7 +21,10 @@ exports.getDashboardStats = async (req, res) => {
             yesterdayRevenueResult,
             totalRevenueResult,
             uniqueClientsCount,
-            openCommandsCount
+            openCommandsCount,
+            servicesCount,
+            gatewayConfigCount,
+            nfeConfigCount
         ] = await Promise.all([
             // Count Today's Appointments
             prisma.appointment.count({
@@ -65,7 +68,11 @@ exports.getDashboardStats = async (req, res) => {
                 }
             }),
             // Open Commands Count
-            prisma.order.count({ where: { barbershopId, status: 'OPEN' } })
+            prisma.order.count({ where: { barbershopId, status: 'OPEN' } }),
+            // Config checks for onboarding
+            prisma.service.count({ where: { barbershopId, active: true } }),
+            prisma.gatewayConfig.count({ where: { barbershopId } }),
+            prisma.nfeConfig.count({ where: { barbershopId } })
         ]);
 
         const appointmentsToday = appointmentsTodayCount || 0;
@@ -89,7 +96,12 @@ exports.getDashboardStats = async (req, res) => {
             revenueTrend,
             appointmentsToday,
             clientsTotal,
-            openCommands: openCommandsCount
+            openCommands: openCommandsCount,
+            onboarding: {
+                hasServices: servicesCount > 0,
+                hasGateway: gatewayConfigCount > 0,
+                hasNfe: nfeConfigCount > 0
+            }
         });
 
     } catch (error) {

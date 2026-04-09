@@ -7,9 +7,21 @@ class FeatureFlagService {
      * @param {string} barbershopId - The ID of the barbershop (tenant)
      * @returns {Promise<boolean>}
      */
-    static async isEnabled(key, barbershopId = null) {
+    static async isEnabled(key, barbershopId = null, userId = null) {
         try {
-            // 1. Check for specific tenant flag
+            // 1. Fetch the flag definition (assuming we look for the global one first to get rules)
+            const globalFlag = await prisma.featureFlag.findUnique({
+                where: {
+                    key_barbershopId: { key, barbershopId: null }
+                }
+            });
+
+            if (!globalFlag) return false;
+
+            // 2. If it's explicitly enabled for everyone, return true
+            if (globalFlag.enabled) return true;
+
+            // 3. Check for specific tenant/shop override
             if (barbershopId) {
                 const tenantFlag = await prisma.featureFlag.findUnique({
                     where: {
@@ -20,14 +32,33 @@ class FeatureFlagService {
                 if (tenantFlag) return tenantFlag.enabled;
             }
 
-            // 2. Fallback to global flag (where barbershopId is null)
-            const globalFlag = await prisma.featureFlag.findUnique({
-                where: {
-                    key_barbershopId: { key, barbershopId: null }
-                }
-            });
+            // 4. Check for Plan-level permissions
+            if (barbershopId && globalFlag.allowedPlans && globalFlag.allowedPlans.length > 0) {
+                const shop = await prisma.barbershop.findUnique({
+                    where: { id: barbershopId },
+                    select: { saasPlan: true }
+                });
 
-            return globalFlag ? globalFlag.enabled : false;
+                if (shop && globalFlag.allowedPlans.includes(shop.saasPlan)) {
+                    return true;
+                }
+            }
+
+            // 5. Check for specific User-level permissions (Beta testers)
+            if (userId && globalFlag.allowedUsers && globalFlag.allowedUsers.length > 0) {
+                if (globalFlag.allowedUsers.includes(userId)) {
+                    return true;
+                }
+            }
+
+            // 6. Check if the Barbershop ID is in the allowed users list (treating shop as entity)
+            if (barbershopId && globalFlag.allowedUsers && globalFlag.allowedUsers.length > 0) {
+                if (globalFlag.allowedUsers.includes(barbershopId)) {
+                    return true;
+                }
+            }
+
+            return false;
         } catch (error) {
             console.error(`[FeatureFlagService] Error checking flag ${key}:`, error);
             return false;
@@ -37,21 +68,34 @@ class FeatureFlagService {
     /**
      * Set a feature flag value
      */
-    static async setFlag(key, enabled, barbershopId = null, description = null) {
+    static async setFlag(key, enabled, barbershopId = null, description = null, allowedPlans = [], allowedUsers = []) {
         return prisma.featureFlag.upsert({
             where: {
                 key_barbershopId: { key, barbershopId }
             },
-            update: { enabled, description },
-            create: { key, enabled, barbershopId, description }
+            update: { 
+                enabled, 
+                description,
+                allowedPlans: allowedPlans.length > 0 ? allowedPlans : undefined,
+                allowedUsers: allowedUsers.length > 0 ? allowedUsers : undefined
+            },
+            create: { 
+                key, 
+                enabled, 
+                barbershopId, 
+                description,
+                allowedPlans,
+                allowedUsers
+            }
         });
     }
 
     /**
-     * List all flags for a barbershop (merging with globals)
+     * List all flags for a barbershop (merging with globals and applying plan logic)
      */
-    static async getAllFlags(barbershopId = null) {
-        const flags = await prisma.featureFlag.findMany({
+    static async getAllFlags(barbershopId = null, userId = null) {
+        // Fetch all definitions
+        const allFlags = await prisma.featureFlag.findMany({
             where: {
                 OR: [
                     { barbershopId: null },
@@ -60,9 +104,9 @@ class FeatureFlagService {
             }
         });
 
-        // If specific tenantRequested, we might want to override globals
-        // but for now, simple list is enough
-        return flags;
+        // We can enrich this list if needed by running 'isEnabled' check for each unique key
+        // But for the Master Panel, we just return the raw data.
+        return allFlags;
     }
 }
 

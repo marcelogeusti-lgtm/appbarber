@@ -8,6 +8,8 @@ export default function UpdateRolloutManager() {
     const [loading, setLoading] = useState(true);
     const [newFlagKey, setNewFlagKey] = useState('');
     const [newFlagDescription, setNewFlagDescription] = useState('');
+    const [newFlagAllowedPlans, setNewFlagAllowedPlans] = useState('');
+    const [newFlagAllowedUsers, setNewFlagAllowedUsers] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
@@ -28,16 +30,19 @@ export default function UpdateRolloutManager() {
     const handleCreateFlag = async (e) => {
         e.preventDefault();
         try {
-            // Default to disabled globally
             await api.post('/rollout/toggle', {
                 key: newFlagKey,
                 enabled: false,
                 barbershopId: null,
-                description: newFlagDescription
+                description: newFlagDescription,
+                allowedPlans: newFlagAllowedPlans ? newFlagAllowedPlans.split(',').map(p => p.trim()) : [],
+                allowedUsers: newFlagAllowedUsers ? newFlagAllowedUsers.split(',').map(u => u.trim()) : []
             });
             alert('Flag criada com sucesso! Agora você pode ativar para testes.');
             setNewFlagKey('');
             setNewFlagDescription('');
+            setNewFlagAllowedPlans('');
+            setNewFlagAllowedUsers('');
             setIsCreating(false);
             fetchFlags();
         } catch (err) {
@@ -126,7 +131,27 @@ export default function UpdateRolloutManager() {
                                 className="w-full p-4 bg-background border border-border rounded-xl font-bold text-foreground outline-none focus:ring-2 ring-primary"
                             />
                         </div>
-                        <button type="submit" className="bg-primary text-primary-foreground p-4 rounded-xl font-black uppercase tracking-widest hover:scale-105 transition shadow-lg shadow-primary/20">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Planos Permitidos (Separados por vírgula)</label>
+                                <input
+                                    value={newFlagAllowedPlans}
+                                    onChange={e => setNewFlagAllowedPlans(e.target.value)}
+                                    placeholder="SOLO, BASIC, PRO, ENTERPRISE"
+                                    className="w-full p-4 bg-background border border-border rounded-xl font-bold text-foreground outline-none focus:ring-2 ring-primary uppercase"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Unidades Permitidas (IDs)</label>
+                                <input
+                                    value={newFlagAllowedUsers}
+                                    onChange={e => setNewFlagAllowedUsers(e.target.value)}
+                                    placeholder="UUID-1, UUID-2"
+                                    className="w-full p-4 bg-background border border-border rounded-xl font-bold text-foreground outline-none focus:ring-2 ring-primary"
+                                />
+                            </div>
+                        </div>
+                        <button type="submit" className="bg-primary text-primary-foreground p-4 px-10 rounded-xl font-black uppercase tracking-widest hover:scale-105 transition shadow-lg shadow-primary/20 whitespace-nowrap">
                             Criar Flag
                         </button>
                     </form>

@@ -1,4 +1,4 @@
-import { Menu, Search, Wallet } from 'lucide-react';
+import { Menu, Search, Wallet, Scissors } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import ThemeToggle from './ThemeToggle';
 
@@ -66,12 +66,12 @@ export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, 
                     {barbershop?.logo_url || barbershop?.logoUrl ? (
                         <img
                             src={barbershop.logo_url || barbershop.logoUrl}
-                            alt={barbershop.name || 'Logo'}
+                            alt={barbershop.commercialName || barbershop.name || 'Barbearia'}
                             className="w-8 h-8 rounded-lg object-cover border border-gray-100 shadow-sm"
                         />
                     ) : (
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-xs ring-1 ring-primary/20">
-                            {user?.name?.[0] || 'U'}
+                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary ring-1 ring-primary/20">
+                            <Scissors className="w-4 h-4" />
                         </div>
                     )}
                 </div>

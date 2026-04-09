@@ -41,9 +41,16 @@ exports.rolloutGlobally = async (req, res) => {
 };
 
 exports.toggleFlag = async (req, res) => {
-    const { key, enabled, barbershopId } = req.body;
+    const { key, enabled, barbershopId, description, allowedPlans, allowedUsers } = req.body;
     try {
-        const flag = await FeatureFlagService.setFlag(key, enabled, barbershopId || null);
+        const flag = await FeatureFlagService.setFlag(
+            key, 
+            enabled, 
+            barbershopId || null, 
+            description || null,
+            allowedPlans || [],
+            allowedUsers || []
+        );
         res.json(flag);
     } catch (error) {
         res.status(500).json({ message: 'Erro ao alternar flag.' });

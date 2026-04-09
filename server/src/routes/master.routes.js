@@ -44,6 +44,8 @@ router.delete('/admin/tutorials/:id', tutorialController.delete);
 // Dashboard Stats & Actions
 router.get('/admin/stats', masterController.getDashboardStats);
 router.patch('/admin/barbershops/:id/toggle-status', masterController.toggleBarbershopStatus);
+router.patch('/admin/barbershops/:id/subscription', masterController.updateBarbershopSubscription);
+router.post('/admin/barbershops/:id/impersonate', masterController.impersonateBarbershop);
 
 
 // --- CONTENT ROUTES (For Barbers) ---

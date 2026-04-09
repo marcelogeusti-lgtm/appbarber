@@ -76,3 +76,26 @@ client/.next/
 client/public/logos/Samuel ensaio/
 .vercel
 .env*.local
+
+# Logs and Temp
+*.log
+tasks.txt
+diag.log
+git_log.txt
+deploy_out.txt
+test_output.txt
+branch_out.txt
+deploy_result_full.txt
+git_log_settings.txt
+git_push_result.txt
+git_show.txt
+git_status.txt
+git_status_new.txt
+lock_del.txt
+old_page_snippet.txt
+output_deploy.txt
+server_deploy_attempt.log
+tmp_deploy.js
+read_hex.js
+read_output.js
+readlog.js

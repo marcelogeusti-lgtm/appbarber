@@ -182,27 +182,82 @@ const getPlanPrice = (planName) => {
 
 exports.getDashboardStats = async (req, res) => {
     try {
-        const [totalBarbershops, activeBarbershops, provisioningCount] = await Promise.all([
+        const [totalBarbershops, activeBarbershops, trialBarbershops, blockedBarbershops] = await Promise.all([
             prisma.barbershop.count(),
             prisma.barbershop.findMany({
-                where: { subscriptionStatus: 'ACTIVE' },
+                where: { subscriptionStatus: 'ACTIVE', isTestAccount: false },
                 select: { saasPlan: true }
             }),
             prisma.barbershop.count({
-                where: { subscriptionStatus: { in: ['PENDING', 'TRIAL'] } }
+                where: { subscriptionStatus: 'TRIAL', isTestAccount: false }
+            }),
+            prisma.barbershop.count({
+                where: { subscriptionStatus: 'BLOCKED', isTestAccount: false }
             })
         ]);
 
         const mrr = activeBarbershops.reduce((acc, shop) => acc + getPlanPrice(shop.saasPlan), 0);
 
-        // Mock Churn for now
-        const churnRate = 2.5;
+        // Calculate some operational metrics (approximate for now)
+        const totalAppointments = await prisma.appointment.count();
 
         res.json({
             activeUnits: totalBarbershops,
+            activeSubscriptions: activeBarbershops.length,
+            trialUnits: trialBarbershops,
+            blockedUnits: blockedBarbershops,
             mrr,
-            provisioning: provisioningCount,
-            churn: churnRate
+            totalAppointments,
+            churn: 2.5 // Still fixed for now, needs historical analysis
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateBarbershopSubscription = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, plan, nextBillingDate, trialEndsAt } = req.body;
+
+        const data = {};
+        if (status) data.subscriptionStatus = status;
+        if (plan) data.saasPlan = plan;
+        if (nextBillingDate) data.nextBillingDate = new Date(nextBillingDate);
+        if (trialEndsAt) data.trialEndsAt = new Date(trialEndsAt);
+
+        const updated = await prisma.barbershop.update({
+            where: { id },
+            data
+        });
+
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.impersonateBarbershop = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const shop = await prisma.barbershop.findUnique({ 
+            where: { id },
+            include: { owner: true }
+        });
+
+        if (!shop) return res.status(404).json({ message: 'Barbershop not found' });
+
+        // Logic: Return the owner's details and the shop context
+        // In a real scenario, we'd generate a temporary JWT here.
+        // For this architecture, we'll return the necessary info for the frontend to 'switch' context.
+        res.json({
+            message: 'Impersonation successful',
+            target: {
+                barbershopId: shop.id,
+                barbershopSlug: shop.slug,
+                ownerId: shop.ownerId,
+                role: 'ADMIN' // Always impersonate as the owner/admin
+            }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -216,7 +271,7 @@ exports.toggleBarbershopStatus = async (req, res) => {
 
         if (!shop) return res.status(404).json({ message: 'Barbershop not found' });
 
-        const newStatus = shop.subscriptionStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+        const newStatus = shop.subscriptionStatus === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
 
         const updated = await prisma.barbershop.update({
             where: { id },

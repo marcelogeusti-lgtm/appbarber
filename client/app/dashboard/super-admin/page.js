@@ -77,30 +77,30 @@ export default function SuperAdminPage() {
             {/* KPI Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard
-                    label="Unidades Ativas"
-                    value={stats.activeUnits}
+                    label="Assinaturas Ativas"
+                    value={stats.activeSubscriptions || 0}
                     desc={`Total de ${stats.activeUnits} parceiros`} // Simplified description
-                    icon={<Globe className="w-6 h-6" />}
+                    icon={<Shield className="w-6 h-6" />}
                     color="primary"
                 />
                 <KPICard
                     label="Receita SaaS (MRR)"
-                    value={`R$ ${stats.mrr.toLocaleString('pt-BR')}`}
+                    value={`R$ ${(stats.mrr || 0).toLocaleString('pt-BR')}`}
                     desc="Recorrência Mensal"
                     icon={<TrendingUp className="w-6 h-6" />}
                     color="primary"
                 />
                 <KPICard
-                    label="Provisionamento"
-                    value={stats.provisioning}
-                    desc="Pendentes de Aprovação"
+                    label="Em Trial / Teste"
+                    value={stats.trialUnits || 0}
+                    desc="Novos Parceiros"
                     icon={<Zap className="w-6 h-6" />}
                     color="secondary"
                 />
                 <KPICard
-                    label="Retenção (Churn)"
-                    value={`${stats.churn}%`}
-                    desc="Taxa de Permanência"
+                    label="Unidades Bloqueadas"
+                    value={stats.blockedUnits || 0}
+                    desc="Inadimplentes"
                     icon={<Activity className="w-6 h-6" />}
                     color="primary"
                     isSolid
@@ -147,8 +147,17 @@ export default function SuperAdminPage() {
                                             </div>
                                             <div>
                                                 <p className="font-black text-foreground uppercase text-sm tracking-tight">{shop.name}</p>
-                                                <p className="text-[10px] text-primary font-mono mt-1 group-hover:translate-x-1 transition-transform italic bg-primary/5 px-2 py-0.5 rounded border border-primary/10 inline-block">/{shop.slug}</p>
-                                                {shop.subscriptionStatus === 'SUSPENDED' && <span className="ml-2 text-[9px] bg-destructive text-destructive-foreground px-1 rounded">SUSPENSO</span>}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <p className="text-[10px] text-primary font-mono group-hover:translate-x-1 transition-transform italic bg-primary/5 px-2 py-0.5 rounded border border-primary/10 inline-block">/{shop.slug}</p>
+                                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
+                                                        shop.subscriptionStatus === 'ACTIVE' ? 'bg-green-500/10 text-green-500' :
+                                                        shop.subscriptionStatus === 'TRIAL' ? 'bg-blue-500/10 text-blue-500' :
+                                                        shop.subscriptionStatus === 'OVERDUE' ? 'bg-orange-500/10 text-orange-500' :
+                                                        'bg-red-500/10 text-red-500'
+                                                    }`}>
+                                                        {shop.subscriptionStatus}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -157,24 +166,40 @@ export default function SuperAdminPage() {
                                         <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-60 truncate max-w-[200px]">{shop.owner?.email || 'suporte@next.com'}</p>
                                     </td>
                                     <td className="px-8 py-8">
-                                        <span className="bg-primary/10 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner">{shop.saasPlan}</span>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="bg-primary/10 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner w-fit">{shop.saasPlan}</span>
+                                            {shop.nextBillingDate && (
+                                                <span className="text-[9px] text-muted-foreground font-bold flex items-center gap-1">
+                                                    <Clock className="w-2.5 h-2.5" /> {new Date(shop.nextBillingDate).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-10 py-8 text-right">
                                         <div className="flex justify-end gap-4">
                                             <button
-                                                onClick={() => alert('Em breve: Acesso administrativo direto ao painel do parceiro.')}
-                                                className="bg-background border border-border text-muted-foreground px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-primary/50 hover:text-primary transition-all shadow-sm flex items-center gap-2"
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await api.post(`/admin/barbershops/${shop.id}/impersonate`);
+                                                        const { target } = res.data;
+                                                        localStorage.setItem('impersonation', JSON.stringify(target));
+                                                        window.location.href = '/dashboard';
+                                                    } catch (err) {
+                                                        alert('Erro ao tentar impersonar conta.');
+                                                    }
+                                                }}
+                                                className="bg-background border border-border text-primary px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-2"
                                             >
-                                                <Settings className="w-3 h-3" /> Gerenciar
+                                                <ExternalLink className="w-3 h-3" /> Gerenciar
                                             </button>
                                             <button
                                                 onClick={() => handleToggleStatus(shop.id)}
                                                 className={`px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2 ${shop.subscriptionStatus === 'ACTIVE'
-                                                    ? 'bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground'
+                                                    ? 'bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive hover:text-white'
                                                     : 'bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white'
                                                     }`}
                                             >
-                                                {shop.subscriptionStatus === 'ACTIVE' ? <><Trash2 className="w-3 h-3" /> Suspender</> : <><Zap className="w-3 h-3" /> Ativar</>}
+                                                {shop.subscriptionStatus === 'ACTIVE' ? <><Trash2 className="w-3 h-3" /> Bloquear</> : <><Zap className="w-3 h-3" /> Ativar</>}
                                             </button>
                                         </div>
                                     </td>

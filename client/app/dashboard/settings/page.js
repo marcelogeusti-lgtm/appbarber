@@ -60,9 +60,6 @@ export default function SettingsPage() {
     const [message, setMessage] = useState(null);
     const [activeTab, setActiveTab] = useState('Geral');
     const [isMaster, setIsMaster] = useState(false);
-    
-    const [uploadingLogo, setUploadingLogo] = useState(false);
-    const [uploadingBannerIdx, setUploadingBannerIdx] = useState(null);
     const [editingTemplateId, setEditingTemplateId] = useState(null);
     const [editContent, setEditContent] = useState('');
 
@@ -171,7 +168,7 @@ export default function SettingsPage() {
 
             <div className="min-h-[500px]">
                 {activeTab === 'Geral' && <GeneralTab barbershop={barbershop} setBarbershop={setBarbershop} />}
-                {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} uploadingLogo={uploadingLogo} setUploadingLogo={setUploadingLogo} uploadingBannerIdx={uploadingBannerIdx} setUploadingBannerIdx={setUploadingBannerIdx} />}
+                {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
                 {activeTab === 'Alertas' && <AlertsTab />}
@@ -187,8 +184,13 @@ function GeneralTab({ barbershop, setBarbershop }) {
                 <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2"><Globe className="w-5 h-5 text-primary" /> Informações do Negócio</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground ml-1">Nome Comercial</label>
-                        <input value={barbershop.name || ''} onChange={e => setBarbershop({ ...barbershop, name: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="Ex: Barbearia do João" />
+                        <label className="text-xs font-semibold text-muted-foreground ml-1">Nome da Empresa</label>
+                        <input 
+                            value={barbershop.commercialName || barbershop.name || ''} 
+                            onChange={e => setBarbershop({ ...barbershop, name: e.target.value, commercialName: e.target.value })} 
+                            className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" 
+                            placeholder="Ex: Barbearia do João" 
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-muted-foreground ml-1">Link de Agendamento (Slug)</label>
@@ -255,7 +257,10 @@ function GeneralTab({ barbershop, setBarbershop }) {
     );
 }
 
-function VisualTab({ barbershop, setBarbershop, uploadingLogo, setUploadingLogo, uploadingBannerIdx, setUploadingBannerIdx }) {
+function VisualTab({ barbershop, setBarbershop }) {
+    const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [uploadingBannerIdx, setUploadingBannerIdx] = useState(null);
+
     const compressImage = async (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -281,133 +286,70 @@ function VisualTab({ barbershop, setBarbershop, uploadingLogo, setUploadingLogo,
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-8 bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-10">
-                <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /> Identidade Visual</h2>
+        <div className="bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-10">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /> Identidade Visual</h2>
 
-                {/* Logo Upload */}
-                <div className="space-y-4">
-                    <div>
-                        <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Logotipo</h4>
-                        <p className="text-muted-foreground text-[10px] font-medium">Recomendado: 512x512px (PNG ou SVG).</p>
-                    </div>
-                    <div className="relative w-40 h-40 bg-muted border-2 border-dashed border-border rounded-2xl flex items-center justify-center overflow-hidden hover:border-primary group transition-all">
-                        {barbershop.logoUrl ? (
-                            <img src={barbershop.logoUrl} className="w-full h-full object-cover" />
-                        ) : (
-                            <Camera className="w-8 h-8 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                        )}
-                        <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                                setUploadingLogo(true);
-                                const dataUri = await compressImage(file);
-                                setBarbershop({ ...barbershop, logoUrl: dataUri });
-                                setUploadingLogo(false);
-                            }
-                        }} />
-                        {uploadingLogo && (
-                            <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                                <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                            </div>
-                        )}
-                    </div>
+            {/* Logo Upload */}
+            <div className="space-y-4">
+                <div>
+                    <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Logotipo</h4>
+                    <p className="text-muted-foreground text-[10px] font-medium">Recomendado: 512x512px (PNG ou SVG).</p>
                 </div>
-
-                {/* Banners Manager */}
-                <div className="space-y-4 pt-6 border-t border-border">
-                    <div>
-                        <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Imagens de Capa (Banners)</h4>
-                        <p className="text-muted-foreground text-[10px] font-medium">Você pode adicionar múltiplas fotos. Elas aparecerão no topo do seu app.</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {(barbershop.bannerUrls || []).map((url, idx) => (
-                            <div key={idx} className="relative aspect-[16/9] bg-muted rounded-xl border border-border overflow-hidden group">
-                                <img src={url} className="w-full h-full object-cover" />
-                                <button
-                                    onClick={() => removeBanner(idx)}
-                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-                        ))}
-
-                        <div className="relative aspect-[16/9] bg-muted border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-primary group transition-all cursor-pointer overflow-hidden">
-                            {uploadingBannerIdx === 'new' ? (
-                                <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                            ) : (
-                                <>
-                                    <Plus className="w-6 h-6 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Adicionar</span>
-                                </>
-                            )}
-                            <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={addBanner} />
+                <div className="relative w-40 h-40 bg-muted border-2 border-dashed border-border rounded-2xl flex items-center justify-center overflow-hidden hover:border-primary group transition-all">
+                    {barbershop.logoUrl ? (
+                        <img src={barbershop.logoUrl} className="w-full h-full object-cover" />
+                    ) : (
+                        <Camera className="w-8 h-8 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                    )}
+                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            setUploadingLogo(true);
+                            const dataUri = await compressImage(file);
+                            setBarbershop({ ...barbershop, logoUrl: dataUri });
+                            setUploadingLogo(false);
+                        }
+                    }} />
+                    {uploadingLogo && (
+                        <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
-            {/* LIVE PREVIEW - MOBILE MOCKUP */}
-            <div className="lg:col-span-4 sticky top-24">
-                <div className="text-center mb-4">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted px-3 py-1 rounded-full border border-border">Live Preview</span>
+            {/* Banners Manager */}
+            <div className="space-y-4 pt-6 border-t border-border">
+                <div>
+                    <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Imagens de Capa (Banners)</h4>
+                    <p className="text-muted-foreground text-[10px] font-medium">Você pode adicionar múltiplas fotos. Elas aparecerão no topo da sua página pública.</p>
                 </div>
 
-                <div className="relative mx-auto w-[280px] h-[550px] bg-black rounded-[2.5rem] border-[6px] border-[#1a1a1a] shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden">
-                    {/* Notch */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#1a1a1a] rounded-b-2xl z-20"></div>
-
-                    {/* Screen Content */}
-                    <div className="w-full h-full bg-background overflow-y-auto scrollbar-hide flex flex-col pt-6">
-                        {/* Headers / Banners in App */}
-                        <div className="relative w-full aspect-[4/3] bg-muted">
-                            {barbershop.bannerUrls?.length > 0 ? (
-                                <img src={barbershop.bannerUrls[0]} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 italic text-[10px]">Sem Capa</div>
-                            )}
-
-                            {/* Logo Overlay */}
-                            <div className="absolute -bottom-10 left-4 w-20 h-20 bg-card rounded-2xl border-2 border-background shadow-lg overflow-hidden">
-                                {barbershop.logoUrl ? (
-                                    <img src={barbershop.logoUrl} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-primary bg-primary/5">EXT</div>
-                                )}
-                            </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {(barbershop.bannerUrls || []).map((url, idx) => (
+                        <div key={idx} className="relative aspect-[16/9] bg-muted rounded-xl border border-border overflow-hidden group">
+                            <img src={url} className="w-full h-full object-cover" />
+                            <button
+                                onClick={() => removeBanner(idx)}
+                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                         </div>
+                    ))}
 
-                        {/* Info in App */}
-                        <div className="mt-12 px-4 space-y-3">
-                            <div>
-                                <h3 className="text-lg font-bold leading-tight">{barbershop.name || 'Sua Barbearia'}</h3>
-                                <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5"><MapPin className="w-2.5 h-2.5" /> {barbershop.address || 'Endereço não definido'}</p>
-                            </div>
-
-                            <div className="p-3 bg-muted rounded-xl">
-                                <p className="text-[10px] leading-relaxed text-muted-foreground line-clamp-3">
-                                    {barbershop.description || 'Nenhuma descrição adicionada ainda. Use a aba Geral para contar sua história.'}
-                                </p>
-                            </div>
-
-                            {/* Buttons in App */}
-                            <div className="grid grid-cols-2 gap-2 pt-2">
-                                <div className="h-8 bg-primary rounded-lg"></div>
-                                <div className="h-8 bg-muted rounded-lg border border-border"></div>
-                            </div>
-
-                            <div className="space-y-2 pt-4">
-                                <div className="h-12 bg-card border border-border rounded-xl"></div>
-                                <div className="h-12 bg-card border border-border rounded-xl"></div>
-                            </div>
-                        </div>
+                    <div className="relative aspect-[16/9] bg-muted border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-primary group transition-all cursor-pointer overflow-hidden">
+                        {uploadingBannerIdx === 'new' ? (
+                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                        ) : (
+                            <>
+                                <Plus className="w-6 h-6 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Adicionar</span>
+                            </>
+                        )}
+                        <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={addBanner} />
                     </div>
                 </div>
-                <p className="text-center text-muted-foreground text-[10px] font-medium mt-4 px-10">
-                    Este é um simulador de como seu cliente visualizará sua marca no celular.
-                </p>
             </div>
         </div>
     );

@@ -283,12 +283,12 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             {barbershop?.logo_url || barbershop?.logoUrl ? (
                                 <img
                                     src={barbershop.logo_url || barbershop.logoUrl}
-                                    alt={barbershop.name || 'Logo'}
+                                    alt={barbershop.commercialName || barbershop.name || 'Barbearia'}
                                     className="w-7 h-7 rounded-full object-cover border border-gray-100"
                                 />
                             ) : (
-                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
-                                    {user?.name?.[0]}
+                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                    <Scissors className="w-3.5 h-3.5" />
                                 </div>
                             )}
                             <div className="flex-1 overflow-hidden">
@@ -300,12 +300,12 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                         barbershop?.logo_url || barbershop?.logoUrl ? (
                             <img
                                 src={barbershop.logo_url || barbershop.logoUrl}
-                                alt={barbershop.name || 'Logo'}
+                                alt={barbershop.commercialName || barbershop.name || 'Barbearia'}
                                 className="w-8 h-8 mx-auto rounded-full object-cover border border-primary/30"
                             />
                         ) : (
-                            <div className="w-8 h-8 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary text-xs font-bold">
-                                {user?.name?.[0]}
+                            <div className="w-8 h-8 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary">
+                                <Scissors className="w-4 h-4" />
                             </div>
                         )
                     )}

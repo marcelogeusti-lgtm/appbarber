@@ -125,21 +125,27 @@ export default function DashboardLayout({ children }) {
     const isSubscriptionActive = () => {
         if (user?.role === 'SUPER_ADMIN' || user?.isMaster || user?.role === 'CLIENT') return true;
         
-        // Prioritize data from fresh query if it has the fields
         const shop = currentBarbershop;
         if (!shop) return false;
 
+        // SaaS NEXT State Machine
         if (shop.subscriptionStatus === 'ACTIVE') return true;
         if (shop.subscriptionStatus === 'TRIAL') {
             if (shop.trialEndsAt) {
                 return new Date() < new Date(shop.trialEndsAt);
             }
-            return true;
+            return true; 
         }
-        return false;
+        if (shop.subscriptionStatus === 'OVERDUE') {
+            // Overdue has a grace period (handled by backend usually, but here we can show a warning)
+            return true; // Still allow access if just OVERDUE, but with warning
+        }
+        
+        return false; // BLOCKED or anything else
     };
 
     const isLocked = !isSubscriptionActive();
+    const isOverdue = currentBarbershop?.subscriptionStatus === 'OVERDUE';
 
     return (
         <SocketProvider>
@@ -191,6 +197,24 @@ export default function DashboardLayout({ children }) {
                     />
 
                     <main className="flex-1 p-4 md:p-6 overflow-x-hidden relative">
+                        {/* Overdue Warning Banner */}
+                        {isOverdue && !isLocked && (
+                            <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl animate-pulse">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center animate-bounce">
+                                        <AlertTriangle className="w-6 h-6 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-black text-red-900 uppercase tracking-widest text-xs">Pagamento em Atraso</p>
+                                        <p className="text-xs text-red-700 font-medium">Sua conta será bloqueada em breve. Regularize sua assinatura para evitar interrupções.</p>
+                                    </div>
+                                </div>
+                                <button className="bg-red-600 text-white font-black uppercase text-[10px] tracking-widest px-8 py-4 rounded-xl shadow-lg shadow-red-500/30 hover:scale-105 transition-all">
+                                    Regularizar Master
+                                </button>
+                            </div>
+                        )}
+
                         {/* Proactive Connection Banner */}
                         {!loading && googleStatus && googleStatus.error && !localStorage.getItem('hide-google-banner') && (
                             <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-4">
@@ -224,21 +248,32 @@ export default function DashboardLayout({ children }) {
                         )}
 
                         {isLocked ? (
-                            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
-                                <div className="bg-card border border-border p-6 rounded-xl max-w-md w-full text-center shadow-soft">
-                                    <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-5">
-                                        <LogOut className="w-8 h-8 text-destructive" />
+                            <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-xl flex items-center justify-center p-8 overflow-hidden">
+                                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 blur-[150px] -mr-[250px] -mt-[250px]" />
+                                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-destructive/10 blur-[150px] -ml-[250px] -mb-[250px]" />
+                                
+                                <div className="bg-card border border-border/50 p-12 rounded-[3.5rem] max-w-xl w-full text-center shadow-2xl relative z-10">
+                                    <div className="w-20 h-20 bg-destructive/10 rounded-[2rem] border border-destructive/20 flex items-center justify-center mx-auto mb-8 shadow-inner">
+                                        <Shield className="w-10 h-10 text-destructive" />
                                     </div>
-                                    <h2 className="text-xl font-bold text-foreground mb-2">Assinatura Inativa</h2>
-                                    <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                                        Sua assinatura está inativa ou vencida. Para continuar utilizando os recursos administrativos, por favor regularize seu plano.
+                                    <h2 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tighter">Acesso Restrito</h2>
+                                    <p className="text-muted-foreground font-medium mb-10 leading-relaxed text-sm italic">
+                                        Detectamos que sua assinatura <b>NEXT Diamond</b> expirou ou foi suspensa pela rede master. A governança do orquestrador restringiu os acessos administrativos para esta unidade.
                                     </p>
-                                    <button className="w-full bg-primary text-primary-foreground text-sm font-semibold py-3 rounded-lg shadow-sm hover:opacity-90 transition-opacity">
-                                        Regularizar Agora
-                                    </button>
-                                    <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                                        Dúvidas? Entre em contato com o suporte.
-                                    </p>
+                                    <div className="space-y-4">
+                                        <button className="w-full bg-primary text-primary-foreground font-black uppercase text-xs tracking-[0.2em] py-5 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                                            Regularizar Assinatura
+                                        </button>
+                                        <button 
+                                            onClick={logout}
+                                            className="w-full bg-background border border-border text-muted-foreground font-black uppercase text-xs tracking-[0.2em] py-5 rounded-2xl hover:bg-muted transition-all"
+                                        >
+                                            Sair da Conta
+                                        </button>
+                                    </div>
+                                    <div className="mt-10 pt-8 border-t border-border/50">
+                                        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black italic opacity-60">SaaS NEXT Dashboard orquestrator v2.4</p>
+                                    </div>
                                 </div>
                             </div>
                         ) : (

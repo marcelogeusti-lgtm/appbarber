@@ -571,19 +571,17 @@ export default function BarbershopPage() {
 
                 <div className="absolute -bottom-12 left-0 right-0 z-20 px-6 flex flex-col items-center text-center pointer-events-none">
                     <div className="pointer-events-auto cursor-zoom-in" onClick={() => setLogoLightboxOpen(true)}>
-                        <div className="w-24 h-24 rounded-full bg-[#111] border-4 border-black shadow-2xl flex items-center justify-center overflow-hidden mb-3 hover:scale-105 transition-transform">
-                            {barbershop.logoUrl ? (
-                                <img src={barbershop.logoUrl} alt={barbershop.name} className="w-full h-full object-cover" />
-                            ) : (
-                                <span className="font-black text-3xl text-primary tracking-tighter">{barbershop.name.charAt(0)}</span>
-                            )}
-                        </div>
+                             {barbershop.logoUrl ? (
+                                 <img src={barbershop.logoUrl} alt={barbershop.name || 'Barbearia'} className="w-full h-full object-cover" />
+                             ) : (
+                                 <Scissors className="w-10 h-10 text-primary/40" />
+                             )}
                     </div>
                     <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold mb-1">
                         {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-3 h-3 fill-yellow-500" />)}
                         <span className="text-white ml-2">5.0</span>
                     </div>
-                    <h1 className="text-2xl font-black uppercase tracking-tight text-white mb-1 leading-none drop-shadow-lg">{barbershop.name}</h1>
+                     <h1 className="text-2xl font-black uppercase tracking-tight text-white mb-1 leading-none drop-shadow-lg">{barbershop.commercialName || barbershop.name || 'Minha Barbearia'}</h1>
                     <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold uppercase tracking-widest max-w-[80%] drop-shadow-md pointer-events-auto cursor-pointer hover:text-primary transition" onClick={openMap}>
                         <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                         <span className="truncate">{barbershop.address || 'Endereço não informado'}</span>
@@ -596,11 +594,11 @@ export default function BarbershopPage() {
             {logoLightboxOpen && (
                 <div className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setLogoLightboxOpen(false)}>
                     <div className="relative max-w-lg w-full aspect-square bg-[#111] rounded-full border-4 border-slate-800 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
-                        {barbershop.logoUrl ? (
-                            <img src={barbershop.logoUrl} alt={barbershop.name} className="w-full h-full object-cover" />
+                         {barbershop.logoUrl ? (
+                            <img src={barbershop.logoUrl} alt={barbershop.name || 'Barbearia'} className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                                <span className="font-black text-9xl text-primary tracking-tighter">{barbershop.name.charAt(0)}</span>
+                                <Scissors className="w-32 h-32 text-primary/20" />
                             </div>
                         )}
                         <button className="absolute top-8 right-8 bg-black/50 text-white rounded-full p-2 hover:bg-red-500/20 hover:text-red-500 transition" onClick={() => setLogoLightboxOpen(false)}>

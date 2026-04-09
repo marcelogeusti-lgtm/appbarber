@@ -74,7 +74,7 @@ export default function TutorialsPage() {
                         Tutoriais & Ajuda
                     </h1>
                     <p className="text-gray-400 text-sm font-medium leading-relaxed">
-                        Aprenda a extrair o máximo do NEXT. Assista nossos tutoriais rápidos
+                        Aprenda a extrair o máximo do sistema. Assista nossos tutoriais rápidos
                         e domine todas as ferramentas para escalar sua barbearia.
                     </p>
                 </div>
