@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '../../../../lib/api';
+import { ensureArray } from '../../../../lib/utils/arrays';
 import {
     Receipt, User, Calendar, Clock, Plus, Trash2,
     CreditCard, CheckCircle, AlertCircle, Scissors, Package, Percent, X,
@@ -57,8 +58,8 @@ export default function OrderDetailsPage() {
                     api.get(`/products?barbershopId=${bId}&limit=1000`),
                     api.get(`/services?barbershopId=${bId}&limit=1000`)
                 ]);
-                setProducts(Array.isArray(prodRes.data) ? prodRes.data : (prodRes.data.data || []));
-                setServices(Array.isArray(servRes.data) ? servRes.data : (servRes.data.data || []));
+                setProducts(ensureArray(prodRes));
+                setServices(ensureArray(servRes));
             }
         } catch (err) {
             console.error("Error fetching resources", err);
@@ -213,7 +214,7 @@ export default function OrderDetailsPage() {
                             </h3>
                         </div>
                         <div className="p-6 md:p-8 space-y-4">
-                            {order.items?.map(item => (
+                            {ensureArray(order.items).map(item => (
                                 <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-6 bg-background rounded-3xl border border-border group hover:border-primary/30 transition-all gap-4">
                                     <div className="flex items-center gap-5">
                                         <div className="p-3 md:p-4 bg-muted rounded-2xl text-muted-foreground border border-border group-hover:text-primary transition-colors">
@@ -256,7 +257,7 @@ export default function OrderDetailsPage() {
                                         <Scissors className="w-5 h-5" /> Add Serviço
                                     </button>
                                     <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
-                                        {services.length > 0 ? services.map(serv => (
+                                        {ensureArray(services).length > 0 ? ensureArray(services).map(serv => (
                                             <button
                                                 key={serv.id}
                                                 onClick={() => handleAddItem('SERVICE', serv.id)}
@@ -279,7 +280,7 @@ export default function OrderDetailsPage() {
                                         <Package className="w-5 h-5" /> Add Produto
                                     </button>
                                     <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
-                                        {products.length > 0 ? products.map(prod => (
+                                        {ensureArray(products).length > 0 ? ensureArray(products).map(prod => (
                                             <button
                                                 key={prod.id}
                                                 onClick={() => handleAddItem('PRODUCT', prod.id)}

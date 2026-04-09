@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { Plus, Search, ShoppingBag, Clock, XCircle, DollarSign, Calendar, ClipboardList, X, Loader2 } from 'lucide-react';
+import { ensureArray } from '../../../lib/utils/arrays';
 import Pagination from '../../../components/ui/Pagination';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -41,7 +42,7 @@ export default function OrdersPage() {
         queryKey: ['professionals', bId],
         queryFn: async () => {
             const res = await api.get(`/professionals?barbershopId=${bId}`);
-            return Array.isArray(res.data) ? res.data : (res.data.data || []);
+            return res.data;
         },
         enabled: !!bId,
     });
@@ -50,7 +51,7 @@ export default function OrdersPage() {
         queryKey: ['services', bId],
         queryFn: async () => {
             const res = await api.get(`/services?barbershopId=${bId}`);
-            return Array.isArray(res.data) ? res.data : (res.data.data || []);
+            return res.data;
         },
         enabled: !!bId,
     });
@@ -67,7 +68,7 @@ export default function OrdersPage() {
         onError: (err) => toast.error('Erro ao abrir comanda: ' + (err.response?.data?.message || err.message)),
     });
 
-    const orders = ordersData?.data || [];
+    const orders = ensureArray(ordersData?.data || ordersData);
     const totalItems = ordersData?.total || 0;
     const totalPages = ordersData?.totalPages || 0;
 
@@ -189,18 +190,18 @@ export default function OrdersPage() {
                                 <div className="space-y-1.5"><label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Fone</label><input value={quickData.phone} onChange={e => setQuickData({ ...quickData, phone: e.target.value })} className="w-full p-4 bg-muted border border-border rounded-xl font-bold outline-none ring-primary/20 focus:ring-2" required placeholder="(00) 00000-0000" /></div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Profissional Responsável</label>
-                                <select value={quickData.professionalId} onChange={e => setQuickData({ ...quickData, professionalId: e.target.value })} className="w-full p-4 bg-muted border border-border rounded-xl font-black outline-none ring-primary/20 focus:ring-2 appearance-none" required>
-                                    <option value="">Selecione...</option>
-                                    {professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                </select>
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Profissional</label>
+                                    <select required className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white outline-none focus:ring-2 focus:ring-primary transition-all" value={quickData.professionalId} onChange={e => setQuickData({ ...quickData, professionalId: e.target.value })}>
+                                        <option value="">Selecione</option>
+                                        {ensureArray(professionals).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                    </select>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Serviço Inicial</label>
-                                <select value={quickData.serviceId} onChange={e => setQuickData({ ...quickData, serviceId: e.target.value })} className="w-full p-4 bg-muted border border-border rounded-xl font-black outline-none ring-primary/20 focus:ring-2 appearance-none" required>
-                                    <option value="">Selecione...</option>
-                                    {services.map(s => <option key={s.id} value={s.id}>{s.name} - R$ {s.price}</option>)}
-                                </select>
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Serviço</label>
+                                    <select required className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-3 text-sm text-white outline-none focus:ring-2 focus:ring-primary transition-all" value={quickData.serviceId} onChange={e => setQuickData({ ...quickData, serviceId: e.target.value })}>
+                                        <option value="">Selecione</option>
+                                        {ensureArray(services).map(s => <option key={s.id} value={s.id}>{s.name} - R$ {s.price}</option>)}
+                                    </select>
                             </div>
                             <button type="submit" disabled={createMutation.isPending} className="w-full bg-primary text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.01] transition-all">ABRIR COMANDA AGORA</button>
                         </form>

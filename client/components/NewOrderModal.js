@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { X, Calendar, Clock, User, Scissors, Check, Loader2 } from 'lucide-react';
 import api from '../lib/api';
+import { ensureArray } from '../lib/utils/arrays';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -42,8 +43,8 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                 api.get(`/professionals?barbershopId=${shopId}`),
                 api.get(`/services?barbershopId=${shopId}&active=true&limit=1000`)
             ]);
-            setProfessionals(Array.isArray(prosRes.data) ? prosRes.data : (prosRes.data.data || []));
-            setServices(Array.isArray(servRes.data) ? servRes.data : (servRes.data.data || []));
+            setProfessionals(ensureArray(prosRes));
+            setServices(ensureArray(servRes));
         } catch (error) {
             console.error('Error fetching data for modal:', error);
         }
@@ -147,7 +148,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                             onChange={e => setFormData({ ...formData, professionalId: e.target.value })}
                         >
                             <option value="">Selecione o Profissional</option>
-                            {professionals.map(pro => (
+                            {ensureArray(professionals).map(pro => (
                                 <option key={pro.id} value={pro.id}>{pro.name}</option>
                             ))}
                         </select>
@@ -157,7 +158,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                     <div className="space-y-3">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Serviços Realizados</label>
                         <div className="grid grid-cols-1 gap-2 border border-slate-800 p-3 rounded-xl bg-slate-950/50">
-                            {services.map(srv => (
+                            {ensureArray(services).map(srv => (
                                 <div
                                     key={srv.id}
                                     onClick={() => toggleService(srv.id)}
@@ -170,7 +171,7 @@ export default function NewOrderModal({ isOpen, onClose, user }) {
                                     <span className="text-xs font-black text-primary">R$ {srv.price}</span>
                                 </div>
                             ))}
-                            {services.length === 0 && <p className="text-[10px] text-slate-600 text-center py-4">Nenhum serviço disponível.</p>}
+                            {ensureArray(services).length === 0 && <p className="text-[10px] text-slate-600 text-center py-4">Nenhum serviço disponível.</p>}
                         </div>
                     </div>
 
