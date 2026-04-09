@@ -114,7 +114,7 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2 bg-card rounded-xl p-8 border border-border space-y-6">
                     <div>
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Seu Link de Agendamento</h3>
-                        <p className="text-sm text-muted-foreground mb-4">Compartilhe este link em seu Instagram e WhatsApp para receber agendamentos automáticos.</p>
+                        <p className="text-sm text-muted-foreground mb-4">Compartilhe seu link de agendamento</p>
                     </div>
                     <div className="flex gap-3">
                         <div className="flex-1 bg-muted rounded-xl border border-border px-4 py-3 flex items-center relative group">
@@ -124,40 +124,27 @@ export default function DashboardPage() {
                         <a href={publicUrl} target="_blank" rel="noreferrer" className="bg-slate-900 border border-slate-800 text-white px-6 rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all font-black text-[10px] uppercase tracking-widest">Abrir</a>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
-                        <div>
-                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mb-1">Simplicidade</p>
-                            <p className="text-[10px] font-bold text-foreground uppercase tracking-tight">QR Code ou Link</p>
-                        </div>
-                        <div className="border-l border-border/50 pl-4">
-                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mb-1">Agilidade</p>
-                            <p className="text-[10px] font-bold text-foreground uppercase tracking-tight">3 toques</p>
-                        </div>
-                        <div className="border-l border-border/50 pl-4">
-                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mb-1">Retenção</p>
-                            <p className="text-[10px] font-bold text-foreground uppercase tracking-tight">Fidelização</p>
-                        </div>
+                    <div className="mt-8 border-t border-border/50 pt-8">
+                        <img 
+                            src="/img/premium-banner.png" 
+                            alt="Próxima Experiência Premium" 
+                            className="w-full h-auto rounded-2xl shadow-2xl"
+                        />
                     </div>
                 </div>
 
                 <div className="bg-primary p-8 rounded-xl text-primary-foreground flex flex-col justify-between relative overflow-hidden shadow-2xl shadow-primary/20">
                     <div className="relative z-10">
-                        <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-2">Aprenda o <br/>Sistema</h3>
-                        <p className="text-xs opacity-70 font-medium">Veja como configurar e usar todas as funções passo a passo</p>
+                        <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-2">Suporte <br/>Exclusivo</h3>
+                        <p className="text-xs opacity-70 font-medium">Precisa de ajuda com o sistema ou fluxos fiscais?</p>
                     </div>
-                    <Link href="/dashboard/tutorials" className="relative z-10 bg-white/10 hover:bg-white/20 border border-white/20 text-white w-full py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all mt-6 text-center">
-                        Começar agora
-                    </Link>
+                    <button className="relative z-10 bg-white/10 hover:bg-white/20 border border-white/20 text-white w-full py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all mt-6">Falar com Consultor</button>
                     <div className="absolute -right-4 -bottom-4 opacity-10">
                         <TrendingUp size={160} />
                     </div>
                 </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-                <ActionBox icon={Scissors} title="Gerenciar Serviços" desc="Adicione novos cortes, barbas e tratamentos." href="/dashboard/services" />
-                <ActionBox icon={CheckCircle} title="Ajustes Gerais" desc="Configure as informações e preferências da sua barbearia." href="/dashboard/settings?tab=Geral" />
             </div>
         </div>
     );

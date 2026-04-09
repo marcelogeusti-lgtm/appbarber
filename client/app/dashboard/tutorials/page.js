@@ -61,41 +61,25 @@ export default function TutorialsPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-            {/* Header Area: Experiência Premium Banner */}
-            <div className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl">
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 blur-[120px] -mr-[300px] -mt-[300px] rounded-full" />
-                
-                <div className="relative z-10 space-y-8">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter leading-tight mb-4">
-                            A EXPERIÊNCIA <span className="text-primary">PREMIUM</span> <br className="hidden md:block" /> DE AGENDAMENTO.
-                        </h1>
-                        <p className="text-gray-400 text-sm md:text-base font-medium max-w-2xl leading-relaxed">
-                            O NEXT foi desenhado para eliminar fricção. Seu cliente não precisa de <br className="hidden md:block" />
-                            apps pesados ou cadastros complexos.
-                        </p>
-                    </div>
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-[#0A0A0B] border border-white/5 p-8 rounded-[2rem] relative overflow-hidden">
+                <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
 
-                    {/* Value Pillars Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-white/5">
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">Simplicidade</p>
-                            <p className="text-lg font-bold text-white uppercase tracking-tight">Acesso via <br className="hidden md:block" /> QR Code ou Link</p>
-                        </div>
-                        <div className="space-y-1 md:border-l md:border-white/5 md:pl-8">
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">Agilidade</p>
-                            <p className="text-lg font-bold text-white uppercase tracking-tight">Agendamento <br className="hidden md:block" /> em 3 toques</p>
-                        </div>
-                        <div className="space-y-1 md:border-l md:border-white/5 md:pl-8">
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">Retenção</p>
-                            <p className="text-lg font-bold text-white uppercase tracking-tight">Fidelização <br className="hidden md:block" /> automática</p>
-                        </div>
+                <div className="relative z-10 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full mb-4 border border-primary/20">
+                        <Star className="w-3.5 h-3.5 text-primary fill-primary" />
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Central de Conhecimento</span>
                     </div>
+                    <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-2">
+                        Tutoriais & Ajuda
+                    </h1>
+                    <p className="text-gray-400 text-sm font-medium leading-relaxed">
+                        Aprenda a extrair o máximo do sistema. Assista nossos tutoriais rápidos
+                        e domine todas as ferramentas para escalar sua barbearia.
+                    </p>
                 </div>
 
-                {/* Search Bar (Repositioned) */}
-                <div className="absolute top-10 right-10 hidden lg:block">
+                <div className="relative z-10 w-full md:w-auto">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                         <input
@@ -103,7 +87,7 @@ export default function TutorialsPage() {
                             placeholder="Buscar tutorial..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-black/50 backdrop-blur-md border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50 transition-all w-64"
+                            className="w-full md:w-64 bg-black border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
                         />
                     </div>
                 </div>
