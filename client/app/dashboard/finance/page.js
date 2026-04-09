@@ -4,12 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { TrendingUp, Users, Scissors, DollarSign, Calendar, ArrowUpRight, ArrowDownRight, CreditCard, LayoutGrid, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import NewTransactionModal from '../../../components/NewTransactionModal';
 
 export default function FinancePage() {
     const queryClient = useQueryClient();
     const [period, setPeriod] = useState('month');
-    const [isAdding, setIsAdding] = useState(false);
-    const [newTrans, setNewTrans] = useState({ description: '', amount: '', type: 'EXPENSE', category: 'Outros' });
+    const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
 
     // Auth Helper
     const getUser = () => {
@@ -38,18 +38,6 @@ export default function FinancePage() {
     });
 
     const transactions = stats?.transactions || [];
-
-    // Mutations
-    const addMutation = useMutation({
-        mutationFn: async (payload) => api.post('/transactions', payload),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['finance-stats'] });
-            setIsAdding(false);
-            setNewTrans({ description: '', amount: '', type: 'EXPENSE', category: 'Outros' });
-            toast.success('Lançamento realizado!');
-        },
-        onError: () => toast.error('Erro ao salvar lançamento'),
-    });
 
     const deleteMutation = useMutation({
         mutationFn: async (id) => api.delete(`/transactions/${id}`),
@@ -103,12 +91,12 @@ export default function FinancePage() {
 
                         <div className="bg-card p-8 rounded-[2rem] border border-border shadow-sm relative group">
                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Jobs / Serviços</p>
-                            <h2 className="text-3xl font-black mt-2 text-foreground uppercase">{stats?.totalAppointments}</h2>
+                            <h2 className="text-3xl font-black mt-2 text-foreground uppercase">{stats?.totalOrders || 0}</h2>
                         </div>
 
                         <div className="bg-card p-8 rounded-[2rem] border border-border shadow-sm">
                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Custos & Comissões</p>
-                            <h2 className="text-3xl font-black mt-2 text-destructive uppercase">{formatBRL(stats?.totalExpenses + (stats?.totalCommissions || 0))}</h2>
+                            <h2 className="text-3xl font-black mt-2 text-destructive uppercase">{formatBRL((stats?.totalExpenses || 0) + (stats?.totalCommissions || 0))}</h2>
                         </div>
 
                         <div className="bg-primary p-8 rounded-[2rem] text-primary-foreground shadow-2xl shadow-primary/20">
@@ -123,33 +111,12 @@ export default function FinancePage() {
                                 <div className="flex justify-between items-center mb-10">
                                     <h3 className="text-xl font-black uppercase tracking-tighter text-foreground">Fluxo de Caixa</h3>
                                     <button
-                                        onClick={() => setIsAdding(true)}
+                                        onClick={() => setIsTransactionModalOpen(true)}
                                         className="bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
                                     >
                                         LANÇAR MOVIMENTAÇÃO
                                     </button>
                                 </div>
-
-                                {isAdding && (
-                                    <form onSubmit={(e) => { e.preventDefault(); addMutation.mutate({ ...newTrans, barbershopId: bId }); }} className="mb-8 p-8 bg-background border border-border rounded-[2rem] grid grid-cols-1 md:grid-cols-4 gap-6">
-                                        <div className="md:col-span-2 space-y-1">
-                                            <input placeholder="Descrição" value={newTrans.description} onChange={e => setNewTrans({ ...newTrans, description: e.target.value })} className="w-full p-4 bg-card border border-border rounded-xl font-bold" required />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <input type="number" placeholder="Valor" value={newTrans.amount} onChange={e => setNewTrans({ ...newTrans, amount: e.target.value })} className="w-full p-4 bg-card border border-border rounded-xl font-black" required />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <select value={newTrans.type} onChange={e => setNewTrans({ ...newTrans, type: e.target.value })} className="w-full p-4 bg-card border border-border rounded-xl font-black">
-                                                <option value="EXPENSE">SAÍDA</option>
-                                                <option value="INCOME">ENTRADA</option>
-                                            </select>
-                                        </div>
-                                        <div className="md:col-span-4 flex gap-3 justify-end">
-                                            <button type="submit" disabled={addMutation.isPending} className="bg-primary text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase">SALVAR</button>
-                                            <button type="button" onClick={() => setIsAdding(false)} className="bg-muted px-8 py-3 rounded-xl font-black text-[10px] uppercase">CANCELAR</button>
-                                        </div>
-                                    </form>
-                                )}
 
                                 <div className="space-y-4">
                                     {transactions.map((t, i) => (
@@ -192,6 +159,14 @@ export default function FinancePage() {
                             </div>
                         </div>
                     </div>
+                    
+                    <NewTransactionModal 
+                        isOpen={isTransactionModalOpen}
+                        onClose={() => setIsTransactionModalOpen(false)}
+                        user={user}
+                        type="EXPENSE"
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['finance-stats'] })}
+                    />
                 </>
             )}
         </div>
