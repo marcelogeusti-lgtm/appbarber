@@ -110,32 +110,9 @@ class TransactionService {
                 });
             }
 
-            // 5. Generate Commission (If Pro exists and value > 0)
-            if (professionalId && commissionBaseValue > 0) {
-                // Fetch Pro's commission rate from Professional profile
-                const proUser = await tx.user.findUnique({
-                    where: { id: professionalId },
-                    include: { professionalProfile: true }
-                });
+            // 5. Generate Commission foi REMOVIDO DAQUI
+            // (A lógica de comissão agora pertence exclusivamente e atomicamente ao FinancialService.processCommissions)
 
-                // Default 50% if not set
-                const rate = proUser?.professionalProfile?.commissionPercent ?? 50;
-                const commissionValue = (commissionBaseValue * rate) / 100;
-
-                await tx.commission.create({
-                    data: {
-                        barberId: professionalId,
-                        barbershopId,
-                        transactionId: transaction.id,
-                        appointmentId: appointmentId || null,
-                        type: 'SERVICE', // Simplify for now
-                        description: `Comissão - ${description || 'Venda'}`,
-                        amount: commissionValue,
-                        percentage: rate,
-                        status: 'PENDING'
-                    }
-                });
-            }
 
             // 6. Update Appointment/Order Status (Idempotent)
             if (appointmentId) {

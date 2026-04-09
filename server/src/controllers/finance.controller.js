@@ -645,3 +645,249 @@ exports.closeShift = async (req, res) => {
         res.status(500).json({ message: 'Erro ao fechar caixa.' });
     }
 };
+
+exports.exportTransactionsCSV = async (req, res) => {
+    try {
+        let { barbershopId, start, end } = req.query;
+        if (!barbershopId && req.user) barbershopId = req.user.barbershopId;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const where = { barbershopId };
+        
+        if (start && end) {
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            endDate.setHours(23, 59, 59, 999);
+            where.createdAt = {
+            },
+            include: { service: true }
+        });
+        const forecast = futureApts.reduce((sum, a) => sum + Number(a.service?.price || 0), 0);
+
+        // 8. Inteligência: Alertas Automáticos
+        const alerts = [];
+
+        // Alerta 1: Queda de Movimento (Comparar última semana vs penúltima)
+        const last7Days = transactions.filter(t => t.type === 'INCOME' && t.date >= new Date(new Date().setDate(new Date().getDate() - 7)));
+        const prev7To14Days = await prisma.transaction.findMany({
+            where: {
+                ...where,
+                type: 'INCOME',
+                date: {
+                    gte: new Date(new Date().setDate(new Date().getDate() - 14)),
+                    lte: new Date(new Date().setDate(new Date().getDate() - 7))
+                }
+            }
+        });
+        const revLast7 = last7Days.reduce((s, t) => s + Number(t.amount), 0);
+        const revPrev7 = prev7To14Days.reduce((s, t) => s + Number(t.amount), 0);
+
+        if (revPrev7 > 0 && revLast7 < revPrev7 * 0.8) {
+            alerts.push({
+                type: 'WARNING',
+                title: 'Queda de faturamento',
+                message: `O movimento caiu ${((1 - revLast7 / revPrev7) * 100).toFixed(0)}% em relação à semana passada.`
+            });
+        }
+
+        // Alerta 2: Cancelamentos Frequentes
+        const recentCancellations = await prisma.appointment.findMany({
+            where: {
+                ...where,
+                status: 'CANCELLED',
+                updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 7)) }
+            },
+            include: { professional: { select: { name: true } } }
+        });
+
+        const cancelByPro = recentCancellations.reduce((acc, a) => {
+            const name = a.professional?.name || 'Pro';
+            acc[name] = (acc[name] || 0) + 1;
+            return acc;
+        }, {});
+
+        Object.entries(cancelByPro).forEach(([name, count]) => {
+            if (count >= 3) {
+                alerts.push({
+                    type: 'DANGER',
+                    title: 'Foco em Cancelamentos',
+                    message: `O profissional ${name} teve ${count} cancelamentos nos últimos 7 dias.`
+                });
+            }
+        });
+
+        // Alerta 3: Horários Ociosos (ex: 14h sempre vazio)
+        if (Object.keys(hourlyRevenue).length > 0 && !hourlyRevenue[14]) {
+            alerts.push({
+                type: 'INFO',
+                title: 'Horário Ocioso',
+                message: 'O horário das 14h está sem faturamento neste período. Que tal uma promoção?'
+            });
+        }
+
+        res.json({
+            kpis: {
+                monthlyRevenue,
+                estimatedProfit: netProfit,
+                ticketMedio,
+                retentionRate,
+                forecast,
+                visitCount: monthlyVisitRate
+            },
+            rankings: {
+                professionals: rankingPro,
+                services: topServices,
+                clients: topClients
+            },
+            charts: {
+                hourlyHeatmap: Object.entries(hourlyRevenue).map(([hour, value]) => ({ hour: parseInt(hour), value })),
+                revenueGrowth: []
+            },
+            alerts
+        });
+
+    } catch (error) {
+        console.error('Owner Dashboard Error:', error);
+        res.status(500).json({ message: 'Erro ao processar inteligência de negócio.' });
+    }
+};
+
+// --- Cash Shift (Caixa) Management ---
+
+exports.getCurrentShift = async (req, res) => {
+    try {
+        const { barbershopId } = req.query;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const currentShift = await prisma.cashShift.findFirst({
+            where: {
+                barbershopId,
+                status: 'OPEN'
+            },
+            include: {
+                openedBy: { select: { name: true } }
+            }
+        });
+
+        res.json(currentShift);
+    } catch (error) {
+        console.error('Get Current Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao buscar status do caixa.' });
+    }
+};
+
+exports.openShift = async (req, res) => {
+    try {
+        const { barbershopId, openingBalance = 0 } = req.body;
+        const userId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        // Check if there is already an open shift
+        const existing = await prisma.cashShift.findFirst({
+            where: { barbershopId, status: 'OPEN' }
+        });
+
+        if (existing) {
+            return res.status(400).json({ message: 'Já existe um caixa aberto para esta barbearia.' });
+        }
+
+        const newShift = await prisma.cashShift.create({
+            data: {
+                barbershopId,
+                openedById: userId,
+                openingBalance: parseFloat(openingBalance),
+                currentBalance: parseFloat(openingBalance),
+                status: 'OPEN'
+            }
+        });
+
+        res.status(201).json(newShift);
+    } catch (error) {
+        console.error('Open Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao abrir caixa.' });
+    }
+};
+
+exports.closeShift = async (req, res) => {
+    try {
+        const { barbershopId, closingBalance } = req.body;
+        const userId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const currentShift = await prisma.cashShift.findFirst({
+            where: { barbershopId, status: 'OPEN' }
+        });
+
+        if (!currentShift) {
+            return res.status(400).json({ message: 'Não há caixa aberto para fechar.' });
+        }
+
+        const updatedShift = await prisma.cashShift.update({
+            where: { id: currentShift.id },
+            data: {
+                status: 'CLOSED',
+                closedById: userId,
+                closedAt: new Date(),
+                closingBalance: closingBalance !== undefined ? parseFloat(closingBalance) : currentShift.currentBalance
+            }
+        });
+
+        res.json(updatedShift);
+    } catch (error) {
+        console.error('Close Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao fechar caixa.' });
+    }
+};
+
+exports.exportTransactionsCSV = async (req, res) => {
+    try {
+        let { barbershopId, start, end } = req.query;
+        if (!barbershopId && req.user) barbershopId = req.user.barbershopId;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const where = { barbershopId };
+        
+        if (start && end) {
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            endDate.setHours(23, 59, 59, 999);
+            where.createdAt = {
+                gte: startDate,
+                lte: endDate
+            };
+        }
+
+        const transactions = await prisma.transaction.findMany({
+            where,
+            include: {
+                professional: { select: { name: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const headers = ['Data', 'Tipo', 'Categoria', 'Metodo', 'Valor', 'Status', 'Descricao', 'Profissional'];
+        let csvContent = headers.join(';') + '\n';
+
+        transactions.forEach(t => {
+            const data = (t.createdAt.toLocaleDateString('pt-BR') + ' ' + t.createdAt.toLocaleTimeString('pt-BR')).replace(/;/g, ',');
+            const tipo = t.type === 'INCOME' ? 'Entrada' : 'Saída';
+            const cat = (t.category || '').replace(/;/g, ',');
+            const metodo = (t.paymentMethod || t.origin || '').replace(/;/g, ',');
+            const valor = t.amount ? Number(t.amount).toFixed(2).replace('.', ',') : '0,00';
+            const status = (t.status || 'FINALIZADO').replace(/;/g, ',');
+            const desc = (t.description || '').replace(/"/g, '""').replace(/;/g, ',');
+            const pro = (t.professional ? t.professional.name : '').replace(/;/g, ',');
+
+            csvContent += `"${data}";"${tipo}";"${cat}";"${metodo}";"${valor}";"${status}";"${desc}";"${pro}"\n`;
+        });
+
+        res.header('Content-Type', 'text/csv; charset=utf-8');
+        res.attachment('transacoes_financeiras.csv');
+        return res.send(Buffer.from('\uFEFF' + csvContent, 'utf-8')); // Add BOM for Excel compatibility
+    } catch (error) {
+        console.error('Export erro:', error);
+        res.status(500).json({ message: 'Erro ao exportar planilha CSV' });
+    }
+};

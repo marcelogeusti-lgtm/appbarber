@@ -46,33 +46,54 @@ class FinancialService {
     }
 
     /**
-     * Calculates and processes commissions for an appointment based on its order items.
+    /**
+     * Calculates and processes commissions for an appointment or order based on its items.
      */
-    async processCommissions(appointmentId, tx = prisma) {
-        const appointment = await tx.appointment.findUnique({
-            where: { id: appointmentId },
-            include: {
-                service: {
-                    include: { commissionOverrides: true }
-                },
-                order: {
-                    include: {
-                        items: {
-                            include: { service: { include: { commissionOverrides: true } }, product: true }
-                        }
-                    }
-                },
-                client: { select: { name: true } }
-            }
-        });
+    async processCommissions({ appointmentId, orderId }, tx = prisma) {
+        let order = null;
+        let appointment = null;
+        let proId = null;
+        let barbershopId = null;
+        let clientName = 'Cliente';
 
-        if (!appointment) return null;
+        if (orderId) {
+            order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    items: { include: { service: { include: { commissionOverrides: true } }, product: true } },
+                    client: { select: { name: true } }
+                }
+            });
+            if (order) {
+                proId = order.professionalId;
+                barbershopId = order.barbershopId;
+                clientName = order.client?.name || 'Cliente';
+                appointmentId = order.appointmentId || null;
+            }
+        } else if (appointmentId) {
+            appointment = await tx.appointment.findUnique({
+                where: { id: appointmentId },
+                include: {
+                    order: {
+                        include: {
+                            items: { include: { service: { include: { commissionOverrides: true } }, product: true } }
+                        }
+                    },
+                    client: { select: { name: true } }
+                }
+            });
+            if (appointment) {
+                order = appointment.order;
+                proId = appointment.professionalId;
+                barbershopId = appointment.barbershopId;
+                clientName = appointment.client?.name || 'Cliente';
+            }
+        }
+
+        if (!order) return null;
 
         const results = [];
-        const items = appointment.order?.items || [];
-        const proId = appointment.professionalId;
-        const barbershopId = appointment.barbershopId;
-        const clientName = appointment.client?.name || 'Cliente';
+        const items = order.items || [];
 
         for (const item of items) {
             let commissionAmount = 0;
@@ -92,32 +113,37 @@ class FinancialService {
                 } else {
                     commissionAmount = commValue * item.quantity;
                 }
-                description = `Comissão Serviço: ${service.name} (${clientName})`;
+                description = `Comissão Serviço (ID: ${item.id.slice(-4)}): ${service.name} (${clientName})`;
             }
             else if (item.type === 'PRODUCT' && item.product) {
-                // Future: Product commission logic can be added here
-                // For now, product commissions might not be configured in the schema clearly
                 continue;
             }
 
             if (commissionAmount > 0) {
-                // Check for existing commission for this item to avoid duplicates if possible
-                // Since OrderItem ID is unique, we can use a combination or just check by appointment + description for now
-                // Actually, a better check is needed for multi-item orders. 
-                // For simplicity in this iteration, we create commissions for the whole appointment if not already existing
-                const commission = await tx.commission.create({
-                    data: {
-                        barberId: proId,
+                // Ensure idempotency for this orderItem to prevent duplicates
+                const existing = await tx.commission.findFirst({
+                    where: {
                         barbershopId,
-                        appointmentId,
-                        type: item.type === 'SERVICE' ? 'SERVICE' : 'PRODUCT',
-                        description,
-                        amount: commissionAmount,
-                        percentage,
-                        status: 'PENDING'
+                        barberId: proId,
+                        description: description
                     }
                 });
-                results.push(commission);
+
+                if (!existing) {
+                    const commission = await tx.commission.create({
+                        data: {
+                            barberId: proId,
+                            barbershopId,
+                            appointmentId,
+                            type: item.type === 'SERVICE' ? 'SERVICE' : 'PRODUCT',
+                            description,
+                            amount: commissionAmount,
+                            percentage,
+                            status: 'PENDING'
+                        }
+                    });
+                    results.push(commission);
+                }
             }
         }
 

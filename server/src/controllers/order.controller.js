@@ -1,5 +1,5 @@
 const prisma = require('../lib/prisma');
-
+const financialService = require('../services/FinancialService');
 // Create new Order (linked to Appointment or Manual/Balcão)
 exports.createOrder = async (req, res) => {
     try {
@@ -351,6 +351,9 @@ exports.closeOrder = async (req, res) => {
 
             // Assuming TransactionService returns the transaction object.
             const updatedOrder = await tx.order.findUnique({ where: { id } });
+
+            // Processar a comissão apenas se ela não existe (processCommissions é idempotente)
+            await financialService.processCommissions({ orderId: id }, tx);
 
             return { order: updatedOrder, transaction };
         });

@@ -727,15 +727,18 @@ exports.updateAppointmentStatus = async (req, res) => {
         });
         if (!curApp) return res.status(404).json({ message: 'Agendamento não encontrado' });
 
-        // --- SECURITY LOCK: PROTECT COMPLETED/PAID APPOINTMENTS ---
-        // Once completed or paid, the appointment should be locked to prevent financial inconsistencies.
-        if (curApp.status === 'COMPLETED' || curApp.paymentStatus === 'PAID') {
-            // Only allow specialized adjustments if needed, but block basic status changes
-            if (status !== curApp.status) {
-                return res.status(403).json({
-                    message: 'Este agendamento já foi concluído ou pago e está bloqueado para alterações de status. Contate o administrador para estornos.'
-                });
-            }
+        // --- SECURITY LOCK: PROTECT COMPLETED APPOINTMENTS ---
+        if (curApp.status === 'COMPLETED') {
+            return res.status(403).json({
+                message: 'Este agendamento já foi concluído e está bloqueado para alterações de status. Contate o administrador para estornos.'
+            });
+        }
+
+        // If PAID online, only allow transition to COMPLETED (Barber finishing the service) or CANCELLED (Admin).
+        if (curApp.paymentStatus === 'PAID' && status !== 'COMPLETED' && status !== 'CANCELLED' && status !== curApp.status) {
+            return res.status(403).json({
+                message: 'Este agendamento já foi pago. Você só pode marcá-lo como "Concluído" ou cancelar.'
+            });
         }
 
         // 2. Client Cancellation Logic
@@ -824,7 +827,7 @@ exports.updateAppointmentStatus = async (req, res) => {
 
                     // 4. Process Commissions (Financial Engine)
                     // This will check each item in the order and create the respective commissions
-                    await financialService.processCommissions(appointment.id, tx);
+                    await financialService.processCommissions({ appointmentId: appointment.id }, tx);
                 });
 
                 // --- LOYALTY POINTS (Optional) ---
