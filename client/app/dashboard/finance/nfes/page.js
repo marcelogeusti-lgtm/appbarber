@@ -15,11 +15,7 @@ export default function NfeListingPage() {
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
-    const [activeTab, setActiveTab] = useState('OPERATIONAL'); // 'OPERATIONAL' | 'CONFIG'
-
-    // Fiscal Config State
-    const [fiscalConfig, setFiscalConfig] = useState(currentBarbershop?.fiscalConfig || { cnpj: '', im: '', token: '' });
-    const isConfigured = !!fiscalConfig?.token;
+    const isConfigured = !!currentBarbershop?.fiscalConfig?.token;
 
     // Manual Modal State
     const [showManualModal, setShowManualModal] = useState(false);
@@ -72,11 +68,6 @@ export default function NfeListingPage() {
         onError: (err) => toast.error('Erro na emissão: ' + (err.response?.data?.error || err.message)),
     });
 
-    const saveConfigMutation = useMutation({
-        mutationFn: async (config) => api.post(`/barbershops/${currentBarbershop.id}/fiscal-config`, config),
-        onSuccess: () => toast.success('Configurações fiscais salvas!'),
-        onError: () => toast.error('Erro ao salvar configurações.'),
-    });
 
     const handleSelectClient = (client) => {
         setSelectedClient(client);
@@ -127,31 +118,16 @@ export default function NfeListingPage() {
                     </div>
                     <div>
                         <p className={`text-[11px] font-black uppercase tracking-widest ${isConfigured ? 'text-emerald-500' : 'text-amber-500'}`}>
-                            {isConfigured ? 'Ambiente Fiscal Ativo' : 'Ação Necessária: Perfil Incompleto'}
+                            {isConfigured ? 'Ambiente Fiscal Ativo' : 'Perfil Fiscal Incompleto'}
                         </p>
                         <p className="text-[12px] text-slate-400">
-                            {isConfigured ? 'As emissões estão automatizadas para agendamentos concluídos.' : 'Configure seu Token FocusNFe para habilitar emissões reais.'}
+                            {isConfigured ? 'As emissões estão automatizadas para agendamentos concluídos.' : 'Vá em Ajustes > Fiscal para configurar seu Token FocusNFe.'}
                         </p>
                     </div>
                 </div>
-                {!isConfigured && activeTab === 'OPERATIONAL' && (
-                    <button onClick={() => setActiveTab('CONFIG')} className="text-[10px] font-black uppercase text-amber-500 underline ml-4">Configurar Agora</button>
-                )}
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-8 border-b border-slate-800/50">
-                {['OPERATIONAL', 'CONFIG'].map(t => (
-                    <button key={t} onClick={() => setActiveTab(t)} className={`pb-4 text-[10px] font-black uppercase tracking-widest relative transition-colors ${activeTab === t ? 'text-primary' : 'text-slate-500 hover:text-slate-300'}`}>
-                        {t === 'OPERATIONAL' ? 'Listagem de Notas' : 'Ajustes Fiscais'}
-                        {activeTab === t && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />}
-                    </button>
-                ))}
-            </div>
-
-            {activeTab === 'OPERATIONAL' ? (
-                <>
-                    <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input placeholder="Buscar por cliente ou número..." className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 text-sm text-white focus:ring-2 ring-primary/20 outline-none" value={search} onChange={e => setSearch(e.target.value)} />
@@ -201,31 +177,7 @@ export default function NfeListingPage() {
                             </table>
                         </div>
                     </div>
-                </>
-            ) : (
-                <div className="bg-slate-900/50 border border-slate-800 rounded-[2.5rem] p-12 text-center animate-in fade-in duration-500">
-                    <div className="max-w-4xl mx-auto space-y-12">
-                        <div className="space-y-2">
-                            <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Perfil Fiscal da Barbearia</h3>
-                            <p className="text-slate-400 text-sm">Configure sua integração FocusNFe para emitir notas reais.</p>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
-                            <div className="space-y-6">
-                                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-primary/20 pb-2">Empresa</h4>
-                                <div className="space-y-4">
-                                    <div className="space-y-1.5"><label className="text-[10px] uppercase font-black text-slate-500 ml-1">CNPJ</label><input className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-bold" value={fiscalConfig.cnpj} onChange={e => setFiscalConfig(p => ({ ...p, cnpj: e.target.value }))} /></div>
-                                    <div className="space-y-1.5"><label className="text-[10px] uppercase font-black text-slate-500 ml-1">Inscrição Municipal</label><input className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-bold" value={fiscalConfig.im} onChange={e => setFiscalConfig(p => ({ ...p, im: e.target.value }))} /></div>
-                                </div>
-                            </div>
-                            <div className="space-y-6">
-                                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-primary/20 pb-2">API FocusNFe</h4>
-                                <div className="space-y-1.5"><label className="text-[10px] uppercase font-black text-slate-500 ml-1">Token de Acesso</label><input type="password" className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-bold" value={fiscalConfig.token} onChange={e => setFiscalConfig(p => ({ ...p, token: e.target.value }))} /></div>
-                                <button onClick={() => saveConfigMutation.mutate(fiscalConfig)} className="w-full bg-primary text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-4 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">Salvar Configurações</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+        </div>
 
             {/* Manual Modal SaaS REFACTOR */}
             {showManualModal && (

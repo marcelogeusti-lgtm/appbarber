@@ -6,6 +6,7 @@ import VCLSection from '../components/landing/VCLSection';
 import StatsCounter from '../components/landing/StatsCounter';
 import WhatsAppHighlight from '../components/landing/WhatsAppHighlight';
 import ProductShowcase from '../components/landing/ProductShowcase';
+import PremiumExperience from '../components/landing/PremiumExperience';
 import Features from '../components/landing/Features';
 import Pricing from '../components/landing/Pricing';
 import MainDashboardShowcase from '../components/landing/MainDashboardShowcase';
@@ -34,6 +35,7 @@ export default function Home() {
             <ProblemSolution />
             <ProductShowcase />
             <WhatsAppHighlight />
+            <PremiumExperience />
             <MainDashboardShowcase />
             <CheckoutShowcase />
             <Features />

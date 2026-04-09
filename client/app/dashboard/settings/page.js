@@ -1,10 +1,10 @@
-'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import api from '../../../lib/api';
 import {
     Settings, Save, MapPin, Phone, ChevronDown,
     Image as ImageIcon, Shield, MessageSquare, Zap,
-    Globe, Smartphone, CreditCard, ExternalLink, CheckCircle, Info, Sparkles, Loader2, Camera, Palette, Bell, BellRing, Trash2, Plus, AlignLeft
+    Globe, Smartphone, CreditCard, ExternalLink, CheckCircle, Info, Sparkles, Loader2, Camera, Palette, Bell, BellRing, Trash2, Plus, AlignLeft, ScrollText
 } from 'lucide-react';
 import IntegrationSettings from '../../../components/settings/IntegrationSettings';
 import Link from 'next/link';
@@ -12,6 +12,18 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 
 export default function SettingsPage() {
+    return (
+        <Suspense fallback={<div>Carregando configurações...</div>}>
+            <SettingsContent />
+        </Suspense>
+    );
+}
+
+function SettingsContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const initialTab = searchParams.get('tab') || 'Geral';
+
     const { data: barbershopData, refetch: refetchShop } = useQuery({
         queryKey: ['barbershop-me'],
         queryFn: async () => {
@@ -42,7 +54,12 @@ export default function SettingsPage() {
         zipCode: '',
         instagramUrl: '',
         facebookUrl: '',
-        youtubeUrl: ''
+        youtubeUrl: '',
+        fiscalConfig: {
+            cnpj: '',
+            im: '',
+            token: ''
+        }
     });
 
     // Sync state with query data
@@ -58,7 +75,7 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState(null);
-    const [activeTab, setActiveTab] = useState('Geral');
+    const [activeTab, setActiveTab] = useState(initialTab);
     const [isMaster, setIsMaster] = useState(false);
     const [editingTemplateId, setEditingTemplateId] = useState(null);
     const [editContent, setEditContent] = useState('');
@@ -101,6 +118,11 @@ export default function SettingsPage() {
                 }
             }
             
+            // Save Fiscal Config if on that tab or if modified
+            if (barbershop.fiscalConfig) {
+                await api.post(`/barbershops/${barbershop.id}/fiscal-config`, barbershop.fiscalConfig);
+            }
+
             // Refetch fresh data to update cache
             await Promise.all([
                 refetchShop(),
@@ -122,6 +144,7 @@ export default function SettingsPage() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
+        { name: 'Fiscal', icon: ScrollText },
         { name: 'Alertas', icon: Bell },
     ];
 
@@ -158,7 +181,7 @@ export default function SettingsPage() {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.name;
                     return (
-                        <button key={tab.name} onClick={() => setActiveTab(tab.name)} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 font-semibold text-xs tracking-wide ${isActive ? 'bg-card text-primary border border-border shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-card/50'}`}>
+                        <button key={tab.name} onClick={() => { setActiveTab(tab.name); router.push(`/dashboard/settings?tab=${tab.name}`, { scroll: false }); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 font-semibold text-xs tracking-wide ${isActive ? 'bg-card text-primary border border-border shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-card/50'}`}>
                             <Icon className={`w-4 h-4 ${isActive ? 'opacity-100' : 'opacity-40'}`} />
                             {tab.name}
                         </button>
@@ -170,8 +193,9 @@ export default function SettingsPage() {
                 {activeTab === 'Geral' && <GeneralTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
-                {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
-                {activeTab === 'Alertas' && <AlertsTab />}
+                { activeTab === 'Comunicação' && <CommunicationTab barbershop={ barbershop } setBarbershop={ setBarbershop } templates={ templates } editingTemplateId={ editingTemplateId } setEditingTemplateId={ setEditingTemplateId } editContent={ editContent } setEditContent={ setEditContent } saving={ saving } fetchTemplates={ fetchInitialData } /> }
+                { activeTab === 'Fiscal' && <FiscalTab barbershop={ barbershop } setBarbershop={ setBarbershop } saving={ saving } /> }
+                { activeTab === 'Alertas' && <AlertsTab /> }
             </div>
         </div>
     );
@@ -448,6 +472,78 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                         </div>
                     );
                 })}
+            </div>
+        </div>
+    );
+}
+
+function FiscalTab({ barbershop, setBarbershop, saving }) {
+    const config = barbershop.fiscalConfig || { cnpj: '', im: '', token: '' };
+
+    const updateField = (field, value) => {
+        setBarbershop({
+            ...barbershop,
+            fiscalConfig: { ...config, [field]: value }
+        });
+    };
+
+    return (
+        <div className="bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-8 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="space-y-1">
+                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><ScrollText className="w-5 h-5 text-primary" /> Perfil Fiscal</h2>
+                    <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-widest">Configuração NFS-e via FocusNFe</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-border pb-2">Informações da Empresa</h4>
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground ml-1">CNPJ</label>
+                            <input 
+                                value={config.cnpj || ''} 
+                                onChange={e => updateField('cnpj', e.target.value)}
+                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium" 
+                                placeholder="00.000.000/0000-00"
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground ml-1">Inscrição Municipal</label>
+                            <input 
+                                value={config.im || ''} 
+                                onChange={e => updateField('im', e.target.value)}
+                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium" 
+                                placeholder="1234567-8"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-border pb-2">Credenciais de API</h4>
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-2">Token FocusNFe <ExternalLink className="w-3 h-3 text-muted-foreground/50" /></label>
+                            <input 
+                                type="password"
+                                value={config.token || ''} 
+                                onChange={e => updateField('token', e.target.value)}
+                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-mono text-sm" 
+                                placeholder="Seu token de acesso FocusNFe"
+                            />
+                        </div>
+                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                            <div className="flex gap-3">
+                                <Info className="w-4 h-4 text-primary shrink-0" />
+                                <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
+                                    Esses dados são necessários para gerar Notas Fiscais de Serviço (NFS-e) automaticamente após a conclusão de cada agendamento.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
