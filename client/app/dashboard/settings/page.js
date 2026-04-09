@@ -145,7 +145,6 @@ function SettingsContent() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
-        { name: 'Fiscal', icon: ScrollText },
         { name: 'Alertas', icon: Bell },
     ];
 
@@ -195,7 +194,6 @@ function SettingsContent() {
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 { activeTab === 'Comunicação' && <CommunicationTab barbershop={ barbershop } setBarbershop={ setBarbershop } templates={ templates } editingTemplateId={ editingTemplateId } setEditingTemplateId={ setEditingTemplateId } editContent={ editContent } setEditContent={ setEditContent } saving={ saving } fetchTemplates={ fetchInitialData } /> }
-                { activeTab === 'Fiscal' && <FiscalTab barbershop={ barbershop } setBarbershop={ setBarbershop } saving={ saving } /> }
                 { activeTab === 'Alertas' && <AlertsTab /> }
             </div>
         </div>
@@ -262,20 +260,42 @@ function GeneralTab({ barbershop, setBarbershop }) {
             </div>
 
             <div className="pt-6 border-t border-border space-y-6">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2 uppercase tracking-wider">Redes Sociais</h3>
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2 uppercase tracking-wider"><ScrollText className="w-4 h-4 text-primary" /> Perfil Fiscal (NFS-e)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1">Instagram (@usuario ou link)</label>
-                        <input value={barbershop.instagramUrl || ''} onChange={e => setBarbershop({ ...barbershop, instagramUrl: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="https://instagram.com/..." />
+                        <label className="text-xs font-semibold text-muted-foreground ml-1">CNPJ</label>
+                        <input 
+                            value={barbershop.fiscalConfig?.cnpj || ''} 
+                            onChange={e => setBarbershop({ ...barbershop, fiscalConfig: { ...barbershop.fiscalConfig, cnpj: e.target.value } })} 
+                            className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" 
+                            placeholder="00.000.000/0000-00" 
+                        />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1">Facebook</label>
-                        <input value={barbershop.facebookUrl || ''} onChange={e => setBarbershop({ ...barbershop, facebookUrl: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="https://facebook.com/..." />
+                        <label className="text-xs font-semibold text-muted-foreground ml-1">Inscrição Municipal</label>
+                        <input 
+                            value={barbershop.fiscalConfig?.im || ''} 
+                            onChange={e => setBarbershop({ ...barbershop, fiscalConfig: { ...barbershop.fiscalConfig, im: e.target.value } })} 
+                            className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" 
+                            placeholder="1234567-8" 
+                        />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1">YouTube</label>
-                        <input value={barbershop.youtubeUrl || ''} onChange={e => setBarbershop({ ...barbershop, youtubeUrl: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="https://youtube.com/..." />
+                        <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-2">Token FocusNFe <ExternalLink className="w-3 h-3 text-muted-foreground/50" /></label>
+                        <input 
+                            type="password"
+                            value={barbershop.fiscalConfig?.token || ''} 
+                            onChange={e => setBarbershop({ ...barbershop, fiscalConfig: { ...barbershop.fiscalConfig, token: e.target.value } })} 
+                            className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-mono text-sm text-foreground" 
+                            placeholder="Token de acesso" 
+                        />
                     </div>
+                </div>
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-3">
+                    <Info className="w-4 h-4 text-primary shrink-0" />
+                    <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
+                        Esses dados são necessários para gerar Notas Fiscais de Serviço (NFS-e) automaticamente após a conclusão de cada agendamento.
+                    </p>
                 </div>
             </div>
         </div>
@@ -478,77 +498,6 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
     );
 }
 
-function FiscalTab({ barbershop, setBarbershop, saving }) {
-    const config = barbershop.fiscalConfig || { cnpj: '', im: '', token: '' };
-
-    const updateField = (field, value) => {
-        setBarbershop({
-            ...barbershop,
-            fiscalConfig: { ...config, [field]: value }
-        });
-    };
-
-    return (
-        <div className="bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-8 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="space-y-1">
-                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><ScrollText className="w-5 h-5 text-primary" /> Perfil Fiscal</h2>
-                    <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-widest">Configuração NFS-e via FocusNFe</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-border pb-2">Informações da Empresa</h4>
-                    <div className="space-y-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground ml-1">CNPJ</label>
-                            <input 
-                                value={config.cnpj || ''} 
-                                onChange={e => updateField('cnpj', e.target.value)}
-                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium" 
-                                placeholder="00.000.000/0000-00"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground ml-1">Inscrição Municipal</label>
-                            <input 
-                                value={config.im || ''} 
-                                onChange={e => updateField('im', e.target.value)}
-                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium" 
-                                placeholder="1234567-8"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-border pb-2">Credenciais de API</h4>
-                    <div className="space-y-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-2">Token FocusNFe <ExternalLink className="w-3 h-3 text-muted-foreground/50" /></label>
-                            <input 
-                                type="password"
-                                value={config.token || ''} 
-                                onChange={e => updateField('token', e.target.value)}
-                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-mono text-sm" 
-                                placeholder="Seu token de acesso FocusNFe"
-                            />
-                        </div>
-                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                            <div className="flex gap-3">
-                                <Info className="w-4 h-4 text-primary shrink-0" />
-                                <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
-                                    Esses dados são necessários para gerar Notas Fiscais de Serviço (NFS-e) automaticamente após a conclusão de cada agendamento.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 function AlertsTab() {
     return (
