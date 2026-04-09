@@ -118,8 +118,6 @@ export default function PreferencesPage() {
                         </div>
                     </div>
 
-                    </div>
-
                 </div>
 
                 {/* Footer Info */}
