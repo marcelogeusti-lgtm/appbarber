@@ -231,16 +231,7 @@ exports.getFinancialStats = async (req, res) => {
                         lte: endOfDay(end)
                     }
                 },
-                include: {
-                    items: {
-                        include: {
-                            service: true,
-                            product: true
-                        }
-                    },
-                    professional: { select: { id: true, name: true, commissionPercent: true } },
-                    client: true
-                }
+                select: { total: true, professionalId: true, professional: { select: { id: true, name: true, commissionPercent: true } }, items: { select: { type: true, total: true } } }
             }),
             prisma.transaction.findMany({
                 where: {
@@ -372,7 +363,7 @@ exports.getOwnerDashboard = async (req, res) => {
                     ...where,
                     date: { gte: startOfDay(start), lte: endOfDay(end) }
                 },
-                include: { professional: { select: { name: true } } }
+                select: { amount: true, type: true, professionalId: true, professional: { select: { name: true } }, date: true }
             }),
             prisma.order.findMany({
                 where: {
@@ -380,7 +371,14 @@ exports.getOwnerDashboard = async (req, res) => {
                     status: { in: ['CLOSED', 'PAID'] },
                     updatedAt: { gte: startOfDay(start), lte: endOfDay(end) }
                 },
-                include: { items: true, client: true }
+                select: {
+                    id: true,
+                    total: true,
+                    clientId: true,
+                    updatedAt: true,
+                    client: { select: { name: true } },
+                    items: { select: { type: true, description: true, quantity: true, total: true } }
+                }
             })
         ]);
 
@@ -465,7 +463,7 @@ exports.getOwnerDashboard = async (req, res) => {
                 status: 'CONFIRMED',
                 date: { gte: new Date(), lte: new Date(new Date().setDate(new Date().getDate() + 30)) }
             },
-            include: { service: true }
+            select: { service: { select: { price: true } } }
         });
         const forecast = futureApts.reduce((sum, a) => sum + Number(a.service?.price || 0), 0);
 
@@ -502,7 +500,7 @@ exports.getOwnerDashboard = async (req, res) => {
                 status: 'CANCELLED',
                 updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 7)) }
             },
-            include: { professional: { select: { name: true } } }
+            select: { professional: { select: { name: true } } }
         });
 
         const cancelByPro = recentCancellations.reduce((acc, a) => {
@@ -677,7 +675,8 @@ exports.exportTransactionsCSV = async (req, res) => {
                     gte: new Date(new Date().setDate(new Date().getDate() - 14)),
                     lte: new Date(new Date().setDate(new Date().getDate() - 7))
                 }
-            }
+            },
+            select: { amount: true }
         });
         const revLast7 = last7Days.reduce((s, t) => s + Number(t.amount), 0);
         const revPrev7 = prev7To14Days.reduce((s, t) => s + Number(t.amount), 0);
@@ -697,7 +696,7 @@ exports.exportTransactionsCSV = async (req, res) => {
                 status: 'CANCELLED',
                 updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 7)) }
             },
-            include: { professional: { select: { name: true } } }
+            select: { professional: { select: { name: true } } }
         });
 
         const cancelByPro = recentCancellations.reduce((acc, a) => {
@@ -891,3 +890,5 @@ exports.exportTransactionsCSV = async (req, res) => {
         res.status(500).json({ message: 'Erro ao exportar planilha CSV' });
     }
 };
+
+

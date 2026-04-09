@@ -60,13 +60,11 @@ exports.getDashboardStats = async (req, res) => {
                 },
                 _sum: { total: true }
             }),
-            // Unique clients
-            prisma.client.count({
-                where: {
-                    appointments: { some: { barbershopId } },
-                    active: true
-                }
-            }),
+            // Unique clients (Optimized via GroupBy to avoid slow cross-joins)
+            prisma.appointment.groupBy({
+                by: ['clientId'],
+                where: { barbershopId, status: { not: 'CANCELLED' } },
+            }).then(result => result.length),
             // Open Commands Count
             prisma.order.count({ where: { barbershopId, status: 'OPEN' } }),
             // Config checks for onboarding
