@@ -352,47 +352,64 @@ exports.socialLogin = async (req, res) => {
 
         if (context === 'PRO') {
             if (!authUser.user) {
-                const result = await prisma.$transaction(async (tx) => {
-                    const newUser = await tx.user.create({
-                        data: {
-                            name: name || 'Barbeiro',
-                            email,
-                            role: email.toLowerCase() === 'marcelogeusti@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN',
-                            authUserId: authUser.id,
-                            avatarUrl: avatarUrl
-                        }
-                    });
-
-                    const slug = await generateUniqueSlug(tx, name || 'Minha Barbearia');
-                    const newBarbershop = await tx.barbershop.create({
-                        data: {
-                            name: name ? `${name} Barbearia` : 'Minha Barbearia',
-                            commercialName: name ? `${name} Barbearia` : 'Minha Barbearia',
-                            slug,
-                            ownerId: newUser.id,
-                            staff: { connect: { id: newUser.id } },
-                            subscriptionStatus: 'TRIAL',
-                            trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-                        }
-                    });
-
-                    await tx.professional.create({
-                        data: {
-                            userId: newUser.id,
-                            showInApp: true,
-                            showPublicly: true,
-                            position: 'Proprietário'
-                        }
-                    });
-
-                    return { user: newUser, barbershop: newBarbershop };
+                // Tenta encontrar um perfil profissional órfão (cadastrado por e-mail mas sem AuthUser)
+                // Isso acontece muito quando um admin convida um barbeiro via e-mail antes dele logar pela primeira vez.
+                const orphanedUser = await prisma.user.findFirst({
+                    where: { email: { equals: email, mode: 'insensitive' }, authUserId: null },
+                    include: { ownedBarbershops: true, workedBarbershop: true }
                 });
 
-                authUser.user = {
-                    ...result.user,
-                    ownedBarbershops: [result.barbershop],
-                    workedBarbershop: null
-                };
+                if (orphanedUser) {
+                    console.log(`[AUTH] Adopting orphaned Pro User ${orphanedUser.id} for email ${email}`);
+                    const updatedUser = await prisma.user.update({
+                        where: { id: orphanedUser.id },
+                        data: { authUserId: authUser.id },
+                        include: { ownedBarbershops: true, workedBarbershop: true }
+                    });
+                    authUser.user = updatedUser;
+                } else {
+                    const result = await prisma.$transaction(async (tx) => {
+                        const newUser = await tx.user.create({
+                            data: {
+                                name: name || 'Barbeiro',
+                                email: email.toLowerCase(),
+                                role: email.toLowerCase() === 'marcelogeusti@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN',
+                                authUserId: authUser.id,
+                                avatarUrl: avatarUrl
+                            }
+                        });
+
+                        const slug = await generateUniqueSlug(tx, name || 'Minha Barbearia');
+                        const newBarbershop = await tx.barbershop.create({
+                            data: {
+                                name: name ? `${name} Barbearia` : 'Minha Barbearia',
+                                commercialName: name ? `${name} Barbearia` : 'Minha Barbearia',
+                                slug,
+                                ownerId: newUser.id,
+                                staff: { connect: { id: newUser.id } },
+                                subscriptionStatus: 'TRIAL',
+                                trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
+                            }
+                        });
+
+                        await tx.professional.create({
+                            data: {
+                                userId: newUser.id,
+                                showInApp: true,
+                                showPublicly: true,
+                                position: 'Proprietário'
+                            }
+                        });
+
+                        return { user: newUser, barbershop: newBarbershop };
+                    });
+
+                    authUser.user = {
+                        ...result.user,
+                        ownedBarbershops: [result.barbershop],
+                        workedBarbershop: null
+                    };
+                }
             } else if (avatarUrl && !authUser.user.avatarUrl) {
                 await prisma.user.update({
                     where: { id: authUser.user.id },
@@ -411,16 +428,22 @@ exports.socialLogin = async (req, res) => {
 
             return res.json({
                 token,
-                user: { ...user, email: authUser.email, role: user.role },
+                user: { 
+                    ...user, 
+                    email: authUser.email, 
+                    role: (authUser.email.toLowerCase() === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : user.role 
+                },
                 barbershopId,
                 barbershopSlug
             });
 
         } else {
             if (!authUser.client) {
-                // Social Login Adoption Logic: If user provides phone later, we adopted it.
-                // For now, check if there's an orphaned client with THIS email in future? 
-                // Mostly phone is the key for orphans from previous systems.
+                // Tenta encontrar um perfil de cliente órfão antes de criar um novo
+                const orphanedClient = await prisma.client.findFirst({
+                    where: { authUserId: null, OR: [{ phone: { not: null } }] } // Exemplo: se houver telefone mas sem auth (casos de importação)
+                });
+                // Nota: No social login, geralmente usamos o email como chave primária de confiança
                 
                 const newClient = await prisma.client.create({
                     data: {
@@ -453,7 +476,8 @@ exports.socialLogin = async (req, res) => {
     } catch (error) {
         console.error('------- SOCIAL LOGIN CRITICAL ERROR -------');
         console.error('Body:', req.body);
-        console.error('Error:', error);
+        console.error('Error Stack:', error.stack);
+        console.error('Prisma Code:', error.code);
         
         let message = 'Erro no login social.';
         if (error.code === 'P2002') message = 'Uma conta com este e-mail já existe com um método de login diferente.';
@@ -461,7 +485,8 @@ exports.socialLogin = async (req, res) => {
         res.status(500).json({ 
             message,
             detail: error.message,
-            code: error.code 
+            code: error.code,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };
