@@ -182,33 +182,37 @@ const getPlanPrice = (planName) => {
 
 exports.getDashboardStats = async (req, res) => {
     try {
-        const [totalBarbershops, activeBarbershops, trialBarbershops, blockedBarbershops] = await Promise.all([
+        const [totalBarbershops, planCounts, trialUnits, blockedUnits, totalAppointments] = await Promise.all([
             prisma.barbershop.count(),
-            prisma.barbershop.findMany({
+            prisma.barbershop.groupBy({
+                by: ['saasPlan'],
                 where: { subscriptionStatus: 'ACTIVE', isTestAccount: false },
-                select: { saasPlan: true }
+                _count: { _all: true }
             }),
             prisma.barbershop.count({
                 where: { subscriptionStatus: 'TRIAL', isTestAccount: false }
             }),
             prisma.barbershop.count({
                 where: { subscriptionStatus: 'BLOCKED', isTestAccount: false }
-            })
+            }),
+            prisma.appointment.count()
         ]);
 
-        const mrr = activeBarbershops.reduce((acc, shop) => acc + getPlanPrice(shop.saasPlan), 0);
+        const mrr = planCounts.reduce((acc, item) => {
+            const count = item._count._all || 0;
+            return acc + (getPlanPrice(item.saasPlan) * count);
+        }, 0);
 
-        // Calculate some operational metrics (approximate for now)
-        const totalAppointments = await prisma.appointment.count();
+        const activeSubscriptions = planCounts.reduce((acc, item) => acc + (item._count._all || 0), 0);
 
         res.json({
             activeUnits: totalBarbershops,
-            activeSubscriptions: activeBarbershops.length,
-            trialUnits: trialBarbershops,
-            blockedUnits: blockedBarbershops,
+            activeSubscriptions,
+            trialUnits,
+            blockedUnits,
             mrr,
             totalAppointments,
-            churn: 2.5 // Still fixed for now, needs historical analysis
+            churn: 2.5
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

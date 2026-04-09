@@ -495,7 +495,21 @@ exports.updateBarbershop = async (req, res) => {
 exports.listBarbershops = async (req, res) => {
     try {
         const barbershops = await prisma.barbershop.findMany({
-            include: { owner: { select: { name: true, email: true } } }
+            select: {
+                id: true,
+                slug: true,
+                name: true,
+                subscriptionStatus: true,
+                saasPlan: true,
+                nextBillingDate: true,
+                owner: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                }
+            }
         });
         res.json(barbershops);
     } catch (error) {
