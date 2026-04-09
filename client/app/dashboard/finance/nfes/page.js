@@ -177,7 +177,7 @@ export default function NfeListingPage() {
                             </table>
                         </div>
                     </div>
-        </div>
+
 
             {/* Manual Modal SaaS REFACTOR */}
             {showManualModal && (
