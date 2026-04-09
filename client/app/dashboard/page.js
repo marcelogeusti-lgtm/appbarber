@@ -123,6 +123,21 @@ export default function DashboardPage() {
                         </div>
                         <a href={publicUrl} target="_blank" rel="noreferrer" className="bg-slate-900 border border-slate-800 text-white px-6 rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all font-black text-[10px] uppercase tracking-widest">Abrir</a>
                     </div>
+
+                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
+                        <div>
+                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mb-1">Simplicidade</p>
+                            <p className="text-[10px] font-bold text-foreground uppercase tracking-tight">QR Code ou Link</p>
+                        </div>
+                        <div className="border-l border-border/50 pl-4">
+                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mb-1">Agilidade</p>
+                            <p className="text-[10px] font-bold text-foreground uppercase tracking-tight">3 toques</p>
+                        </div>
+                        <div className="border-l border-border/50 pl-4">
+                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] mb-1">Retenção</p>
+                            <p className="text-[10px] font-bold text-foreground uppercase tracking-tight">Fidelização</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="bg-primary p-8 rounded-xl text-primary-foreground flex flex-col justify-between relative overflow-hidden shadow-2xl shadow-primary/20">
