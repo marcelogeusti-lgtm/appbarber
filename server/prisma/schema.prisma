@@ -372,6 +372,7 @@ model Barbershop {
 
   loyaltyProgram        LoyaltyProgram?
   reviews               Review[]
+  favorites             FavoriteBarbershop[]
   notificationTemplates NotificationTemplate[]
   nfes                  Nfe[]
 
