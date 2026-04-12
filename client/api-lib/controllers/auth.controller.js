@@ -181,7 +181,7 @@ exports.login = async (req, res) => {
         const barbershopSelect = {
             id: true, name: true, commercialName: true, legalName: true, slug: true, 
             address: true, logoUrl: true, phone: true, description: true, 
-            active: true, ownerId: true, saasPlan: true, 
+            ownerId: true, saasPlan: true, 
             subscriptionStatus: true, trialEndsAt: true
         };
 
@@ -383,7 +383,7 @@ exports.socialLogin = async (req, res) => {
         const barbershopSelect = {
             id: true, name: true, commercialName: true, legalName: true, slug: true, 
             address: true, logoUrl: true, phone: true, description: true, 
-            active: true, ownerId: true, saasPlan: true, 
+            ownerId: true, saasPlan: true, 
             subscriptionStatus: true, trialEndsAt: true
         };
 

@@ -299,7 +299,7 @@ exports.getMyBarbershop = async (req, res) => {
         // This is critical to prevent "Not Found" errors if the token payload is stale.
         const barbershopSelect = {
             id: true, name: true, slug: true, logoUrl: true, address: true, 
-            phone: true, active: true, ownerId: true
+            phone: true, ownerId: true
         };
 
         if (!barbershopId) {
