@@ -322,15 +322,16 @@ exports.login = async (req, res) => {
 };
 
 exports.socialLogin = async (req, res) => {
-    try {
-        const { email, name, provider, providerId, avatarUrl, context } = req.body;
+        const { email, name, provider, providerId, avatarUrl, context, intent } = req.body;
+        const normalizedEmail = email?.toLowerCase();
 
-        if (!email || !provider) {
+        if (!normalizedEmail || !provider) {
             return res.status(400).json({ message: 'Email e Provider são obrigatórios' });
         }
 
-        let authUser = await prisma.authUser.findUnique({
-            where: { email },
+        // 1. Busca robusta: Case-Insensitive para evitar duplicidade Marcelo@ vs marcelo@
+        let authUserByEmail = await prisma.authUser.findFirst({
+            where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
             include: {
                 client: true,
                 user: {
@@ -339,10 +340,17 @@ exports.socialLogin = async (req, res) => {
             }
         });
 
+        let authUser = authUserByEmail;
+
         if (!authUser) {
+            // Se for INTENT LOGIN e não achou a conta, não criamos nada. Avisamos que a conta não existe.
+            if (context === 'PRO' && intent === 'login') {
+                return res.status(404).json({ message: 'Nenhuma conta profissional encontrada com este e-mail. Caso deseje abrir sua barbearia, use a aba "Criar Conta".' });
+            }
+
             authUser = await prisma.authUser.create({
                 data: {
-                    email,
+                    email: normalizedEmail,
                     password: null,
                     provider: provider.toUpperCase(),
                 },
@@ -353,14 +361,13 @@ exports.socialLogin = async (req, res) => {
         if (context === 'PRO') {
             if (!authUser.user) {
                 // Tenta encontrar um perfil profissional órfão (cadastrado por e-mail mas sem AuthUser)
-                // Isso acontece muito quando um admin convida um barbeiro via e-mail antes dele logar pela primeira vez.
                 const orphanedUser = await prisma.user.findFirst({
-                    where: { email: { equals: email, mode: 'insensitive' }, authUserId: null },
+                    where: { email: { equals: normalizedEmail, mode: 'insensitive' }, authUserId: null },
                     include: { ownedBarbershops: true, workedBarbershop: true }
                 });
 
                 if (orphanedUser) {
-                    console.log(`[AUTH] Adopting orphaned Pro User ${orphanedUser.id} for email ${email}`);
+                    console.log(`[AUTH] Adopting orphaned Pro User ${orphanedUser.id} for email ${normalizedEmail}`);
                     const updatedUser = await prisma.user.update({
                         where: { id: orphanedUser.id },
                         data: { authUserId: authUser.id },
@@ -368,12 +375,17 @@ exports.socialLogin = async (req, res) => {
                     });
                     authUser.user = updatedUser;
                 } else {
+                    // SEGUNDA TRAVA: Só criamos Barbeiro/Barbearia se a intenção for explicitamente de Cadastro
+                    if (intent !== 'register') {
+                        return res.status(403).json({ message: 'Você ainda não possui um perfil profissional vinculado a este e-mail. Use a aba "Criar Conta" para começar.' });
+                    }
+
                     const result = await prisma.$transaction(async (tx) => {
                         const newUser = await tx.user.create({
                             data: {
                                 name: name || 'Barbeiro',
-                                email: email.toLowerCase(),
-                                role: email.toLowerCase() === 'marcelogeusti@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN',
+                                email: normalizedEmail,
+                                role: normalizedEmail === 'marcelogeusti@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN',
                                 authUserId: authUser.id,
                                 avatarUrl: avatarUrl
                             }

@@ -323,14 +323,15 @@ exports.login = async (req, res) => {
 
 exports.socialLogin = async (req, res) => {
     try {
-        const { email, name, provider, providerId, avatarUrl, context } = req.body;
+        const { email, name, provider, providerId, avatarUrl, context, intent } = req.body;
+        const normalizedEmail = email?.toLowerCase();
 
-        if (!email || !provider) {
+        if (!normalizedEmail || !provider) {
             return res.status(400).json({ message: 'Email e Provider são obrigatórios' });
         }
 
-        let authUser = await prisma.authUser.findUnique({
-            where: { email },
+        let authUserByEmail = await prisma.authUser.findFirst({
+            where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
             include: {
                 client: true,
                 user: {
@@ -339,10 +340,17 @@ exports.socialLogin = async (req, res) => {
             }
         });
 
+        let authUser = authUserByEmail;
+
         if (!authUser) {
+            // Trava de Login: Se a intenção é LOGIN e não achou a conta, barramos.
+            if (context === 'PRO' && intent === 'login') {
+                return res.status(404).json({ message: 'Nenhuma conta profissional encontrada com este e-mail. Use a aba "Criar Conta" para começar.' });
+            }
+
             authUser = await prisma.authUser.create({
                 data: {
-                    email,
+                    email: normalizedEmail,
                     password: null,
                     provider: provider.toUpperCase(),
                 },
@@ -352,47 +360,67 @@ exports.socialLogin = async (req, res) => {
 
         if (context === 'PRO') {
             if (!authUser.user) {
-                const result = await prisma.$transaction(async (tx) => {
-                    const newUser = await tx.user.create({
-                        data: {
-                            name: name || 'Barbeiro',
-                            email,
-                            role: email.toLowerCase() === 'marcelogeusti@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN',
-                            authUserId: authUser.id,
-                            avatarUrl: avatarUrl
-                        }
-                    });
-
-                    const slug = await generateUniqueSlug(tx, name || 'Minha Barbearia');
-                    const newBarbershop = await tx.barbershop.create({
-                        data: {
-                            name: name ? `${name} Barbearia` : 'Minha Barbearia',
-                            commercialName: name ? `${name} Barbearia` : 'Minha Barbearia',
-                            slug,
-                            ownerId: newUser.id,
-                            staff: { connect: { id: newUser.id } },
-                            subscriptionStatus: 'TRIAL',
-                            trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-                        }
-                    });
-
-                    await tx.professional.create({
-                        data: {
-                            userId: newUser.id,
-                            showInApp: true,
-                            showPublicly: true,
-                            position: 'Proprietário'
-                        }
-                    });
-
-                    return { user: newUser, barbershop: newBarbershop };
+                // Tenta adoção de órfão
+                const orphanedUser = await prisma.user.findFirst({
+                    where: { email: { equals: normalizedEmail, mode: 'insensitive' }, authUserId: null },
+                    include: { ownedBarbershops: true, workedBarbershop: true }
                 });
 
-                authUser.user = {
-                    ...result.user,
-                    ownedBarbershops: [result.barbershop],
-                    workedBarbershop: null
-                };
+                if (orphanedUser) {
+                    const updatedUser = await prisma.user.update({
+                        where: { id: orphanedUser.id },
+                        data: { authUserId: authUser.id },
+                        include: { ownedBarbershops: true, workedBarbershop: true }
+                    });
+                    authUser.user = updatedUser;
+                } else {
+                    // Trava de Cadastro: Só cria se a intenção for 'register'
+                    if (intent !== 'register') {
+                        return res.status(403).json({ message: 'Você ainda não possui um perfil profissional vinculado a este e-mail. Use a aba "Criar Conta".' });
+                    }
+
+                    const result = await prisma.$transaction(async (tx) => {
+                        const newUser = await tx.user.create({
+                            data: {
+                                name: name || 'Barbeiro',
+                                email: normalizedEmail,
+                                role: normalizedEmail === 'marcelogeusti@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN',
+                                authUserId: authUser.id,
+                                avatarUrl: avatarUrl
+                            }
+                        });
+
+                        const slug = await generateUniqueSlug(tx, name || 'Minha Barbearia');
+                        const newBarbershop = await tx.barbershop.create({
+                            data: {
+                                name: name ? `${name} Barbearia` : 'Minha Barbearia',
+                                commercialName: name ? `${name} Barbearia` : 'Minha Barbearia',
+                                slug,
+                                ownerId: newUser.id,
+                                staff: { connect: { id: newUser.id } },
+                                subscriptionStatus: 'TRIAL',
+                                trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
+                            }
+                        });
+
+                        await tx.professional.create({
+                            data: {
+                                userId: newUser.id,
+                                showInApp: true,
+                                showPublicly: true,
+                                position: 'Proprietário'
+                            }
+                        });
+
+                        return { user: newUser, barbershop: newBarbershop };
+                    });
+
+                    authUser.user = {
+                        ...result.user,
+                        ownedBarbershops: [result.barbershop],
+                        workedBarbershop: null
+                    };
+                }
             } else if (avatarUrl && !authUser.user.avatarUrl) {
                 await prisma.user.update({
                     where: { id: authUser.user.id },
@@ -411,17 +439,17 @@ exports.socialLogin = async (req, res) => {
 
             return res.json({
                 token,
-                user: { ...user, email: authUser.email, role: user.role },
+                user: { 
+                    ...user, 
+                    email: authUser.email, 
+                    role: (authUser.email.toLowerCase() === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : user.role 
+                },
                 barbershopId,
                 barbershopSlug
             });
 
         } else {
             if (!authUser.client) {
-                // Social Login Adoption Logic: If user provides phone later, we adopted it.
-                // For now, check if there's an orphaned client with THIS email in future? 
-                // Mostly phone is the key for orphans from previous systems.
-                
                 const newClient = await prisma.client.create({
                     data: {
                         name: name || 'Cliente',
