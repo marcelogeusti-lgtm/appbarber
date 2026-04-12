@@ -138,6 +138,7 @@ model Client {
   addresses ClientAddress[]
   payments  Payment[]
   nfes      Nfe[]
+  loyaltyBalances ClientLoyaltyBalance[]
 }
 
 
@@ -377,6 +378,7 @@ model Barbershop {
   nfes                  Nfe[]
 
   fiscalConfig          Json?     @map("fiscal_config") // Stores NFe tokens, env, etc.
+  loyaltyBalances       ClientLoyaltyBalance[]
 }
 
 
@@ -1234,5 +1236,35 @@ model Nfe {
   @@index([barbershopId])
   @@index([status])
   @@index([barbershopId, status])
+}
+
+// --- Loyalty Tracking ---
+model ClientLoyaltyBalance {
+  id           String     @id @default(uuid())
+  clientId     String
+  client       Client     @relation(fields: [clientId], references: [id])
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  points       Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  ledgers LoyaltyLedger[]
+
+  @@unique([clientId, barbershopId])
+  @@map("client_loyalty_balance")
+}
+
+model LoyaltyLedger {
+  id                 String               @id @default(uuid())
+  clientLoyaltyId    String
+  clientLoyalty      ClientLoyaltyBalance @relation(fields: [clientLoyaltyId], references: [id], onDelete: Cascade)
+  type               String // "EARN", "REDEEM", "ADJUST"
+  points             Int // +10 or -10
+  description        String?
+  transactionId      String? // Reference to the app Transaction or Appointment
+  createdAt          DateTime             @default(now())
+
+  @@map("loyalty_ledger")
 }
 

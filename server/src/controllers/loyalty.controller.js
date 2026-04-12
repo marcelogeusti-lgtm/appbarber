@@ -88,3 +88,62 @@ exports.getGoogleWalletUrl = async (req, res) => {
         res.status(500).json({ message: error.message || 'Erro ao gerar link da Google Wallet' });
     }
 };
+
+exports.getClientLoyalty = async (req, res) => {
+    try {
+        const { clientId } = req.params;
+        const { barbershopId } = req.query;
+
+        if (!clientId || !barbershopId) {
+            return res.status(400).json({ message: 'Client ID and Barbershop ID required' });
+        }
+
+        const balance = await prisma.clientLoyaltyBalance.findUnique({
+            where: { clientId_barbershopId: { clientId, barbershopId } },
+            include: { ledgers: { orderBy: { createdAt: 'desc' }, take: 10 } }
+        });
+
+        res.json(balance || { points: 0, ledgers: [] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching client loyalty' });
+    }
+};
+
+exports.redeemPoints = async (req, res) => {
+    try {
+        const { clientId, barbershopId, points, transactionId, description } = req.body;
+
+        if (!clientId || !barbershopId || !points) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+
+        const balance = await prisma.clientLoyaltyBalance.findUnique({
+            where: { clientId_barbershopId: { clientId, barbershopId } }
+        });
+
+        if (!balance || balance.points < points) {
+            return res.status(400).json({ message: 'Insufficient points' });
+        }
+
+        const updatedBalance = await prisma.clientLoyaltyBalance.update({
+            where: { id: balance.id },
+            data: { points: { decrement: points } }
+        });
+
+        await prisma.loyaltyLedger.create({
+            data: {
+                clientLoyaltyId: balance.id,
+                type: 'REDEEM',
+                points: -points,
+                description: description || 'Resgate de recompensa / Desconto',
+                transactionId: transactionId || null
+            }
+        });
+
+        res.json({ success: true, newBalance: updatedBalance.points });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error redeeming points' });
+    }
+};
