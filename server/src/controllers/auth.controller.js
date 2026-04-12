@@ -322,6 +322,7 @@ exports.login = async (req, res) => {
 };
 
 exports.socialLogin = async (req, res) => {
+    try {
         const { email, name, provider, providerId, avatarUrl, context, intent } = req.body;
         const normalizedEmail = email?.toLowerCase();
 
