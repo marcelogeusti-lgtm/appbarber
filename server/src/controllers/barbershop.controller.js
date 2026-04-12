@@ -297,14 +297,18 @@ exports.getMyBarbershop = async (req, res) => {
 
         // Fallback: If token doesn't have ID (old token or login issue), lookup in DB
         // This is critical to prevent "Not Found" errors if the token payload is stale.
+        const barbershopSelect = {
+            id: true, name: true, slug: true, logoUrl: true, address: true, 
+            phone: true, active: true, ownerId: true
+        };
+
         if (!barbershopId) {
             const user = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                include: {
-                    ownedBarbershops: true,
-                    // If workedBarbershop relation exists, check it too, 
-                    // assuming 'workedBarbershop' is the relation name based on 'workedBarbershopId' field
-                    workedBarbershop: true
+                select: {
+                    id: true, workedBarbershopId: true,
+                    ownedBarbershops: { select: barbershopSelect },
+                    workedBarbershop: { select: barbershopSelect }
                 }
             });
 

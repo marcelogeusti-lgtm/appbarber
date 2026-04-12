@@ -701,10 +701,16 @@ exports.getMe = async (req, res) => {
         } else {
             const user = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                include: { professional: true, ownedBarbershops: true }
+                select: {
+                    id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
+                    email: true, phone: true,
+                    professionalProfile: true, // Assuming this exists or using simple select
+                    ownedBarbershops: { 
+                        select: { id: true, name: true, slug: true, logoUrl: true, active: true } 
+                    }
+                }
             });
             if (!user) return res.status(404).json({ message: 'User not found' });
-            user.password = undefined;
             res.json(user);
         }
     } catch (error) {
