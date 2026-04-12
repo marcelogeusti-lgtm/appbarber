@@ -178,13 +178,29 @@ exports.login = async (req, res) => {
     try {
         const { email, password, context } = req.body;
 
+        const barbershopSelect = {
+            id: true, name: true, commercialName: true, legalName: true, slug: true, 
+            address: true, logoUrl: true, phone: true, description: true, 
+            active: true, ownerId: true, saasPlan: true, 
+            subscriptionStatus: true, trialEndsAt: true
+        };
+
         const authUser = await prisma.authUser.findUnique({
             where: { email },
-            include: {
-                user: {
-                    include: { ownedBarbershops: true, workedBarbershop: true }
+            select: {
+                id: true, email: true, password: true, provider: true,
+                twoFactorEnabled: true, twoFactorMethod: true, twoFactorCode: true, twoFactorExpires: true,
+                client: {
+                    select: { id: true, name: true, phone: true, avatarUrl: true }
                 },
-                client: true
+                user: {
+                    select: {
+                        id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
+                        email: true, phone: true,
+                        ownedBarbershops: { select: barbershopSelect },
+                        workedBarbershop: { select: barbershopSelect }
+                    }
+                }
             }
         });
 
@@ -275,9 +291,43 @@ exports.login = async (req, res) => {
                 return res.status(403).json({ message: 'Esta conta não possui acesso profissional.' });
             }
 
-            const user = authUser.user;
-            const token = generateToken(user, authUser);
+            let user = authUser.user;
 
+            // --- SELF-HEALING / AUTO-LINKING (ADMIN) ---
+            if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+                if (!user.workedBarbershopId) {
+                    const ownedShop = await prisma.barbershop.findFirst({
+                        where: { ownerId: user.id }
+                    });
+                    if (ownedShop) {
+                        console.log(`[AUTH] Auto-linking Admin ${user.id} to their owned shop ${ownedShop.id}`);
+                        await prisma.user.update({
+                            where: { id: user.id },
+                            data: { workedBarbershopId: ownedShop.id }
+                        });
+                        user.workedBarbershopId = ownedShop.id;
+                        user.workedBarbershop = { id: ownedShop.id, name: ownedShop.name, slug: ownedShop.slug };
+                    }
+                }
+
+                // Ensure Professional profile exists
+                const professional = await prisma.professional.findUnique({
+                    where: { userId: user.id }
+                });
+                if (!professional) {
+                    console.log(`[AUTH] Creating missing Professional profile for Admin ${user.id}`);
+                    await prisma.professional.create({
+                        data: {
+                            userId: user.id,
+                            position: 'Proprietário',
+                            showInApp: true,
+                            showPublicly: true
+                        }
+                    });
+                }
+            }
+
+            const token = generateToken(user, authUser);
             const barbershopId = user.workedBarbershopId || user.barbershopId || (user.ownedBarbershops?.[0]?.id);
             const barbershopSlug = (user.ownedBarbershops?.[0]?.slug) || (user.workedBarbershop?.slug);
 
@@ -330,12 +380,27 @@ exports.socialLogin = async (req, res) => {
             return res.status(400).json({ message: 'Email e Provider são obrigatórios' });
         }
 
+        const barbershopSelect = {
+            id: true, name: true, commercialName: true, legalName: true, slug: true, 
+            address: true, logoUrl: true, phone: true, description: true, 
+            active: true, ownerId: true, saasPlan: true, 
+            subscriptionStatus: true, trialEndsAt: true
+        };
+
         let authUserByEmail = await prisma.authUser.findFirst({
             where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
-            include: {
-                client: true,
+            select: {
+                id: true, email: true, provider: true,
+                client: {
+                    select: { id: true, name: true, phone: true, avatarUrl: true }
+                },
                 user: {
-                    include: { ownedBarbershops: true, workedBarbershop: true }
+                    select: {
+                        id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
+                        email: true, phone: true,
+                        ownedBarbershops: { select: barbershopSelect },
+                        workedBarbershop: { select: barbershopSelect }
+                    }
                 }
             }
         });
@@ -354,7 +419,11 @@ exports.socialLogin = async (req, res) => {
                     password: null,
                     provider: provider.toUpperCase(),
                 },
-                include: { client: true, user: true }
+                select: { 
+                    id: true, email: true, provider: true,
+                    client: { select: { id: true, name: true } }, 
+                    user: { select: { id: true, name: true, role: true } }
+                }
             });
         }
 
@@ -370,7 +439,12 @@ exports.socialLogin = async (req, res) => {
                     const updatedUser = await prisma.user.update({
                         where: { id: orphanedUser.id },
                         data: { authUserId: authUser.id },
-                        include: { ownedBarbershops: true, workedBarbershop: true }
+                        select: {
+                            id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
+                            email: true, phone: true,
+                            ownedBarbershops: { select: barbershopSelect },
+                            workedBarbershop: { select: barbershopSelect }
+                        }
                     });
                     authUser.user = updatedUser;
                 } else {
@@ -403,6 +477,12 @@ exports.socialLogin = async (req, res) => {
                             }
                         });
 
+                        // Link user to their shop as their worked/active shop
+                        const updatedUser = await tx.user.update({
+                            where: { id: newUser.id },
+                            data: { workedBarbershopId: newBarbershop.id }
+                        });
+
                         await tx.professional.create({
                             data: {
                                 userId: newUser.id,
@@ -412,7 +492,7 @@ exports.socialLogin = async (req, res) => {
                             }
                         });
 
-                        return { user: newUser, barbershop: newBarbershop };
+                        return { user: updatedUser, barbershop: newBarbershop };
                     });
 
                     authUser.user = {
@@ -430,6 +510,40 @@ exports.socialLogin = async (req, res) => {
             }
 
             const user = authUser.user;
+
+            // --- SELF-HEALING / AUTO-LINKING (ADMIN) ---
+            if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+                if (!user.workedBarbershopId) {
+                    const ownedShop = await prisma.barbershop.findFirst({
+                        where: { ownerId: user.id }
+                    });
+                    if (ownedShop) {
+                        console.log(`[AUTH] Auto-linking Admin ${user.id} to their owned shop ${ownedShop.id}`);
+                        await prisma.user.update({
+                            where: { id: user.id },
+                            data: { workedBarbershopId: ownedShop.id }
+                        });
+                        user.workedBarbershopId = ownedShop.id;
+                        user.workedBarbershop = { id: ownedShop.id, name: ownedShop.name, slug: ownedShop.slug };
+                    }
+                }
+
+                // Ensure Professional profile exists
+                const professional = await prisma.professional.findUnique({
+                    where: { userId: user.id }
+                });
+                if (!professional) {
+                    console.log(`[AUTH] Creating missing Professional profile for Admin ${user.id}`);
+                    await prisma.professional.create({
+                        data: {
+                            userId: user.id,
+                            position: 'Proprietário',
+                            showInApp: true,
+                            showPublicly: true
+                        }
+                    });
+                }
+            }
             const token = generateToken(user, authUser);
 
             const barbershopId = user.workedBarbershopId || user.barbershopId || user.ownedBarbershops?.[0]?.id;
