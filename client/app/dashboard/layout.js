@@ -7,6 +7,7 @@ import TopBar from '../../components/TopBar';
 import CashierPanel from '../../components/CashierPanel';
 import NewOrderModal from '../../components/NewOrderModal';
 import NewTransactionModal from '../../components/NewTransactionModal';
+import SupportChat from '../../components/SupportChat';
 
 import { SocketProvider } from '../../contexts/SocketContext';
 import { safeGetItem, safeRemoveItem, safeClear } from '../../lib/storage';
@@ -281,6 +282,7 @@ export default function DashboardLayout({ children }) {
                         )}
                     </main>
                 </div>
+                <SupportChat />
             </div>
         </SocketProvider>
     );

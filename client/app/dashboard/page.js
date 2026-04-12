@@ -124,13 +124,6 @@ export default function DashboardPage() {
                         <a href={publicUrl} target="_blank" rel="noreferrer" className="bg-slate-900 border border-slate-800 text-white px-6 rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all font-black text-[10px] uppercase tracking-widest">Abrir</a>
                     </div>
 
-                    <div className="mt-8 border-t border-border/50 pt-8">
-                        <img 
-                            src="/img/premium-banner.png" 
-                            alt="Próxima Experiência Premium" 
-                            className="w-full h-auto rounded-2xl shadow-2xl"
-                        />
-                    </div>
                 </div>
 
                 <div className="bg-primary p-8 rounded-xl text-primary-foreground flex flex-col justify-between relative overflow-hidden shadow-2xl shadow-primary/20">
@@ -141,6 +134,30 @@ export default function DashboardPage() {
                     <button className="relative z-10 bg-white/10 hover:bg-white/20 border border-white/20 text-white w-full py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all mt-6">Falar com Consultor</button>
                     <div className="absolute -right-4 -bottom-4 opacity-10">
                         <TrendingUp size={160} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Premium Experience Section */}
+            <div className="bg-card rounded-xl p-8 border border-border">
+                <h3 className="text-[16px] font-black uppercase tracking-tight text-white mb-2">
+                    A EXPERIÊNCIA <span className="text-primary">PREMIUM</span> DE AGENDAMENTO.
+                </h3>
+                <p className="text-sm text-muted-foreground mb-8 max-w-2xl">
+                    O NEXT foi desenhado para eliminar fricção. Seu cliente não precisa de apps pesados ou cadastros complexos.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-background border border-border p-5 rounded-xl">
+                        <h4 className="text-[10px] font-black uppercase text-primary tracking-widest mb-1.5">Simplicidade</h4>
+                        <p className="text-sm text-foreground font-bold">Acesso via QR Code ou Link</p>
+                    </div>
+                    <div className="bg-background border border-border p-5 rounded-xl">
+                        <h4 className="text-[10px] font-black uppercase text-primary tracking-widest mb-1.5">Agilidade</h4>
+                        <p className="text-sm text-foreground font-bold">Agendamento em 3 toques</p>
+                    </div>
+                    <div className="bg-background border border-border p-5 rounded-xl">
+                        <h4 className="text-[10px] font-black uppercase text-primary tracking-widest mb-1.5">Retenção</h4>
+                        <p className="text-sm text-foreground font-bold">Fidelização automática</p>
                     </div>
                 </div>
             </div>
