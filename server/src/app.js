@@ -71,6 +71,7 @@ app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/tutorials', require('./routes/tutorial.routes'));
 app.use('/api/nfes', require('./routes/nfe.routes'));
 app.use('/api/support', require('./routes/support.routes'));
+app.use('/api/import', require('./routes/import.routes'));
 // app.use('/api/audit-logs', require('./routes/auditLog.routes')); // Future
 
 // Initialize Notification Service (Listeners)

@@ -8,7 +8,7 @@ import {
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, ScrollText, MessageSquare,
     PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3,
-    PlayCircle
+    PlayCircle, Database, UploadCloud
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
@@ -259,6 +259,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.isMaster) && (
                         <MenuGroup title="Configurações" id="config" icon={Settings}>
                             <MenuItem href="/dashboard/settings" icon={Settings} label="Ajustes do Sistema" />
+                            <MenuItem href="/dashboard/import" icon={Database} label="Trazer meus dados" badge="Novo" />
                         </MenuGroup>
                     )}
 
