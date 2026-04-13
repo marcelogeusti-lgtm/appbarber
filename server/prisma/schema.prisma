@@ -10,6 +10,40 @@ datasource db {
 
 
 // Enums
+enum WaitlistStatus {
+  WAITING
+  NOTIFIED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentGatewayStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+  EXPIRED
+}
+
+enum PaymentMethodGateway {
+  PIX
+  CARD
+}
+
+enum TransactionOrigin {
+  ONLINE
+  PRESENCIAL
+}
+
+enum FinancialEventType {
+  PAYMENT_CREATED
+  PAYMENT_UPDATED
+  PAYMENT_FAILED
+  COMMISSION_GENERATED
+  TRANSACTION_SYNCED
+  ORDER_UPDATED
+}
+
 enum Role {
   SUPER_ADMIN
   ADMIN
@@ -156,6 +190,9 @@ model Client {
   payments  Payment[]
   nfes      Nfe[]
   loyaltyBalances ClientLoyaltyBalance[]
+
+  // Antigravity V3: Migration Bridges
+  userIdLegacy String? 
 }
 
 
@@ -272,6 +309,10 @@ model User {
   enrolledCourses   UserCourse[]
   pushSubscriptions PushSubscription[]
   transactions      Transaction[]      @relation("ProTransactions")
+
+  // Antigravity V3: Migration Bridges
+  profileClient   ClientProfile? @relation("UserClientProfile")
+  profilePro    ProfessionalProfile? @relation("UserProfessionalProfile")
 }
 
 model Notification {
@@ -1289,4 +1330,35 @@ model LoyaltyLedger {
 
   @@map("loyalty_ledger")
 }
+
+model ClientProfile {
+  id        String   @id @default(uuid())
+  user      User     @relation("UserClientProfile", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProfessionalProfile {
+  id        String   @id @default(uuid())
+  user      User     @relation("UserProfessionalProfile", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FinancialEvent {
+  id          String             @id @default(uuid())
+  type        FinancialEventType
+  referenceId String?            
+  payload     Json?              
+  processed   Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  
+  @@index([type, processed])
+  @@index([referenceId])
+}
+
 
