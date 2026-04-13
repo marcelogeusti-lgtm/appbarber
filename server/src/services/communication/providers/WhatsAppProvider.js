@@ -27,7 +27,10 @@ class WhatsAppProvider {
 
     async initialize() {
         try {
-            const { makeWASocket, useMultiFileAuthState, DisconnectReason } = await import('@whiskeysockets/baileys');
+            // CRITICAL: Using dynamic Function constructor to bypass Vercel build-time static analysis
+            // of the ESM package '@whiskeysockets/baileys'. This prevents ERR_REQUIRE_ESM.
+            const dynamicImport = new Function('specifier', 'return import(specifier)');
+            const { makeWASocket, useMultiFileAuthState, DisconnectReason } = await dynamicImport('@whiskeysockets/baileys');
             const { state, saveCreds } = await useMultiFileAuthState(this.authDir);
 
             this.sock = makeWASocket({
