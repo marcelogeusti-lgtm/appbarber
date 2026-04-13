@@ -181,8 +181,8 @@ exports.login = async (req, res) => {
         const barbershopSelect = {
             id: true, name: true, commercialName: true, legalName: true, slug: true, 
             address: true, logoUrl: true, phone: true, description: true, 
-            ownerId: true, saasPlan: true, 
-            subscriptionStatus: true, trialEndsAt: true
+            ownerId: true, 
+             trialEndsAt: true
         };
 
         const authUser = await prisma.authUser.findUnique({
@@ -349,7 +349,9 @@ exports.login = async (req, res) => {
             if (barbershop) {
                 responseData.barbershop = {
                     ...barbershop,
-                    logo_url: barbershop.logo_url || barbershop.logoUrl // Support both formats
+                    logo_url: barbershop.logo_url || barbershop.logoUrl,
+                    subscriptionStatus: barbershop.subscriptionStatus || 'TRIAL',
+                    saasPlan: barbershop.saasPlan || 'BASIC'
                 };
             }
         } else {
@@ -401,8 +403,8 @@ exports.socialLogin = async (req, res) => {
         const barbershopSelect = {
             id: true, name: true, commercialName: true, legalName: true, slug: true, 
             address: true, logoUrl: true, phone: true, description: true, 
-            ownerId: true, saasPlan: true, 
-            subscriptionStatus: true, trialEndsAt: true
+            ownerId: true, 
+             trialEndsAt: true
         };
 
         console.log({ stage: "oauth_callback", email: normalizedEmail, provider, status: "checking_identity" });
@@ -580,12 +582,12 @@ exports.socialLogin = async (req, res) => {
             responseData.barbershopSlug = barbershopSlug;
 
             // Inject logo compatibility for backup-restored Sidebar
-            if (barbershop) {
-                responseData.barbershop = {
-                    ...barbershop,
-                    logo_url: barbershop.logo_url || barbershop.logoUrl // Compatibility
-                };
-            }
+            responseData.barbershop = barbershop ? {
+                ...barbershop,
+                logo_url: barbershop.logo_url || barbershop.logoUrl,
+                subscriptionStatus: barbershop.subscriptionStatus,
+                saasPlan: barbershop.saasPlan
+            } : null;
 
             return res.json(responseData);
 

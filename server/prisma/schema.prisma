@@ -386,7 +386,7 @@ model Barbershop {
   noShowPercent Float   @default(0)
   noShowText    String?
 
-  subscriptionStatus    String                 @default("TRIAL")
+  subscriptionStatus    SaaSSubscriptionStatus @default(TRIAL)
   trialStartedAt        DateTime?              @default(now())
   trialEndsAt           DateTime?
   nextBillingDate       DateTime?
