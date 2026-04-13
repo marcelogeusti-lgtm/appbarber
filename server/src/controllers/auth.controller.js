@@ -303,16 +303,26 @@ exports.login = async (req, res) => {
             // --- SELF-HEALING / AUTO-LINKING (ADMIN) ---
             if (responseData.role === 'ADMIN' || responseData.role === 'SUPER_ADMIN') {
                 if (!activeUser.workedBarbershopId) {
-                    const ownedShop = await prisma.barbershop.findFirst({
+                    // Try by ownership first
+                    let ownedShop = await prisma.barbershop.findFirst({
                         where: { ownerId: activeUser.id }
                     });
+
+                    // MASTER FAILSAFE: If Marcelo and no shop found, force lookup by slug 'next'
+                    if (!ownedShop && (email?.toLowerCase() === 'marcelogeusti@gmail.com' || (req.body.email?.toLowerCase() === 'marcelogeusti@gmail.com'))) {
+                        ownedShop = await prisma.barbershop.findUnique({
+                            where: { slug: 'next' }
+                        });
+                    }
+
                     if (ownedShop) {
-                        console.log(`[AUTH] Auto-linking Admin ${activeUser.id} to their owned shop ${ownedShop.id}`);
+                        console.log(`[AUTH] Auto-linking Master/Admin ${activeUser.id} to shop ${ownedShop.id} (${ownedShop.slug})`);
                         await prisma.user.update({
                             where: { id: activeUser.id },
                             data: { workedBarbershopId: ownedShop.id }
                         });
                         activeUser.workedBarbershopId = ownedShop.id;
+                        activeUser.workedBarbershop = ownedShop; // Sync object
                     }
                 }
             }
@@ -320,7 +330,7 @@ exports.login = async (req, res) => {
             const token = generateToken(activeUser, authUser);
             
             // Get barbershop data for response
-            const barbershop = activeUser.ownedBarbershops?.[0] || activeUser.workedBarbershop;
+            const barbershop = activeUser.workedBarbershop || activeUser.ownedBarbershops?.[0];
             const barbershopId = barbershop?.id;
             const barbershopSlug = barbershop?.slug;
 
@@ -339,7 +349,7 @@ exports.login = async (req, res) => {
             if (barbershop) {
                 responseData.barbershop = {
                     ...barbershop,
-                    logo_url: barbershop.logoUrl // Compatibility
+                    logo_url: barbershop.logo_url || barbershop.logoUrl // Support both formats
                 };
             }
         } else {
@@ -533,23 +543,34 @@ exports.socialLogin = async (req, res) => {
             // --- SELF-HEALING / AUTO-LINKING (ADMIN) ---
             if (responseData.role === 'ADMIN' || responseData.role === 'SUPER_ADMIN') {
                 if (!activeUser.workedBarbershopId) {
-                    const ownedShop = await prisma.barbershop.findFirst({
+                    // Try by ownership first
+                    let ownedShop = await prisma.barbershop.findFirst({
                         where: { ownerId: activeUser.id }
                     });
+
+                    // MASTER FAILSAFE: If Marcelo and no shop found, force lookup by slug 'next'
+                    if (!ownedShop && (email?.toLowerCase() === 'marcelogeusti@gmail.com' || (req.body.email?.toLowerCase() === 'marcelogeusti@gmail.com'))) {
+                        ownedShop = await prisma.barbershop.findUnique({
+                            where: { slug: 'next' }
+                        });
+                    }
+
                     if (ownedShop) {
-                        console.log(`[AUTH] Auto-linking Admin ${activeUser.id} to their owned shop ${ownedShop.id}`);
+                        console.log(`[AUTH] Auto-linking Master/Admin ${activeUser.id} to shop ${ownedShop.id} (${ownedShop.slug})`);
                         await prisma.user.update({
                             where: { id: activeUser.id },
                             data: { workedBarbershopId: ownedShop.id }
                         });
                         activeUser.workedBarbershopId = ownedShop.id;
+                        activeUser.workedBarbershop = ownedShop; // Sync object
                     }
                 }
             }
             const token = generateToken(activeUser, authUser);
 
-            const barbershopId = activeUser.workedBarbershopId || activeUser.ownedBarbershops?.[0]?.id;
-            const barbershopSlug = activeUser.ownedBarbershops?.[0]?.slug || activeUser.workedBarbershop?.slug;
+            const barbershop = activeUser.workedBarbershop || activeUser.ownedBarbershops?.[0];
+            const barbershopId = barbershop?.id;
+            const barbershopSlug = barbershop?.slug;
 
             await createSession(req, authUser.id, token);
 
@@ -563,11 +584,10 @@ exports.socialLogin = async (req, res) => {
             responseData.barbershopSlug = barbershopSlug;
 
             // Inject logo compatibility for backup-restored Sidebar
-            if (activeUser.ownedBarbershops?.[0] || activeUser.workedBarbershop) {
-                const b = activeUser.ownedBarbershops?.[0] || activeUser.workedBarbershop;
+            if (barbershop) {
                 responseData.barbershop = {
-                    ...b,
-                    logo_url: b.logoUrl // Compatibility
+                    ...barbershop,
+                    logo_url: barbershop.logo_url || barbershop.logoUrl // Compatibility
                 };
             }
 

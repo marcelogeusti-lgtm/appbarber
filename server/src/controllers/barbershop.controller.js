@@ -349,8 +349,7 @@ exports.getBarbershopBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
 
-        // Always sanitize incoming slug to find match in standardized DB
-        const cleanSlug = slugify(slug);
+        console.log(`[SLUG] Resolving slug: "${slug}" -> Clean: "${cleanSlug}"`);
 
         const barbershop = await prisma.barbershop.findUnique({
             where: { slug: cleanSlug },
@@ -370,6 +369,7 @@ exports.getBarbershopBySlug = async (req, res) => {
 
 
         if (!barbershop) {
+            console.warn(`[SLUG] Barbershop NOT FOUND for slug: "${cleanSlug}"`);
             return res.status(404).json({ message: 'Barbershop not found' });
         }
 
