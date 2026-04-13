@@ -57,8 +57,7 @@ class SubscriptionService {
             await prisma.barbershop.update({
                 where: { id: barbershopId },
                 data: { 
-                    subscriptionStatus: newStatus,
-                    subscriptionStatusLegacy: newStatus
+                    subscriptionStatus: newStatus
                 }
             });
         }
@@ -78,7 +77,6 @@ class SubscriptionService {
             where: { id: barbershopId },
             data: {
                 subscriptionStatus: 'ACTIVE',
-                subscriptionStatusLegacy: 'ACTIVE',
                 saasPlan: planName,
                 nextBillingDate: nextBillingDate,
                 trialEndsAt: null // Clear trial once they pay

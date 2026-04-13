@@ -92,7 +92,6 @@ exports.register = async (req, res) => {
                         staff: { connect: { id: user.id } },
                         // TrialLogic: 15 Days Free
                         subscriptionStatus: 'TRIAL',
-                        subscriptionStatusLegacy: 'TRIAL',
                         trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 Days from now
                     }
                 });
@@ -186,48 +185,24 @@ exports.login = async (req, res) => {
             subscriptionStatus: true, trialEndsAt: true
         };
 
-        let authUser;
-        try {
-            authUser = await prisma.authUser.findUnique({
-                where: { email },
-                select: {
-                    id: true, email: true, password: true, provider: true,
-                    twoFactorEnabled: true, twoFactorMethod: true, twoFactorCode: true, twoFactorExpires: true,
-                    client: {
-                        select: { id: true, name: true, phone: true, avatarUrl: true }
-                    },
-                    user: {
-                        select: {
-                            id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
-                            email: true, phone: true,
-                            ownedBarbershops: { select: barbershopSelect },
-                            workedBarbershop: { select: barbershopSelect }
-                        }
+        const authUser = await prisma.authUser.findUnique({
+            where: { email },
+            select: {
+                id: true, email: true, password: true, provider: true,
+                twoFactorEnabled: true, twoFactorMethod: true, twoFactorCode: true, twoFactorExpires: true,
+                client: {
+                    select: { id: true, name: true, phone: true, avatarUrl: true }
+                },
+                user: {
+                    select: {
+                        id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
+                        email: true, phone: true,
+                        ownedBarbershops: { select: barbershopSelect },
+                        workedBarbershop: { select: barbershopSelect }
                     }
                 }
-            });
-        } catch (prismaError) {
-            console.warn(`[AUTH] Prisma type mismatch detected for ${email}. Falling back to Raw SQL.`);
-            // FAIL-SOFT: Search using Raw SQL to bypass Prisma Client type conversion bugs
-            const rawUsers = await prisma.$queryRaw`
-                SELECT id, email, password, provider, "twoFactorEnabled"
-                FROM "AuthUser"
-                WHERE email = ${email}
-                LIMIT 1
-            `;
-            
-            if (rawUsers && rawUsers.length > 0) {
-                const raw = rawUsers[0];
-                // Hydrate basic user for token generation - this allows login to proceed
-                authUser = {
-                    id: raw.id,
-                    email: raw.email,
-                    password: raw.password,
-                    provider: raw.provider,
-                    twoFactorEnabled: raw.twoFactorEnabled
-                };
             }
-        }
+        });
 
         if (!authUser) {
             return res.status(400).json({ message: 'Credenciais inválidas.' });

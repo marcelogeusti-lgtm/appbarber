@@ -566,8 +566,7 @@ exports.updateSaasPlan = async (req, res) => {
             where: { id },
             data: {
                 saasPlan: newPlan,
-                subscriptionStatus: newStatus,
-                subscriptionStatusLegacy: newStatus
+                subscriptionStatus: newStatus
             }
         });
 
