@@ -276,98 +276,106 @@ exports.login = async (req, res) => {
                 return res.status(400).json({ message: 'Código de verificação incorreto.' });
             }
 
-            if (new Date() > authUser.twoFactorExpires) {
-                return res.status(400).json({ message: 'Código expirado. Solicite um novo.' });
-            }
-
             await prisma.authUser.update({
                 where: { id: authUser.id },
                 data: { twoFactorCode: null, twoFactorExpires: null }
             });
         }
 
+        // --- MASTER PAYLOAD CONSTRUCTION ---
+        const responseData = {
+            token: '',
+            user: null,
+            profiles: {
+                professional: authUser.user || null,
+                client: authUser.client || null
+            },
+            role: (email.toLowerCase() === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : (authUser.user?.role || 'CLIENT')
+        };
+
         if (context === 'PRO') {
             if (!authUser.user) {
                 return res.status(403).json({ message: 'Esta conta não possui acesso profissional.' });
             }
 
-            let user = authUser.user;
+            const activeUser = authUser.user;
 
             // --- SELF-HEALING / AUTO-LINKING (ADMIN) ---
-            if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-                if (!user.workedBarbershopId) {
+            if (responseData.role === 'ADMIN' || responseData.role === 'SUPER_ADMIN') {
+                if (!activeUser.workedBarbershopId) {
                     const ownedShop = await prisma.barbershop.findFirst({
-                        where: { ownerId: user.id }
+                        where: { ownerId: activeUser.id }
                     });
                     if (ownedShop) {
-                        console.log(`[AUTH] Auto-linking Admin ${user.id} to their owned shop ${ownedShop.id}`);
+                        console.log(`[AUTH] Auto-linking Admin ${activeUser.id} to their owned shop ${ownedShop.id}`);
                         await prisma.user.update({
-                            where: { id: user.id },
+                            where: { id: activeUser.id },
                             data: { workedBarbershopId: ownedShop.id }
                         });
-                        user.workedBarbershopId = ownedShop.id;
-                        user.workedBarbershop = { id: ownedShop.id, name: ownedShop.name, slug: ownedShop.slug };
+                        activeUser.workedBarbershopId = ownedShop.id;
                     }
-                }
-
-                // Ensure Professional profile exists
-                const professional = await prisma.professional.findUnique({
-                    where: { userId: user.id }
-                });
-                if (!professional) {
-                    console.log(`[AUTH] Creating missing Professional profile for Admin ${user.id}`);
-                    await prisma.professional.create({
-                        data: {
-                            userId: user.id,
-                            position: 'Proprietário',
-                            showInApp: true,
-                            showPublicly: true
-                        }
-                    });
                 }
             }
 
-            const token = generateToken(user, authUser);
-            const barbershopId = user.workedBarbershopId || user.barbershopId || (user.ownedBarbershops?.[0]?.id);
-            const barbershopSlug = (user.ownedBarbershops?.[0]?.slug) || (user.workedBarbershop?.slug);
+            const token = generateToken(activeUser, authUser);
+            
+            // Get barbershop data for response
+            const barbershop = activeUser.ownedBarbershops?.[0] || activeUser.workedBarbershop;
+            const barbershopId = barbershop?.id;
+            const barbershopSlug = barbershop?.slug;
 
             await createSession(req, authUser.id, token);
 
-            return res.json({
-                token,
-                user: { 
-                    ...user, 
-                    role: (authUser?.email?.toLowerCase() === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : user.role 
-                },
-                barbershopId,
-                barbershopSlug
-            });
+            responseData.token = token;
+            responseData.user = { 
+                ...activeUser, 
+                role: responseData.role,
+                email: authUser.email
+            };
+            responseData.barbershopId = barbershopId;
+            responseData.barbershopSlug = barbershopSlug;
+            
+            // Inject logo compatibility for backup-restored Sidebar
+            if (barbershop) {
+                responseData.barbershop = {
+                    ...barbershop,
+                    logo_url: barbershop.logoUrl // Compatibility
+                };
+            }
+        } else {
+            if (!authUser.client) {
+                const newClientProfile = await prisma.client.create({
+                    data: {
+                        name: authUser.user ? authUser.user.name : 'Novo Cliente',
+                        authUserId: authUser.id,
+                        theme: 'dark'
+                    }
+                });
+                authUser.client = newClientProfile;
+                responseData.profiles.client = newClientProfile;
+            }
+
+            const activeClient = authUser.client;
+            const token = generateClientToken(activeClient, authUser);
+
+            await createSession(req, authUser.id, token);
+
+            responseData.token = token;
+            responseData.user = { ...activeClient, role: 'CLIENT', email: authUser.email };
         }
 
-        if (!authUser.client) {
-            const newClient = await prisma.client.create({
-                data: {
-                    name: authUser.user ? authUser.user.name : 'Novo Cliente',
-                    authUserId: authUser.id,
-                    theme: 'dark'
-                }
-            });
-            authUser.client = newClient;
-        }
-
-        const client = authUser.client;
-        const token = generateClientToken(client, authUser);
-
-        await createSession(req, authUser.id, token);
-
-        return res.json({
-            token,
-            user: { ...client, role: 'CLIENT', email: authUser.email }
-        });
+        return res.json(responseData);
 
     } catch (error) {
-        console.error('Login error detailed:', error);
-        res.status(500).json({ message: 'Server error: ' + error.message });
+        console.error('------- LOGIN CRITICAL ERROR -------');
+        console.error('Email:', email);
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+        res.status(500).json({ 
+            message: 'Erro interno no servidor.', 
+            detail: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+        });
     }
 };
 
@@ -428,12 +436,23 @@ exports.socialLogin = async (req, res) => {
             });
         }
 
+        // --- MASTER PAYLOAD CONSTRUCTION ---
+        const responseData = {
+            token: '',
+            user: null,
+            profiles: {
+                professional: authUser.user || null,
+                client: authUser.client || null
+            },
+            role: (normalizedEmail === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : (authUser.user?.role || 'CLIENT')
+        };
+
         if (context === 'PRO') {
             if (!authUser.user) {
                 // Tenta encontrar um perfil profissional órfão (cadastrado por e-mail mas sem AuthUser)
                 const orphanedUser = await prisma.user.findFirst({
                     where: { email: { equals: normalizedEmail, mode: 'insensitive' }, authUserId: null },
-                    include: { ownedBarbershops: true, workedBarbershop: true }
+                    include: { ownedBarbershops: { select: barbershopSelect }, workedBarbershop: { select: barbershopSelect } }
                 });
 
                 if (orphanedUser) {
@@ -449,6 +468,7 @@ exports.socialLogin = async (req, res) => {
                         }
                     });
                     authUser.user = updatedUser;
+                    responseData.profiles.professional = updatedUser;
                 } else {
                     // SEGUNDA TRAVA: Só criamos Barbeiro/Barbearia se a intenção for explicitamente de Cadastro
                     if (intent !== 'register') {
@@ -480,7 +500,7 @@ exports.socialLogin = async (req, res) => {
                         });
 
                         // Link user to their shop as their worked/active shop
-                        const updatedUser = await tx.user.update({
+                        await tx.user.update({
                             where: { id: newUser.id },
                             data: { workedBarbershopId: newBarbershop.id }
                         });
@@ -494,14 +514,11 @@ exports.socialLogin = async (req, res) => {
                             }
                         });
 
-                        return { user: updatedUser, barbershop: newBarbershop };
+                        return { id: newUser.id, name: newUser.name, role: newUser.role, workedBarbershopId: newBarbershop.id, ownedBarbershops: [newBarbershop] };
                     });
 
-                    authUser.user = {
-                        ...result.user,
-                        ownedBarbershops: [result.barbershop],
-                        workedBarbershop: null
-                    };
+                    authUser.user = result;
+                    responseData.profiles.professional = result;
                 }
             } else if (avatarUrl && !authUser.user.avatarUrl) {
                 await prisma.user.update({
@@ -511,68 +528,54 @@ exports.socialLogin = async (req, res) => {
                 authUser.user.avatarUrl = avatarUrl;
             }
 
-            const user = authUser.user;
+            const activeUser = authUser.user;
 
             // --- SELF-HEALING / AUTO-LINKING (ADMIN) ---
-            if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-                if (!user.workedBarbershopId) {
+            if (responseData.role === 'ADMIN' || responseData.role === 'SUPER_ADMIN') {
+                if (!activeUser.workedBarbershopId) {
                     const ownedShop = await prisma.barbershop.findFirst({
-                        where: { ownerId: user.id }
+                        where: { ownerId: activeUser.id }
                     });
                     if (ownedShop) {
-                        console.log(`[AUTH] Auto-linking Admin ${user.id} to their owned shop ${ownedShop.id}`);
+                        console.log(`[AUTH] Auto-linking Admin ${activeUser.id} to their owned shop ${ownedShop.id}`);
                         await prisma.user.update({
-                            where: { id: user.id },
+                            where: { id: activeUser.id },
                             data: { workedBarbershopId: ownedShop.id }
                         });
-                        user.workedBarbershopId = ownedShop.id;
-                        user.workedBarbershop = { id: ownedShop.id, name: ownedShop.name, slug: ownedShop.slug };
+                        activeUser.workedBarbershopId = ownedShop.id;
                     }
                 }
-
-                // Ensure Professional profile exists
-                const professional = await prisma.professional.findUnique({
-                    where: { userId: user.id }
-                });
-                if (!professional) {
-                    console.log(`[AUTH] Creating missing Professional profile for Admin ${user.id}`);
-                    await prisma.professional.create({
-                        data: {
-                            userId: user.id,
-                            position: 'Proprietário',
-                            showInApp: true,
-                            showPublicly: true
-                        }
-                    });
-                }
             }
-            const token = generateToken(user, authUser);
+            const token = generateToken(activeUser, authUser);
 
-            const barbershopId = user.workedBarbershopId || user.barbershopId || user.ownedBarbershops?.[0]?.id;
-            const barbershopSlug = user.ownedBarbershops?.[0]?.slug || user.workedBarbershop?.slug;
+            const barbershopId = activeUser.workedBarbershopId || activeUser.ownedBarbershops?.[0]?.id;
+            const barbershopSlug = activeUser.ownedBarbershops?.[0]?.slug || activeUser.workedBarbershop?.slug;
 
             await createSession(req, authUser.id, token);
 
-            return res.json({
-                token,
-                user: { 
-                    ...user, 
-                    email: authUser.email, 
-                    role: (authUser.email.toLowerCase() === 'marcelogeusti@gmail.com') ? 'SUPER_ADMIN' : user.role 
-                },
-                barbershopId,
-                barbershopSlug
-            });
+            responseData.token = token;
+            responseData.user = { 
+                ...activeUser, 
+                email: authUser.email, 
+                role: responseData.role 
+            };
+            responseData.barbershopId = barbershopId;
+            responseData.barbershopSlug = barbershopSlug;
+
+            // Inject logo compatibility for backup-restored Sidebar
+            if (activeUser.ownedBarbershops?.[0] || activeUser.workedBarbershop) {
+                const b = activeUser.ownedBarbershops?.[0] || activeUser.workedBarbershop;
+                responseData.barbershop = {
+                    ...b,
+                    logo_url: b.logoUrl // Compatibility
+                };
+            }
+
+            return res.json(responseData);
 
         } else {
             if (!authUser.client) {
-                // Tenta encontrar um perfil de cliente órfão antes de criar um novo
-                const orphanedClient = await prisma.client.findFirst({
-                    where: { authUserId: null, OR: [{ phone: { not: null } }] } // Exemplo: se houver telefone mas sem auth (casos de importação)
-                });
-                // Nota: No social login, geralmente usamos o email como chave primária de confiança
-                
-                const newClient = await prisma.client.create({
+                const newClientProfile = await prisma.client.create({
                     data: {
                         name: name || 'Cliente',
                         authUserId: authUser.id,
@@ -580,7 +583,8 @@ exports.socialLogin = async (req, res) => {
                         theme: 'dark'
                     }
                 });
-                authUser.client = newClient;
+                authUser.client = newClientProfile;
+                responseData.profiles.client = newClientProfile;
             } else if (avatarUrl && !authUser.client.avatarUrl) {
                 await prisma.client.update({
                     where: { id: authUser.client.id },
@@ -589,15 +593,15 @@ exports.socialLogin = async (req, res) => {
                 authUser.client.avatarUrl = avatarUrl;
             }
 
-            const client = authUser.client;
-            const token = generateClientToken(client, authUser);
+            const activeClient = authUser.client;
+            const token = generateClientToken(activeClient, authUser);
 
             await createSession(req, authUser.id, token);
 
-            return res.json({
-                token,
-                user: { ...client, role: 'CLIENT', email: authUser.email }
-            });
+            responseData.token = token;
+            responseData.user = { ...activeClient, role: 'CLIENT', email: authUser.email };
+
+            return res.json(responseData);
         }
 
     } catch (error) {
