@@ -17,7 +17,7 @@ const professionalSchema = z.object({
     name: z.string().min(3, 'Nome muito curto'),
     nickname: z.string().optional(),
     email: z.string().email('E-mail inválido'),
-    password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional().or(z.literal('')),
+    password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
     phone: z.string().min(10, 'Telefone inválido'),
     landline: z.string().optional(),
     cpf: z.string().optional(),
@@ -40,7 +40,7 @@ const professionalSchema = z.object({
     city: z.string().optional(),
     state: z.string().optional(),
     country: z.string().default('Brasil'),
-    role: z.enum(['BARBER', 'ADMIN', 'BARBER_CONSULTA']).default('BARBER'),
+    role: z.enum(['BARBER', 'ADMIN', 'BARBER_CONSULTA', 'RECEPTIONIST']).default('BARBER'),
     active: z.boolean().default(true),
     commissionPercent: z.string().optional(),
     services: z.array(z.string()).optional(),
@@ -66,6 +66,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
     });
 
     const isEdit = !!professional;
+    const watchRole = watch('role');
 
     useEffect(() => {
         if (isOpen) {
@@ -312,7 +313,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                 {/* Header */}
                 <header className="p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                        <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                             {isEdit ? <Edit className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
                         </div>
                         <div>
@@ -337,7 +338,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                             type="button"
                             onClick={() => setTab(t.id)}
                             className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === t.id
-                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
                                 : 'text-slate-500 hover:bg-slate-900 hover:text-slate-300'
                                 }`}
                         >
@@ -372,7 +373,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                 <Input label="RG" name="rg" register={register} error={errors.rg} />
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Gênero</label>
-                                    <select {...register('gender')} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition appearance-none">
+                                    <select {...register('gender')} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition appearance-none">
                                         <option value="">Selecione</option>
                                         <option value="Masculino">Masculino</option>
                                         <option value="Feminino">Feminino</option>
@@ -383,7 +384,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                 <Input label="Comissão (%)" name="commissionPercent" type="number" step="0.1" placeholder="Ex: 50" register={register} error={errors.commissionPercent} />
                                 <div className="md:col-span-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Observações</label>
-                                    <textarea {...register('notes')} rows={3} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition" />
+                                    <textarea {...register('notes')} rows={3} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition" />
                                 </div>
                             </div>
                         )}
@@ -394,7 +395,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                 <div className="flex flex-col md:flex-row items-center gap-8 bg-slate-900/40 p-8 rounded-[2rem] border border-slate-800">
                                     <div className="relative group w-32 h-32">
                                         <input type="file" onChange={handleAvatarChange} className="absolute inset-0 opacity-0 z-10 cursor-pointer" />
-                                        <div className="w-full h-full rounded-3xl bg-slate-950 border-2 border-slate-800 flex items-center justify-center overflow-hidden group-hover:border-emerald-500 transition">
+                                        <div className="w-full h-full rounded-3xl bg-slate-950 border-2 border-slate-800 flex items-center justify-center overflow-hidden group-hover:border-primary transition">
                                             {watch('avatarUrl') ? (
                                                 <img src={watch('avatarUrl')} alt="Avatar" className="w-full h-full object-cover" />
                                             ) : (
@@ -435,7 +436,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Biografia Curta</label>
-                                        <textarea {...register('bio')} rows={4} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition" placeholder="Conte um pouco sobre a experiência do profissional..." />
+                                        <textarea {...register('bio')} rows={4} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition" placeholder="Conte um pouco sobre a experiência do profissional..." />
                                     </div>
                                 </div>
 
@@ -456,17 +457,17 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {Array.isArray(availableServices) && availableServices.map(service => (
                                         <label key={service.id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${watch('services')?.includes(service.id)
-                                            ? 'bg-emerald-500/10 border-emerald-500'
+                                            ? 'bg-primary/10 border-primary'
                                             : 'bg-slate-900 border-slate-800 hover:border-slate-700'
                                             }`}>
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${watch('services')?.includes(service.id) ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-700'
+                                                <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${watch('services')?.includes(service.id) ? 'bg-primary border-primary text-white' : 'border-slate-700'
                                                     }`}>
                                                     {watch('services')?.includes(service.id) && <Check className="w-3 h-3" />}
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-white text-sm uppercase">{service.name}</p>
-                                                    <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest">R$ {parseFloat(service.price).toFixed(2)} • {service.duration}min</p>
+                                                    <p className="text-primary text-[10px] font-black uppercase tracking-widest">R$ {parseFloat(service.price).toFixed(2)} • {service.duration}min</p>
                                                 </div>
                                             </div>
                                             <input
@@ -499,13 +500,13 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                                 <button
                                                     type="button"
                                                     onClick={() => setSchedules(prev => prev.map(item => item.dayOfWeek === s.dayOfWeek ? { ...item, isOff: !item.isOff } : item))}
-                                                    className={`text-[10px] font-black uppercase tracking-widest mt-1 ${s.isOff ? 'text-red-500' : 'text-emerald-500 underline'}`}
+                                                    className={`text-[10px] font-black uppercase tracking-widest mt-1 ${s.isOff ? 'text-red-500' : 'text-primary underline'}`}
                                                 >
                                                     {s.isOff ? 'Deseja Ativar?' : 'Deseja Marcar Folga?'}
                                                 </button>
                                             </div>
                                             {!s.isOff && (
-                                                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest">
                                                     <Clock className="w-3 h-3" /> Horário Ativo
                                                 </div>
                                             )}
@@ -514,7 +515,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                         {!s.isOff && (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div className="space-y-4">
-                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-emerald-500 pl-2">Horário de Atendimento</p>
+                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-primary pl-2">Horário de Atendimento</p>
                                                     <div className="flex items-center gap-3">
                                                         <input type="time" value={s.startTime} onChange={e => setSchedules(prev => prev.map(item => item.dayOfWeek === s.dayOfWeek ? { ...item, startTime: e.target.value } : item))} className="flex-1 p-3 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold" />
                                                         <span className="text-slate-700 font-black text-xs">ATÉ</span>
@@ -541,10 +542,10 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
                                 <div className="bg-slate-900/40 p-8 rounded-[2rem] border border-slate-800 space-y-6">
                                     <h4 className="text-white font-bold uppercase tracking-tight flex items-center gap-2">
-                                        <Shield className="w-5 h-5 text-emerald-500" /> Nível de Acesso
+                                        <Shield className="w-5 h-5 text-primary" /> Nível de Acesso
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <label className={`p-6 rounded-2xl border transition-all cursor-pointer ${watch('role') === 'BARBER' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
+                                        <label className={`p-6 rounded-2xl border transition-all cursor-pointer ${watch('role') === 'BARBER' ? 'bg-primary text-white border-primary' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
                                             <input type="radio" value="BARBER" {...register('role')} className="hidden" />
                                             <p className="font-black uppercase tracking-widest text-[10px]">Barbeiro</p>
                                             <p className="text-[9px] opacity-70 mt-1 uppercase font-bold">Acesso básico à agenda e seus agendamentos.</p>
@@ -585,7 +586,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                         {...register('zipCode')}
                                         onBlur={handleZipCodeBlur}
                                         placeholder="00000-000"
-                                        className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition"
+                                        className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition"
                                     />
                                 </div>
                                 <Input label="Rua / Logradouro" name="street" register={register} />
@@ -631,7 +632,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                             type="submit"
                             form="proForm"
                             disabled={loading || uploading}
-                            className={`flex items-center gap-2 bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 ${(loading || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`flex items-center gap-2 bg-primary text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 ${(loading || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                             {isEdit ? 'SALVAR ALTERAÇÕES' : 'FINALIZAR CADASTRO'}
@@ -652,7 +653,7 @@ const Input = ({ label, name, type = 'text', register, error, required, ...rest 
         <input
             type={type}
             {...register(name)}
-            className={`w-full p-4 bg-slate-900 border appearance-none rounded-2xl text-white font-bold outline-none focus:ring-2 ring-emerald-500 transition ${error ? 'border-red-500/50 ring-red-500/10' : 'border-slate-800'
+            className={`w-full p-4 bg-slate-900 border appearance-none rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition ${error ? 'border-red-500/50 ring-red-500/10' : 'border-slate-800'
                 }`}
             {...rest}
         />
@@ -661,10 +662,10 @@ const Input = ({ label, name, type = 'text', register, error, required, ...rest 
 );
 
 const Toggle = ({ label, name, register, watch }) => (
-    <label className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${watch(name) ? 'bg-emerald-500/10 border-emerald-500' : 'bg-slate-900 border-slate-800'
+    <label className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${watch(name) ? 'bg-primary/10 border-primary' : 'bg-slate-900 border-slate-800'
         }`}>
         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</span>
-        <div className={`w-12 h-6 rounded-full relative transition-all ${watch(name) ? 'bg-emerald-500' : 'bg-slate-800'}`}>
+        <div className={`w-12 h-6 rounded-full relative transition-all ${watch(name) ? 'bg-primary' : 'bg-slate-800'}`}>
             <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${watch(name) ? 'right-1' : 'left-1'}`} />
         </div>
         <input type="checkbox" {...register(name)} className="hidden" />
