@@ -8,6 +8,8 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// VERSION_SYNC_TOKEN: a15f2136-PRISMA-HARDENING-03
+
 
 // Enums
 enum WaitlistStatus {
