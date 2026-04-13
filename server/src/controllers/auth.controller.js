@@ -501,7 +501,6 @@ exports.socialLogin = async (req, res) => {
                                 staff: { connect: { id: newUser.id } },
                                 // STRIPE RULE: Dual-write to Enum and Legacy fields
                                 subscriptionStatus: 'TRIAL',
-                                subscriptionStatusLegacy: 'TRIAL',
                                 trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
                             }
                         });
