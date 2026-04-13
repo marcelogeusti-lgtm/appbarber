@@ -92,6 +92,7 @@ exports.register = async (req, res) => {
                         staff: { connect: { id: user.id } },
                         // TrialLogic: 15 Days Free
                         subscriptionStatus: 'TRIAL',
+                        subscriptionStatusLegacy: 'TRIAL',
                         trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 Days from now
                     }
                 });
@@ -405,11 +406,21 @@ exports.socialLogin = async (req, res) => {
             subscriptionStatus: true, trialEndsAt: true
         };
 
-        // 1. Busca robusta: Case-Insensitive para evitar duplicidade Marcelo@ vs marcelo@
-        let authUserByEmail = await prisma.authUser.findFirst({
-            where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
-            select: {
-                id: true, email: true, provider: true,
+        console.log({ stage: "oauth_callback", email: normalizedEmail, provider, status: "checking_identity" });
+
+        // 1. ATOMIC UPSERT: AuthUser (Stripe Pattern - Idempotent)
+        const authUser = await prisma.authUser.upsert({
+            where: { email: normalizedEmail },
+            update: {
+                // Update avatar or provider if needed, but keeping it safe
+                provider: provider.toUpperCase()
+            },
+            create: {
+                email: normalizedEmail,
+                password: null,
+                provider: provider.toUpperCase()
+            },
+            include: {
                 client: {
                     select: { id: true, name: true, phone: true, avatarUrl: true }
                 },
@@ -424,26 +435,10 @@ exports.socialLogin = async (req, res) => {
             }
         });
 
-        let authUser = authUserByEmail;
-
-        if (!authUser) {
-            // Se for INTENT LOGIN e não achou a conta, não criamos nada. Avisamos que a conta não existe.
-            if (context === 'PRO' && intent === 'login') {
-                return res.status(404).json({ message: 'Nenhuma conta profissional encontrada com este e-mail. Caso deseje abrir sua barbearia, use a aba "Criar Conta".' });
-            }
-
-            authUser = await prisma.authUser.create({
-                data: {
-                    email: normalizedEmail,
-                    password: null,
-                    provider: provider.toUpperCase(),
-                },
-                select: { 
-                    id: true, email: true, provider: true,
-                    client: { select: { id: true, name: true } }, 
-                    user: { select: { id: true, name: true, role: true } }
-                }
-            });
+        // 2. REDIRECT/FAILSAFE: If context is PRO and intent is login but no user found
+        if (!authUser.user && context === 'PRO' && intent === 'login') {
+            console.warn({ stage: "oauth_callback", email: normalizedEmail, status: "error", message: "PRO_ACCOUNT_NOT_FOUND" });
+            return res.status(404).json({ message: 'Nenhuma conta profissional encontrada com este e-mail.' });
         }
 
         // --- MASTER PAYLOAD CONSTRUCTION ---
@@ -496,6 +491,7 @@ exports.socialLogin = async (req, res) => {
                             }
                         });
 
+                        console.log({ stage: "oauth_callback", email: normalizedEmail, status: "creating_barbershop" });
                         const slug = await generateUniqueSlug(tx, name || 'Minha Barbearia');
                         const newBarbershop = await tx.barbershop.create({
                             data: {
@@ -504,7 +500,9 @@ exports.socialLogin = async (req, res) => {
                                 slug,
                                 ownerId: newUser.id,
                                 staff: { connect: { id: newUser.id } },
+                                // STRIPE RULE: Dual-write to Enum and Legacy fields
                                 subscriptionStatus: 'TRIAL',
+                                subscriptionStatusLegacy: 'TRIAL',
                                 trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
                             }
                         });
@@ -595,8 +593,15 @@ exports.socialLogin = async (req, res) => {
 
         } else {
             if (!authUser.client) {
-                const newClientProfile = await prisma.client.create({
-                    data: {
+                console.log({ stage: "oauth_callback", email: normalizedEmail, status: "creating_client_profile" });
+                // ATOMIC UPSERT: Client Profile
+                const newClientProfile = await prisma.client.upsert({
+                    where: { authUserId: authUser.id },
+                    update: {
+                        name: name || 'Cliente',
+                        avatarUrl: avatarUrl
+                    },
+                    create: {
                         name: name || 'Cliente',
                         authUserId: authUser.id,
                         avatarUrl: avatarUrl,

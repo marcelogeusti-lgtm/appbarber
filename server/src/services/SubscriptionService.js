@@ -56,7 +56,10 @@ class SubscriptionService {
             console.log(`[SubscriptionService] Shop ${shop.slug} status changed: ${shop.subscriptionStatus} -> ${newStatus}`);
             await prisma.barbershop.update({
                 where: { id: barbershopId },
-                data: { subscriptionStatus: newStatus }
+                data: { 
+                    subscriptionStatus: newStatus,
+                    subscriptionStatusLegacy: newStatus
+                }
             });
         }
 
@@ -75,6 +78,7 @@ class SubscriptionService {
             where: { id: barbershopId },
             data: {
                 subscriptionStatus: 'ACTIVE',
+                subscriptionStatusLegacy: 'ACTIVE',
                 saasPlan: planName,
                 nextBillingDate: nextBillingDate,
                 trialEndsAt: null // Clear trial once they pay

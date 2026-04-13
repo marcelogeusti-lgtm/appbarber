@@ -225,7 +225,10 @@ exports.updateBarbershopSubscription = async (req, res) => {
         const { status, plan, nextBillingDate, trialEndsAt } = req.body;
 
         const data = {};
-        if (status) data.subscriptionStatus = status;
+        if (status) {
+            data.subscriptionStatus = status;
+            data.subscriptionStatusLegacy = status;
+        }
         if (plan) data.saasPlan = plan;
         if (nextBillingDate) data.nextBillingDate = new Date(nextBillingDate);
         if (trialEndsAt) data.trialEndsAt = new Date(trialEndsAt);
@@ -279,7 +282,10 @@ exports.toggleBarbershopStatus = async (req, res) => {
 
         const updated = await prisma.barbershop.update({
             where: { id },
-            data: { subscriptionStatus: newStatus }
+            data: { 
+                subscriptionStatus: newStatus,
+                subscriptionStatusLegacy: newStatus
+            }
         });
 
         res.json(updated);

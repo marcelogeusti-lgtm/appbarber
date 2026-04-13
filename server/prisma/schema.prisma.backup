@@ -10,40 +10,6 @@ datasource db {
 
 
 // Enums
-enum WaitlistStatus {
-  WAITING
-  NOTIFIED
-  COMPLETED
-  CANCELLED
-}
-
-enum PaymentGatewayStatus {
-  PENDING
-  PAID
-  FAILED
-  CANCELED
-  EXPIRED
-}
-
-enum PaymentMethodGateway {
-  PIX
-  CARD
-}
-
-enum TransactionOrigin {
-  ONLINE
-  PRESENCIAL
-}
-
-enum FinancialEventType {
-  PAYMENT_CREATED
-  PAYMENT_UPDATED
-  PAYMENT_FAILED
-  COMMISSION_GENERATED
-  TRANSACTION_SYNCED
-  ORDER_UPDATED
-}
-
 enum Role {
   SUPER_ADMIN
   ADMIN
@@ -105,23 +71,6 @@ enum OrderStatus {
 
 // Models
 
-enum NotificationStatus {
-  PENDING
-  SENT
-  FAILED
-}
-
-enum EmailStatus {
-  PENDING
-  SENT
-  FAILED
-}
-
-enum OrderItemType {
-  SERVICE
-  PRODUCT
-}
-
 model AuthUser {
   id        String       @id @default(uuid())
   email     String       @unique
@@ -158,7 +107,7 @@ model Client {
   phone String? @unique
 
   authUserId String?   @unique
-  authUser   AuthUser? @relation(fields: [authUserId], references: [id], onDelete: SetNull)
+  authUser   AuthUser? @relation(fields: [authUserId], references: [id])
 
   avatarUrl String?
   birthDate DateTime?
@@ -190,9 +139,6 @@ model Client {
   payments  Payment[]
   nfes      Nfe[]
   loyaltyBalances ClientLoyaltyBalance[]
-
-  // Antigravity V3: Migration Bridges
-  userIdLegacy String? 
 }
 
 
@@ -269,7 +215,7 @@ model User {
 
   // Link to AuthUser (Optional during migration)
   authUserId String?   @unique
-  authUser   AuthUser? @relation(fields: [authUserId], references: [id], onDelete: SetNull)
+  authUser   AuthUser? @relation(fields: [authUserId], references: [id])
 
   // Relations
   ownedBarbershops Barbershop[] @relation("BarbershopOwner")
@@ -279,7 +225,6 @@ model User {
   workedBarbershop   Barbershop? @relation("BarbershopStaff", fields: [workedBarbershopId], references: [id])
 
   // If user is a professional (has specific profile)
-  // LEGACY: Link to old professional profile (Phase 3 will migrate this to profilePro)
   professionalProfile Professional?
 
   // Pro Specific
@@ -310,10 +255,6 @@ model User {
   enrolledCourses   UserCourse[]
   pushSubscriptions PushSubscription[]
   transactions      Transaction[]      @relation("ProTransactions")
-
-  // Antigravity V3: Migration Bridges
-  profileClient   ClientProfile? @relation("UserClientProfile")
-  profilePro    ProfessionalProfile? @relation("UserProfessionalProfile")
 }
 
 model Notification {
@@ -384,8 +325,7 @@ model Barbershop {
   noShowPercent Float   @default(0)
   noShowText    String?
 
-  subscriptionStatus    SaaSSubscriptionStatus @default(TRIAL)
-  subscriptionStatusLegacy String?              @map("subscription_status_legacy") @default("TRIAL")
+  subscriptionStatus    String                 @default("TRIAL")
   trialStartedAt        DateTime?              @default(now())
   trialEndsAt           DateTime?
   nextBillingDate       DateTime?
@@ -491,7 +431,7 @@ model NoShowRecord {
 model Professional {
   id       String  @id @default(uuid())
   userId   String  @unique
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id])
   bio      String?
   position String? // Cargo (Ex: Barbeiro Sênior, Auxiliar)
 
@@ -516,7 +456,6 @@ model Professional {
 
   schedules Schedule[]
   services  Service[]
-  serviceCommissions ProfessionalServiceCommission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -531,12 +470,8 @@ model ProfessionalServiceCommission {
   id             String  @id @default(uuid())
   serviceId      String
   service        Service @relation(fields: [serviceId], references: [id])
-  // FIX: Relacionamento transferido para o Professional e User mantido opcional p/ backward compatibility 
-  professionalId   String?
-  professionalUser User? @relation(fields: [professionalId], references: [id])
-  
-  professionalProfileId String?
-  professionalProfile   Professional? @relation(fields: [professionalProfileId], references: [id])
+  professionalId String
+  professional   User    @relation(fields: [professionalId], references: [id])
 
   type  CommissionCalculationType
   value Decimal                   @db.Decimal(10, 2)
@@ -708,10 +643,10 @@ model CashShift {
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
 
   openedById String
-  openedBy   User   @relation("OpenedShifts", fields: [openedById], references: [id], onDelete: Restrict)
+  openedBy   User   @relation("OpenedShifts", fields: [openedById], references: [id])
 
   closedById String?
-  closedBy   User?   @relation("ClosedShifts", fields: [closedById], references: [id], onDelete: Restrict)
+  closedBy   User?   @relation("ClosedShifts", fields: [closedById], references: [id])
 
   status CashShiftStatus @default(OPEN)
 
@@ -734,7 +669,7 @@ model Waitlist {
   clientPhone String
   date        DateTime
   notes       String?
-  status      WaitlistStatus @default(WAITING)
+  status      String   @default("WAITING") // WAITING, NOTIFIED, COMPLETED, CANCELLED
 
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
@@ -1332,40 +1267,4 @@ model LoyaltyLedger {
 
   @@map("loyalty_ledger")
 }
-
-model ClientProfile {
-  id        String   @id @default(uuid())
-  user      User     @relation("UserClientProfile", fields: [userId], references: [id], onDelete: Cascade)
-  userId    String   @unique
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model ProfessionalProfile {
-  id        String   @id @default(uuid())
-  user      User     @relation("UserProfessionalProfile", fields: [userId], references: [id], onDelete: Cascade)
-  userId    String   @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model FinancialEvent {
-  id          String             @id @default(uuid())
-  type        FinancialEventType
-  referenceId String?            
-  
-  barbershopId String
-  userId       String?
-
-  payload     Json?              
-  processed   Boolean            @default(false)
-  createdAt   DateTime           @default(now())
-  
-  @@index([type, processed])
-  @@index([referenceId])
-  @@index([barbershopId])
-}
-
 
