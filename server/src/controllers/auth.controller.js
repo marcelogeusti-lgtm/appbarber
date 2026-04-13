@@ -185,23 +185,30 @@ exports.login = async (req, res) => {
              trialEndsAt: true
         };
 
-        const authUser = await prisma.authUser.findUnique({
-            where: { email },
-            select: {
-                id: true, email: true, password: true, provider: true,
-                twoFactorEnabled: true, twoFactorMethod: true, twoFactorCode: true, twoFactorExpires: true,
-                client: {
-                    select: { id: true, name: true, phone: true, avatarUrl: true }
-                },
-                user: {
-                    select: {
-                        id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
-                        email: true, phone: true
-                        // REMOVED nested barbershop select to prevent conversion crash
-                    }
-                }
-            }
-        });
+        // --- ULTIMATE BYPASS: Using raw query to avoid Prisma Model Mapping crash ---
+        const authUserRaw = await prisma.$queryRaw`
+            SELECT id, email, password, provider, "twoFactorEnabled", "twoFactorMethod", "twoFactorCode", "twoFactorExpires" 
+            FROM "AuthUser" 
+            WHERE email = ${email}
+            LIMIT 1
+        `;
+
+        const authUser = authUserRaw[0];
+
+        if (!authUser) {
+            return res.status(400).json({ message: 'Credenciais inválidas.' });
+        }
+
+        // Fetch relations manually with isolation
+        authUser.client = await prisma.client.findUnique({ 
+            where: { authUserId: authUser.id },
+            select: { id: true, name: true, phone: true, avatarUrl: true }
+        }).catch(() => null);
+
+        authUser.user = await prisma.user.findUnique({ 
+            where: { authUserId: authUser.id },
+            select: { id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true, email: true, phone: true }
+        }).catch(() => null);
 
         if (!authUser) {
             return res.status(400).json({ message: 'Credenciais inválidas.' });
@@ -429,31 +436,43 @@ exports.socialLogin = async (req, res) => {
 
         console.log({ stage: "oauth_callback", email: normalizedEmail, provider, status: "checking_identity" });
 
-        // 1. ATOMIC UPSERT: AuthUser (Stripe Pattern - Idempotent)
-        const authUser = await prisma.authUser.upsert({
-            where: { email: normalizedEmail },
-            update: {
-                // Update avatar or provider if needed, but keeping it safe
-                provider: provider.toUpperCase()
-            },
-            create: {
-                email: normalizedEmail,
-                password: null,
-                provider: provider.toUpperCase()
-            },
-            include: {
-                client: {
-                    select: { id: true, name: true, phone: true, avatarUrl: true }
-                },
-                user: {
-                    select: {
-                        id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
-                        email: true, phone: true
-                        // REMOVED nested barbershop select to prevent conversion crash
+        // --- ULTIMATE BYPASS: Social Login ---
+        let authUser = null;
+        try {
+            const authUserRaw = await prisma.$queryRaw`
+                SELECT id, email, password, provider, "twoFactorEnabled" 
+                FROM "AuthUser" 
+                WHERE email = ${normalizedEmail}
+                LIMIT 1
+            `;
+            
+            if (authUserRaw[0]) {
+                authUser = authUserRaw[0];
+            } else {
+                // Create if not exists (raw or simple create)
+                authUser = await prisma.authUser.create({
+                    data: {
+                        email: normalizedEmail,
+                        password: null,
+                        provider: provider.toUpperCase()
                     }
-                }
+                });
             }
-        });
+
+            // Enrich relations with isolation
+            authUser.client = await prisma.client.findUnique({ 
+                where: { authUserId: authUser.id }
+            }).catch(() => null);
+
+            authUser.user = await prisma.user.findUnique({ 
+                where: { authUserId: authUser.id }
+            }).catch(() => null);
+
+        } catch (rawError) {
+            console.error('[AUTH SHIELD] OAuth fallback failed:', rawError.message);
+            // Last resort: simple fetch
+            authUser = await prisma.authUser.findUnique({ where: { email: normalizedEmail } });
+        }
 
         // 2. REDIRECT/FAILSAFE: If context is PRO and intent is login but no user found
         if (!authUser.user && context === 'PRO' && intent === 'login') {
