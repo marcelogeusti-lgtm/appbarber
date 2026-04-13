@@ -196,9 +196,8 @@ exports.login = async (req, res) => {
                 user: {
                     select: {
                         id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
-                        email: true, phone: true,
-                        ownedBarbershops: { select: barbershopSelect },
-                        workedBarbershop: { select: barbershopSelect }
+                        email: true, phone: true
+                        // REMOVED nested barbershop select to prevent conversion crash
                     }
                 }
             }
@@ -327,10 +326,29 @@ exports.login = async (req, res) => {
                 }
             }
 
-            const token = generateToken(activeUser, authUser);
+            // --- POST-LOGIN DATA ENRICHMENT (Shielded) ---
+            let barbershop = null;
+            try {
+                // Fetch barbershop data separately to isolate potential schema mismatches
+                const s_barbershopId = activeUser.workedBarbershopId;
+                if (s_barbershopId) {
+                    barbershop = await prisma.barbershop.findUnique({
+                        where: { id: s_barbershopId }
+                    });
+                } else {
+                    const ownedShops = await prisma.barbershop.findMany({
+                        where: { ownerId: activeUser.id },
+                        take: 1
+                    });
+                    barbershop = ownedShops[0];
+                }
+            } catch (pError) {
+                console.error('[AUTH SHIELD] Failed to fetch barbershop data, bypassing crash:', pError.message);
+            }
+
+            const token = generateToken(activeUser, authUser, barbershop);
             
             // Get barbershop data for response
-            const barbershop = activeUser.workedBarbershop || activeUser.ownedBarbershops?.[0];
             const barbershopId = barbershop?.id;
             const barbershopSlug = barbershop?.slug;
 
@@ -353,6 +371,8 @@ exports.login = async (req, res) => {
                     subscriptionStatus: barbershop.subscriptionStatus || 'TRIAL',
                     saasPlan: barbershop.saasPlan || 'BASIC'
                 };
+            } else {
+                 responseData.barbershop = null;
             }
         } else {
             if (!authUser.client) {
@@ -428,9 +448,8 @@ exports.socialLogin = async (req, res) => {
                 user: {
                     select: {
                         id: true, name: true, role: true, avatarUrl: true, workedBarbershopId: true,
-                        email: true, phone: true,
-                        ownedBarbershops: { select: barbershopSelect },
-                        workedBarbershop: { select: barbershopSelect }
+                        email: true, phone: true
+                        // REMOVED nested barbershop select to prevent conversion crash
                     }
                 }
             }
@@ -574,19 +593,37 @@ exports.socialLogin = async (req, res) => {
 
             responseData.token = token;
             responseData.user = { 
-                ...activeUser, 
+                ...professional, 
                 email: authUser.email, 
                 role: responseData.role 
             };
-            responseData.barbershopId = barbershopId;
-            responseData.barbershopSlug = barbershopSlug;
+            responseData.barbershopId = professional.workedBarbershopId;
 
-            // Inject logo compatibility for backup-restored Sidebar
+            // --- POST-LOGIN DATA ENRICHMENT (Shielded) ---
+            let barbershop = null;
+            try {
+                // Fetch barbershop data separately to isolate potential schema mismatches
+                const s_barbershopId = professional.workedBarbershopId;
+                if (s_barbershopId) {
+                    barbershop = await prisma.barbershop.findUnique({
+                        where: { id: s_barbershopId }
+                    });
+                } else {
+                    const ownedShops = await prisma.barbershop.findMany({
+                        where: { ownerId: professional.id },
+                        take: 1
+                    });
+                    barbershop = ownedShops[0];
+                }
+            } catch (pError) {
+                console.error('[AUTH SHIELD] Failed to fetch barbershop data, bypassing crash:', pError.message);
+            }
+
             responseData.barbershop = barbershop ? {
                 ...barbershop,
                 logo_url: barbershop.logo_url || barbershop.logoUrl,
-                subscriptionStatus: barbershop.subscriptionStatus,
-                saasPlan: barbershop.saasPlan
+                subscriptionStatus: barbershop.subscriptionStatus || 'TRIAL',
+                saasPlan: barbershop.saasPlan || 'BASIC'
             } : null;
 
             return res.json(responseData);
