@@ -279,6 +279,7 @@ model User {
   workedBarbershop   Barbershop? @relation("BarbershopStaff", fields: [workedBarbershopId], references: [id])
 
   // If user is a professional (has specific profile)
+  // LEGACY: Link to old professional profile (Phase 3 will migrate this to profilePro)
   professionalProfile Professional?
 
   // Pro Specific
@@ -330,7 +331,7 @@ model Notification {
   message String
   type    String // appointment, payment, order, system
   isRead  Boolean @default(false)
-  status  NotificationStatus  @default(PENDING) // PENDING, SENT, FAILED
+  status  String  @default("PENDING") // PENDING, SENT, FAILED
 
   appointmentId String?
   orderId       String?
@@ -344,7 +345,7 @@ model EmailLog {
   email        String
   subject      String
   provider     String   @default("DEFAULT")
-  status       EmailStatus   @default(PENDING) // PENDING, SENT, FAILED
+  status       String   @default("PENDING") // PENDING, SENT, FAILED
   errorMessage String?  @db.Text
   createdAt    DateTime @default(now())
 }
@@ -732,7 +733,7 @@ model Waitlist {
   clientPhone String
   date        DateTime
   notes       String?
-  status      String   @default("WAITING") // WAITING, NOTIFIED, COMPLETED, CANCELLED
+  status      WaitlistStatus @default(WAITING)
 
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
@@ -889,7 +890,7 @@ model OrderItem {
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  type OrderItemType // "SERVICE" or "PRODUCT"
+  type String // "SERVICE" or "PRODUCT"
 
   serviceId String?
   service   Service? @relation(fields: [serviceId], references: [id])
@@ -1353,12 +1354,17 @@ model FinancialEvent {
   id          String             @id @default(uuid())
   type        FinancialEventType
   referenceId String?            
+  
+  barbershopId String
+  userId       String?
+
   payload     Json?              
   processed   Boolean            @default(false)
   createdAt   DateTime           @default(now())
   
   @@index([type, processed])
   @@index([referenceId])
+  @@index([barbershopId])
 }
 
 
