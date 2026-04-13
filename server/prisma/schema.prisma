@@ -71,6 +71,23 @@ enum OrderStatus {
 
 // Models
 
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum OrderItemType {
+  SERVICE
+  PRODUCT
+}
+
 model AuthUser {
   id        String       @id @default(uuid())
   email     String       @unique
@@ -107,7 +124,7 @@ model Client {
   phone String? @unique
 
   authUserId String?   @unique
-  authUser   AuthUser? @relation(fields: [authUserId], references: [id])
+  authUser   AuthUser? @relation(fields: [authUserId], references: [id], onDelete: SetNull)
 
   avatarUrl String?
   birthDate DateTime?
@@ -215,7 +232,7 @@ model User {
 
   // Link to AuthUser (Optional during migration)
   authUserId String?   @unique
-  authUser   AuthUser? @relation(fields: [authUserId], references: [id])
+  authUser   AuthUser? @relation(fields: [authUserId], references: [id], onDelete: SetNull)
 
   // Relations
   ownedBarbershops Barbershop[] @relation("BarbershopOwner")
@@ -272,7 +289,7 @@ model Notification {
   message String
   type    String // appointment, payment, order, system
   isRead  Boolean @default(false)
-  status  String  @default("PENDING") // PENDING, SENT, FAILED
+  status  NotificationStatus  @default(PENDING) // PENDING, SENT, FAILED
 
   appointmentId String?
   orderId       String?
@@ -286,7 +303,7 @@ model EmailLog {
   email        String
   subject      String
   provider     String   @default("DEFAULT")
-  status       String   @default("PENDING") // PENDING, SENT, FAILED
+  status       EmailStatus   @default(PENDING) // PENDING, SENT, FAILED
   errorMessage String?  @db.Text
   createdAt    DateTime @default(now())
 }
@@ -431,7 +448,7 @@ model NoShowRecord {
 model Professional {
   id       String  @id @default(uuid())
   userId   String  @unique
-  user     User    @relation(fields: [userId], references: [id])
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   bio      String?
   position String? // Cargo (Ex: Barbeiro Sênior, Auxiliar)
 
@@ -456,6 +473,7 @@ model Professional {
 
   schedules Schedule[]
   services  Service[]
+  serviceCommissions ProfessionalServiceCommission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -470,8 +488,12 @@ model ProfessionalServiceCommission {
   id             String  @id @default(uuid())
   serviceId      String
   service        Service @relation(fields: [serviceId], references: [id])
-  professionalId String
-  professional   User    @relation(fields: [professionalId], references: [id])
+  // FIX: Relacionamento transferido para o Professional e User mantido opcional p/ backward compatibility 
+  professionalId   String?
+  professionalUser User? @relation(fields: [professionalId], references: [id])
+  
+  professionalProfileId String?
+  professionalProfile   Professional? @relation(fields: [professionalProfileId], references: [id])
 
   type  CommissionCalculationType
   value Decimal                   @db.Decimal(10, 2)
@@ -643,10 +665,10 @@ model CashShift {
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
 
   openedById String
-  openedBy   User   @relation("OpenedShifts", fields: [openedById], references: [id])
+  openedBy   User   @relation("OpenedShifts", fields: [openedById], references: [id], onDelete: Restrict)
 
   closedById String?
-  closedBy   User?   @relation("ClosedShifts", fields: [closedById], references: [id])
+  closedBy   User?   @relation("ClosedShifts", fields: [closedById], references: [id], onDelete: Restrict)
 
   status CashShiftStatus @default(OPEN)
 
@@ -826,7 +848,7 @@ model OrderItem {
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  type String // "SERVICE" or "PRODUCT"
+  type OrderItemType // "SERVICE" or "PRODUCT"
 
   serviceId String?
   service   Service? @relation(fields: [serviceId], references: [id])
