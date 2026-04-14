@@ -319,27 +319,33 @@ exports.getMyBarbershop = async (req, res) => {
         }
 
         if (!barbershopId) {
+            console.warn(`[BARBERSHOP] No barbershop ID found in token or database for User: ${req.user.id}`);
             return res.status(404).json({ message: 'No barbershop associated with this user' });
         }
 
+        console.log(`[BARBERSHOP] Fetching data for ID: ${barbershopId}`);
         const barbershop = await prisma.barbershop.findUnique({
             where: { id: barbershopId },
             include: {
                 services: {
                     where: { active: true }
                 },
-                // Removed subscriptionPlans as it might not be a valid relation
+                staff: {
+                    where: { active: true },
+                    select: { id: true, name: true, role: true }
+                }
             }
         });
 
         if (!barbershop) {
-            return res.status(404).json({ message: 'Barbershop not found' });
+            console.error(`[BARBERSHOP] Record not found in DB for ID: ${barbershopId}`);
+            return res.status(404).json({ message: 'Barbearia não encontrada no banco de dados.' });
         }
 
         res.json(barbershop);
     } catch (error) {
-        console.error('Get My Barbershop Error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('[BARBERSHOP] getMyBarbershop Error:', error.message);
+        res.status(500).json({ message: 'Erro ao carregar sua barbearia', error: error.message });
     }
 };
 
@@ -372,8 +378,10 @@ exports.getBarbershopBySlug = async (req, res) => {
 
         if (!barbershop) {
             console.warn(`[SLUG] Barbershop NOT FOUND for slug: "${cleanSlug}"`);
-            return res.status(404).json({ message: 'Barbershop not found' });
+            return res.status(404).json({ message: 'Barbearia não encontrada.' });
         }
+
+        console.log(`[SLUG] Found: "${barbershop.name}" (ID: ${barbershop.id})`);
 
         // Compute accepted methods based on active gateways
         const maskedConfigs = barbershop.gatewayConfigs?.map(g => {
