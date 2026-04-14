@@ -352,11 +352,10 @@ exports.getMyBarbershop = async (req, res) => {
 // Start of public slug
 
 exports.getBarbershopBySlug = async (req, res) => {
-    try {
-        const { slug } = req.params;
+    const { slug } = req.params;
+    const cleanSlug = slugify(slug);
 
-        // Always sanitize incoming slug to find match in standardized DB
-        const cleanSlug = slugify(slug);
+    try {
         console.log(`[SLUG] Resolving slug: "${slug}" -> Clean: "${cleanSlug}"`);
 
         const barbershop = await prisma.barbershop.findUnique({
@@ -375,7 +374,6 @@ exports.getBarbershopBySlug = async (req, res) => {
             }
         });
 
-
         if (!barbershop) {
             console.warn(`[SLUG] Barbershop NOT FOUND for slug: "${cleanSlug}"`);
             return res.status(404).json({ message: 'Barbearia não encontrada.' });
@@ -383,56 +381,53 @@ exports.getBarbershopBySlug = async (req, res) => {
 
         console.log(`[SLUG] Found: "${barbershop.name}" (ID: ${barbershop.id})`);
 
-        // Compute accepted methods based on active gateways
-        const maskedConfigs = barbershop.gatewayConfigs?.map(g => {
-            const creds = g.credentials || {};
-            // Return only public keys
-            return {
-                gateway: g.gateway,
-                isActive: g.isActive,
-                publicKey: creds.publicKey || creds.clientId // specific public info
-            };
-        }) || [];
-
+        // Determine available methods
         const activeGateways = barbershop.gatewayConfigs?.map(g => g.gateway) || [];
         const methods = new Set();
-
-        if (activeGateways.includes('VELFY')) {
-            methods.add('PIX');
-        }
+        if (activeGateways.includes('VELFY')) methods.add('PIX');
         if (activeGateways.includes('MERCADOPAGO')) {
-            methods.add('PIX');
-            methods.add('CREDIT_CARD');
-            methods.add('DEBIT_CARD');
-            methods.add('BOLETO');
+            methods.add('PIX'); methods.add('CREDIT_CARD'); methods.add('DEBIT_CARD'); methods.add('BOLETO');
         }
         if (activeGateways.includes('STRIPE')) {
-            methods.add('CREDIT_CARD');
-            methods.add('DEBIT_CARD');
+            methods.add('CREDIT_CARD'); methods.add('DEBIT_CARD');
         }
 
-        // Determine actual available methods based on active gateways
         const allowedMethods = Array.from(methods);
-        
-        // If shop has specific methods enabled, intersection them with what's actually possible
-        // If not specific methods in DB, just use everything the gateway supports
         const acceptedPaymentMethods = (barbershop.enabledPaymentMethods || allowedMethods)
             .filter(m => allowedMethods.includes(m));
 
         const online_payment_enabled = acceptedPaymentMethods.length > 0;
-
-        // Remove sensitive gatewayConfigs from the original object
         const { gatewayConfigs, ...safeBarbershop } = barbershop;
 
         res.json({
             ...safeBarbershop,
-            gatewayConfigs: maskedConfigs,
             online_payment_enabled,
             acceptedPaymentMethods
         });
+
     } catch (error) {
-        console.error('getBarbershopBySlug Error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('[SLUG] Critical Error resolving slug, attempting RAW fallback:', error.message);
+        
+        try {
+            const rawShops = await prisma.$queryRaw`SELECT * FROM "Barbershop" WHERE slug = ${cleanSlug} LIMIT 1`;
+            const rawShop = rawShops[0];
+
+            if (!rawShop) {
+                return res.status(404).json({ message: 'Barbearia não encontrada.' });
+            }
+
+            const services = await prisma.service.findMany({ where: { barbershopId: rawShop.id, active: true } }).catch(() => []);
+            
+            return res.json({
+                ...rawShop,
+                services,
+                online_payment_enabled: true,
+                acceptedPaymentMethods: ['PIX', 'CASH', 'CREDIT_CARD']
+            });
+        } catch (rawError) {
+            console.error('[SLUG] RAW Fallback failed:', rawError.message);
+            res.status(500).json({ message: 'Erro ao carregar barbearia.' });
+        }
     }
 };
 

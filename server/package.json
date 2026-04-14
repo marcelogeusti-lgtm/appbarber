@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "postinstall": "npx prisma@5 db push --accept-data-loss && npx prisma@5 generate",
+    "postinstall": "npx prisma@5 generate",
     "db:migrate:deploy": "npx prisma@5 migrate deploy",
     "db:push": "npx prisma@5 db push",
     "db:backup": "node src/scripts/backup.js",

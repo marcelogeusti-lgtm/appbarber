@@ -119,33 +119,23 @@ export default function DashboardPage() {
                     <div className="flex gap-3">
                         <div className="flex-1 bg-muted rounded-xl border border-border px-4 py-3 flex items-center relative group">
                             <span className="text-xs font-mono text-slate-500 truncate mr-8">
-                                {publicUrl ? publicUrl : (isLoading ? 'Carregando link...' : 'Link não disponível')}
+                                {publicUrl || 'Carregando link...'}
                             </span>
                             <button 
                                 onClick={copyToClipboard} 
-                                disabled={!publicUrl}
-                                className="absolute right-2 p-2 hover:bg-card rounded-lg text-muted-foreground hover:text-primary disabled:opacity-30"
+                                className="absolute right-2 p-2 hover:bg-card rounded-lg text-muted-foreground hover:text-primary"
                             >
                                 <Copy className="w-4 h-4" />
                             </button>
                         </div>
-                        {publicUrl ? (
-                            <a 
-                                href={publicUrl} 
-                                target="_blank" 
-                                rel="noreferrer" 
-                                className="bg-slate-900 border border-slate-800 text-white px-6 rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all font-black text-[10px] uppercase tracking-widest"
-                            >
-                                Abrir
-                            </a>
-                        ) : (
-                            <button 
-                                disabled 
-                                className="bg-slate-900/50 border border-slate-800 text-white/30 px-6 rounded-xl flex items-center justify-center font-black text-[10px] uppercase tracking-widest cursor-not-allowed"
-                            >
-                                Abrir
-                            </button>
-                        )}
+                        <a 
+                            href={publicUrl || '#'} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className={`bg-slate-900 border border-slate-800 text-white px-6 rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all font-black text-[10px] uppercase tracking-widest ${!publicUrl ? 'opacity-50 pointer-events-none' : ''}`}
+                        >
+                            Abrir
+                        </a>
                     </div>
 
                 </div>
