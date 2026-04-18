@@ -1,208 +1,316 @@
 'use client';
+
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, MapPin, Star, ChevronRight, Filter, LocateFixed } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { 
+    ChevronLeft, 
+    Map as MapIcon, 
+    List as ListIcon, 
+    History, 
+    Heart, 
+    TrendingUp,
+    SearchX 
+} from 'lucide-react';
 import api from '../../../lib/clientApi';
 
-export default function SearchPage() {
-    const [term, setTerm] = useState('');
-    const [filter, setFilter] = useState('NAME'); // NAME, CITY, NEARBY
-    const [results, setResults] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [location, setLocation] = useState(null); // { lat, lng }
-    const [user, setUser] = useState(null);
-    const router = useRouter();
+// Sub-components
+import SearchFilters from '../../../components/search/SearchFilters';
+import BarberCard from '../../../components/search/BarberCard';
+import dynamic from 'next/dynamic';
 
+// Dynamic import for Map to avoid SSR issues with Leaflet
+const MapResults = dynamic(() => import('../../../components/search/MapResults'), { 
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-white/5 animate-pulse rounded-2xl flex items-center justify-center text-white/20">Carregando mapa...</div>
+});
+
+export default function SearchPage() {
+    const router = useRouter();
+    
+    // UI State
+    const [viewMode, setViewMode] = useState('LIST'); // LIST, MAP
+    const [loading, setLoading] = useState(false);
+    const [isLocating, setIsLocating] = useState(false);
+    
+    // Data State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [activeFilters, setActiveFilters] = useState([]);
+    const [results, setResults] = useState([]);
+    const [recommended, setRecommended] = useState([]);
+    const [favorites, setFavorites] = useState([]);
+    const [recent, setRecent] = useState([]);
+    const [userLocation, setUserLocation] = useState(null);
+    const [user, setUser] = useState(null);
+
+    // Initial Load: User & Recommendations
     useEffect(() => {
-        // Load user name for "Welcome" message if desired, or skip
         const u = localStorage.getItem('user');
-        if (u) setUser(JSON.parse(u));
+        if (u) {
+            const parsedUser = JSON.parse(u);
+            setUser(parsedUser);
+            fetchPersonalizedData();
+        }
+        fetchRecommendations();
+        
+        // Restore from session storage
+        const cached = sessionStorage.getItem('last_search_results');
+        if (cached && !searchTerm) {
+            setResults(JSON.parse(cached));
+        }
     }, []);
 
-    // Live Search with Debounce
+    // Effect: Search Trigger
     useEffect(() => {
-        const handler = setTimeout(() => {
-            doSearch(term, filter, location?.lat, location?.lng);
-        }, 500); // 500ms delay after user stops typing
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [term, filter, location]);
-
-    const requestLocation = () => {
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(position => {
-                setLocation({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                });
-                setFilter('NEARBY');
-                // Auto-search if nearby selected
-                doSearch('', 'NEARBY', position.coords.latitude, position.coords.longitude);
-            }, (err) => {
-                console.error("Geo Error", err);
-                alert("Não foi possível obter sua localização. Verifique as permissões do navegador.");
-            });
+        if (searchTerm || activeFilters.length > 0) {
+            doSearch();
         } else {
-            alert("Geolocalização não suportada neste navegador.");
+            setResults([]);
+        }
+    }, [searchTerm, activeFilters, userLocation]);
+
+    const fetchRecommendations = async (lat, lng) => {
+        try {
+            let url = '/barbershops/recommended';
+            if (lat && lng) url += `?lat=${lat}&lng=${lng}`;
+            const res = await api.get(url);
+            setRecommended(res.data);
+        } catch (error) {
+            console.error('Error fetching recommendations:', error);
         }
     };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        doSearch(term, filter, location?.lat, location?.lng);
+    const fetchPersonalizedData = async () => {
+        try {
+            const [favRes, recentRes] = await Promise.all([
+                api.get('/barbershops/my/favorites'),
+                api.get('/appointments/my/history?limit=5') // Assuming this endpoint gives recent shops indirectly
+            ]);
+            setFavorites(favRes.data);
+            // Extract unique shops from appointments
+            if (recentRes.data) {
+                const uniqueShops = [];
+                const seen = new Set();
+                recentRes.data.forEach(app => {
+                    if (app.barbershop && !seen.has(app.barbershop.id)) {
+                        uniqueShops.push(app.barbershop);
+                        seen.add(app.barbershop.id);
+                    }
+                });
+                setRecent(uniqueShops);
+            }
+        } catch (error) {
+            console.warn('Personalized data error (likely not logged in):', error);
+        }
     };
 
-    const doSearch = async (searchTerm, searchFilter, lat, lng) => {
+    const doSearch = async () => {
         setLoading(true);
         try {
-            let query = `/barbershops/search?term=${searchTerm}&type=${searchFilter}`;
-            if (lat && lng) query += `&lat=${lat}&lng=${lng}`;
-
+            let query = `/barbershops/search?term=${searchTerm}`;
+            if (userLocation) query += `&lat=${userLocation.lat}&lng=${userLocation.lng}&type=NEARBY`;
+            
             const res = await api.get(query);
-            setResults(res.data);
+            
+            // Client-side filtering for active chips
+            let filteredResults = res.data;
+            if (activeFilters.includes('aberto')) {
+                filteredResults = filteredResults.filter(s => s.isOpen);
+            }
+            if (activeFilters.includes('premium')) {
+                filteredResults = filteredResults.filter(s => parseFloat(s.averageRating) >= 4.5);
+            }
+            // Note: 'barba' and 'kids' are handled by backend text search via 'term' usually,
+            // but if we want them as strict chips, we can either re-fetch or filter here.
+            
+            setResults(filteredResults);
+            sessionStorage.setItem('last_search_results', JSON.stringify(filteredResults));
         } catch (error) {
-            console.error(error);
+            console.error('Search error:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Filter Button Component
-    const FilterBtn = ({ type, label, icon: Icon }) => (
-        <button
-            type="button"
-            onClick={() => {
-                if (type === 'NEARBY' && !location) {
-                    requestLocation();
-                } else {
-                    setFilter(type);
-                    // trigger search immediately if term exists or if it's nearby
-                    if (term || type === 'NEARBY') doSearch(term, type, location?.lat, location?.lng);
-                }
-            }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide whitespace-nowrap transition-all border ${filter === type
-                ? 'bg-white text-slate-950 border-white'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-600'
-                }`}
-        >
-            {Icon && <Icon className="w-3.5 h-3.5" />}
-            {label}
-        </button>
-    );
+    const handleLocationSearch = () => {
+        setIsLocating(true);
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const newLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setUserLocation(newLoc);
+                    setIsLocating(false);
+                    fetchRecommendations(newLoc.lat, newLoc.lng);
+                },
+                (err) => {
+                    console.error(err);
+                    setIsLocating(false);
+                    alert('Erro ao obter localização. Verifique as permissões.');
+                },
+                { timeout: 10000 }
+            );
+        } else {
+            setIsLocating(false);
+            alert('Geolocalização não suportada.');
+        }
+    };
+
+    const toggleFilter = (id) => {
+        setActiveFilters(prev => 
+            prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
+        );
+    };
+
+    const isSearching = searchTerm.length > 0 || activeFilters.length > 0 || userLocation;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white px-5 pt-6 pb-24 font-sans no-scrollbar">
+        <div className="min-h-screen bg-[#0A0A0A] text-white pb-24 selection:bg-primary/30">
+            {/* Meta Tags simulation for client side */}
+            <title>Buscar Barbearias | AppBarber</title>
 
-            {/* Header / Greeting */}
-            <header className="flex items-center justify-between mb-8 px-1">
-                <div>
-                    <h1 className="text-xl font-black text-white uppercase italic tracking-tight">Buscar</h1>
-                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                        {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}
-                    </p>
-                </div>
-                <button 
-                    onClick={() => router.push('/home')}
-                    className="w-10 h-10 rounded-xl glass-premium flex items-center justify-center text-slate-400 active:scale-95 transition-all"
-                >
-                    <ChevronRight className="w-5 h-5 rotate-180" />
-                </button>
-            </header>
-
-            {/* Search Bar & Filters */}
-            <div className="space-y-6 mb-12 px-1">
-                <div className="glass-premium rounded-[1.5rem] p-1 flex items-center shadow-lg border-white/5 focus-within:border-primary/30 transition-all">
-                    <div className="p-3 text-primary">
-                        <SearchIcon className="w-6 h-6" />
+            <div className="max-w-2xl mx-auto px-5">
+                {/* Header */}
+                <header className="py-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => router.back()}
+                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all text-white/60"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <h1 className="text-xl font-black tracking-tight uppercase italic text-white flex items-center gap-2">
+                            Explorar
+                        </h1>
                     </div>
-                    <input
-                        value={term}
-                        onChange={e => setTerm(e.target.value)}
-                        placeholder="Pesquisar pelo nome..."
-                        className="bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-medium w-full px-2 py-3"
-                    />
-                </div>
-
-                {/* Filters */}
-                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-1">
-                    <FilterBtn type="NAME" label="Nome" icon={Filter} />
-                    <FilterBtn type="CITY" label="Cidade" icon={MapPin} />
-                    <FilterBtn type="NEARBY" label="Próximas" icon={LocateFixed} />
-                </div>
-            </div>
-
-            {/* Results Section */}
-            <div className="px-1">
-                {results.length > 0 && <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Resultados encontrados</h2>}
-
-                {loading ? (
-                    <div className="space-y-4">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="glass-premium h-24 rounded-[2rem] animate-pulse"></div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {results.length > 0 ? (
-                            results.map(shop => (
-                                <div
-                                    key={shop.id || shop._id}
-                                    onClick={() => router.push(`/${shop.slug}`)}
-                                    className="glass-premium p-4 rounded-[2rem] border-white/5 hover:border-primary/20 transition-all cursor-pointer group flex items-center gap-4 active:scale-[0.98]"
-                                >
-                                    {/* Logo / Avatar */}
-                                    <div className="w-14 h-14 rounded-2xl bg-slate-900 flex-shrink-0 relative overflow-hidden flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition">
-                                        {shop.logoUrl ? (
-                                            <img src={shop.logoUrl} alt={shop.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-lg font-black text-slate-500 uppercase">{shop.name[0]}</span>
-                                        )}
-
-                                        {/* Status Dot */}
-                                        <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-primary border-2 border-[#0A0A0B] rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start">
-                                            <h3 className="font-black text-white text-base truncate pr-2 group-hover:text-primary transition uppercase tracking-tight">{shop.name}</h3>
-                                            <div className="flex items-center gap-1 glass-premium px-2 py-1 rounded-xl">
-                                                <Star className="w-2.5 h-2.5 text-primary fill-current" />
-                                                <span className="text-[10px] font-black text-white">
-                                                    {shop.averageRating ? shop.averageRating : '5.0'}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest truncate mt-1">{shop.address || 'Endereço disponível'}</p>
-
-                                        {shop.distance !== undefined && shop.distance !== null && (
-                                            <p className="text-primary text-[10px] font-black mt-1 uppercase tracking-widest flex items-center gap-1 italic">
-                                                <MapPin className="w-2.5 h-2.5" /> {shop.distance} km
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="text-slate-700 group-hover:text-primary transition-all group-hover:translate-x-0.5">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </div>
-                                </div>
-                            ))
+                    
+                    <button
+                        onClick={() => setViewMode(v => v === 'LIST' ? 'MAP' : 'LIST')}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold hover:bg-white/10 transition-all text-white/80"
+                    >
+                        {viewMode === 'LIST' ? (
+                            <><MapIcon className="w-3.5 h-3.5" /> Ver Mapa</>
                         ) : (
-                            // Empty State
-                            <div className="flex flex-col items-center justify-center py-20 text-center">
-                                <div className="w-24 h-24 glass-premium rounded-full flex items-center justify-center mb-6 relative">
-                                    <SearchIcon className="w-8 h-8 text-slate-700" strokeWidth={1} />
-                                    <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-20"></div>
-                                </div>
-                                <h3 className="text-lg font-black text-white uppercase italic tracking-tight mb-2">Busque sua barbearia</h3>
-                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] max-w-xs mx-auto">Toda rede de parceiros na palma da sua mão.</p>
-                            </div>
+                            <><ListIcon className="w-3.5 h-3.5" /> Ver Lista</>
                         )}
-                    </div>
-                )}
+                    </button>
+                </header>
+
+                {/* Filters Section */}
+                <SearchFilters 
+                    searchTerm={searchTerm} 
+                    setSearchTerm={setSearchTerm}
+                    onLocationSearch={handleLocationSearch}
+                    activeFilters={activeFilters}
+                    toggleFilter={toggleFilter}
+                    isLocating={isLocating}
+                />
+
+                {/* Content */}
+                <main className="mt-6">
+                    {loading ? (
+                        <div className="grid grid-cols-1 gap-4">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="h-[280px] w-full bg-white/5 rounded-2xl animate-pulse flex flex-col p-4 gap-4">
+                                    <div className="h-40 bg-white/5 rounded-xl"></div>
+                                    <div className="h-4 w-2/3 bg-white/5 rounded"></div>
+                                    <div className="h-4 w-1/2 bg-white/5 rounded"></div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : viewMode === 'MAP' ? (
+                        <div className="h-[calc(100vh-280px)] w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative">
+                            <MapResults 
+                                shops={isSearching ? results : recommended} 
+                                center={userLocation ? [userLocation.lat, userLocation.lng] : null}
+                                userLocation={userLocation}
+                            />
+                        </div>
+                    ) : isSearching ? (
+                        /* SEARCH RESULTS */
+                        <div className="space-y-6">
+                            {results.length > 0 ? (
+                                <div className="grid grid-cols-1 gap-4">
+                                    {results.map(shop => (
+                                        <BarberCard key={shop.id} shop={shop} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10 text-white/20">
+                                        <SearchX className="w-8 h-8" strokeWidth={1.5} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-white mb-2">Nenhuma barbearia encontrada</h2>
+                                    <p className="text-white/40 text-sm max-w-xs mx-auto mb-8">
+                                        Tente buscar por outro nome ou cidade, ou remova os filtros ativos.
+                                    </p>
+                                    <button 
+                                        onClick={() => { setSearchTerm(''); setActiveFilters([]); setUserLocation(null); }}
+                                        className="px-6 py-3 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm"
+                                    >
+                                        Limpar Busca
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        /* EMPTY STATE / HOME */
+                        <div className="space-y-10">
+                            {/* Recent */}
+                            {recent.length > 0 && (
+                                <section>
+                                    <div className="flex items-center gap-2 mb-4 text-white/40 uppercase tracking-widest text-[10px] font-bold">
+                                        <History className="w-3 h-3" /> Visitados Recentemente
+                                    </div>
+                                    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                                        {recent.map(shop => (
+                                            <Link key={shop.id} href={`/${shop.slug}`} className="flex-shrink-0 w-14 group">
+                                                <div className="w-14 h-14 rounded-full border-2 border-white/5 group-hover:border-primary transition-all p-0.5 mb-2 overflow-hidden">
+                                                    <img src={shop.logoUrl || '/default-barber.png'} className="w-full h-full rounded-full object-cover" />
+                                                </div>
+                                                <p className="text-[10px] text-center font-bold text-white/60 truncate group-hover:text-white">{shop.name}</p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Favorites */}
+                            {favorites.length > 0 && (
+                                <section>
+                                    <div className="flex items-center gap-2 mb-4 text-white/40 uppercase tracking-widest text-[10px] font-bold">
+                                        <Heart className="w-3 h-3 text-red-500" /> Seus Favoritos
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {favorites.map(shop => (
+                                            <BarberCard key={shop.id} shop={shop} />
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Popular */}
+                            <section>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2 text-white/40 uppercase tracking-widest text-[10px] font-bold">
+                                        <TrendingUp className="w-3 h-3 text-primary" /> Barbearias Populares
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {recommended.map(shop => (
+                                        <BarberCard key={shop.id} shop={shop} />
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
+                    )}
+                </main>
             </div>
         </div>
+    );
+}
+
+// Internal Link helper for the home context
+function Link({ href, children, className }) {
+    return (
+        <a href={href} className={className}>{children}</a>
     );
 }

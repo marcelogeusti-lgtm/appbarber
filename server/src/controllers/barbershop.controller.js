@@ -68,7 +68,8 @@ const searchBarbershops = async (req, res) => {
                 { name: { contains: term, mode: 'insensitive' } },
                 { commercialName: { contains: term, mode: 'insensitive' } },
                 { slug: { contains: term, mode: 'insensitive' } },
-                { address: { contains: term, mode: 'insensitive' } }
+                { address: { contains: term, mode: 'insensitive' } },
+                { services: { some: { name: { contains: term, mode: 'insensitive' } } } }
             ];
         }
 
@@ -85,9 +86,22 @@ const searchBarbershops = async (req, res) => {
                 longitude: true,
                 createdAt: true,
                 services: {
-                    take: 1,
+                    take: 5, // Take a few services to check for chips/labels
                     where: { active: true },
                     select: { id: true, name: true, price: true }
+                },
+                staff: {
+                    select: {
+                        id: true,
+                        professional: {
+                            select: {
+                                id: true,
+                                schedules: {
+                                    where: { isOff: false }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -109,7 +123,11 @@ const searchBarbershops = async (req, res) => {
             return acc;
         }, {});
 
-        // 4. Map Distance & Ratings
+        // 4. Map Distance, Ratings & isOpen
+        const now = new Date();
+        const currentDay = now.getDay(); // 0-6
+        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
         let processedShops = barbershops.map(shop => {
             let distance = null;
             if (userLat && userLng && shop.latitude && shop.longitude) {
@@ -117,20 +135,33 @@ const searchBarbershops = async (req, res) => {
             }
 
             const ratingInfo = ratingsMap[shop.id] || { avg: 0, count: 0 };
+            
+            // Check if open now based on any professional's schedule
+            const isOpen = shop.staff.some(s => {
+                if (!s.professional || !s.professional.schedules) return false;
+                return s.professional.schedules.some(sch => {
+                    if (sch.dayOfWeek !== currentDay) return false;
+                    const isWorkingHours = currentTime >= sch.startTime && currentTime <= sch.endTime;
+                    const isOnBreak = sch.breakStart && sch.breakEnd && currentTime >= sch.breakStart && currentTime <= sch.breakEnd;
+                    return isWorkingHours && !isOnBreak;
+                });
+            });
 
             return {
                 ...shop,
                 distance,
                 averageRating: ratingInfo.avg,
                 totalReviews: ratingInfo.count,
-                hasRealReviews: ratingInfo.count > 0
+                hasRealReviews: ratingInfo.count > 0,
+                isOpen,
+                staff: undefined // Don't leak staff schedules in the response
             };
         });
 
-        // 5. Restrict Distance (Strictly hide only if KNOWN to be > 15km)
-        if (type === 'NEARBY' && userLat && userLng) {
-            // Keep shops within 15km OR shops with unknown distance (null coords) to unblock discovery
-            processedShops = processedShops.filter(shop => shop.distance === null || shop.distance <= 15);
+        // 5. Restrict Distance (STRICTLY filter if lat/lng is present to avoid other cities)
+        if (userLat && userLng) {
+            // Keep ONLY shops within 15km
+            processedShops = processedShops.filter(shop => shop.distance !== null && shop.distance <= 15);
         }
 
         // 6. Sort unified
@@ -172,6 +203,19 @@ const getRecommendedBarbershops = async (req, res) => {
                     take: 1,
                     where: { active: true },
                     select: { id: true, name: true, price: true }
+                },
+                staff: {
+                    select: {
+                        id: true,
+                        professional: {
+                            select: {
+                                id: true,
+                                schedules: {
+                                    where: { isOff: false }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -210,6 +254,10 @@ const getRecommendedBarbershops = async (req, res) => {
         }, {});
 
         // 4. Score and Process Candidates
+        const now = new Date();
+        const currentDay = now.getDay();
+        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
         let recommended = barbershops.map(shop => {
             let distance = null;
             if (userLat && userLng && shop.latitude && shop.longitude) {
@@ -219,7 +267,18 @@ const getRecommendedBarbershops = async (req, res) => {
             const ratingInfo = ratingsMap[shop.id] || { avg: 0, count: 0 };
             const trendingCount = trendingMap[shop.id] || 0;
 
-            // Global mean rating (fallback to 4.5 if no ratings exist at all)
+            // Check if open now
+            const isOpen = shop.staff.some(s => {
+                if (!s.professional || !s.professional.schedules) return false;
+                return s.professional.schedules.some(sch => {
+                    if (sch.dayOfWeek !== currentDay) return false;
+                    const isWorkingHours = currentTime >= sch.startTime && currentTime <= sch.endTime;
+                    const isOnBreak = sch.breakStart && sch.breakEnd && currentTime >= sch.breakStart && currentTime <= sch.breakEnd;
+                    return isWorkingHours && !isOnBreak;
+                });
+            });
+
+            // Global mean rating
             const globalAvg = 4.5; 
             
             let recScore = calculateRecommendationScore(
@@ -228,7 +287,7 @@ const getRecommendedBarbershops = async (req, res) => {
                 globalAvg
             );
 
-            // Penalty for shops without GPS (so known close ones stay on top)
+            // Penalty for shops without GPS
             if (distance === null) recScore -= 5;
 
             return {
@@ -237,14 +296,15 @@ const getRecommendedBarbershops = async (req, res) => {
                 averageRating: ratingInfo.avg,
                 totalReviews: ratingInfo.count,
                 hasRealReviews: ratingInfo.count > 0,
-                recommendationScore: recScore
+                isOpen,
+                recommendationScore: recScore,
+                staff: undefined
             };
         });
 
         // 5. Strict Radius filtering (15km)
         if (userLat && userLng) {
-            // Unblock discovery: Only remove if we KNOW it is further than 15km
-            recommended = recommended.filter(shop => shop.distance === null || shop.distance <= 15);
+            recommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
         }
 
         // 6. Sophisticated Sorting: Score DESC, then Distance ASC
