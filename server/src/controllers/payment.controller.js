@@ -406,6 +406,7 @@ exports.listCards = async (req, res) => {
         // 3. Transform
         const sanitized = cards.map(c => ({
             id: c.id,
+            token: c.token,
             brand: c.brand,
             last4: c.last4,
             expiry: `${c.expiryMonth}/${c.expiryYear}`,
