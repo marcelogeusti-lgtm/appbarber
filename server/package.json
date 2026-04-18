@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "postinstall": "npx prisma generate",
-    "db:migrate:deploy": "npx prisma migrate deploy",
-    "db:push": "npx prisma db push",
+    "postinstall": "npx prisma@5 generate",
+    "db:migrate:deploy": "npx prisma@5 migrate deploy",
+    "db:push": "npx prisma@5 db push",
     "db:backup": "node src/scripts/backup.js",
     "safety:snapshot": "node scripts/safety/create_snapshot.js",
     "safety:dump": "node scripts/safety/dump_database.js",

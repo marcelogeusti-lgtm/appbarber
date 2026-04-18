@@ -297,14 +297,18 @@ exports.getMyBarbershop = async (req, res) => {
 
         // Fallback: If token doesn't have ID (old token or login issue), lookup in DB
         // This is critical to prevent "Not Found" errors if the token payload is stale.
+        const barbershopSelect = {
+            id: true, name: true, slug: true, logoUrl: true, address: true, 
+            phone: true, ownerId: true
+        };
+
         if (!barbershopId) {
             const user = await prisma.user.findUnique({
                 where: { id: req.user.id },
-                include: {
-                    ownedBarbershops: true,
-                    // If workedBarbershop relation exists, check it too, 
-                    // assuming 'workedBarbershop' is the relation name based on 'workedBarbershopId' field
-                    workedBarbershop: true
+                select: {
+                    id: true, workedBarbershopId: true,
+                    ownedBarbershops: { select: barbershopSelect },
+                    workedBarbershop: { select: barbershopSelect }
                 }
             });
 
@@ -315,38 +319,44 @@ exports.getMyBarbershop = async (req, res) => {
         }
 
         if (!barbershopId) {
+            console.warn(`[BARBERSHOP] No barbershop ID found in token or database for User: ${req.user.id}`);
             return res.status(404).json({ message: 'No barbershop associated with this user' });
         }
 
+        console.log(`[BARBERSHOP] Fetching data for ID: ${barbershopId}`);
         const barbershop = await prisma.barbershop.findUnique({
             where: { id: barbershopId },
             include: {
                 services: {
                     where: { active: true }
                 },
-                // Removed subscriptionPlans as it might not be a valid relation
+                staff: {
+                    where: { active: true },
+                    select: { id: true, name: true, role: true }
+                }
             }
         });
 
         if (!barbershop) {
-            return res.status(404).json({ message: 'Barbershop not found' });
+            console.error(`[BARBERSHOP] Record not found in DB for ID: ${barbershopId}`);
+            return res.status(404).json({ message: 'Barbearia não encontrada no banco de dados.' });
         }
 
         res.json(barbershop);
     } catch (error) {
-        console.error('Get My Barbershop Error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('[BARBERSHOP] getMyBarbershop Error:', error.message);
+        res.status(500).json({ message: 'Erro ao carregar sua barbearia', error: error.message });
     }
 };
 
 // Start of public slug
 
 exports.getBarbershopBySlug = async (req, res) => {
-    try {
-        const { slug } = req.params;
+    const { slug } = req.params;
+    const cleanSlug = slugify(slug);
 
-        // Always sanitize incoming slug to find match in standardized DB
-        const cleanSlug = slugify(slug);
+    try {
+        console.log(`[SLUG] Resolving slug: "${slug}" -> Clean: "${cleanSlug}"`);
 
         const barbershop = await prisma.barbershop.findUnique({
             where: { slug: cleanSlug },
@@ -364,61 +374,60 @@ exports.getBarbershopBySlug = async (req, res) => {
             }
         });
 
-
         if (!barbershop) {
-            return res.status(404).json({ message: 'Barbershop not found' });
+            console.warn(`[SLUG] Barbershop NOT FOUND for slug: "${cleanSlug}"`);
+            return res.status(404).json({ message: 'Barbearia não encontrada.' });
         }
 
-        // Compute accepted methods based on active gateways
-        const maskedConfigs = barbershop.gatewayConfigs?.map(g => {
-            const creds = g.credentials || {};
-            // Return only public keys
-            return {
-                gateway: g.gateway,
-                isActive: g.isActive,
-                publicKey: creds.publicKey || creds.clientId // specific public info
-            };
-        }) || [];
+        console.log(`[SLUG] Found: "${barbershop.name}" (ID: ${barbershop.id})`);
 
+        // Determine available methods
         const activeGateways = barbershop.gatewayConfigs?.map(g => g.gateway) || [];
         const methods = new Set();
-
-        if (activeGateways.includes('VELFY')) {
-            methods.add('PIX');
-        }
+        if (activeGateways.includes('VELFY')) methods.add('PIX');
         if (activeGateways.includes('MERCADOPAGO')) {
-            methods.add('PIX');
-            methods.add('CREDIT_CARD');
-            methods.add('DEBIT_CARD');
-            methods.add('BOLETO');
+            methods.add('PIX'); methods.add('CREDIT_CARD'); methods.add('DEBIT_CARD'); methods.add('BOLETO');
         }
         if (activeGateways.includes('STRIPE')) {
-            methods.add('CREDIT_CARD');
-            methods.add('DEBIT_CARD');
+            methods.add('CREDIT_CARD'); methods.add('DEBIT_CARD');
         }
 
-        // Determine actual available methods based on active gateways
         const allowedMethods = Array.from(methods);
-        
-        // If shop has specific methods enabled, intersection them with what's actually possible
-        // If not specific methods in DB, just use everything the gateway supports
         const acceptedPaymentMethods = (barbershop.enabledPaymentMethods || allowedMethods)
             .filter(m => allowedMethods.includes(m));
 
         const online_payment_enabled = acceptedPaymentMethods.length > 0;
-
-        // Remove sensitive gatewayConfigs from the original object
         const { gatewayConfigs, ...safeBarbershop } = barbershop;
 
         res.json({
             ...safeBarbershop,
-            gatewayConfigs: maskedConfigs,
             online_payment_enabled,
             acceptedPaymentMethods
         });
+
     } catch (error) {
-        console.error('getBarbershopBySlug Error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('[SLUG] Critical Error resolving slug, attempting RAW fallback:', error.message);
+        
+        try {
+            const rawShops = await prisma.$queryRaw`SELECT * FROM "Barbershop" WHERE slug = ${cleanSlug} LIMIT 1`;
+            const rawShop = rawShops[0];
+
+            if (!rawShop) {
+                return res.status(404).json({ message: 'Barbearia não encontrada.' });
+            }
+
+            const services = await prisma.service.findMany({ where: { barbershopId: rawShop.id, active: true } }).catch(() => []);
+            
+            return res.json({
+                ...rawShop,
+                services,
+                online_payment_enabled: true,
+                acceptedPaymentMethods: ['PIX', 'CASH', 'CREDIT_CARD']
+            });
+        } catch (rawError) {
+            console.error('[SLUG] RAW Fallback failed:', rawError.message);
+            res.status(500).json({ message: 'Erro ao carregar barbearia.' });
+        }
     }
 };
 

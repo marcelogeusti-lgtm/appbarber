@@ -138,9 +138,9 @@ model Client {
   addresses ClientAddress[]
   payments  Payment[]
   nfes      Nfe[]
-
-  @@index([active])
+  loyaltyBalances ClientLoyaltyBalance[]
 }
+
 
 // Phase 16: Credential Field Standardization [x]
 // - [x] Add `Client ID` and `Client Secret` fields to `PaymentSettings.js`
@@ -325,9 +325,12 @@ model Barbershop {
   noShowPercent Float   @default(0)
   noShowText    String?
 
-  subscriptionStatus    String?          @default("TRIAL")
+  subscriptionStatus    String                 @default("TRIAL")
+  trialStartedAt        DateTime?              @default(now())
   trialEndsAt           DateTime?
-  saasPlan              String          @default("BASIC")
+  nextBillingDate       DateTime?
+  saasPlan              String                 @default("BASIC")
+  isTestAccount         Boolean                @default(false)
   enabledPaymentMethods PaymentMethod[] @default([CASH, PIX, CREDIT_CARD, DEBIT_CARD])
 
   // WhatsApp Automation Settings
@@ -370,15 +373,12 @@ model Barbershop {
 
   loyaltyProgram        LoyaltyProgram?
   reviews               Review[]
+  favorites             FavoriteBarbershop[]
   notificationTemplates NotificationTemplate[]
   nfes                  Nfe[]
-  favoriteBarbershops   FavoriteBarbershop[]
-  
-  // Fiscal Config (SaaS Settings)
-  fiscalConfig          Json? // { token: string, environment: 'sandbox'|'production', etc }
 
-  @@index([ownerId])
-  @@index([slug])
+  fiscalConfig          Json?     @map("fiscal_config") // Stores NFe tokens, env, etc.
+  loyaltyBalances       ClientLoyaltyBalance[]
 }
 
 
@@ -561,6 +561,7 @@ model Appointment {
   review Review?
   nfe    Nfe?
 
+  @@index([barbershopId])
   @@index([professionalId])
   @@index([date])
   @@index([status])
@@ -625,6 +626,10 @@ model Transaction {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([barbershopId])
+  @@index([date])
+  @@index([barbershopId, date, type])
 }
 
 enum CashShiftStatus {
@@ -809,8 +814,9 @@ model Order {
   nfe       Nfe?
 
   @@index([barbershopId])
-  @@index([clientId])
   @@index([status])
+  @@index([barbershopId, updatedAt, status])
+  @@index([barbershopId, createdAt])
 }
 
 
@@ -1067,11 +1073,24 @@ model UserSystemUpdateRead {
   @@unique([userId, systemUpdateId])
 }
 
+enum SaaSSubscriptionStatus {
+  TRIAL
+  ACTIVE
+  OVERDUE
+  CANCELLED
+  BLOCKED
+}
+
 model FeatureFlag {
   id           String      @id @default(uuid())
   key          String
   description  String?
   enabled      Boolean     @default(false)
+  
+  // New expressivity fields
+  allowedPlans String[] @default([]) // e.g. ["PRO", "ENTERPRISE"]
+  allowedUsers String[] @default([]) // IDs of specific test barbershops or users
+
   barbershopId String? // Optional: Enable for specific tenant (null for global)
   barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
 
@@ -1216,5 +1235,36 @@ model Nfe {
   @@index([clientId])
   @@index([barbershopId])
   @@index([status])
+  @@index([barbershopId, status])
+}
+
+// --- Loyalty Tracking ---
+model ClientLoyaltyBalance {
+  id           String     @id @default(uuid())
+  clientId     String
+  client       Client     @relation(fields: [clientId], references: [id])
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  points       Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  ledgers LoyaltyLedger[]
+
+  @@unique([clientId, barbershopId])
+  @@map("client_loyalty_balance")
+}
+
+model LoyaltyLedger {
+  id                 String               @id @default(uuid())
+  clientLoyaltyId    String
+  clientLoyalty      ClientLoyaltyBalance @relation(fields: [clientLoyaltyId], references: [id], onDelete: Cascade)
+  type               String // "EARN", "REDEEM", "ADJUST"
+  points             Int // +10 or -10
+  description        String?
+  transactionId      String? // Reference to the app Transaction or Appointment
+  createdAt          DateTime             @default(now())
+
+  @@map("loyalty_ledger")
 }
 

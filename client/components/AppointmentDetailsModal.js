@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar, User, Scissors, Clock, FileText, Pencil, CheckCircle, DollarSign, CreditCard, Zap, ScrollText } from 'lucide-react';
+import { X, Calendar, User, Scissors, Clock, FileText, Pencil, CheckCircle, DollarSign, CreditCard, Zap, ScrollText, Crown, Gift } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
@@ -22,6 +23,25 @@ export default function AppointmentDetailsModal({
     const [mounted, setMounted] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [isGeneratingNfe, setIsGeneratingNfe] = useState(false);
+    const [isRedeeming, setIsRedeeming] = useState(false);
+
+    const { data: loyaltyData } = useQuery({
+        queryKey: ['loyalty', appointment?.clientId],
+        queryFn: async () => {
+            const res = await api.get(`/loyalty/client/${appointment.clientId}?barbershopId=${appointment.barbershopId}`);
+            return res.data;
+        },
+        enabled: !!appointment?.clientId && !!appointment?.barbershopId && !!isOpen,
+    });
+
+    const { data: loyaltyConfig } = useQuery({
+        queryKey: ['loyalty-config', appointment?.barbershopId],
+        queryFn: async () => {
+            const res = await api.get(`/loyalty/settings?barbershopId=${appointment.barbershopId}`);
+            return res.data;
+        },
+        enabled: !!appointment?.barbershopId && !!isOpen,
+    });
     
     const isProfessional = user?.role !== 'CLIENT';
 
@@ -74,6 +94,24 @@ export default function AppointmentDetailsModal({
             alert('Erro ao emitir nota: ' + (err.response?.data?.error || err.message));
         } finally {
             setIsGeneratingNfe(false);
+        }
+    };
+
+    const handleRedeemPoints = async () => {
+        if (!confirm('Deseja resgatar os pontos deste cliente e conceder o prêmio? (Isso abaterá os pontos do saldo dele)')) return;
+        setIsRedeeming(true);
+        try {
+            await api.post('/loyalty/redeem', {
+                clientId: appointment.clientId,
+                barbershopId: appointment.barbershopId,
+                points: loyaltyConfig.minPointsToRedeem,
+                transactionId: appointment.id
+            });
+            alert("Prêmio resgatado! Você pode ajustar o valor do serviço se necessário antes de finalizar.");
+        } catch (error) {
+            alert('Erro ao resgatar pontos: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setIsRedeeming(false);
         }
     };
 
@@ -184,6 +222,33 @@ export default function AppointmentDetailsModal({
                             <p className="text-white font-bold">{appointment.professional?.name || appointment.summaryProName || 'Sem preferência'}</p>
                         </div>
                     </div>
+
+                    {/* Loyalty Status */}
+                    {isProfessional && loyaltyConfig?.active && loyaltyData?.points !== undefined && (
+                        <div className="bg-gradient-to-r from-amber-500/10 to-transparent p-4 rounded-2xl border border-amber-500/20">
+                            <div className="flex items-center justify-between">
+                                <div className="flex gap-3 items-center">
+                                    <div className="p-2 bg-amber-500/20 text-amber-500 rounded-lg">
+                                        <Crown className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Fidelidade</p>
+                                        <p className="text-white font-bold">{loyaltyData.points} Pontos disponíveis</p>
+                                    </div>
+                                </div>
+                                {loyaltyConfig.minPointsToRedeem > 0 && loyaltyData.points >= loyaltyConfig.minPointsToRedeem && (
+                                    <button 
+                                        onClick={handleRedeemPoints}
+                                        disabled={isRedeeming}
+                                        className="bg-amber-500 text-black px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-400 transition shadow-[0_0_15px_rgba(245,158,11,0.3)] flex items-center gap-1 disabled:opacity-50"
+                                    >
+                                        <Gift className="w-3 h-3" />
+                                        REDEEM ({loyaltyConfig.minPointsToRedeem} pts)
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Notes */}
                     {appointment.notes && (

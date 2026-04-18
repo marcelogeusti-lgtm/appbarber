@@ -56,7 +56,9 @@ class SubscriptionService {
             console.log(`[SubscriptionService] Shop ${shop.slug} status changed: ${shop.subscriptionStatus} -> ${newStatus}`);
             await prisma.barbershop.update({
                 where: { id: barbershopId },
-                data: { subscriptionStatus: newStatus }
+                data: { 
+                    subscriptionStatus: newStatus
+                }
             });
         }
 

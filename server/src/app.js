@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+// Trigger deploy to sync loyalty database schema
+
 // Import routes (placeholders for now)
 const authRoutes = require('./routes/auth.routes');
 const barbershopRoutes = require('./routes/barbershop.routes');

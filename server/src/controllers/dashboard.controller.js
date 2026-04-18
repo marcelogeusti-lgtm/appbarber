@@ -24,7 +24,7 @@ exports.getDashboardStats = async (req, res) => {
             openCommandsCount,
             servicesCount,
             gatewayConfigCount,
-            nfeConfigCount
+            barbershopConfig
         ] = await Promise.all([
             // Count Today's Appointments
             prisma.appointment.count({
@@ -70,7 +70,7 @@ exports.getDashboardStats = async (req, res) => {
             // Config checks for onboarding
             prisma.service.count({ where: { barbershopId, active: true } }),
             prisma.gatewayConfig.count({ where: { barbershopId } }),
-            prisma.nfeConfig.count({ where: { barbershopId } })
+            prisma.barbershop.findUnique({ where: { id: barbershopId }, select: { fiscalConfig: true } })
         ]);
 
         const appointmentsToday = appointmentsTodayCount || 0;
@@ -78,6 +78,7 @@ exports.getDashboardStats = async (req, res) => {
         const revenueYesterday = Number(yesterdayRevenueResult._sum.total || 0);
         const revenueTotal = Number(totalRevenueResult._sum.total || 0);
         const clientsTotal = uniqueClientsCount || 0;
+        const hasNfeConfig = barbershopConfig?.fiscalConfig ? true : false;
 
         // Trend calculation
         let revenueTrend = "0% vs ontem";
@@ -98,7 +99,7 @@ exports.getDashboardStats = async (req, res) => {
             onboarding: {
                 hasServices: servicesCount > 0,
                 hasGateway: gatewayConfigCount > 0,
-                hasNfe: nfeConfigCount > 0
+                hasNfe: hasNfeConfig
             }
         });
 

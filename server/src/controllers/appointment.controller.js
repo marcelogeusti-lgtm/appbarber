@@ -633,7 +633,10 @@ exports.getAllAppointments = async (req, res) => {
             if (!barbershopId) {
                 const user = await prisma.user.findUnique({
                     where: { id: req.user.id },
-                    include: { ownedBarbershops: true }
+                    select: {
+                        id: true, workedBarbershopId: true,
+                        ownedBarbershops: { select: { id: true, name: true, slug: true } }
+                    }
                 });
                 barbershopId = user?.ownedBarbershops?.[0]?.id || user?.workedBarbershopId;
             }

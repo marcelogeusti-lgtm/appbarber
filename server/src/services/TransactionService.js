@@ -36,6 +36,7 @@ class TransactionService {
             let professionalId = explicitProId;
             let commissionBaseValue = amount; // Default to full amount
             let clientName = '';
+            let finalClientId = null;
 
             // Fetch details if not provided
             if (appointmentId || orderId) {
@@ -47,6 +48,7 @@ class TransactionService {
                     if (apt) {
                         professionalId = professionalId || apt.professionalId;
                         clientName = apt.client.name;
+                        finalClientId = apt.clientId;
                     }
                 } else if (orderId) {
                     const order = await tx.order.findUnique({
@@ -56,6 +58,7 @@ class TransactionService {
                     if (order) {
                         professionalId = professionalId || order.professionalId;
                         clientName = order.client.name;
+                        finalClientId = order.clientId;
                         // Calculate values for commission
                         const items = await tx.orderItem.findMany({ where: { orderId } });
                         const totalGrossVolume = items.reduce((sum, i) => sum + i.total, 0);
@@ -113,6 +116,30 @@ class TransactionService {
             // 5. Generate Commission foi REMOVIDO DAQUI
             // (A lógica de comissão agora pertence exclusivamente e atomicamente ao FinancialService.processCommissions)
 
+            // 5.5. Loyalty Engine (Automated Cashback)
+            if (type === 'INCOME' && amount > 0 && finalClientId) {
+                const loyaltyProgram = await tx.loyaltyProgram.findUnique({ where: { barbershopId } });
+                if (loyaltyProgram?.active) {
+                    const pointsEarned = Math.floor(amount * loyaltyProgram.pointsPerReal);
+                    if (pointsEarned > 0) {
+                        const balance = await tx.clientLoyaltyBalance.upsert({
+                            where: { clientId_barbershopId: { clientId: finalClientId, barbershopId } },
+                            update: { points: { increment: pointsEarned } },
+                            create: { clientId: finalClientId, barbershopId, points: pointsEarned }
+                        });
+                        await tx.loyaltyLedger.create({
+                            data: {
+                                clientLoyaltyId: balance.id,
+                                type: 'EARN',
+                                points: pointsEarned,
+                                description: `Ganho de pontos na compra de R$ ${amount}`,
+                                transactionId: transaction.id
+                            }
+                        });
+                    }
+                }
+            }
+
 
             // 6. Update Appointment/Order Status (Idempotent)
             if (appointmentId) {
@@ -140,16 +167,6 @@ class TransactionService {
 
             // 7. EMIT NFE (IF REQUESTED)
             if (params.emitNfe) {
-                // Fetch the clientId if not available in current closure
-                let finalClientId = null;
-                if (appointmentId) {
-                    const apt = await tx.appointment.findUnique({ where: { id: appointmentId }, select: { clientId: true } });
-                    finalClientId = apt?.clientId;
-                } else if (orderId) {
-                    const ord = await tx.order.findUnique({ where: { id: orderId }, select: { clientId: true } });
-                    finalClientId = ord?.clientId;
-                }
-
                 if (finalClientId) {
                     const nfeService = require('./NfeService');
                     // We don't necessarily 'await' the full process if we want fast response, 

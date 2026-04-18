@@ -115,7 +115,8 @@ export default function AuthPage() {
                 avatarUrl: photoURL,
                 provider: providerName.toUpperCase(),
                 providerId: uid,
-                context: 'PRO'
+                context: 'PRO',
+                intent: activeTab // 'login' or 'register'
             });
 
             const userData = {
