@@ -71,7 +71,7 @@ export default function ProductShowcase() {
                                             <img 
                                                 src="/screenshots/online-booking-mobile.png" 
                                                 alt="Agendamento Online Mobile" 
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                className="w-full h-full object-contain object-top transition-transform duration-700 group-hover:scale-110"
                                             />
                                         </div>
                                     </div>

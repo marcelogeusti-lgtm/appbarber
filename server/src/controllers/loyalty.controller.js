@@ -61,6 +61,10 @@ exports.getAppleWalletPass = async (req, res) => {
 
         const passBuffer = await WalletService.generateApplePass(clientId, barbershopId);
 
+        if (!passBuffer) {
+            return res.status(400).json({ message: 'Integração com Apple Wallet não está configurada para esta Barbearia.' });
+        }
+
         res.setHeader('Content-Type', 'application/vnd.apple.pkpass');
         res.setHeader('Content-Disposition', 'attachment; filename=fidelidade.pkpass');
         res.send(passBuffer);
@@ -80,6 +84,10 @@ exports.getGoogleWalletUrl = async (req, res) => {
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
         const saveUrl = await WalletService.generateGoogleWalletUrl(clientId, barbershopId);
+
+        if (!saveUrl) {
+            return res.status(400).json({ message: 'Integração com Google Wallet não está configurada para esta Barbearia.' });
+        }
 
         res.json({ saveUrl });
 
