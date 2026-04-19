@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, GpsFixed, Check, SlidersHorizontal } from 'lucide-react';
+import { Search, LocateFixed, Check, SlidersHorizontal } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const FILTER_CHIPS = [
@@ -50,7 +50,7 @@ export default function SearchFilters({
                         : 'bg-white/5 border-white/10 hover:border-white/20 active:scale-95'
                     }`}
                 >
-                    <GpsFixed className={`w-5 h-5 ${isLocating ? 'text-primary' : 'text-white/60'}`} />
+                    <LocateFixed className={`w-5 h-5 ${isLocating ? 'text-primary' : 'text-white/60'}`} />
                 </button>
             </div>
 
