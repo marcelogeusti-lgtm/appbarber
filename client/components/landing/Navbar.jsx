@@ -25,7 +25,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
                     <img
-                        src="/logos/logo_full.png"
+                        src="/logos/logo_full.svg"
                         alt="NEXT Logo"
                         className="h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105"
                     />

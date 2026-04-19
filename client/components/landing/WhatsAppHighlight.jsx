@@ -1,7 +1,7 @@
 'use client';
-import { MessageSquare, Zap, Check, Lock } from 'lucide-react';
+import { MessageSquare, Zap, Check, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import LEDCardWrapper from './LEDCardWrapper';
 
 export default function WhatsAppHighlight() {
     return (
@@ -15,88 +15,90 @@ export default function WhatsAppHighlight() {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/5 blur-[120px] rounded-full pointer-events-none" />
 
                         {/* High-Quality Phone Frame */}
-                        <div className="relative w-full max-w-[340px] h-[700px] bg-black rounded-[4rem] p-3 shadow-[0_0_100px_rgba(0,0,0,0.8)] border-[12px] border-[#1A1A1A] group">
-                            <div className="absolute -inset-1 bg-gradient-to-tr from-primary/20 via-transparent to-blue-500/20 rounded-[4.5rem] blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                            
-                            {/* Inner Screen */}
-                            <div className="w-full h-full bg-[#0B141A] rounded-[3.2rem] overflow-hidden relative flex flex-col border border-white/5">
+                        <LEDCardWrapper className="rounded-[4rem] w-full max-w-[340px]">
+                            <div className="relative w-full h-[700px] bg-black rounded-[4rem] p-3 shadow-[0_0_100px_rgba(0,0,0,0.8)] border-[12px] border-[#1A1A1A] group">
+                                <div className="absolute -inset-1 bg-gradient-to-tr from-primary/20 via-transparent to-blue-500/20 rounded-[4.5rem] blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                                
+                                {/* Inner Screen */}
+                                <div className="w-full h-full bg-[#0B141A] rounded-[3.2rem] overflow-hidden relative flex flex-col border border-white/5">
 
-                                {/* Status Bar Mock */}
-                                <div className="h-12 bg-[#0B141A]/90 backdrop-blur-md flex justify-between items-center px-10 pt-4">
-                                    <span className="text-[11px] font-black text-white/90">14:20</span>
-                                    <div className="flex gap-2 items-center">
-                                        <div className="w-4 h-2.5 bg-white/20 rounded-[2px] relative">
-                                            <div className="absolute inset-y-0 left-0 bg-white w-2/3 rounded-[1px]" />
+                                    {/* Status Bar Mock */}
+                                    <div className="h-12 bg-[#0B141A]/90 backdrop-blur-md flex justify-between items-center px-10 pt-4">
+                                        <span className="text-[11px] font-black text-white/90">14:20</span>
+                                        <div className="flex gap-2 items-center">
+                                            <div className="w-4 h-2.5 bg-white/20 rounded-[2px] relative">
+                                                <div className="absolute inset-y-0 left-0 bg-white w-2/3 rounded-[1px]" />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Custom Chat Header */}
-                                <div className="bg-[#202C33] p-5 flex items-center justify-between shadow-2xl border-b border-white/5 relative z-20">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-11 h-11 bg-white/5 rounded-full flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-lg">
-                                            <img src="/logos/logo_icon.png" alt="Logo NEXT" className="w-full h-full object-cover" />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-1.5">
-                                                <p className="text-white font-black text-[13px] lowercase tracking-tight">@barbeariaNext</p>
-                                                <div className="w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.5)]">
-                                                    <Check className="w-2.5 h-2.5 text-white stroke-[4]" />
+                                    {/* Custom Chat Header */}
+                                    <div className="bg-[#202C33] p-5 flex items-center justify-between shadow-2xl border-b border-white/5 relative z-20">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-11 h-11 bg-white/5 rounded-full flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-lg">
+                                                <img src="/logos/logo_icon.svg" alt="Logo NEXT" className="w-full h-full object-cover" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <p className="text-white font-black text-[13px] lowercase tracking-tight">@barbeariaNext</p>
+                                                    <div className="w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+                                                        <Check className="w-2.5 h-2.5 text-white stroke-[4]" />
+                                                    </div>
                                                 </div>
+                                                <p className="text-primary text-[9px] uppercase tracking-[0.2em] font-black">Online agora</p>
                                             </div>
-                                            <p className="text-primary text-[9px] uppercase tracking-[0.2em] font-black">Online agora</p>
                                         </div>
-                                    </div>
-                                    <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
-                                </div>
-
-                                {/* Chat Canvas */}
-                                <div className="flex-1 p-6 space-y-8 overflow-y-auto bg-[#0B141A] relative">
-                                    <div className="absolute inset-0 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] opacity-[0.03] grayscale invert pointer-events-none" />
-
-                                    <div className="flex justify-center relative z-10">
-                                        <div className="bg-[#182229]/80 backdrop-blur-sm px-4 py-1.5 rounded-xl text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-3 border border-white/5">
-                                            <Lock className="w-3 h-3" /> Criptografia Maestro
-                                        </div>
+                                        <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
                                     </div>
 
-                                    <div className="bg-[#202C33] p-5 rounded-2xl rounded-tl-none shadow-2xl max-w-[85%] border border-white/5 flex flex-col relative z-10">
-                                        <p className="text-[13px] text-slate-200 font-medium leading-relaxed">Corte + Barba hoje às 15h?</p>
-                                        <span className="text-[10px] text-slate-500 self-end mt-2">10:45</span>
-                                    </div>
+                                    {/* Chat Canvas */}
+                                    <div className="flex-1 p-6 space-y-8 overflow-y-auto bg-[#0B141A] relative">
+                                        <div className="absolute inset-0 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] opacity-[0.03] grayscale invert pointer-events-none" />
 
-                                    <div className="bg-[#005C4B] p-5 rounded-2xl rounded-tr-none shadow-2xl max-w-[90%] ml-auto border border-white/10 flex flex-col relative overflow-hidden group/msg z-10">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/msg:translate-x-full transition-transform duration-1000" />
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md">
-                                                <Zap className="w-3.5 h-3.5 fill-current" />
+                                        <div className="flex justify-center relative z-10">
+                                            <div className="bg-[#182229]/80 backdrop-blur-sm px-4 py-1.5 rounded-xl text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-3 border border-white/5">
+                                                <Lock className="w-3 h-3" /> Criptografia Maestro
                                             </div>
-                                            <p className="text-[11px] font-black text-white uppercase tracking-tighter">Horário reservado! ✅</p>
-                                        </div>
-                                        <p className="text-[13px] text-white font-bold mb-3 leading-relaxed">Seu agendamento foi confirmado automaticamente.</p>
-
-                                        <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border-l-4 border-primary shadow-inner space-y-1.5 mb-3">
-                                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Confirmação NEXT</p>
-                                            <p className="text-sm font-black text-white">Hoje às 15:00</p>
-                                            <p className="text-[10px] text-white/60 font-medium">Com Profissional Marcelo</p>
                                         </div>
 
-                                        <p className="text-[12px] text-white/90 leading-tight">Nos vemos em breve! 🚀</p>
-                                        <span className="text-[10px] text-white/40 self-end mt-3">10:46</span>
-                                    </div>
-                                </div>
+                                        <div className="bg-[#202C33] p-5 rounded-2xl rounded-tl-none shadow-2xl max-w-[85%] border border-white/5 flex flex-col relative z-10">
+                                            <p className="text-[13px] text-slate-200 font-medium leading-relaxed">Corte + Barba hoje às 15h?</p>
+                                            <span className="text-[10px] text-slate-500 self-end mt-2">10:45</span>
+                                        </div>
 
-                                {/* Dynamic Input Mock */}
-                                <div className="p-6 bg-[#202C33] backdrop-blur-xl border-t border-white/5 flex gap-3">
-                                    <div className="flex-1 h-12 bg-[#2A3942] rounded-full border border-white/5 px-6 flex items-center">
-                                        <span className="text-slate-500 text-sm">Escreva aqui...</span>
+                                        <div className="bg-[#005C4B] p-5 rounded-2xl rounded-tr-none shadow-2xl max-w-[90%] ml-auto border border-white/10 flex flex-col relative overflow-hidden group/msg z-10">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/msg:translate-x-full transition-transform duration-1000" />
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md">
+                                                    <Zap className="w-3.5 h-3.5 fill-current" />
+                                                </div>
+                                                <p className="text-[11px] font-black text-white uppercase tracking-tighter">Horário reservado! ✅</p>
+                                            </div>
+                                            <p className="text-[13px] text-white font-bold mb-3 leading-relaxed">Seu agendamento foi confirmado automaticamente.</p>
+
+                                            <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border-l-4 border-primary shadow-inner space-y-1.5 mb-3">
+                                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Confirmação NEXT</p>
+                                                <p className="text-sm font-black text-white">Hoje às 15:00</p>
+                                                <p className="text-[10px] text-white/60 font-medium">Com Profissional Marcelo</p>
+                                            </div>
+
+                                            <p className="text-[12px] text-white/90 leading-tight">Nos vemos em breve! 🚀</p>
+                                            <span className="text-[10px] text-white/40 self-end mt-3">10:46</span>
+                                        </div>
                                     </div>
-                                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                                        <MessageSquare className="w-5 h-5 fill-current" />
+
+                                    {/* Dynamic Input Mock */}
+                                    <div className="p-6 bg-[#202C33] backdrop-blur-xl border-t border-white/5 flex gap-3">
+                                        <div className="flex-1 h-12 bg-[#2A3942] rounded-full border border-white/5 px-6 flex items-center">
+                                            <span className="text-slate-500 text-sm">Escreva aqui...</span>
+                                        </div>
+                                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                                            <MessageSquare className="w-5 h-5 fill-current" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </LEDCardWrapper>
                     </div>
 
                     {/* Text Content Side (RIGHT) */}

@@ -67,7 +67,7 @@ export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, 
                         <img
                             src={barbershop.logo_url || barbershop.logoUrl}
                             alt={barbershop.commercialName || barbershop.name || 'Barbearia'}
-                            className="w-8 h-8 rounded-lg object-cover border border-gray-100 shadow-sm"
+                            className="w-8 h-8 rounded-full object-cover border border-white/10 shadow-sm"
                         />
                     ) : (
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary ring-1 ring-primary/20">

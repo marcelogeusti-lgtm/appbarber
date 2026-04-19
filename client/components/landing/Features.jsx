@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import {ArrowRight} from 'lucide-react';
 import Link from 'next/link';
 import { getFeaturesArray } from '../../lib/featuresData';
+import LEDCardWrapper from './LEDCardWrapper';
 
 export default function Features() {
     const featureList = getFeaturesArray();
@@ -50,29 +51,30 @@ export default function Features() {
                     className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 >
                     {featureList.map((feature, idx) => (
-                        <motion.div 
-                            variants={itemVariants} 
-                            key={idx} 
-                            whileHover={{ y: -8, scale: 1.02 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                            className="p-8 rounded-[2rem] bg-[#0A0A0B]/40 backdrop-blur-2xl border border-white/5 hover:border-white/10 shadow-2xl group flex flex-col h-full bg-cover transition-all relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                            <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45 translate-x-[-100%] group-hover:animate-shine pointer-events-none" />
+                        <LEDCardWrapper key={idx} className="rounded-[2rem]">
+                            <motion.div 
+                                variants={itemVariants} 
+                                whileHover={{ y: -8, scale: 1.02 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                className="p-8 rounded-[2rem] bg-[#0A0A0B]/40 backdrop-blur-2xl border border-white/5 hover:border-white/10 shadow-2xl group flex flex-col h-full bg-cover transition-all relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                                <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45 translate-x-[-100%] group-hover:animate-shine pointer-events-none" />
 
-                            <div className={`w-14 h-14 rounded-2xl ${feature.bgIcon} flex items-center justify-center ${feature.color} mb-6 shadow-[0_0_30px_rgba(var(--primary-rgb),0.15)] relative z-10`}>
-                                <feature.icon className="w-6 h-6" />
-                            </div>
-                            
-                            <h4 className="text-lg font-black text-white mb-3 uppercase tracking-tighter relative z-10">{feature.title}</h4>
-                            <p className="text-slate-400 text-xs leading-relaxed font-semibold opacity-80 flex-1 mb-6 relative z-10">
-                                {feature.oneLiner}
-                            </p>
-                            
-                            <Link href={`/features/${feature.slug}`} className={`relative z-10 mt-auto inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest ${feature.color} opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all w-fit`}>
-                                Ler Mais <ArrowRight className="w-3 h-3" />
-                            </Link>
-                        </motion.div>
+                                <div className={`w-14 h-14 rounded-2xl ${feature.bgIcon} flex items-center justify-center ${feature.color} mb-6 shadow-[0_0_30px_rgba(var(--primary-rgb),0.15)] relative z-10`}>
+                                    <feature.icon className="w-6 h-6" />
+                                </div>
+                                
+                                <h4 className="text-lg font-black text-white mb-3 uppercase tracking-tighter relative z-10">{feature.title}</h4>
+                                <p className="text-slate-400 text-xs leading-relaxed font-semibold opacity-80 flex-1 mb-6 relative z-10">
+                                    {feature.oneLiner}
+                                </p>
+                                
+                                <Link href={`/features/${feature.slug}`} className={`relative z-10 mt-auto inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest ${feature.color} opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all w-fit`}>
+                                    Ler Mais <ArrowRight className="w-3 h-3" />
+                                </Link>
+                            </motion.div>
+                        </LEDCardWrapper>
                     ))}
                 </motion.div>
 

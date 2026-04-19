@@ -604,7 +604,7 @@ exports.socialLogin = async (req, res) => {
             }
             const token = generateToken(activeUser, authUser);
 
-            const barbershop = activeUser.workedBarbershop || activeUser.ownedBarbershops?.[0];
+            let barbershop = activeUser.workedBarbershop || activeUser.ownedBarbershops?.[0];
             const barbershopId = barbershop?.id;
             const barbershopSlug = barbershop?.slug;
 
@@ -612,24 +612,23 @@ exports.socialLogin = async (req, res) => {
 
             responseData.token = token;
             responseData.user = { 
-                ...professional, 
+                ...activeUser, 
                 email: authUser.email, 
                 role: responseData.role 
             };
-            responseData.barbershopId = professional.workedBarbershopId;
+            responseData.barbershopId = activeUser.workedBarbershopId;
 
             // --- POST-LOGIN DATA ENRICHMENT (Shielded) ---
-            let barbershop = null;
             try {
                 // Fetch barbershop data separately to isolate potential schema mismatches
-                const s_barbershopId = professional.workedBarbershopId;
+                const s_barbershopId = activeUser.workedBarbershopId;
                 if (s_barbershopId) {
                     barbershop = await prisma.barbershop.findUnique({
                         where: { id: s_barbershopId }
                     });
                 } else {
                     const ownedShops = await prisma.barbershop.findMany({
-                        where: { ownerId: professional.id },
+                        where: { ownerId: activeUser.id },
                         take: 1
                     });
                     barbershop = ownedShops[0];

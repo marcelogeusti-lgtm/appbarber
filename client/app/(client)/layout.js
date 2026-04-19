@@ -184,9 +184,9 @@ function ClientLayoutContent({ children }) {
                     <div className="flex-1 flex flex-col items-center justify-center relative -top-7">
                         <button
                             onClick={handleQuickBookingClick}
-                            className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-transform active:scale-90 z-20"
+                            className="w-14 h-14 transition-transform active:scale-95 z-20 rounded-full overflow-hidden border-2 border-white/10 shadow-lg"
                         >
-                            <Plus className="w-8 h-8 text-black" strokeWidth={3} />
+                            <img src="/logos/logo_icon.png" alt="Agendar" className="w-full h-full object-cover" />
                         </button>
                         <span className="text-[9px] font-bold uppercase tracking-wider mt-1.5 text-primary">Agendar</span>
                     </div>

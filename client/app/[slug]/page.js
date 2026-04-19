@@ -570,7 +570,7 @@ export default function BarbershopPage() {
                 </div>
 
                 <div className="absolute -bottom-12 left-0 right-0 z-20 px-6 flex flex-col items-center text-center pointer-events-none">
-                    <div className="w-28 h-28 rounded-3xl border-[6px] border-black bg-slate-900 shadow-2xl overflow-hidden mb-3 pointer-events-auto cursor-zoom-in flex-shrink-0 flex items-center justify-center transform hover:scale-105 transition-transform duration-300" onClick={() => setLogoLightboxOpen(true)}>
+                    <div className="w-28 h-28 rounded-full border-[6px] border-black bg-slate-900 shadow-2xl overflow-hidden mb-3 pointer-events-auto cursor-zoom-in flex-shrink-0 flex items-center justify-center transform hover:scale-105 transition-transform duration-300" onClick={() => setLogoLightboxOpen(true)}>
                              {barbershop.logoUrl ? (
                                  <img src={barbershop.logoUrl} alt={barbershop.name || 'Barbearia'} className="w-full h-full object-cover" />
                              ) : (
@@ -593,7 +593,7 @@ export default function BarbershopPage() {
             {/* LOGO LIGHTBOX */}
             {logoLightboxOpen && (
                 <div className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setLogoLightboxOpen(false)}>
-                    <div className="relative max-w-lg w-full aspect-square bg-[#111] rounded-full border-4 border-slate-800 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                    <div className="relative max-w-lg w-full aspect-square bg-slate-900 rounded-full border-4 border-white/10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
                          {barbershop.logoUrl ? (
                             <img src={barbershop.logoUrl} alt={barbershop.name || 'Barbearia'} className="w-full h-full object-cover" />
                         ) : (

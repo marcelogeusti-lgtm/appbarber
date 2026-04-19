@@ -320,7 +320,7 @@ function VisualTab({ barbershop, setBarbershop }) {
                     <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Logotipo</h4>
                     <p className="text-muted-foreground text-[10px] font-medium">Recomendado: 512x512px (PNG ou SVG).</p>
                 </div>
-                <div className="relative w-40 h-40 bg-muted border-2 border-dashed border-border rounded-2xl flex items-center justify-center overflow-hidden hover:border-primary group transition-all">
+                <div className="relative w-40 h-40 bg-muted border-2 border-dashed border-border rounded-full flex items-center justify-center overflow-hidden hover:border-primary group transition-all">
                     {barbershop.logoUrl ? (
                         <img src={barbershop.logoUrl} className="w-full h-full object-cover" />
                     ) : (

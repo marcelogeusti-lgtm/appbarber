@@ -1,5 +1,6 @@
 'use client';
 import { TrendingUp, Users, Calendar, DollarSign } from 'lucide-react';
+import LEDCardWrapper from './LEDCardWrapper';
 
 export default function MainDashboardShowcase() {
     return (
@@ -22,24 +23,26 @@ export default function MainDashboardShowcase() {
                     <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full scale-90 pointer-events-none" />
 
                     {/* The Image Container */}
-                    <div className="relative z-10 rounded-[3.5rem] border border-white/10 bg-[#0A0A0B]/60 backdrop-blur-3xl p-3 lg:p-6 shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col items-center group hover:border-white/20 transition-all duration-700">
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 via-primary to-blue-500 rounded-t-[3.5rem] shadow-[0_0_15px_rgba(77,114,228,0.4)]" />
-                        
-                        {/* Realistic UI Header dots */}
-                        <div className="w-full flex justify-start gap-3 px-8 pt-6 pb-4 border-b border-white/5 mb-4">
-                            <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40" />
-                            <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/40" />
-                            <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/40" />
-                        </div>
+                    <LEDCardWrapper className="rounded-[3.5rem]">
+                        <div className="relative z-10 rounded-[3.5rem] border border-white/10 bg-[#0A0A0B]/60 backdrop-blur-3xl p-3 lg:p-6 shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col items-center group hover:border-white/20 transition-all duration-700">
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 via-primary to-blue-500 rounded-t-[3.5rem] shadow-[0_0_15px_rgba(77,114,228,0.4)]" />
+                            
+                            {/* Realistic UI Header dots */}
+                            <div className="w-full flex justify-start gap-3 px-8 pt-6 pb-4 border-b border-white/5 mb-4">
+                                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40" />
+                                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/40" />
+                                <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/40" />
+                            </div>
 
-                        <div className="rounded-[2.5rem] overflow-hidden border border-white/5 bg-black relative shadow-2xl">
-                            <img 
-                                src="/screenshots/dashboard-overview.png" 
-                                alt="Dashboard Central" 
-                                className="w-full h-auto transition-transform duration-1000 group-hover:scale-105"
-                            />
+                            <div className="rounded-[2.5rem] overflow-hidden border border-white/5 bg-black relative shadow-2xl">
+                                <img 
+                                    src="/screenshots/dashboard-overview.png" 
+                                    alt="Dashboard Central" 
+                                    className="w-full h-auto transition-transform duration-1000 group-hover:scale-105"
+                                />
+                            </div>
                         </div>
-                    </div>
+                    </LEDCardWrapper>
 
                     {/* Floating Badges */}
                     <div className="absolute -left-12 top-1/4 hidden lg:flex p-6 bg-[#0A0A0B]/90 backdrop-blur-3xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 items-center gap-5 translate-x-10 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-1000">

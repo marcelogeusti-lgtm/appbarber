@@ -1,6 +1,7 @@
 'use client';
 import { Check, ArrowRight, User, Scissors, Calendar, CreditCard, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
+import LEDCardWrapper from './LEDCardWrapper';
 
 const STEPS = [
     { title: 'Serviço', icon: Scissors, desc: 'Corte + Barba' },
@@ -97,6 +98,7 @@ export default function CheckoutShowcase() {
                             <div className="relative group/card">
                                 <div className="absolute inset-0 bg-primary/20 blur-[80px] rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-1000 shadow-[0_0_100px_#4d72e4]" />
                                 
+                            <LEDCardWrapper className="rounded-[3rem]">
                                 <div className="relative bg-gradient-to-br from-[#121214] to-[#0A0A0B] border border-white/10 rounded-[3rem] p-10 shadow-2xl transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
                                     <div className="flex items-center justify-between mb-10">
                                         <div className="w-16 h-16 bg-white/[0.05] border border-white/10 rounded-2xl flex items-center justify-center text-primary shadow-xl">
@@ -129,6 +131,7 @@ export default function CheckoutShowcase() {
                                         </div>
                                     </div>
                                 </div>
+                            </LEDCardWrapper>
                             </div>
                         </div>
 

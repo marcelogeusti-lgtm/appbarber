@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Star, ShieldCheck } from 'lucide-react';
 import RollingNotificationFeed from './RollingNotificationFeed';
 import { motion } from 'framer-motion';
+import LEDCardWrapper from './LEDCardWrapper';
 
 export default function Hero() {
     // Animation variants
@@ -147,33 +148,35 @@ export default function Hero() {
                             {/* Decorative Glow */}
                             <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                            <div className="rounded-[3rem] bg-[#0A0A0B]/80 backdrop-blur-2xl border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] p-4 relative overflow-hidden transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
-                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-blue-500 shadow-[0_0_20px_#4d72e4]" />
+                            <LEDCardWrapper className="rounded-[3rem]">
+                                <div className="rounded-[3rem] bg-[#0A0A0B]/80 backdrop-blur-2xl border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] p-4 relative overflow-hidden transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
+                                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-blue-500 shadow-[0_0_20px_#4d72e4]" />
 
-                                {/* Mockup Header */}
-                                <div className="flex items-center justify-between mb-8 px-6 pt-6">
-                                    <div className="flex gap-2.5">
-                                        <div className="w-3.5 h-3.5 rounded-full bg-red-500/10 border border-red-500/20" />
-                                        <div className="w-3.5 h-3.5 rounded-full bg-yellow-500/10 border border-yellow-500/20" />
-                                        <div className="w-3.5 h-3.5 rounded-full bg-green-500/10 border border-green-500/20" />
+                                    {/* Mockup Header */}
+                                    <div className="flex items-center justify-between mb-8 px-6 pt-6">
+                                        <div className="flex gap-2.5">
+                                            <div className="w-3.5 h-3.5 rounded-full bg-red-500/10 border border-red-500/20" />
+                                            <div className="w-3.5 h-3.5 rounded-full bg-yellow-500/10 border border-yellow-500/20" />
+                                            <div className="w-3.5 h-3.5 rounded-full bg-green-500/10 border border-green-500/20" />
+                                        </div>
+                                        <div className="px-4 py-1.5 bg-white/5 rounded-full flex items-center gap-2.5 border border-white/5">
+                                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]" />
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sistemas: Ativo</span>
+                                        </div>
                                     </div>
-                                    <div className="px-4 py-1.5 bg-white/5 rounded-full flex items-center gap-2.5 border border-white/5">
-                                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]" />
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sistemas: Ativo</span>
+
+                                    {/* Real Dashboard Screenshot */}
+                                    <div className="rounded-[2rem] border border-white/5 overflow-hidden bg-black relative aspect-[14/9] group/img shadow-2xl">
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
+                                        <img 
+                                            src="/screenshots/dashboard-overview.png" 
+                                            alt="NexApp Dashboard" 
+                                            className="w-full h-full object-cover object-top transition-transform duration-1000 group-hover/img:scale-105"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20 group-hover/img:bg-transparent transition-colors duration-700" />
                                     </div>
                                 </div>
-
-                                {/* Real Dashboard Screenshot */}
-                                <div className="rounded-[2rem] border border-white/5 overflow-hidden bg-black relative aspect-[14/9] group/img shadow-2xl">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
-                                    <img 
-                                        src="/screenshots/dashboard-overview.png" 
-                                        alt="NexApp Dashboard" 
-                                        className="w-full h-full object-cover object-top transition-transform duration-1000 group-hover/img:scale-105"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 group-hover/img:bg-transparent transition-colors duration-700" />
-                                </div>
-                            </div>
+                            </LEDCardWrapper>
 
                             {/* Rolling Notification Feed (SaaS Style) */}
                             <div className="absolute -left-12 bottom-0 z-30">

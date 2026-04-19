@@ -58,7 +58,7 @@ export default function Pricing() {
                             variants={cardVariants} 
                             whileHover={{ y: -15, scale: 1.02 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                            className="p-12 rounded-[3.5rem] bg-white/[0.02] border border-white/5 flex flex-col hover:border-primary/20 group cursor-default backdrop-blur-3xl shadow-2xl h-full"
+                            className="p-12 pt-16 rounded-[3.5rem] bg-[#0A0A0B] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] flex flex-col hover:border-primary/20 group cursor-default backdrop-blur-3xl h-full"
                         >
                             <div className="flex justify-between items-start mb-12">
                                 <div>
@@ -71,22 +71,22 @@ export default function Pricing() {
                             </div>
 
                             <div className="flex items-baseline gap-2 mb-12">
-                                <span className="text-5xl lg:text-6xl font-black text-white tracking-tighter">R$49</span>
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">/ mensal</span>
+                                <span className="text-5xl lg:text-6xl font-black text-white tracking-tighter flex items-start">R$49</span>
+                                <span className="text-xs font-black uppercase tracking-[0.1em] text-[#94A3B8]">/ Mensal</span>
                             </div>
 
                             <ul className="space-y-6 mb-12 flex-1">
                                 {['1 Profissional Master', 'Acesso à Agenda Maestro', 'Link de Agendamento Pro', 'WhatsApp Lembretes'].map(i => (
-                                    <li key={i} className="flex items-center gap-4 text-xs font-black text-white uppercase tracking-tight">
-                                        <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                            <Check className="w-3 h-3" />
+                                    <li key={i} className="flex items-center gap-4 text-[11px] font-black text-white uppercase tracking-tight">
+                                        <div className="w-5 h-5 rounded-full bg-[#4D72E4]/15 flex items-center justify-center text-[#4D72E4] flex-shrink-0">
+                                            <Check className="w-3 h-3 stroke-[3px]" />
                                         </div> {i}
                                     </li>
                                 ))}
                             </ul>
 
                             <Link href="/register">
-                                <button className="w-full py-6 rounded-2xl border-2 border-slate-700 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white hover:shadow-lg transition-all text-white hover:text-black">
+                                <button className="w-full py-5 rounded-2xl border border-white/15 text-[11px] font-black uppercase tracking-[0.2em] transition-all text-white hover:bg-white hover:text-black">
                                     Ativar Plano Core
                                 </button>
                             </Link>
@@ -99,7 +99,7 @@ export default function Pricing() {
                             variants={cardVariants} 
                             whileHover={{ y: -15, scale: 1.07 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                            className="p-12 rounded-[4rem] bg-gradient-to-br from-[#0A0A0C] to-black border-2 border-primary flex flex-col relative scale-[1.05] z-10 shadow-[0_0_80px_rgba(77,114,228,0.2)] hover:shadow-[0_0_120px_rgba(77,114,228,0.35)] overflow-hidden group cursor-default h-full"
+                            className="p-12 pt-16 rounded-[4rem] bg-gradient-to-br from-[#0A0A0C] to-black flex flex-col relative scale-[1.05] z-10 shadow-[0_0_0_1px_#4D72E4,0_0_32px_rgba(77,114,228,0.25),0_0_64px_rgba(77,114,228,0.10)] overflow-visible group cursor-default h-full"
                         >
                             {/* Shine Effect Animation Overlay */}
                             <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-[shine_1.5s_ease-in-out_infinite] pointer-events-none" />
@@ -122,22 +122,24 @@ export default function Pricing() {
                             </div>
 
                             <div className="flex items-baseline gap-2 mb-12 relative z-10">
-                                <span className="text-5xl lg:text-7xl font-black text-white tracking-tighter">R$89<span className="text-2xl lg:text-3xl">,70</span></span>
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">/ mensal</span>
+                                <span className="text-5xl lg:text-7xl font-black text-white tracking-tighter flex items-start">
+                                    R$89<span className="text-[40%] leading-none" style={{ verticalAlign: 'super' }}>,70</span>
+                                </span>
+                                <span className="text-xs font-black uppercase tracking-[0.1em] text-[#94A3B8]">/ Mensal</span>
                             </div>
 
                             <ul className="space-y-7 mb-16 flex-1 relative z-10">
                                 {['Até 5 Profissionais', 'Dashboard de Elite', 'Fidelização Completa', 'Financeiro Avançado', 'Estoque & Produtos'].map(i => (
                                     <li key={i} className="flex items-center gap-5 text-[11px] font-black text-white uppercase tracking-widest">
-                                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white shadow-[0_0_15px_rgba(77,114,228,0.5)]">
-                                            <Check className="w-4 h-4 stroke-[3px]" />
+                                        <div className="w-6 h-6 rounded-full bg-[#4D72E4]/15 flex items-center justify-center text-[#4D72E4] flex-shrink-0">
+                                            <Check className="w-3.5 h-3.5 stroke-[3px]" />
                                         </div> {i}
                                     </li>
                                 ))}
                             </ul>
 
                             <Link href="/register">
-                                <button className="w-full py-7 rounded-3xl bg-white text-black text-[12px] font-black uppercase tracking-[0.4em] hover:bg-slate-100 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 group/btn relative z-10">
+                                <button className="w-full py-5 rounded-2xl bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-100 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 group/btn relative z-10">
                                     Upgrade Diamond <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
                                 </button>
                             </Link>
@@ -150,7 +152,7 @@ export default function Pricing() {
                             variants={cardVariants} 
                             whileHover={{ y: -15, scale: 1.02 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                            className="p-12 rounded-[3.5rem] bg-white/[0.02] border border-white/5 flex flex-col hover:border-white/20 group cursor-default backdrop-blur-3xl shadow-2xl h-full"
+                            className="p-12 pt-16 rounded-[3.5rem] bg-[#0A0A0B] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] flex flex-col hover:border-white/20 group cursor-default backdrop-blur-3xl h-full"
                         >
                             <div className="flex justify-between items-start mb-12">
                                 <div>
@@ -163,22 +165,24 @@ export default function Pricing() {
                             </div>
 
                             <div className="flex items-baseline gap-2 mb-12">
-                                <span className="text-5xl lg:text-6xl font-black text-white tracking-tighter">R$159<span className="text-2xl lg:text-3xl">,70</span></span>
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">/ mensal</span>
+                                <span className="text-5xl lg:text-6xl font-black text-white tracking-tighter flex items-start">
+                                    R$159<span className="text-[40%] leading-none" style={{ verticalAlign: 'super' }}>,70</span>
+                                </span>
+                                <span className="text-xs font-black uppercase tracking-[0.1em] text-[#94A3B8]">/ Mensal</span>
                             </div>
 
                             <ul className="space-y-7 mb-16 flex-1">
                                 {['Ilimitados Profissionais', 'Multi-unidades', 'Suporte VIP 24h', 'Prioridade Maestro', 'Exportação Full'].map(i => (
                                     <li key={i} className="flex items-center gap-5 text-[11px] font-black text-slate-300 uppercase tracking-widest">
-                                        <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-slate-400 border border-white/5 group-hover:border-white/20 transition-all">
-                                            <Check className="w-4 h-4" />
+                                        <div className="w-6 h-6 rounded-full bg-[#4D72E4]/15 flex items-center justify-center text-[#4D72E4] flex-shrink-0">
+                                            <Check className="w-3.5 h-3.5 stroke-[3px]" />
                                         </div> {i}
                                     </li>
                                 ))}
                             </ul>
 
                             <Link href="/register">
-                                <button className="w-full py-6 rounded-2xl border-2 border-white/10 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-white hover:text-black transition-all text-white">
+                                <button className="w-full py-5 rounded-2xl border border-white/15 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all text-white">
                                     Solicitar Convite Empire
                                 </button>
                             </Link>
