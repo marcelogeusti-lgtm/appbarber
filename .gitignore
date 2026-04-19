@@ -17,40 +17,7 @@ dist/
 # Env files
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Prisma
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Testing
-coverage/
-
-# Next.js
-.next/
-out/
-
-# Production
-build/
-dist/
-
-# Env files
-.env
-.env.local
+.env*.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -69,13 +36,30 @@ Thumbs.db
 /server/prisma/dev.db
 /server/prisma/dev.db-journal
 
+# Project-specific
 server/node_modules/
 client/node_modules/
-.next/
 client/.next/
 client/public/logos/Samuel ensaio/
 .vercel
-.env*.local
+
+# Credentials
+firebase-service-account.json
+*.service-account.json
+
+# Outputs de ferramentas
+eslint_out.json
+lint_*.json
+*_utf8.json
+error_utf8.json
+
+# Pastas de agentes IA
+.agents/
+.claude/
+
+# Arquivos temporários
+tmp_*.js
+temp_*.js
 
 # Logs and Temp
 *.log
@@ -95,7 +79,6 @@ lock_del.txt
 old_page_snippet.txt
 output_deploy.txt
 server_deploy_attempt.log
-tmp_deploy.js
-read_hex.js
-read_output.js
-readlog.js
+
+# Debug archives
+server/debug_archive/

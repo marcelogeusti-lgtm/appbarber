@@ -9,38 +9,15 @@ function initializeFirebase() {
     try {
         if (admin.apps.length > 0) return admin.app();
 
-        let serviceAccount;
-
-        if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-        } else {
-            // Try to load from file if ENV is missing or invalid
-            try {
-                const fs = require('fs');
-                const path = require('path');
-                const filePath = path.resolve(process.cwd(), 'firebase-service-account.json');
-
-                if (fs.existsSync(filePath)) {
-                    const fileContent = fs.readFileSync(filePath, 'utf8');
-                    serviceAccount = JSON.parse(fileContent);
-                    console.log('[FirebaseAdmin] Configuration loaded from file.');
-                }
-            } catch (fErr) {
-                console.warn('[FirebaseAdmin] Could not load from file:', fErr.message);
-            }
-
-            if (!serviceAccount) {
-                // Manual fallback
-                serviceAccount = {
-                    projectId: process.env.FIREBASE_PROJECT_ID,
-                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-                };
-            }
+        if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+            console.warn('[FirebaseAdmin] Missing FIREBASE_SERVICE_ACCOUNT environment variable. Push notifications will not work.');
+            return null;
         }
 
-        if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
-            console.warn('[FirebaseAdmin] Missing configuration. Push notifications will not work.');
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
+        if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
+            console.warn('[FirebaseAdmin] Invalid FIREBASE_SERVICE_ACCOUNT format. Push notifications will not work.');
             return null;
         }
 
