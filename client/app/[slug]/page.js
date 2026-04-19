@@ -570,11 +570,11 @@ export default function BarbershopPage() {
                 </div>
 
                 <div className="absolute -bottom-12 left-0 right-0 z-20 px-6 flex flex-col items-center text-center pointer-events-none">
-                    <div className="pointer-events-auto cursor-zoom-in" onClick={() => setLogoLightboxOpen(true)}>
+                    <div className="w-28 h-28 rounded-3xl border-[6px] border-black bg-slate-900 shadow-2xl overflow-hidden mb-3 pointer-events-auto cursor-zoom-in flex-shrink-0 flex items-center justify-center transform hover:scale-105 transition-transform duration-300" onClick={() => setLogoLightboxOpen(true)}>
                              {barbershop.logoUrl ? (
                                  <img src={barbershop.logoUrl} alt={barbershop.name || 'Barbearia'} className="w-full h-full object-cover" />
                              ) : (
-                                 <Scissors className="w-10 h-10 text-primary/40" />
+                                 <Scissors className="w-12 h-12 text-primary/40" />
                              )}
                     </div>
                     <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold mb-1">

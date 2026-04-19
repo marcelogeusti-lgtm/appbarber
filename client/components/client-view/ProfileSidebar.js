@@ -10,10 +10,10 @@ export default function ProfileSidebar() {
     const { user, logout } = useClientAuth();
 
     const menuItems = [
-        { icon: User, label: 'Meus Dados', href: '/profile/edit' },
-        { icon: MapPin, label: 'Endereço', href: '/profile/address' },
-        { icon: ShieldCheck, label: 'Segurança', href: '/profile/security' },
-        { icon: Key, label: 'Meus Acessos', href: '/profile/access' },
+        { icon: User, label: 'Meus Dados', href: '/perfil/editar' },
+        { icon: MapPin, label: 'Endereço', href: '/perfil/endereco' },
+        { icon: ShieldCheck, label: 'Segurança', href: '/perfil/seguranca' },
+        { icon: Key, label: 'Meus Acessos', href: '/perfil/acesso' },
     ];
 
     return (
