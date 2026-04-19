@@ -30,6 +30,23 @@ const nextConfig = {
             },
         ];
     },
+    async redirects() {
+        return [
+            { source: '/', destination: '/inicio', permanent: true },
+            { source: '/home', destination: '/inicio', permanent: true },
+            { source: '/search', destination: '/buscar', permanent: true },
+            { source: '/agendamentos', destination: '/agenda', permanent: true },
+            { source: '/appointments', destination: '/agenda', permanent: true },
+            { source: '/favorites', destination: '/favoritos', permanent: true },
+            { source: '/profile', destination: '/perfil', permanent: true },
+            { source: '/history', destination: '/historico', permanent: true },
+            { source: '/cards', destination: '/cartoes', permanent: true },
+            { source: '/packages', destination: '/pacotes', permanent: true },
+            { source: '/subscriptions', destination: '/assinaturas', permanent: true },
+            { source: '/support', destination: '/suporte', permanent: true },
+            { source: '/terms', destination: '/termos', permanent: true }
+        ];
+    },
 };
 
 module.exports = nextConfig;

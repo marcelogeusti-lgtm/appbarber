@@ -137,7 +137,7 @@ export default function CheckoutPixPage() {
                                 <p className="text-slate-400">Seu horário foi reservado com sucesso.</p>
                             </div>
                             <button
-                                onClick={() => router.push('/home')}
+                                onClick={() => router.push('/inicio')}
                                 className="w-full bg-primary/90 hover:bg-primary text-white font-bold py-4 rounded-xl transition shadow-lg shadow-emerald-900/20 transform hover:-translate-y-0.5"
                             >
                                 Voltar para Início

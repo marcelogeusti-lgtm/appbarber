@@ -131,14 +131,14 @@ export default function NotificationCenter({ user: propUser }) {
             if (isProfessional) {
                 router.push('/dashboard/finance');
             } else {
-                router.push('/agendamentos');
+                router.push('/agenda');
             }
             return;
         }
 
         // 3. Fallback for other types
         if (!isProfessional && notification.type === 'system') {
-            router.push('/home');
+            router.push('/inicio');
         }
     };
 

@@ -14,7 +14,7 @@ export default function FooterCliente() {
 
                     {/* Brand & Social */}
                     <div className="space-y-6">
-                        <Link href="/home">
+                        <Link href="/inicio">
                             <img src="/logos/logo_icon.png" alt="appbarber" className="h-10 w-auto rounded-xl opacity-90" />
                         </Link>
                         <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
@@ -32,10 +32,10 @@ export default function FooterCliente() {
                     <div>
                         <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">Acesso rápido</h4>
                         <ul className="space-y-4">
-                            <li><Link href="/home" className="text-slate-500 hover:text-white transition-colors text-sm">Início</Link></li>
-                            <li><Link href="/search" className="text-slate-500 hover:text-white transition-colors text-sm">Encontrar estabelecimentos</Link></li>
-                            <li><Link href="/appointments" className="text-slate-500 hover:text-white transition-colors text-sm">Meus agendamentos</Link></li>
-                            <li><Link href="/favorites" className="text-slate-500 hover:text-white transition-colors text-sm">Favoritos</Link></li>
+                             <li><Link href="/inicio" className="text-slate-500 hover:text-white transition-colors text-sm">Início</Link></li>
+                             <li><Link href="/buscar" className="text-slate-500 hover:text-white transition-colors text-sm">Buscar</Link></li>
+                             <li><Link href="/agenda" className="text-slate-500 hover:text-white transition-colors text-sm">Agenda</Link></li>
+                             <li><Link href="/favoritos" className="text-slate-500 hover:text-white transition-colors text-sm">Favoritos</Link></li>
                         </ul>
                     </div>
 

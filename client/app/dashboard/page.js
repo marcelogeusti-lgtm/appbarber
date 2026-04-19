@@ -92,7 +92,7 @@ export default function DashboardPage() {
                         <RotateCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                     </button>
                     <Link
-                        href="/search"
+                        href="/buscar"
                         target="_blank"
                         className="h-9 px-4 bg-primary text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-primary/10"
                     >

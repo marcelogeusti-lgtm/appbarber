@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }) {
     // PROTECT ADMIN ROUTES
     useEffect(() => {
         if (user?.role === 'CLIENT') {
-            router.push('/home');
+            router.push('/inicio');
         }
     }, [user, router]);
 

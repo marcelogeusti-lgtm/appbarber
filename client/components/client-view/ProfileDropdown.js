@@ -15,26 +15,26 @@ export default function ProfileDropdown({ isOpen, onClose }) {
     const sections = [
         {
             items: [
-                { icon: User, label: 'Meus Dados', href: '/profile/edit' },
-                { icon: Key, label: 'Meus Acessos', href: '/profile/access' },
-                { icon: MapPin, label: 'Endereço', href: '/profile/address' },
+                { icon: User, label: 'Meus Dados', href: '/perfil/editar' },
+                { icon: Key, label: 'Meus Acessos', href: '/perfil/acesso' },
+                { icon: MapPin, label: 'Endereço', href: '/perfil/endereco' },
             ]
         },
         {
             items: [
-                { icon: Heart, label: 'Favoritos', href: '/favorites' },
-                { icon: CreditCard, label: 'Meus Cartões', href: '/cards' },
-                { icon: Sparkles, label: 'Assinaturas', href: '/subscriptions' },
-                { icon: Box, label: 'Pacotes', href: '/packages' },
-                { icon: ShieldCheck, label: 'Segurança', href: '/profile/security' },
-                { icon: History, label: 'Histórico', href: '/history' },
+                { icon: Heart, label: 'Favoritos', href: '/favoritos' },
+                { icon: CreditCard, label: 'Meus Cartões', href: '/cartoes' },
+                { icon: Sparkles, label: 'Assinaturas', href: '/assinaturas' },
+                { icon: Box, label: 'Pacotes', href: '/pacotes' },
+                { icon: ShieldCheck, label: 'Segurança', href: '/perfil/seguranca' },
+                { icon: History, label: 'Histórico', href: '/historico' },
             ]
         },
         {
             items: [
-                { icon: Settings, label: 'Preferências', href: '/profile/preferences' },
-                { icon: MessageSquare, label: 'Ouvidoria', href: '/support' },
-                { icon: FileText, label: 'Termos de Uso', href: '/terms' },
+                { icon: Settings, label: 'Preferências', href: '/perfil/preferencias' },
+                { icon: MessageSquare, label: 'Ouvidoria', href: '/suporte' },
+                { icon: FileText, label: 'Termos de Uso', href: '/termos' },
             ]
         }
     ];

@@ -917,7 +917,7 @@ export default function BarbershopPage() {
                                     </div>
 
                                     <button
-                                        onClick={() => router.push('/home')}
+                                        onClick={() => router.push('/agenda')}
                                         className="w-full bg-primary text-white py-5 rounded-2xl font-black text-xs uppercase hover:bg-primary/90 transition tracking-widest shadow-xl shadow-primary/20"
                                     >
                                         Ver Meus Agendamentos

@@ -13,18 +13,18 @@ export default function SidebarCliente({ isOpen, onClose }) {
     const { logout, user } = useClientAuth();
 
     const menuItems = [
-        { icon: Home, label: 'Início', href: '/home' },
-        { icon: Calendar, label: 'Meus Agendamentos', href: '/agendamentos' },
-        { icon: Heart, label: 'Favoritos', href: '/favorites' },
-        { icon: CreditCard, label: 'Meus Cartões', href: '/cards' },
-        { icon: UserPlus, label: 'Assinaturas', href: '/subscriptions' },
-        { icon: Package, label: 'Pacotes', href: '/packages' },
-        { icon: Clock, label: 'Histórico', href: '/history' },
-        { icon: User, label: 'Perfil / Meus Dados', href: '/profile' },
-        { icon: ShieldCheck, label: 'Segurança', href: '/profile/security' },
-        { icon: Settings, label: 'Preferências', href: '/profile/preferences' },
-        { icon: MessageSquare, label: 'Suporte / Ouvidoria', href: '/support' },
-        { icon: FileText, label: 'Termos de Uso', href: '/terms' },
+        { icon: Home, label: 'Início', href: '/inicio' },
+        { icon: Calendar, label: 'Agenda', href: '/agenda' },
+        { icon: Heart, label: 'Favoritos', href: '/favoritos' },
+        { icon: CreditCard, label: 'Meus Cartões', href: '/cartoes' },
+        { icon: UserPlus, label: 'Assinaturas', href: '/assinaturas' },
+        { icon: Package, label: 'Pacotes', href: '/pacotes' },
+        { icon: Clock, label: 'Histórico', href: '/historico' },
+        { icon: User, label: 'Perfil / Meus Dados', href: '/perfil' },
+        { icon: ShieldCheck, label: 'Segurança', href: '/perfil/seguranca' },
+        { icon: Settings, label: 'Preferências', href: '/perfil/preferencias' },
+        { icon: MessageSquare, label: 'Suporte / Ouvidoria', href: '/suporte' },
+        { icon: FileText, label: 'Termos de Uso', href: '/termos' },
     ];
 
     return (
@@ -47,7 +47,7 @@ export default function SidebarCliente({ isOpen, onClose }) {
                 <div className="flex flex-col h-full">
                     {/* Logo Area */}
                     <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                        <Link href="/home" className="flex items-center gap-2" onClick={onClose}>
+                        <Link href="/inicio" className="flex items-center gap-2" onClick={onClose}>
                             <img src="/logos/logo_icon.png" alt="NEXT" className="h-8 w-auto rounded-lg" />
                         </Link>
                         <button onClick={onClose} className="lg:hidden text-slate-400 hover:text-white">
@@ -58,7 +58,7 @@ export default function SidebarCliente({ isOpen, onClose }) {
                     {/* Navigation Items */}
                     <nav className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
                         {menuItems.map((item) => {
-                            const isActive = pathname === item.href || (item.href !== '/home' && pathname.startsWith(item.href));
+                            const isActive = pathname === item.href || (item.href !== '/inicio' && pathname.startsWith(item.href));
                             return (
                                 <Link
                                     key={item.href}

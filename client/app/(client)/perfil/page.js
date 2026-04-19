@@ -109,7 +109,7 @@ export default function ProfileMenuPage() {
             <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white font-sans flex flex-col items-center pt-12 pb-32 px-6 overflow-x-hidden">
                 <div className="w-full max-w-sm">
                     <button
-                        onClick={() => router.push('/home')}
+                        onClick={() => router.push('/inicio')}
                         className="w-10 h-10 glass-premium rounded-xl mb-8 flex items-center justify-center text-slate-400 active:scale-95 transition-all"
                     >
                         <ArrowLeft className="w-5 h-5" />
@@ -122,7 +122,7 @@ export default function ProfileMenuPage() {
                         {/* FLOATING ACTION BUTTON: SEARCH / LOGO ICON (CLEAN & MINIMAL STYLE) */}
                         <div className="relative -top-6">
                             <Link
-                                href="/search"
+                                href="/buscar"
                                 className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 overflow-hidden bg-gradient-to-br from-[#7c3aed] to-[#9333ea] border-2 border-white/20 shadow-[0_0_15px_rgba(147,51,234,0.6)] hover:shadow-[0_0_25px_rgba(147,51,234,0.8)]"
                             >
                                 <img src="/logos/logo_icon.png" alt="Search" className="w-[70%] h-[70%] object-contain opacity-90 hover:opacity-100 transition-opacity" />
@@ -344,7 +344,7 @@ export default function ProfileMenuPage() {
     // If logged in, potentially redirect or show mobile menu
     useEffect(() => {
         if (user && window.innerWidth >= 1024) {
-            router.replace('/profile/edit');
+            router.replace('/perfil/editar');
         }
     }, [user, router]);
 
@@ -352,27 +352,27 @@ export default function ProfileMenuPage() {
         {
             title: 'Perfil',
             items: [
-                { icon: User, label: 'Meus Dados', sub: 'Nome, e-mail e avatar', href: '/profile/edit' },
-                { icon: Key, label: 'Segurança', sub: '2FA e senhas de acesso', href: '/profile/access' },
-                { icon: MapPin, label: 'Localização', sub: 'Endereços de atendimento', href: '/profile/address' },
+                { icon: User, label: 'Meus Dados', sub: 'Nome, e-mail e avatar', href: '/perfil/editar' },
+                { icon: Key, label: 'Segurança', sub: '2FA e senhas de acesso', href: '/perfil/acesso' },
+                { icon: MapPin, label: 'Localização', sub: 'Endereços de atendimento', href: '/perfil/endereco' },
             ]
         },
         {
             title: 'Serviços',
             items: [
-                { icon: Heart, label: 'Meus Favoritos', sub: 'Barbearias salvas', href: '/favorites' },
-                { icon: CreditCard, label: 'Formas de Pagamento', sub: 'Cartões e carteira', href: '/cards' },
-                { icon: UserPlus, label: 'Planos e Assinaturas', sub: 'Seu status premium', href: '/subscriptions' },
-                { icon: Package, label: 'Pacotes Ativos', sub: 'Saldos e validades', href: '/packages' },
-                { icon: Clock, label: 'Histórico Completo', sub: 'Agendamentos passados', href: '/history' },
+                { icon: Heart, label: 'Meus Favoritos', sub: 'Barbearias salvas', href: '/favoritos' },
+                { icon: CreditCard, label: 'Formas de Pagamento', sub: 'Cartões e carteira', href: '/cartoes' },
+                { icon: UserPlus, label: 'Planos e Assinaturas', sub: 'Seu status premium', href: '/assinaturas' },
+                { icon: Package, label: 'Pacotes Ativos', sub: 'Saldos e validades', href: '/pacotes' },
+                { icon: Clock, label: 'Histórico Completo', sub: 'Agendamentos passados', href: '/historico' },
             ]
         },
         {
             title: 'Suporte',
             items: [
-                { icon: Settings, label: 'Preferências', sub: 'Notificações e tema', href: '/profile/preferences' },
-                { icon: MessageSquare, label: 'Canal de Ajuda', sub: 'Suporte especializado', href: '/support' },
-                { icon: FileText, label: 'Termos Legais', sub: 'Privacidade e uso', href: '/terms' },
+                { icon: Settings, label: 'Preferências', sub: 'Notificações e tema', href: '/perfil/preferencias' },
+                { icon: MessageSquare, label: 'Canal de Ajuda', sub: 'Suporte especializado', href: '/suporte' },
+                { icon: FileText, label: 'Termos Legais', sub: 'Privacidade e uso', href: '/termos' },
             ]
         }
     ];
@@ -400,7 +400,7 @@ export default function ProfileMenuPage() {
                         <p className="text-[9px] text-primary font-black uppercase tracking-[0.2em] mt-1 glow-blue">Membro Diamante</p>
                     </div>
                 </div>
-                <button onClick={() => router.push('/profile/edit')} className="w-12 h-12 glass-premium rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-lg active:scale-90">
+                <button onClick={() => router.push('/perfil/editar')} className="w-12 h-12 glass-premium rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-lg active:scale-90">
                     <Settings className="w-6 h-6" />
                 </button>
             </div>
@@ -439,7 +439,7 @@ export default function ProfileMenuPage() {
                 <button
                     onClick={() => {
                         logout();
-                        router.push('/home');
+                        router.push('/inicio');
                     }}
                     className="w-full py-5 rounded-[2rem] glass-premium border-red-500/10 text-red-500 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-red-500 hover:text-white transition-all active:scale-95"
                 >

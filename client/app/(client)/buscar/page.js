@@ -31,6 +31,7 @@ export default function SearchPage() {
     const [viewMode, setViewMode] = useState('LIST'); // LIST, MAP
     const [loading, setLoading] = useState(false);
     const [isLocating, setIsLocating] = useState(false);
+    const [searchTab, setSearchTab] = useState('NAME'); // NAME, CITY, NEARBY
     
     // Data State
     const [searchTerm, setSearchTerm] = useState('');
@@ -204,8 +205,38 @@ export default function SearchPage() {
                     isLocating={isLocating}
                 />
 
+                {/* Main Tabs */}
+                <div className="flex items-center gap-8 mt-4 border-b border-white/5 relative">
+                    {[
+                        { id: 'NAME', label: 'Nome' },
+                        { id: 'CITY', label: 'Cidade' },
+                        { id: 'NEARBY', label: 'Próximas', badge: 'GPS' }
+                    ].map((tab) => {
+                        const isActive = searchTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setSearchTab(tab.id)}
+                                className={`relative pb-4 text-sm font-bold transition-all flex items-center gap-2 ${
+                                    isActive ? 'text-white' : 'text-white/40 hover:text-white/60'
+                                }`}
+                            >
+                                {tab.label}
+                                {tab.badge && (
+                                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 uppercase tracking-tighter">
+                                        {tab.badge}
+                                    </span>
+                                )}
+                                {isActive && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_rgba(37,99,235,0.5)] animate-in fade-in duration-300" />
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+
                 {/* Content */}
-                <main className="mt-6">
+                <main className="mt-8">
                     {loading ? (
                         <div className="grid grid-cols-1 gap-4">
                             {[1, 2, 3, 4].map(i => (

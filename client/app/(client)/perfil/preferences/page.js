@@ -48,7 +48,7 @@ export default function PreferencesPage() {
                 {/* Header */}
                 <header className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-4">
-                        <Link href="/profile" className="p-2.5 -ml-2 bg-slate-900/50 border border-slate-800 rounded-2xl hover:bg-slate-800 transition-all group">
+                        <Link href="/perfil" className="p-2.5 -ml-2 bg-slate-900/50 border border-slate-800 rounded-2xl hover:bg-slate-800 transition-all group">
                             <ArrowLeft className="w-5 h-5 text-slate-400 group-hover:text-white" />
                         </Link>
                         <div>
