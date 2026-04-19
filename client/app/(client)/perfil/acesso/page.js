@@ -2,9 +2,10 @@
 import { Key, Smartphone, Mail, Globe, CheckCircle2 } from 'lucide-react';
 import { useClientAuth } from '../../../../contexts/ClientAuthContext';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function AccessPage() {
-    const { user } = useClientAuth();
+    const { user, googleLogin, facebookLogin } = useClientAuth();
 
     const accessMethods = [
         {
@@ -19,7 +20,28 @@ export default function AccessPage() {
             label: 'Google',
             value: user?.avatarUrl?.includes('googleusercontent') ? 'Conectado' : 'Não vinculado',
             connected: !!user?.avatarUrl?.includes('googleusercontent'),
-            desc: 'Acesse rapidamente usando sua conta Google.'
+            desc: 'Acesse rapidamente usando sua conta Google.',
+            onClick: async () => {
+                const toastId = toast.loading('Conectando ao Google...');
+                const res = await googleLogin();
+                toast.dismiss(toastId);
+                if (res?.success) toast.success('Conta Google vinculada com sucesso!');
+                else toast.error(res?.message || 'Erro ao vincular Google.');
+            }
+        },
+        {
+            icon: Smartphone, // Can use Facebook icon if available, but Smartphone/Globe works as fallback
+            label: 'Facebook',
+            value: user?.avatarUrl?.includes('facebook') ? 'Conectado' : 'Não vinculado',
+            connected: !!user?.avatarUrl?.includes('facebook'),
+            desc: 'Acesse usando sua conta do Facebook.',
+            onClick: async () => {
+                const toastId = toast.loading('Conectando ao Facebook...');
+                const res = await facebookLogin();
+                toast.dismiss(toastId);
+                if (res?.success) toast.success('Conta Facebook vinculada com sucesso!');
+                else toast.error(res?.message || 'Erro ao vincular Facebook.');
+            }
         },
     ];
 
@@ -85,7 +107,10 @@ export default function AccessPage() {
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em]">Conectado</span>
                                 </div>
                             ) : (
-                                <button className="px-8 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:bg-white/10 hover:text-white transition-all">
+                                <button 
+                                    onClick={method.onClick}
+                                    className="px-8 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+                                >
                                     Vincular agora
                                 </button>
                             )}

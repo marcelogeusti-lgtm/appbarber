@@ -1,5 +1,6 @@
 'use client';
 import { XCircle, CheckCircle2, UserX, BookOpen, DollarSign, Heart, Zap, Calendar } from 'lucide-react';
+import LEDCardWrapper from './LEDCardWrapper';
 
 export default function ProblemSolution() {
     const comparisons = [
@@ -30,72 +31,77 @@ export default function ProblemSolution() {
     ];
 
     return (
-        <section className="py-24 bg-white overflow-hidden">
+        <section className="py-24 bg-[#050505] overflow-hidden">
             <div className="container mx-auto px-4">
-                <div className="text-center max-w-3xl mx-auto mb-20">
-                    <h2 className="text-3xl lg:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">
+                <div className="text-center max-w-4xl mx-auto mb-20">
+                    <h2 className="text-3xl lg:text-6xl font-extrabold text-white mb-8 tracking-tighter">
                         Você corta cabelo ou <br />
-                        <span className="text-primary text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">gerencia problemas?</span>
+                        <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">gerencia problemas?</span>
                     </h2>
-                    <p className="text-gray-500 text-lg font-medium leading-relaxed">
+                    <p className="text-slate-400 text-xl font-medium leading-relaxed">
                         Pare de perder tempo com tarefas manuais. Veja a diferença entre quem usa o NEXT e quem ainda está no papel.
                     </p>
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-12 items-stretch">
                     {/* Pain Side */}
-                    <div className="p-8 lg:p-12 rounded-[2.5rem] bg-gray-50 border border-gray-100 flex flex-col">
-                        <div className="flex items-center gap-3 mb-12">
-                            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600">
-                                <XCircle className="w-6 h-6" />
-                            </div>
-                            <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Sem o NEXT</h3>
-                        </div>
-
-                        <div className="space-y-8 flex-1">
-                            {comparisons.map((c, i) => (
-                                <div key={i} className="flex gap-4 group">
-                                    <div className="mt-1 w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 group-hover:text-red-400 transition-colors">
-                                        <c.painIcon className="w-3 h-3" />
-                                    </div>
-                                    <p className="text-gray-500 font-medium text-sm leading-relaxed">{c.pain}</p>
+                    <LEDCardWrapper className="h-full">
+                        <div className="p-8 lg:p-14 rounded-[3rem] bg-[#0A0A0B]/40 backdrop-blur-3xl border border-white/5 flex flex-col group/pain transition-all hover:bg-[#0A0A0B]/60 h-full">
+                            <div className="flex items-center gap-4 mb-14">
+                                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 group-hover/pain:scale-110 transition-transform">
+                                    <XCircle className="w-6 h-6" />
                                 </div>
-                            ))}
-                        </div>
+                                <h3 className="text-2xl font-black text-slate-300 uppercase tracking-tighter transition-colors group-hover/pain:text-white">Sem o NEXT</h3>
+                            </div>
 
-                        <div className="mt-12 pt-8 border-t border-gray-100">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Resultado:</p>
-                            <p className="text-lg font-bold text-gray-900 mt-2 italic">Noites em claro e dinheiro na mesa.</p>
+                            <div className="space-y-10 flex-1">
+                                {comparisons.map((c, i) => (
+                                    <div key={i} className="flex gap-5 group">
+                                        <div className="mt-1 w-6 h-6 rounded-full border border-white/10 flex items-center justify-center text-slate-500 group-hover:text-red-400 group-hover:border-red-400/50 transition-all duration-300">
+                                            <c.painIcon className="w-3.5 h-3.5" />
+                                        </div>
+                                        <p className="text-slate-400 font-medium text-base leading-relaxed group-hover:text-slate-300 transition-colors">{c.pain}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-14 pt-10 border-t border-white/5">
+                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.35em]">Resultado Cruel:</p>
+                                <p className="text-xl font-bold text-slate-300 mt-2 italic transition-colors group-hover/pain:text-white">Noites em claro e faturamento escorrendo pelo ralo.</p>
+                            </div>
                         </div>
-                    </div>
+                    </LEDCardWrapper>
 
                     {/* Solution Side */}
-                    <div className="p-8 lg:p-12 rounded-[2.5rem] bg-gray-900 border-2 border-primary flex flex-col relative overflow-hidden shadow-[0_40px_80px_rgba(77,114,228,0.2)]">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                    <LEDCardWrapper className="h-full">
+                        <div className="p-8 lg:p-14 rounded-[3rem] bg-gradient-to-br from-[#0A0A0B] to-[#050505] border-2 border-primary flex flex-col relative overflow-hidden shadow-[0_0_100px_rgba(77,114,228,0.15)] group/solution hover:shadow-[0_0_120px_rgba(77,114,228,0.25)] transition-all h-full">
+                            <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 blur-[130px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
 
-                        <div className="flex items-center gap-3 mb-12 relative z-10">
-                            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/40">
-                                <CheckCircle2 className="w-6 h-6" />
-                            </div>
-                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Com o NEXT</h3>
-                        </div>
-
-                        <div className="space-y-8 flex-1 relative z-10">
-                            {comparisons.map((c, i) => (
-                                <div key={i} className="flex gap-4 group">
-                                    <div className="mt-1 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary group-hover:text-white transition-all shadow-lg shadow-primary/10">
-                                        <c.solutionIcon className="w-3 h-3" />
-                                    </div>
-                                    <p className="text-gray-300 font-medium text-sm leading-relaxed">{c.solution}</p>
+                            <div className="flex items-center gap-4 mb-14 relative z-10">
+                                <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-[0_0_40px_#4d72e4] group-hover/solution:scale-110 transition-transform">
+                                    <CheckCircle2 className="w-6 h-6" />
                                 </div>
-                            ))}
-                        </div>
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Com o NEXT</h3>
+                            </div>
 
-                        <div className="mt-12 pt-8 border-t border-white/5 relative z-10">
-                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">Resultado:</p>
-                            <p className="text-lg font-bold text-white mt-2 italic">Agenda lotada e gestão em piloto automático.</p>
+                            <div className="space-y-10 flex-1 relative z-10">
+                                {comparisons.map((c, i) => (
+                                    <div key={i} className="flex gap-5 group">
+                                        <div className="mt-1 w-6 h-6 rounded-full bg-primary/10 border border-white/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-[0_0_20px_rgba(77,114,228,0.2)]">
+                                            <c.solutionIcon className="w-3.5 h-3.5" />
+                                        </div>
+                                        <p className="text-slate-300 font-medium text-base leading-relaxed group-hover:text-white transition-colors">{c.solution}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-14 pt-10 border-t border-white/10 relative z-10">
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.35em]">Resultado Master:</p>
+                                <p className="text-xl font-bold text-white mt-2 italic shadow-primary/10">Agenda lotada e gestão em piloto automático.</p>
+                            </div>
                         </div>
-                    </div>
+                    </LEDCardWrapper>
                 </div>
             </div>
         </section>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Users, Calendar, Scissors, TrendingUp } from 'lucide-react';
+import LEDCardWrapper from './LEDCardWrapper';
 
 const Counter = ({ target, duration = 2000 }) => {
     const [count, setCount] = useState(0);
@@ -30,22 +31,24 @@ export default function StatsCounter() {
     ];
 
     return (
-        <section className="py-20 bg-gray-900 border-y border-white/5 relative overflow-hidden">
+        <section className="py-20 bg-[#050505] border-y border-white/5 relative overflow-hidden">
             {/* Background Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 blur-[150px] pointer-events-none" />
 
             <div className="container mx-auto px-4 relative z-10">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
                     {stats.map((stat, i) => (
                         <div key={i} className="text-center group">
-                            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 group-hover:border-primary/30 transition-all duration-500">
-                                <stat.icon className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" />
-                            </div>
-                            <h4 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-2">
+                            <LEDCardWrapper className="mx-auto mb-6 w-fit">
+                                <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-500 shadow-xl backdrop-blur-sm">
+                                    <stat.icon className="w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
+                                </div>
+                            </LEDCardWrapper>
+                            <h4 className="text-3xl lg:text-5xl font-black text-white tracking-tighter mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                                 <Counter target={stat.val} />
                                 {stat.val > 1000 && "+"}
                             </h4>
-                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">{stat.label}</p>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.35em]">{stat.label}</p>
                         </div>
                     ))}
                 </div>

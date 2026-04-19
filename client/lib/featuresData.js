@@ -19,14 +19,14 @@ export const featuresData = {
         icon: Calendar,
         color: 'text-blue-500',
         bgIcon: 'bg-blue-500/10',
-        title: "Agenda Anti-Falta (Bot)",
-        oneLiner: "O NEXT cobra os clientes antes e os lembra no WhatsApp. Acabe com o No-Show invisível.",
-        heroTitle: "Não sofra mais com Cadeiras Vazias.",
-        heroDesc: "Agendamento inteligente que garante a confirmação e reduz as faltas do seu estabelecimento em até 85%.",
+        title: "Agendadora Anti-Falta",
+        oneLiner: "Lembretes no WhatsApp e cobrança de garantias para acabar de vez com os horários furados.",
+        heroTitle: "Cadeira vazia custa muito caro.",
+        heroDesc: "Garanta que seus clientes compareçam. Nosso sistema inteligente reduz as faltas na sua barbearia em até 85%.",
         benefits: [
-            { title: "Lembretes Automáticos", desc: "Envio de mensagens 2h e 24h via WhatsApp sem esforço manual." },
-            { title: "Bloqueio de No-Show", desc: "Clientes com alto índice de faltas devem pagar sinal." },
-            { title: "Gestão por Color-Code", desc: "Visão diária, semanal ou mensal categorizada por cores de status." }
+            { title: "Lembretes Automáticos", desc: "O sistema envia mensagens 2h e 24h antes do horário. O cliente não esquece e você não perde dinheiro." },
+            { title: "Sinal de Garantia", desc: "Exija o pagamento de um sinal (via PIX ou cartão) de clientes com o costume de marcar e não aparecer." },
+            { title: "Mapeamento Visual", desc: "Bata o olho na agenda e saiba imediatamente pelas cores quem confirmou, quem pagou e quem atrasou." }
         ]
     },
     'financeiro-avancado': {
@@ -34,14 +34,14 @@ export const featuresData = {
         icon: TrendingUp,
         color: 'text-emerald-500',
         bgIcon: 'bg-emerald-500/10',
-        title: "Financeiro Pro & Comissões",
-        oneLiner: "Trave o fechamento do caixa sem erros. Divisão automática de comissões PIX na hora.",
-        heroTitle: "Domínio Absoluto do Fluxo de Caixa.",
-        heroDesc: "Acabe com a confusão para pagar o fim de semana dos barbeiros. Split de pagamentos automático.",
+        title: "Financeiro & Split Automático",
+        oneLiner: "Repasse comissões do time na exata hora da transação e feche o mês sem planilhas confusas.",
+        heroTitle: "Fim da confusão no fechamento.",
+        heroDesc: "Livre-se das contas de papel e planilhas instáveis. Automatize o acerto com sua equipe e tenha o controle na mão.",
         benefits: [
-            { title: "Fechamento Rápido", desc: "1 clique para ver entradas, saídas e taxas retidas da maquininha." },
-            { title: "Split de Pagamentos", desc: "Ao receber via Mercado Pago ou cartão, a comissão já é descontada automaticamente." },
-            { title: "Previsões Diárias", desc: "Saiba quanto você tem provisionado a receber amanhã com base na agenda." }
+            { title: "Fechamento Imediato", desc: "Com 1 clique, visualize lucros reais já deduzindo custos, saídas e até as taxas invisíveis da maquininha." },
+            { title: "Split de Recebimento", desc: "Pagamentos online são divididos instantaneamente: a sua fatia vai pro salão e a do barbeiro cai na conta dele." },
+            { title: "Previsibilidade Diária", desc: "Pare de adivinhar. O sistema mostra quanto faturamento futuro já está travado na sua agenda de amanhã." }
         ]
     },
     'garcom-digital': {
@@ -49,14 +49,14 @@ export const featuresData = {
         icon: MessageSquare,
         color: 'text-primary',
         bgIcon: 'bg-primary/10',
-        title: "Garçom Digital (24/7)",
-        oneLiner: "Seu link de agendamento trabalha de madrugada enquanto você dorme, sem precisar baixar Apps.",
-        heroTitle: "Seja contratado de Madrugada.",
-        heroDesc: "Um bot completo que processa agendamentos por conta própria mesmo com você off-line.",
+        title: "Recepcionista 24/7",
+        oneLiner: "Um link que atende, vende serviços adicionais e fecha reservas sozinho — até de madrugada.",
+        heroTitle: "Seja contratado enquanto dorme.",
+        heroDesc: "30% dos fechamentos ocorrem de madrugada. Tenha um assistente digital que agenda os clientes sem depender da sua recepção humanizada.",
         benefits: [
-            { title: "Link na Bio", desc: "Perfeito para redes sociais. Um fluxo leve e direto focando em vendas." },
-            { title: "Sem Instalação", desc: "Nenhum cliente precisa baixar aplicativo. Roda 100% no navegador (Web App)." },
-            { title: "Autonomia", desc: "Clientes cancelam e remarcam sozinhos de acordo com as regras de tempo que você definir." }
+            { title: "Bio do Instagram Otimizada", desc: "Direcione as views das redes sociais para um link leve, ultrarrápido e projetado exclusivamente para a conversão." },
+            { title: "Rodando Direto no Navegador", desc: "Zero necessidade de convencer o usuário a baixar aplicativos pesados. Ele abre o link e agenda em 30 segundos." },
+            { title: "Remarcações Práticas", desc: "Clientes possuem autonomia para ajustar seus próprios horários sem te chamar, mas sempre exigindo seu aceite antecipado." }
         ]
     },
     'fidelizacao-magnetica': {
@@ -64,14 +64,14 @@ export const featuresData = {
         icon: Heart,
         color: 'text-rose-500',
         bgIcon: 'bg-rose-500/10',
-        title: "Fidelização Magnética",
-        oneLiner: "Traga o cliente de volta semanas antes do cabelo dele crescer com avisos e pontos automatizados.",
-        heroTitle: "Transforme Visitantes em Fanáticos.",
-        heroDesc: "A ciência comprova: cliente com meta de pontos retorna 42% mais rápido. Apple Wallet Integrado.",
+        title: "Motor de Retenção",
+        oneLiner: "Estimule o retorno semanas antes com nosso Clube de Pontos direto na Apple Wallet.",
+        heroTitle: "Transforme sua base em clientes fanáticos.",
+        heroDesc: "A ciência indica que programas de pontos reduzem o tempo de retorno do cliente em 42%. E o NEXT administra isso para você sozinha.",
         benefits: [
-            { title: "Cashback e Pontos", desc: "Configure quantos R$ representam 1 ponto e libere prêmios em serviços." },
-            { title: "Retenção Passiva", desc: "Avisamos pelo WhatsApp quando os pontos do cliente estão prestes a expirar." },
-            { title: "Passes da Apple Wallet", desc: "O seu próprio cartão digital vivendo dentro do iOS Wallet do seu cliente." }
+            { title: "Clube de Vantagens Customizado", desc: "Defina sozinho quantos reais equivalem a um ponto e engaje o usuário a comprar produtos mais caros para resgates VIP." },
+            { title: "Disparos de Recuperação", desc: "Avisamos automaticamente ao celular do cliente que já chegou a época recomendada para ele cortar de novo." },
+            { title: "Cartão de Bolso iOS", desc: "Surpreenda entregando um lindo passe digital de fidelidade que repousa oficialmente na carteira nativa 'Wallet' dos seus clientes." }
         ]
     },
     'controle-equipe': {
@@ -79,14 +79,14 @@ export const featuresData = {
         icon: Users,
         color: 'text-violet-500',
         bgIcon: 'bg-violet-500/10',
-        title: "Controle da Equipe",
-        oneLiner: "Saiba exatamente qual barbeiro dá mais lucro e quem mais atrai clientes novos na sua unidade.",
-        heroTitle: "Painel Espião de Produtividade.",
-        heroDesc: "Não gerencie por achismo. Tenha na palma da mão os indicadores de lucratividade de cada parceiro.",
+        title: "Raio-X da Equipe",
+        oneLiner: "Acompanhe quem capta mais lucro e crie metas gamificadas sem que sintam que estão vigiados.",
+        heroTitle: "Chega de gerenciar o salão por intuição.",
+        heroDesc: "Substitua a micro-gerência exaustiva por um painel de indicadores focados que atestam quem levanta a régua do seu negócio.",
         benefits: [
-            { title: "Extratos Individuais", desc: "Seu barbeiro tem um login próprio pra ver quanto gerou e quanto irá receber." },
-            { title: "Níveis de Permissão", desc: "Crie senhas para Barbeiros (vê só a própria agenda) ou Gerentes (vê tudo menos lucro master)." },
-            { title: "Horários Customizados", desc: "Sete uma rotina individual: feriados, pausas para almoço e dias off por funcionário." }
+            { title: "Áreas Individuais Transparentes", desc: "Seu parceiro entra em um acesso pessoal dele apenas para prever sua agenda, seu caixa atual e validar onde pode melhorar." },
+            { title: "Direitos e Permissões Seguras", desc: "Atribua senhas limitadas para Gerentes (podem cancelar compras) e Barbeiros Padrão (impedidos de olhar rendimento geral)." },
+            { title: "Turnos Altamente Configuráveis", desc: "Estruture escalas personalizadas por membro, isolando feriados bancários e férias agendadas de forma modular." }
         ]
     },
     'padrao-premium': {
@@ -94,14 +94,14 @@ export const featuresData = {
         icon: Smartphone,
         color: 'text-gray-900',
         bgIcon: 'bg-gray-900/10',
-        title: "Site com Padrão Premium",
-        oneLiner: "Eleve o nível. Entregue uma experiência de agendamento sem fricção que impressiona seus clientes.",
-        heroTitle: "A Primeira Impressão de Ouro.",
-        heroDesc: "Apresente uma vitrine deslumbrante e Dark Mode customizada para a sua marca.",
+        title: "Vitrine Ultra-Premium",
+        oneLiner: "Projete muito luxo no primeiro contato com uma aplicação bela, rápida e no padrão Dark Mode.",
+        heroTitle: "Toda primeira impressão é dourada.",
+        heroDesc: "Venda o seu corte por um valor elevado ancorando na estética impecável do seu app de marca. O livro é sim julgado pela capa.",
         benefits: [
-            { title: "White Label Sutil", desc: "Adicione sua logomarca e sua cor para que pareça que é um aplicativo só seu." },
-            { title: "Portfólio de Barbeiros", desc: "Exiba as imagens do salão e fotos exclusivas para instigar o luxo." },
-            { title: "Performance Rápida", desc: "Carregamento instantâneo feito com servidor Vercel para não perder ninguém no Loading." }
+            { title: "White-Label Sutil", desc: "Inserimos uma tonalidade seleta, botões polidos e toda a interface configurada para girar esteticamente ao redor do seu emblema." },
+            { title: "Book Sensorial de Especialistas", desc: "Desfile catálogos fotográficos de resultados deslumbrantes que acionam no interessado um impulso irresistível pelo seu espaço." },
+            { title: "Arquitetura de Vanguarda", desc: "Enraizado onde gigantes como Nike e Netflix rodam suas interfaces, as telas saltam sob os toques no celular do usuário final." }
         ]
     },
     'gestao-estoque': {
@@ -109,14 +109,14 @@ export const featuresData = {
         icon: Package,
         color: 'text-amber-500',
         bgIcon: 'bg-amber-500/10',
-        title: "Estoque & Inventário",
-        oneLiner: "Acompanhe pomadas, bebidas e lâminas em tempo real e saiba quando recomprar.",
-        heroTitle: "O Fim dos Desperdícios e Desvios.",
-        heroDesc: "Produtos vendidos no caixa são baixados automaticamente do estoque interno da filial.",
+        title: "Vazamento Zero (Estoque)",
+        oneLiner: "Controle mercadorias preciosas rigorosamente. Baixas em tempo real na hora da comanda.",
+        heroTitle: "Aniquile furtos não intencionais.",
+        heroDesc: "Acabou a conta de padaria nas pomadas ou bebidas caras. Mantenha controle hermético do seu catálogo sem ficar chato de gerir.",
         benefits: [
-            { title: "Dedução Automática", desc: "Ao criar uma Comanda (Pedido), os itens vendidos saem direto do inventário." },
-            { title: "Alerta de Estoque Baixo", desc: "Receba avisos na Dashboard de quais produtos precisam ser repostos urgente." },
-            { title: "Valor de Revenda", desc: "Controle da margem de Lucro (Custo de Custo vs Custo de Venda)." }
+            { title: "Dedução Cruzada", desc: "Sempre que uma loção capilar é faturada dentro de um pedido presencial, esse mesmo produto já subtrai permanentemente da sua geladeira global." },
+            { title: "Detecção de Queda Mínima", desc: "Os algoritmos do painel gerencial ficam amarelos instantaneamente assim que as cervejas beiram o final definido por você." },
+            { title: "Fórmulas de Custo Reveladoras", desc: "Encare finalmente o choque de realidade comparando o seu valor gasto no atacadão perante o lucro purificado do balcão da sua recepção." }
         ]
     },
     'importacao-lote': {
@@ -124,14 +124,14 @@ export const featuresData = {
         icon: Import,
         color: 'text-fuchsia-500',
         bgIcon: 'bg-fuchsia-500/10',
-        title: "Importação 1-Clique",
-        oneLiner: "Traga toda sua base atual de clientes das antigas planilhas do Excel para o sistema em segundos.",
-        heroTitle: "Migração Sem Perder um Fio de Cabelo.",
-        heroDesc: "Sabemos o trauma de migrar sistemas. Nós reduzimos de 40 horas de trabalho manual para 1 clique.",
+        title: "Migração Mágica (1-Click)",
+        oneLiner: "Largue amanhã sua plataforma ultrapassada e mova mil nomes VIP ao seu novo palco agora.",
+        heroTitle: "Diga não ao trauma de trocar sistema.",
+        heroDesc: "Temos horror a formulários vazios no primeiro dia. Trouxemos um motor onde basta submeter um arquivo confuso que extraímos seus tesouros.",
         benefits: [
-            { title: "CSV Universal", desc: "Suporte para arquivos Excel, Google Sheets ou exportação de concorrentes." },
-            { title: "Validação Anti-Duplicata", desc: "O sistema limpa números de telefone quebrados ou nomes duplicados automaticamente." },
-            { title: "Preserva Históricos", desc: "Guarde as informações pregressas dos seus frequentadores VIPs sem recomeçar do zero." }
+            { title: "Mapeador Universal Flexível", desc: "Upload amigável acatando arquivos confusos CSVs, listas soltas de Sheets, sem forçar que você trabalhe como digitador para limpar sujeira." },
+            { title: "Cura Anti-Duplicação", desc: "Encontramos aquele cliente Marcos da Silva cadastrado 4 vezes, agrupamos sua relevância apagando duplos fantasmas do banco de dados." },
+            { title: "Dignidade dos VIPs Intocada", desc: "Manutenção absoluta dos registros pregressos resguardando pontos históricos e preferência que você duramente fidelizou nos últimos 5 anos de carreira." }
         ]
     },
     'avaliacoes-clientes': {
@@ -139,14 +139,14 @@ export const featuresData = {
         icon: Star,
         color: 'text-yellow-500',
         bgIcon: 'bg-yellow-500/10',
-        title: "Avaliações Secretas",
-        oneLiner: "Módulo interno de Feedbacks. Saiba discretamente o que os clientes acharam do serviço antes que postem no Google.",
-        heroTitle: "O Termômetro Final de Qualidade.",
-        heroDesc: "O Google Review salva a empresa, as Reviews Internas salvam o serviço diário.",
+        title: "Pesquisa NPS Sigilosa",
+        oneLiner: "Colha reclamações antes da indignação pública e potencialize apenas as notas 5 lá no Google.",
+        heroTitle: "Blindado de críticas na ponta.",
+        heroDesc: "Compreendemos que 1 estrela injusta custa clientes reais; nosso reator resolve focos de rebelião e amplifica a fama dos clientes gratos.",
         benefits: [
-            { title: "Feedback Automático", desc: "Ao fim de cada serviço, um link sutil pede nota de 1 a 5." },
-            { title: "Visão Gerencial", desc: "Verifique quais profissionais ganham mais estrelas e bonifique-os." },
-            { title: "Ação Preventiva", desc: "Intercepte clientes insatisfeitos com um cupom de desconto antes deles reclamarem na internet." }
+            { title: "Sondagem Fim de Expediente", desc: "Com um click, o cara sentado na praça de alimentação preenche anonimamente porque aquela barba de fato não foi bem desenhada hoje." },
+            { title: "Interceptação Tática", desc: "Entregou 1 Estrela? Redireciona o frustrado para sua DM pedindo Desculpas com um Gift; Deu 5 estrelas? Joga imediamente pro Link da sua empresa no Google Reviews." },
+            { title: "Mapa Termal do Atendimento", desc: "Informa impiedosamente a liderança evidenciando aquele cabelereiro recém admitido que não sorri perante à cartela mais chique do dia." }
         ]
     },
     'universidade': {
@@ -154,14 +154,14 @@ export const featuresData = {
         icon: Video,
         color: 'text-indigo-500',
         bgIcon: 'bg-indigo-500/10',
-        title: "Universidade SaaS",
-        oneLiner: "Assista cursos internos para destravar mais clientes, com dicas de marketing e vendas pro seu salão.",
-        heroTitle: "Você Evoluindo Além do Software.",
-        heroDesc: "De nada adianta a melhor ferramenta na mão errada. Adicionamos aulas de tração na sua Dashboard.",
+        title: "Universidade Privada",
+        oneLiner: "Software sozinho não atrai gente. Aperte o play nos cursos de marketing pra barbeiros aqui dentro.",
+        heroTitle: "Cresça como executivo, não apenas na tesoura.",
+        heroDesc: "Uma tecnologia impecável precisa estar cravada de liderança estratégica afiada; Desbloqueie tutoriais táticos avançados construindo barreiras defensivas sobre rivais.",
         benefits: [
-            { title: "Tutorias Estratégicos", desc: "Sessões semanais ensinando macetes comerciais de retenção." },
-            { title: "Comunidade VIP", desc: "Desbloqueio de insígnias assistindo horas de curso gerencial." },
-            { title: "Direcionado ao Líder", desc: "Conteúdo focado nos Administradores que querem abrir filiais novas." }
+            { title: "Conteúdos Direto da Trincheira", desc: "Estratégias para inflar faturamento diário baseadas não em professores teóricos, porém implementadas nos corredores reais de quem cortou milhares de clientes." },
+            { title: "Desbloqueio Progressivo", desc: "Alcance certas marcas gerenciais nos quadros de metas corporativas e garanta trilhas fechadas reservadas ao comitê de elite comercial." },
+            { title: "Intenção para Proprietários Solitários", desc: "Afastamento progressivo operacional te ensinando as premissas contabeis que pavimentam sua primeira sala para a subsequente quarta franquia master." }
         ]
     },
     'relatorios-bi': {
@@ -169,14 +169,14 @@ export const featuresData = {
         icon: BarChart3,
         color: 'text-cyan-500',
         bgIcon: 'bg-cyan-500/10',
-        title: "Analytics & B.I.",
-        oneLiner: "Os números não mentem. Gráficos em tempo real com exportação para PDF das vendas diárias.",
-        heroTitle: "Sua Barbearia Baseada em Dados.",
-        heroDesc: "Decida com clareza. Módulo que agrega os dias mais lucrativos contra os piores gargalos.",
+        title: "B.I. (Business Intelligence)",
+        oneLiner: "Abomine achismos. Relatórios contundentes que respondem em segundos as falhas ocultas no lucro.",
+        heroTitle: "O tabuleiro não mente mais.",
+        heroDesc: "A intuição engana quando as faturas triplicam. Assuma um assento balizado onde relatórios cristalinos dão os prognósticos letais da gestão de capital.",
         benefits: [
-            { title: "Gráficos Interativos", desc: "Painéis Chart.js modernos pra visualizar picos de receita mensais." },
-            { title: "Heatmaps", desc: "Descubra qual os dias e as horas na semana com mais reservas e planeje promoções." },
-            { title: "Exportação Segura", desc: "Envie relatórios para o contador fechados por período (.xlsx e .pdf)." }
+            { title: "Gargalos Térmicos no Relógio", desc: "Painéis Chart.js agressivamente gráficos mapeando qual turno é o deserto da demanda vs qual sexta-feira lotou para orquestrar táticas just in time sobre a praça." },
+            { title: "Expurgo de Burocracia Contadorial", desc: "Encaminhe para a agência contábil demonstrativos que reconciliam desvios passados formatados nativamente dentro de pacotes limpos (.csv/pdf)." },
+            { title: "Cura da Margem Sufocada", desc: "Sindicância que mostra exatamente onde qual perfil de corte/tintura exige energia vital demais retornado menos receita percentual do ticket global do salão." }
         ]
     },
     'multi-unidades': {
@@ -184,14 +184,14 @@ export const featuresData = {
         icon: Building2,
         color: 'text-orange-500',
         bgIcon: 'bg-orange-500/10',
-        title: "Central de Franquias",
-        oneLiner: "Controle duas, dez ou cinquenta barbearias a partir de um mesmo Super Dashboard Master.",
-        heroTitle: "Construído para Impérios.",
-        heroDesc: "Sem Gambiarras de abrir 'contas diferentes'. Mude a unidade operada num Toggle Button.",
+        title: "Franquias (Super Host)",
+        oneLiner: "Transacione a matriz da zona norte contra o polo litorâneo perfeitamente dentro da mesma sessão logada.",
+        heroTitle: "Construído do zero para seu império.",
+        heroDesc: "Fugimos dessa tortura que te faz logar trocando endereços de mail. Você acerta seus tentáculos como um comandante no alto sobre diversos quartéis dispersos simultaneamente.",
         benefits: [
-            { title: "Multi-Tenant Switch", desc: "Alterne a visão da barbearia de São Paulo pra do Rio de Janeiro num só clique." },
-            { title: "Comparação de Performance", desc: "Veja na visão Owner/Master qual matriz está arrastando a cadeia pra baixo." },
-            { title: "Assinaturas Conjuntas", desc: "Pague apenas o adicional proporcional, empacotado tudo em 1 conta global." }
+            { title: "O Toggle Imediato", desc: "Alterne a visão de supervisão matriz SP ou filial RJ em um botão com velocidade atômica inspecionando desvios na contramão de quem é apenas gerente restrito." },
+            { title: "Avaliação do Caçula", desc: "Coloque unidades novas recém estreadas versus corporações estabelecidas comparando percentuais de arranque validando a consistência do seu playbook original de modelo de barbearia." },
+            { title: "Subsídio Escalado (Billing)", desc: "Uma fatura total de Software para o dono master encadeando filhos a taxas mínimas, gerando rentabilidade global barateando todo ecossistema das unidades caçulas." }
         ]
     }
 };

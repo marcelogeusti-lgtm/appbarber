@@ -7,20 +7,20 @@ export default function Footer() {
         <footer className="bg-[#050505] border-t border-white/5 pt-20 pb-10">
             <div className="container mx-auto px-4">
                 {/* Final Pitch Section */}
-                <div className="mb-24 text-center max-w-4xl mx-auto py-16 px-8 rounded-[3rem] bg-gradient-to-br from-gray-900 to-black border border-white/5 shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] pointer-events-none" />
+                <div className="mb-24 text-center max-w-4xl mx-auto py-16 px-8 rounded-[3rem] bg-gradient-to-br from-[#0A0A0B] to-[#050505] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] pointer-events-none" />
                     <h2 className="text-3xl lg:text-5xl font-extrabold text-white mb-8 tracking-tight relative z-10">
                         Sua barbearia pode funcionar sozinha <br />
-                        <span className="text-primary italic">enquanto você corta cabelo.</span>
+                        <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent italic">enquanto você corta cabelo.</span>
                     </h2>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
                         <Link href="/register">
-                            <button className="px-10 py-5 bg-primary text-white text-base font-black uppercase tracking-widest rounded-2xl hover:bg-primary/90 transition-all shadow-[0_20px_40px_rgba(77,114,228,0.3)] hover:scale-105 active:scale-95">
+                            <button className="px-10 py-5 bg-white text-black text-base font-black uppercase tracking-widest rounded-2xl hover:bg-gray-100 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95">
                                 🚀 Começar grátis agora
                             </button>
                         </Link>
-                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">
-                            Teste por 7 dias sem compromisso
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                            Teste por 15 dias sem compromisso
                         </p>
                     </div>
                 </div>
@@ -31,12 +31,12 @@ export default function Footer() {
                     <div className="col-span-1 md:col-span-1">
                         <div className="flex items-center gap-2 mb-6">
                             <img
-                                src="/logos/NEXT_logo.svg"
+                                src="/logos/logo_full_dark.png"
                                 alt="NEXT Logo"
                                 className="h-10 w-auto object-contain brightness-0 invert"
                             />
                         </div>
-                        <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                        <p className="text-slate-400 text-sm leading-relaxed mb-6">
                             A plataforma completa para barbeiros que desejam escalar seu negócio e fidelizar clientes.
                         </p>
                         <div className="flex gap-4">
@@ -76,39 +76,39 @@ export default function Footer() {
                     {/* Links 1 */}
                     <div>
                         <h4 className="text-white font-bold mb-6">Produto</h4>
-                        <ul className="space-y-4 text-sm text-gray-500">
-                            <li><a href="#" className="hover:text-primary transition-colors">Funcionalidades</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Planos</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Atualizações</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Para Franquias</a></li>
+                        <ul className="space-y-4 text-sm text-slate-400">
+                            <li><a href="#" className="hover:text-white transition-colors">Funcionalidades</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Planos</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Atualizações</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Para Franquias</a></li>
                         </ul>
                     </div>
 
                     {/* Links 2 */}
                     <div>
                         <h4 className="text-white font-bold mb-6">Empresa</h4>
-                        <ul className="space-y-4 text-sm text-gray-500">
-                            <li><a href="#" className="hover:text-primary transition-colors">Sobre Nós</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Carreiras</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
+                        <ul className="space-y-4 text-sm text-slate-400">
+                            <li><a href="#" className="hover:text-white transition-colors">Sobre Nós</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Carreiras</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Contato</a></li>
                         </ul>
                     </div>
 
                     {/* Links 3 */}
                     <div>
                         <h4 className="text-white font-bold mb-6">Legal</h4>
-                        <ul className="space-y-4 text-sm text-gray-500">
-                            <li><a href="#" className="hover:text-primary transition-colors">Termos de Uso</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Privacidade</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Cookies</a></li>
+                        <ul className="space-y-4 text-sm text-slate-400">
+                            <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Privacidade</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Cookies</a></li>
                         </ul>
                     </div>
                 </div>
 
                 <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center bg-[#050505] gap-4">
-                    <p className="text-gray-600 text-sm">© 2024 NEXT SaaS. Todos os direitos reservados.</p>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <p className="text-slate-500 text-sm">© 2024 NEXT SaaS. Todos os direitos reservados.</p>
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
                         <span>Feito com</span>
                         <span className="text-red-500">♥</span>
                         <span>para barbeiros.</span>

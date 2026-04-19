@@ -22,12 +22,16 @@ export default function Home() {
     }, []);
 
     if (!hasMounted) {
-        return <div className="min-h-screen bg-white" />;
+        return <div className="min-h-screen bg-[#050505]" />;
     }
 
     return (
-        <main className="min-h-screen bg-white relative pb-20 md:pb-0 overflow-x-hidden">
-            <Navbar />
+        <main className="min-h-screen bg-[#050505] text-white relative pb-20 md:pb-0 overflow-x-hidden selection:bg-primary/30 selection:text-primary-foreground">
+            {/* Ultra-Premium Cinematic Grain Texture */}
+            <div className="fixed inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+            <div className="relative z-10">
+                <Navbar />
 
             <Hero />
             <StatsCounter />
@@ -40,7 +44,8 @@ export default function Home() {
             <CheckoutShowcase />
             <Features />
             <Pricing />
-            <Footer />
+                <Footer />
+            </div>
         </main>
     );
 }
