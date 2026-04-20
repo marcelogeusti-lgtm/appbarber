@@ -1,43 +1,129 @@
 'use client';
-import { FileText, Shield, CheckCircle } from 'lucide-react';
+import { 
+    FileText, Shield, CheckCircle, AlertCircle, CreditCard, 
+    UserPlus, Users, Settings, MessageCircle, HelpCircle, 
+    Lock, Scale, RefreshCw, Smartphone, Gavel
+} from 'lucide-react';
+
+const clauses = [
+    {
+        id: 'definicoes',
+        title: '1. Definições e Objeto',
+        icon: <Gavel className="w-5 h-5 text-primary" />,
+        content: `O sistema NEXT é uma plataforma de Software como Serviço (SaaS) que oferece ferramentas de gestão para estabelecimentos de beleza. Ao contratar o NEXT, o "Estabelecimento" adquire uma licença de uso limitada, não exclusiva e revogável, não ocorrendo qualquer transferência de propriedade intelectual do software ou seus códigos-fonte.`
+    },
+    {
+        id: 'propriedade',
+        title: '2. Propriedade Intelectual',
+        icon: <Shield className="w-5 h-5 text-blue-500" />,
+        content: `Todos os direitos de propriedade intelectual sobre o sistema NEXT, incluindo marcas, logotipos, designs, algoritmos e artes, pertencem exclusivamente à StarApp Sistemas LTDA ME. É terminantemente proibida qualquer tentativa de engenharia reversa, descompilação ou cópia de funcionalidades sem autorização prévia por escrito.`
+    },
+    {
+        id: 'dpa',
+        title: '3. Acordo de Processamento de Dados (DPA)',
+        icon: <Lock className="w-5 h-5 text-emerald-500" />,
+        content: `Em conformidade com a LGPD (Lei 13.709/2018):\na) O **Estabelecimento** atuará como **Controlador** dos dados de seus clientes finais.\nb) O **NEXT** atuará como **Operador**, processando os dados apenas para as finalidades de execução do serviço contratado.\nc) O NEXT implementa medidas técnicas de segurança, mas a responsabilidade pela coleta lícita e consentimento dos clientes finais é inteiramente do Estabelecimento.`
+    },
+    {
+        id: 'planos',
+        title: '4. Pagamentos e Recorrência',
+        icon: <CreditCard className="w-5 h-5 text-purple-500" />,
+        content: `Os planos são operados em regime de pré-pagamento. A falta de quitação na data de vencimento resultará na suspensão imediata dos serviços após 48 horas de atraso. O cancelamento pode ser solicitado a qualquer momento pelo painel, porém não haverá reembolso de valores já pagos para o período corrente, dado que a licença já foi disponibilizada.`
+    },
+    {
+        id: 'conteudo',
+        title: '5. Responsabilidade por Conteúdo',
+        icon: <Smartphone className="w-5 h-5 text-amber-500" />,
+        content: `O Estabelecimento é o único responsável pelas informações, fotos e portfólio cadastrados em sua página no NEXT. O NEXT reserva-se o direito de remover qualquer conteúdo que infrinja direitos autorais de terceiros, contenha material impróprio ou viole as leis vigentes em território nacional.`
+    },
+    {
+        id: 'disponibilidade',
+        title: '6. SLA e Disponibilidade',
+        icon: <RefreshCw className="w-5 h-5 text-teal-500" />,
+        content: `O NEXT busca manter uma disponibilidade (uptime) superior a 99,5%. Interrupções agendadas para manutenção serão comunicadas previamente. O NEXT não se responsabiliza por falhas decorrentes de instabilidades na internet do usuário, problemas em gateways de pagamento de terceiros ou serviços de nuvem externos.`
+    },
+    {
+        id: 'suporte',
+        title: '7. Suporte Técnico',
+        icon: <MessageCircle className="w-5 h-5 text-sky-500" />,
+        content: `O suporte é oferecido via chat online e e-mail em horário comercial brasileiro. O tempo médio de resposta para o primeiro contato é de 10 minutos para questões críticas. Sugestões de melhorias são registradas e priorizadas de acordo com o roadmap técnico da plataforma, sem garantia de implementação imediata.`
+    },
+    {
+        id: 'finalizacao',
+        title: '8. Rescisão e Portabilidade',
+        icon: <Scale className="w-5 h-5 text-zinc-500" />,
+        content: `Caso o contrato seja encerrado, o Estabelecimento tem o direito de solicitar a exportação de seus dados de clientes e histórico de agendamentos em formato padrão (CSV/JSON). Após 60 dias do encerramento definitivo da conta, o NEXT poderá excluir permanentemente os dados do banco de dados, exceto aqueles exigidos por lei.`
+    }
+];
 
 export default function TermsPage() {
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-3xl">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-black text-white tracking-tight">Termos de Uso</h1>
-                <p className="text-slate-500 text-sm font-medium">Última atualização: 27 de Fevereiro, 2026</p>
+        <div className="max-w-4xl mx-auto py-10 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header */}
+            <div className="flex flex-col gap-4 text-center">
+                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+                    <Shield className="w-8 h-8 text-primary" />
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+                    Termos <span className="text-primary">de Uso</span>
+                </h1>
+                <p className="text-slate-500 text-sm font-medium uppercase tracking-widest">
+                    Padrão SaaS Profissional • Atualizado em 19 de Abril de 2026
+                </p>
+                <div className="h-1 w-20 bg-primary/20 mx-auto rounded-full mt-4" />
             </div>
 
-            <div className="prose prose-invert max-w-none space-y-6">
-                <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-4">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-primary" />
-                        1. Aceitação dos Termos
-                    </h2>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                        Ao acessar e utilizar o aplicativo **AppBarber**, você concorda em cumprir e vincular-se aos seguintes termos e condições de uso. Este serviço é destinado a facilitar o agendamento de serviços de barbearia entre clientes e profissionais independentes.
-                    </p>
-                </div>
+            {/* Intro text */}
+            <div className="bg-[#111] border border-white/5 rounded-[2.5rem] p-10 md:p-12 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none" />
+                <p className="text-slate-400 text-lg leading-relaxed mb-0 relative z-10">
+                    Bem-vindo ao <strong className="text-white">NEXT</strong>. Estes Termos de Uso regem o acesso e a utilização 
+                    da nossa plataforma de gestão por parte de estabelecimentos de beleza e barbearias. Ao utilizar o sistema, 
+                    você confirma sua aceitação integral destes termos operados pela 
+                    <strong className="text-white font-bold ml-1">StarApp Sistemas LTDA ME (CNPJ 21.239.503/0001-94)</strong>.
+                </p>
+            </div>
 
-                <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-4">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-blue-500" />
-                        2. Privacidade e Dados
-                    </h2>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                        Sua privacidade é importante para nós. Coletamos apenas as informações necessárias para gerenciar seus agendamentos, como nome, e-mail e telefone. Seus dados nunca são compartilhados com terceiros para fins publicitários sem seu consentimento explícito.
-                    </p>
-                </div>
+            {/* Clauses List */}
+            <div className="grid gap-6">
+                {clauses.map((clause, idx) => (
+                    <div 
+                        key={clause.id} 
+                        className="bg-[#111] border border-white/5 rounded-[2rem] p-8 md:p-10 space-y-6 hover:border-white/10 transition-all group"
+                    >
+                        <div className="flex items-center gap-5">
+                            <div className="p-3.5 bg-white/5 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                                {clause.icon}
+                            </div>
+                            <div>
+                                <span className="text-primary/40 text-[10px] font-black uppercase tracking-widest block mb-1">
+                                    Cláusula {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                                </span>
+                                <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-none">
+                                    {clause.title}
+                                </h2>
+                            </div>
+                        </div>
+                        <p className="text-slate-400 text-base md:text-lg leading-relaxed whitespace-pre-line border-l-2 border-white/5 pl-6 group-hover:border-primary/20 transition-all">
+                            {clause.content}
+                        </p>
+                    </div>
+                ))}
+            </div>
 
-                <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-4">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-primary" />
-                        3. Cancelamentos e No-Show
-                    </h2>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                        Cada estabelecimento possui sua própria política de cancelamento. Recomendamos cancelar com pelo menos 2 horas de antecedência. O não comparecimento sem aviso prévio pode resultar em restrições para futuros agendamentos.
-                    </p>
+            {/* Bottom Disclaimer */}
+            <div className="bg-primary/5 border border-primary/10 rounded-[2rem] p-10 text-center">
+                <h3 className="text-lg font-bold text-white mb-2">Dúvidas Jurídicas?</h3>
+                <p className="text-slate-500 text-sm max-w-xl mx-auto mb-6">
+                    Se você tiver dúvidas sobre estes termos, entre em contato com nossa equipe de compliance.
+                </p>
+                <div className="flex flex-wrap justify-center gap-4">
+                    <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl transition-all border border-white/5">
+                        juridico@corteconexao.com.br
+                    </button>
+                    <button className="px-6 py-3 bg-primary text-black text-xs font-bold rounded-xl transition-all hover:scale-105 active:scale-95">
+                        Abrir Suporte
+                    </button>
                 </div>
             </div>
         </div>

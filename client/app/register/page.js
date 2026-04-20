@@ -171,7 +171,7 @@ export default function RegisterPage() {
                     <div className="mt-6 text-center">
                         <p className="text-[11px] text-gray-400">
                             Ao criar uma conta, você concorda com nossos<br />
-                            <a href="#" className="underline hover:text-gray-600">Termos de Uso</a> e <a href="#" className="underline hover:text-gray-600">Política de Privacidade</a>.
+                            <Link href="/termos" className="underline hover:text-gray-600">Termos de Uso</Link> e <Link href="/privacidade" className="underline hover:text-gray-600">Política de Privacidade</Link>.
                         </p>
                     </div>
                 </div>
