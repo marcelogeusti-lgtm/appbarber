@@ -399,6 +399,8 @@ model Barbershop {
   whatsappKeywords          Json? // e.g. { "agendar": "Link de agendamento: {{link}}", "cancelar": "Instruções..." }
   whatsappBusinessHoursOnly Boolean @default(true)
   whatsappWelcomeMessage    String? @db.Text
+  googleReviewLink          String? @db.Text
+  whatsappStatus            String  @default("DISCONNECTED") // DISCONNECTED, CONNECTING, CONNECTED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

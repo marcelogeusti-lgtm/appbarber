@@ -23,7 +23,46 @@ exports.handleWebhook = async (req, res) => {
     try {
         // 2. Process via Service
         console.log(`[Webhook] Incoming from ${gateway}`);
-        const result = await PaymentService.processWebhook(gateway, req);
+        
+        let result = null;
+        if (gateway === 'evolution') {
+            // It's a WhatsApp webhook from Evolution API
+            const CommunicationService = require('../services/communication/CommunicationService');
+            
+            // Evolution API Payload structure for messages.upsert
+            if (req.body && req.body.event === 'messages.upsert') {
+                const messageData = req.body.data;
+                const instance = req.body.instance;
+                
+                // Only process text messages that are not from the bot itself
+                if (messageData && messageData.message && !messageData.key.fromMe) {
+                    const text = messageData.message.conversation || messageData.message.extendedTextMessage?.text;
+                    if (text) {
+                        const formattedData = {
+                            from: messageData.key.remoteJid,
+                            name: messageData.pushName || 'Desconhecido',
+                            text: text,
+                            instance: instance
+                        };
+                        result = await CommunicationService.handleIncomingMessage(formattedData);
+                    }
+                }
+            } else if (req.body && req.body.event === 'connection.update') {
+                // E.g., qr, open, close
+                // We can use this to update the DB status if needed without polling
+                const instance = req.body.instance;
+                const state = req.body.data?.state;
+                if (state === 'open' || state === 'close') {
+                    await prisma.barbershop.updateMany({
+                        where: { slug: instance },
+                        data: { whatsappStatus: state === 'open' ? 'CONNECTED' : 'DISCONNECTED' }
+                    });
+                }
+            }
+        } else {
+            // It's a Payment Gateway Webhook (Mercado Pago, Stripe, etc.)
+            result = await PaymentService.processWebhook(gateway, req);
+        }
 
         // 3. Update Log
         if (logId) {

@@ -84,6 +84,10 @@ notificationService.init();
 const appointmentListeners = require('./services/events/appointmentListeners');
 appointmentListeners.init();
 
+// Initialize Follow-up Event Listeners
+const followUpListeners = require('./services/events/followUpListeners');
+followUpListeners.init();
+
 // Master / Educational Platform
 app.use('/api', require('./routes/master.routes'));
 app.use('/api', require('./routes/integration.routes'));
