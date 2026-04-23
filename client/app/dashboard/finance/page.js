@@ -2,7 +2,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
-import { TrendingUp, Users, Scissors, DollarSign, Calendar, ArrowUpRight, ArrowDownRight, CreditCard, LayoutGrid, Loader2 } from 'lucide-react';
+import { 
+    TrendingUp, Users, Scissors, DollarSign, Calendar, 
+    ArrowUpRight, ArrowDownRight, CreditCard, LayoutGrid, 
+    Loader2, PieChart, Wallet, BarChart3, Receipt, 
+    ChevronRight, ArrowRight, Download, Filter, Plus
+} from 'lucide-react';
 import { toast } from 'sonner';
 import NewTransactionModal from '../../../components/NewTransactionModal';
 
@@ -11,7 +16,6 @@ export default function FinancePage() {
     const [period, setPeriod] = useState('month');
     const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
 
-    // Auth Helper
     const getUser = () => {
         if (typeof window === 'undefined') return null;
         const userStr = localStorage.getItem('user');
@@ -21,7 +25,6 @@ export default function FinancePage() {
     const user = getUser();
     const bId = user?.barbershopId || user?.barbershop?.id || user?.ownedBarbershops?.[0]?.id;
 
-    // Fetch Stats with useQuery
     const { data: stats, isLoading } = useQuery({
         queryKey: ['finance-stats', bId, period],
         queryFn: async () => {
@@ -37,8 +40,6 @@ export default function FinancePage() {
         enabled: !!bId,
     });
 
-    const transactions = stats?.transactions || [];
-
     const deleteMutation = useMutation({
         mutationFn: async (id) => api.delete(`/transactions/${id}`),
         onSuccess: () => {
@@ -50,112 +51,192 @@ export default function FinancePage() {
 
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 
-    return (
-        <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
-                        <TrendingUp className="w-8 h-8" />
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Fluxo Financeiro</h1>
-                        <p className="text-muted-foreground text-sm font-medium italic">Gestão estratégica de entradas, saídas e comissões.</p>
-                    </div>
-                </div>
+    const transactions = stats?.transactions || [];
 
-                <div className="flex bg-background p-1.5 rounded-2xl border border-border w-full md:w-auto overflow-x-auto">
-                    {['day', 'week', 'month'].map(p => (
-                        <button
-                            key={p}
-                            onClick={() => setPeriod(p)}
-                            className={`flex-1 md:flex-none px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === p ? 'bg-card text-primary shadow-xl border border-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
+    if (!bId) return <div className="p-20 text-center font-bold">Barbearia não encontrada.</div>;
+
+    return (
+        <div className="max-w-7xl mx-auto space-y-8 pb-32 animate-in fade-in duration-700">
+            {/* Header com Design Premium */}
+            <header className="relative overflow-hidden bg-card/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-border/50 shadow-2xl group">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full -mr-32 -mt-32 transition-all duration-1000 group-hover:bg-primary/20"></div>
+                <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-primary/20 text-primary rounded-3xl flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/5">
+                            <TrendingUp className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-black uppercase tracking-tighter text-foreground">Fluxo Financeiro</h1>
+                            <p className="text-muted-foreground font-medium flex items-center gap-2">
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                Inteligência em tempo real para sua barbearia
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4">
+                        <button 
+                            onClick={async () => {
+                                try {
+                                    const res = await api.get(`/finance/export?barbershopId=${bId}`, { responseType: 'blob' });
+                                    const url = window.URL.createObjectURL(new Blob([res.data]));
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.setAttribute('download', `financeiro_${bId}.csv`);
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    link.remove();
+                                } catch (e) {
+                                    toast.error("Erro ao exportar dados");
+                                }
+                            }}
+                            className="p-4 bg-muted hover:bg-muted/80 text-foreground rounded-2xl border border-border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest"
                         >
-                            {p === 'day' ? 'Hoje' : p === 'week' ? 'Semana' : 'Mês'}
+                            <Download className="w-4 h-4" /> Exportar CSV
                         </button>
-                    ))}
+
+                        <div className="flex bg-background/50 p-1.5 rounded-2xl border border-border shadow-inner">
+                            {['day', 'week', 'month'].map(p => (
+                                <button
+                                    key={p}
+                                    onClick={() => setPeriod(p)}
+                                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === p ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
+                                >
+                                    {p === 'day' ? 'Hoje' : p === 'week' ? 'Semana' : 'Mês'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </header>
 
             {isLoading ? (
-                <div className="py-20 flex flex-col items-center justify-center gap-4">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sincronizando dados...</p>
+                <div className="py-32 flex flex-col items-center justify-center gap-6">
+                    <div className="relative">
+                        <div className="w-20 h-20 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
+                        <DollarSign className="w-8 h-8 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Consolidando balanço financeiro...</p>
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4">
-                        <div className="bg-card p-8 rounded-[2rem] border border-border text-foreground overflow-hidden group">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Faturamento Bruto</p>
-                            <h2 className="text-3xl font-black mt-2 group-hover:text-primary transition-colors uppercase">{formatBRL(stats?.totalRevenue)}</h2>
-                        </div>
-
-                        <div className="bg-card p-8 rounded-[2rem] border border-border shadow-sm relative group">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Jobs / Serviços</p>
-                            <h2 className="text-3xl font-black mt-2 text-foreground uppercase">{stats?.totalOrders || 0}</h2>
-                        </div>
-
-                        <div className="bg-card p-8 rounded-[2rem] border border-border shadow-sm">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Custos & Comissões</p>
-                            <h2 className="text-3xl font-black mt-2 text-destructive uppercase">{formatBRL((stats?.totalExpenses || 0) + (stats?.totalCommissions || 0))}</h2>
-                        </div>
-
-                        <div className="bg-primary p-8 rounded-[2rem] text-primary-foreground shadow-2xl shadow-primary/20">
-                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Lucro Líquido</p>
-                            <h2 className="text-4xl font-black mt-1 uppercase">{formatBRL(stats?.netProfit)}</h2>
-                        </div>
+                    {/* Big Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[
+                            { label: 'Faturamento Bruto', value: stats?.totalRevenue, icon: DollarSign, color: 'primary' },
+                            { label: 'Total de Vendas', value: stats?.totalOrders, icon: Receipt, color: 'blue', isNumber: true },
+                            { label: 'Despesas e Comissões', value: (stats?.totalExpenses || 0) + (stats?.totalCommissions || 0), icon: ArrowDownRight, color: 'destructive' },
+                            { label: 'Lucro Líquido', value: stats?.netProfit, icon: Wallet, color: 'green', highlight: true }
+                        ].map((item, idx) => (
+                            <div key={idx} className={`relative overflow-hidden p-8 rounded-[2.5rem] border border-border/50 shadow-xl transition-all hover:translate-y-[-4px] ${item.highlight ? 'bg-primary text-white border-primary shadow-primary/20' : 'bg-card'}`}>
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${item.highlight ? 'bg-white/20' : 'bg-muted/50 text-muted-foreground'}`}>
+                                    <item.icon className="w-6 h-6" />
+                                </div>
+                                <p className={`text-[10px] font-black uppercase tracking-widest ${item.highlight ? 'opacity-80' : 'text-muted-foreground'}`}>{item.label}</p>
+                                <h2 className="text-3xl font-black mt-2 tracking-tighter">
+                                    {item.isNumber ? item.value : formatBRL(item.value)}
+                                </h2>
+                            </div>
+                        ))}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Listagem de Transações */}
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
-                                <div className="flex justify-between items-center mb-10">
-                                    <h3 className="text-xl font-black uppercase tracking-tighter text-foreground">Fluxo de Caixa</h3>
+                            <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
+                                <div className="p-8 border-b border-border/30 flex justify-between items-center">
+                                    <h3 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                        <BarChart3 className="w-6 h-6 text-primary" />
+                                        Movimentações do Período
+                                    </h3>
                                     <button
                                         onClick={() => setIsTransactionModalOpen(true)}
-                                        className="bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
+                                        className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 transition-all"
                                     >
-                                        LANÇAR MOVIMENTAÇÃO
+                                        <Plus className="w-4 h-4" /> Novo Lançamento
                                     </button>
                                 </div>
 
-                                <div className="space-y-4">
-                                    {transactions.map((t, i) => (
-                                        <div key={i} className="flex items-center justify-between p-6 bg-muted/20 rounded-2xl border border-border hover:border-primary/30 transition-all">
+                                <div className="p-4 space-y-3">
+                                    {transactions.length > 0 ? transactions.map((t, i) => (
+                                        <div key={i} className="flex items-center justify-between p-6 bg-muted/20 hover:bg-muted/40 rounded-3xl border border-border/50 transition-all group">
                                             <div className="flex items-center gap-5">
-                                                <div className={`p-4 rounded-2xl border ${t.type === 'INCOME' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
-                                                    {t.type === 'INCOME' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
+                                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${t.type === 'INCOME' ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'}`}>
+                                                    {t.type === 'INCOME' ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
                                                 </div>
                                                 <div>
-                                                    <p className="font-black text-sm uppercase text-foreground">{t.description}</p>
-                                                    <p className="text-[10px] text-muted-foreground uppercase font-bold">{new Date(t.date).toLocaleDateString()}</p>
+                                                    <p className="font-black text-sm uppercase tracking-tight">{t.description}</p>
+                                                    <div className="flex items-center gap-3 mt-1">
+                                                        <span className="text-[10px] text-muted-foreground uppercase font-bold">{new Date(t.date).toLocaleDateString()}</span>
+                                                        <span className="w-1 h-1 bg-muted-foreground/30 rounded-full"></span>
+                                                        <span className="text-[10px] text-primary uppercase font-black">{t.paymentMethod || 'Outros'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-6">
-                                                <p className={`font-black text-xl uppercase ${t.type === 'INCOME' ? 'text-primary' : 'text-foreground'}`}>
+                                            <div className="flex items-center gap-8">
+                                                <p className={`font-black text-2xl tracking-tighter ${t.type === 'INCOME' ? 'text-green-500' : 'text-foreground'}`}>
                                                     {t.type === 'INCOME' ? '+' : '-'}{formatBRL(t.amount)}
                                                 </p>
-                                                <button onClick={() => deleteMutation.mutate(t.id)} className="text-muted-foreground hover:text-destructive"><ArrowDownRight className="rotate-45 w-5 h-5" /></button>
+                                                <button onClick={() => deleteMutation.mutate(t.id)} className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all">
+                                                    <ArrowDownRight className="rotate-45 w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <div className="py-20 text-center flex flex-col items-center opacity-40">
+                                            <Receipt className="w-12 h-12 mb-4" />
+                                            <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma movimentação encontrada</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Coluna de Insights (Ranking e Métodos) */}
+                        <div className="space-y-8">
+                            {/* Ranking Equipe */}
+                            <div className="bg-card p-10 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-10 -mt-10"></div>
+                                <h3 className="text-xl font-black uppercase text-foreground mb-8 flex items-center gap-3">
+                                    <Users className="w-6 h-6 text-primary" /> Performance Equipe
+                                </h3>
+                                <div className="space-y-8">
+                                    {stats?.commissions?.map((c, i) => (
+                                        <div key={i} className="space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center text-[10px] font-bold text-muted-foreground">{i + 1}</div>
+                                                    <span className="text-xs font-black uppercase">{c.name}</span>
+                                                </div>
+                                                <span className="text-xs font-black text-primary">{formatBRL(c.value)}</span>
+                                            </div>
+                                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                                <div 
+                                                    className="bg-primary h-full rounded-full transition-all duration-1000" 
+                                                    style={{ width: `${Math.min(100, (c.value / (stats.totalRevenue || 1)) * 100)}%` }} 
+                                                />
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
-                            <h3 className="text-xl font-black uppercase text-foreground mb-8">Pauta de Equipe</h3>
-                            <div className="space-y-8">
-                                {stats?.commissions?.map((c, i) => (
-                                    <div key={i} className="space-y-2">
-                                        <div className="flex justify-between items-center text-xs font-black uppercase">
-                                            <span>{c.name}</span>
-                                            <span className="text-primary">{formatBRL(c.value)}</span>
+                            {/* Breakdown Métodos */}
+                            <div className="bg-card p-10 rounded-[2.5rem] border border-border/50 shadow-sm">
+                                <h3 className="text-xl font-black uppercase text-foreground mb-8 flex items-center gap-3">
+                                    <PieChart className="w-6 h-6 text-primary" /> Meios de Pagamento
+                                </h3>
+                                <div className="space-y-4">
+                                    {Object.entries(stats?.revenueByMethod || {}).map(([method, value], idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/50">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{method}</span>
+                                            </div>
+                                            <span className="text-sm font-black">{formatBRL(value)}</span>
                                         </div>
-                                        <div className="h-1.5 bg-background rounded-full overflow-hidden border border-border">
-                                            <div className="bg-primary h-full transition-all duration-1000" style={{ width: `${Math.min(100, (c.value / (stats.totalRevenue || 1)) * 100)}%` }} />
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -172,3 +253,4 @@ export default function FinancePage() {
         </div>
     );
 }
+
