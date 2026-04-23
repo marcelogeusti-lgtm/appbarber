@@ -311,68 +311,127 @@ function VisualTab({ barbershop, setBarbershop }) {
     };
 
     return (
-        <div className="bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-10">
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /> Identidade Visual</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in slide-in-from-bottom-4">
+            <div className="lg:col-span-2 bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-10">
+                <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /> Identidade Visual</h2>
 
-            {/* Logo Upload */}
-            <div className="space-y-4">
-                <div>
-                    <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Logotipo</h4>
-                    <p className="text-muted-foreground text-[10px] font-medium">Recomendado: 512x512px (PNG ou SVG).</p>
+                {/* Logo Upload */}
+                <div className="space-y-4">
+                    <div>
+                        <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Logotipo</h4>
+                        <p className="text-muted-foreground text-[10px] font-medium">Recomendado: 512x512px (PNG ou SVG).</p>
+                    </div>
+                    <div className="relative w-40 h-40 bg-muted border-2 border-dashed border-border rounded-full flex items-center justify-center overflow-hidden hover:border-primary group transition-all shadow-sm">
+                        {barbershop.logoUrl ? (
+                            <img src={barbershop.logoUrl} className="w-full h-full object-cover" />
+                        ) : (
+                            <Camera className="w-8 h-8 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                        )}
+                        <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                                setUploadingLogo(true);
+                                const dataUri = await compressImage(file);
+                                setBarbershop({ ...barbershop, logoUrl: dataUri });
+                                setUploadingLogo(false);
+                            }
+                        }} />
+                        {uploadingLogo && (
+                            <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-20">
+                                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div className="relative w-40 h-40 bg-muted border-2 border-dashed border-border rounded-full flex items-center justify-center overflow-hidden hover:border-primary group transition-all">
-                    {barbershop.logoUrl ? (
-                        <img src={barbershop.logoUrl} className="w-full h-full object-cover" />
-                    ) : (
-                        <Camera className="w-8 h-8 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                    )}
-                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            setUploadingLogo(true);
-                            const dataUri = await compressImage(file);
-                            setBarbershop({ ...barbershop, logoUrl: dataUri });
-                            setUploadingLogo(false);
-                        }
-                    }} />
-                    {uploadingLogo && (
-                        <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+
+                {/* Banners Manager */}
+                <div className="space-y-4 pt-6 border-t border-border">
+                    <div>
+                        <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Imagens de Capa (Banners)</h4>
+                        <p className="text-muted-foreground text-[10px] font-medium">Você pode adicionar múltiplas fotos. Elas aparecerão no topo da sua página pública.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {(barbershop.bannerUrls || []).map((url, idx) => (
+                            <div key={idx} className="relative aspect-[16/9] bg-muted rounded-xl border border-border overflow-hidden group shadow-sm">
+                                <img src={url} className="w-full h-full object-cover" />
+                                <button
+                                    onClick={() => removeBanner(idx)}
+                                    className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        ))}
+
+                        <div className="relative aspect-[16/9] bg-muted border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-primary group transition-all cursor-pointer overflow-hidden shadow-sm">
+                            {uploadingBannerIdx === 'new' ? (
+                                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                            ) : (
+                                <>
+                                    <Plus className="w-6 h-6 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Adicionar</span>
+                                </>
+                            )}
+                            <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={addBanner} />
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
-            {/* Banners Manager */}
-            <div className="space-y-4 pt-6 border-t border-border">
-                <div>
-                    <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Imagens de Capa (Banners)</h4>
-                    <p className="text-muted-foreground text-[10px] font-medium">Você pode adicionar múltiplas fotos. Elas aparecerão no topo da sua página pública.</p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {(barbershop.bannerUrls || []).map((url, idx) => (
-                        <div key={idx} className="relative aspect-[16/9] bg-muted rounded-xl border border-border overflow-hidden group">
-                            <img src={url} className="w-full h-full object-cover" />
-                            <button
-                                onClick={() => removeBanner(idx)}
-                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                            >
-                                <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+            {/* Smartphone Mockup Preview */}
+            <div className="lg:col-span-1 flex justify-center sticky top-8">
+                <div className="relative w-[280px] h-[580px] bg-[#09090b] rounded-[40px] border-[8px] border-[#18181b] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col">
+                    {/* Notch */}
+                    <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-50">
+                        <div className="w-28 h-5 bg-[#18181b] rounded-b-2xl"></div>
+                    </div>
+                    
+                    {/* Screen Content */}
+                    <div className="w-full flex-1 bg-background overflow-y-auto scrollbar-hide relative flex flex-col">
+                        {/* Header Banner */}
+                        <div className="w-full h-36 bg-muted relative shrink-0">
+                            {barbershop.bannerUrls && barbershop.bannerUrls.length > 0 ? (
+                                <img src={barbershop.bannerUrls[0]} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-tr from-primary/20 to-primary/5 flex items-center justify-center">
+                                    <ImageIcon className="w-8 h-8 text-primary/30" />
+                                </div>
+                            )}
                         </div>
-                    ))}
 
-                    <div className="relative aspect-[16/9] bg-muted border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-primary group transition-all cursor-pointer overflow-hidden">
-                        {uploadingBannerIdx === 'new' ? (
-                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                        ) : (
-                            <>
-                                <Plus className="w-6 h-6 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Adicionar</span>
-                            </>
-                        )}
-                        <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={addBanner} />
+                        {/* Logo & Info */}
+                        <div className="px-4 -mt-10 relative z-10 flex flex-col items-center text-center">
+                            <div className="w-20 h-20 bg-card rounded-full border-4 border-background overflow-hidden shadow-md mb-3 flex items-center justify-center">
+                                {barbershop.logoUrl ? (
+                                    <img src={barbershop.logoUrl} className="w-full h-full object-cover" />
+                                ) : (
+                                    <Camera className="w-6 h-6 text-muted-foreground/30" />
+                                )}
+                            </div>
+                            <h3 className="font-bold text-[15px] text-foreground leading-tight tracking-tight">{barbershop.name || 'Sua Barbearia'}</h3>
+                            <p className="text-[10px] text-muted-foreground mt-1.5 px-2 line-clamp-3 leading-relaxed">
+                                {barbershop.description || 'A bio da sua barbearia vai aparecer aqui. Escreva algo bacana para atrair seus clientes!'}
+                            </p>
+                        </div>
+
+                        {/* Mock Buttons */}
+                        <div className="px-4 mt-6 space-y-2.5">
+                            <div className="w-full h-10 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-[11px] shadow-sm tracking-wide uppercase">
+                                Agendar Horário
+                            </div>
+                            <div className="grid grid-cols-2 gap-2.5">
+                                <div className="h-9 bg-muted rounded-lg border border-border flex items-center justify-center text-[10px] font-bold text-foreground uppercase">Serviços</div>
+                                <div className="h-9 bg-muted rounded-lg border border-border flex items-center justify-center text-[10px] font-bold text-foreground uppercase">Equipe</div>
+                            </div>
+                        </div>
+
+                        {/* Mock Content */}
+                        <div className="px-4 mt-6 space-y-3 pb-6 flex-1">
+                            <div className="w-20 h-3 bg-muted rounded-full"></div>
+                            <div className="w-full h-16 bg-muted/50 rounded-xl border border-border/50"></div>
+                            <div className="w-full h-16 bg-muted/50 rounded-xl border border-border/50"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -408,18 +467,57 @@ function RulesTab({ barbershop, setBarbershop }) {
 
 function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplateId, setEditingTemplateId, editContent, setEditContent, saving, fetchTemplates }) {
     const [waStatus, setWaStatus] = useState({ status: 'LOADING' });
+    const [qrCode, setQrCode] = useState(null);
+    const [connecting, setConnecting] = useState(false);
 
     useEffect(() => {
+        if (!barbershop?.id) return;
+        
         const checkStatus = async () => {
             try {
-                const res = await api.get('/whatsapp/status');
+                const res = await api.get(`/whatsapp/status/${barbershop.id}`);
                 setWaStatus(res.data);
-            } catch (e) { setWaStatus({ status: 'ERROR' }); }
+                
+                // If we were waiting for QR but now it's connected, clear QR
+                if (res.data.status === 'CONNECTED') {
+                    setQrCode(null);
+                }
+            } catch (e) { 
+                console.error('Error fetching WA status:', e);
+                setWaStatus({ status: 'ERROR' }); 
+            }
         };
         checkStatus();
         const interval = setInterval(checkStatus, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [barbershop?.id]);
+
+    const handleConnect = async () => {
+        setConnecting(true);
+        try {
+            const res = await api.post(`/whatsapp/connect/${barbershop.id}`);
+            if (res.data.qr) {
+                setQrCode(res.data.qr);
+            }
+            setWaStatus({ status: 'WAITING_QR' });
+        } catch (error) {
+            console.error('Failed to connect WhatsApp:', error);
+            alert('Falha ao iniciar conexão com WhatsApp');
+        } finally {
+            setConnecting(false);
+        }
+    };
+
+    const handleDisconnect = async () => {
+        if (!confirm('Tem certeza que deseja desconectar o WhatsApp?')) return;
+        try {
+            await api.delete(`/whatsapp/disconnect/${barbershop.id}`);
+            setWaStatus({ status: 'DISCONNECTED' });
+            setQrCode(null);
+        } catch (error) {
+            console.error('Failed to disconnect WhatsApp:', error);
+        }
+    };
 
     const templateTypes = { 'CONFIRMATION_REQUEST': 'Solicitação de Confirmação', 'REMINDER': 'Lembrete de Agendamento', 'CANCELLATION': 'Aviso de Cancelamento' };
 
@@ -432,9 +530,29 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                         <p className="text-muted-foreground text-xs font-medium">Automação inteligente de disparos e confirmações.</p>
                     </div>
                     <div className="flex items-center gap-4">
+                        {waStatus.status === 'CONNECTED' ? (
+                            <button 
+                                onClick={handleDisconnect}
+                                className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                            >
+                                Desconectar
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={handleConnect}
+                                disabled={connecting || waStatus.status === 'WAITING_QR'}
+                                className="px-4 py-2 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-[#25D366] hover:text-white transition-all disabled:opacity-50"
+                            >
+                                {connecting ? 'Iniciando...' : 'Conectar WhatsApp'}
+                            </button>
+                        )}
+                        
                         <div className={`px-4 py-2 rounded-lg border flex items-center gap-2 transition-all ${waStatus.status === 'CONNECTED' ? 'bg-[#25D366]/10 text-[#25D366] border-[#25D366]/20' : 'bg-muted text-muted-foreground border-border'}`}>
                             {waStatus.status === 'CONNECTED' ? <CheckCircle className="w-4 h-4" /> : <Loader2 className="w-4 h-4 animate-spin" />}
-                            <span className="text-[10px] font-bold uppercase tracking-widest">{waStatus.status === 'CONNECTED' ? 'Conectado' : 'Sincronizando...'}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest">
+                                {waStatus.status === 'CONNECTED' ? 'Conectado' : 
+                                 waStatus.status === 'WAITING_QR' ? 'Aguardando QR' : 'Desconectado'}
+                            </span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" checked={barbershop.whatsappAutoReply || false} onChange={e => setBarbershop({ ...barbershop, whatsappAutoReply: e.target.checked })} className="sr-only peer" />
@@ -442,6 +560,21 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                         </label>
                     </div>
                 </div>
+
+                {/* QR Code Display Section */}
+                {waStatus.status === 'WAITING_QR' && qrCode && (
+                    <div className="mt-8 flex flex-col items-center justify-center p-8 bg-muted/30 rounded-2xl border border-dashed border-border animate-in zoom-in-95 duration-300">
+                        <div className="bg-white p-4 rounded-xl shadow-xl mb-6">
+                            <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64" />
+                        </div>
+                        <div className="text-center max-w-sm">
+                            <h4 className="font-bold text-foreground mb-2">Escaneie o QR Code</h4>
+                            <p className="text-muted-foreground text-xs leading-relaxed">
+                                Abra o WhatsApp no seu celular, vá em **Aparelhos Conectados** e escaneie o código acima para ativar o Smart Bot.
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
