@@ -5,7 +5,7 @@ import {
     Calendar, ArrowUpRight, Target, UserPlus, Zap, BarChart3,
     Star, Clock, Trophy, Award, BrainCircuit, TrendingUp, 
     ChevronRight, Sparkles, AlertCircle, Info, Filter, 
-    ArrowDownRight, Users
+    ArrowDownRight, Users, Scissors, ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
