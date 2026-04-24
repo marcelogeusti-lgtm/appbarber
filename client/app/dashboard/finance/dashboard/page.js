@@ -62,14 +62,14 @@ export default function FinancialDashboardPage() {
                 </div>
                 <button 
                     onClick={() => setIsTransactionModalOpen(true)}
-                    className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all"
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all"
                 >
                     <Plus className="w-4 h-4" /> Adicionar Lançamento
                 </button>
             </div>
 
             {/* Filtros de Data */}
-            <div className="bg-card p-6 rounded-3xl border border-border flex flex-col md:flex-row gap-4 items-end">
+            <div className="bg-card p-6 rounded-xl border border-border flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Início</label>
                     <input
@@ -97,7 +97,7 @@ export default function FinancialDashboardPage() {
             </div>
 
             {/* Gráfico de Faturamento */}
-            <div className="bg-card p-8 rounded-3xl border border-border">
+            <div className="bg-card p-8 rounded-xl border border-border">
                 <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-6">Faturamento Bruto no período selecionado</h3>
 
                 <div className="mb-8">
@@ -176,19 +176,19 @@ export default function FinancialDashboardPage() {
 
             {/* Saldo do Período */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-primary p-8 rounded-3xl shadow-2xl shadow-primary/20 text-primary-foreground">
+                <div className="bg-primary p-8 rounded-xl shadow-2xl shadow-primary/20 text-primary-foreground">
                     <p className="opacity-70 text-xs font-black uppercase tracking-widest mb-2">Saldo Líquido no caixa</p>
                     <p className="text-4xl font-black mb-1">R$ {data.balance.toFixed(2)}</p>
                     <p className="opacity-70 text-[10px] font-medium">Total de recebimentos - Total de saídas</p>
                 </div>
 
-                <div className="bg-card p-8 rounded-3xl border border-border">
+                <div className="bg-card p-8 rounded-xl border border-border">
                     <p className="text-muted-foreground text-xs font-black uppercase tracking-widest mb-2">Entradas Faturadas</p>
                     <p className="text-3xl font-black text-primary mb-1">R$ {data.totalReceived.toFixed(2)}</p>
                     <p className="text-muted-foreground text-[10px] font-medium">(Taxas de pagamento já descontadas)</p>
                 </div>
 
-                <div className="bg-card p-8 rounded-3xl border border-border">
+                <div className="bg-card p-8 rounded-xl border border-border">
                     <p className="text-muted-foreground text-xs font-black uppercase tracking-widest mb-2">Saídas Registradas</p>
                     <p className="text-3xl font-black text-destructive mb-1">R$ {data.totalExpenses.toFixed(2)}</p>
                     <p className="text-muted-foreground text-[10px] font-medium">Total despesas e saídas no período</p>
@@ -196,26 +196,26 @@ export default function FinancialDashboardPage() {
             </div>
 
             {/* Valores Recebidos */}
-            <div className="bg-card p-8 rounded-3xl border border-border">
+            <div className="bg-card p-8 rounded-xl border border-border">
                 <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-6">Composição de Entradas (Faturamento Confirmado)</h3>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div className="bg-background p-6 rounded-2xl border border-border">
+                    <div className="bg-background p-6 rounded-xl border border-border">
                         <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2">Dinheiro</p>
                         <p className="text-2xl font-black text-foreground">R$ {recCash.toFixed(2)}</p>
                     </div>
-                    <div className="bg-background p-6 rounded-2xl border border-border">
+                    <div className="bg-background p-6 rounded-xl border border-border">
                         <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2">Cartão</p>
                         <p className="text-2xl font-black text-foreground">R$ {recCard.toFixed(2)}</p>
                     </div>
-                    <div className="bg-background p-6 rounded-2xl border border-border">
+                    <div className="bg-background p-6 rounded-xl border border-border">
                         <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2">Pix</p>
                         <p className="text-2xl font-black text-foreground">R$ {recPix.toFixed(2)}</p>
                     </div>
-                    <div className="bg-background p-6 rounded-2xl border border-border">
+                    <div className="bg-background p-6 rounded-xl border border-border">
                         <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2">Outros</p>
                         <p className="text-2xl font-black text-foreground">R$ {recOther.toFixed(2)}</p>
                     </div>
-                    <div className="bg-primary p-6 rounded-2xl shadow-lg shadow-primary/20 text-primary-foreground">
+                    <div className="bg-primary p-6 rounded-xl shadow-lg shadow-primary/20 text-primary-foreground">
                         <p className="opacity-70 text-[10px] font-black uppercase tracking-widest mb-2">Pendente (A Receber)</p>
                         <p className="text-2xl font-black">R$ {data.toReceive.toFixed(2)}</p>
                     </div>
@@ -242,7 +242,7 @@ function KPICard({ label, value, desc, color }) {
     };
 
     return (
-        <div className={`p-6 rounded-2xl border ${colors[color]}`}>
+        <div className={`p-6 rounded-xl border ${colors[color]}`}>
             <p className="text-[10px] font-black uppercase tracking-widest mb-2 opacity-70">{label}</p>
             <p className="text-3xl font-black mb-1">{value}</p>
             <p className="text-[10px] font-medium opacity-60">{desc}</p>

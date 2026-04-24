@@ -108,7 +108,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
             
             {/* --- ACTIVE PLAN USAGE SUMMARY --- */}
             {activeSubscription && (
-                <div className="bg-slate-900/50 border border-emerald-500/20 rounded-[2.5rem] p-6 mb-8 relative overflow-hidden group">
+                <div className="bg-slate-900/50 border border-emerald-500/20 rounded-xl p-6 mb-8 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Crown className="w-20 h-20 text-emerald-500" />
                     </div>
@@ -144,7 +144,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
             {/* --- MODAL: SELECT CARD (ONE-CLICK) --- */}
             {showCardSelection && selectedPlan && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in">
-                    <div className="w-full max-w-sm bg-[#111] border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                    <div className="w-full max-w-sm bg-[#111] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
                         <div className="p-6 border-b border-slate-800 flex justify-between items-center">
                             <h3 className="font-bold text-white uppercase tracking-tight">Confirmar Assinatura</h3>
                             <button onClick={() => setShowCardSelection(false)} className="p-2 hover:bg-slate-800 rounded-full transition"><X className="w-4 h-4 text-slate-400" /></button>
@@ -179,7 +179,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                                 key={card.id}
                                                 onClick={() => handleOneClickSubscribe(card.id)}
                                                 disabled={loading === selectedPlan.id}
-                                                className="w-full flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-primary/10 hover:border-primary/50 transition group text-left"
+                                                className="w-full flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:bg-primary/10 hover:border-primary/50 transition group text-left"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition">
@@ -196,7 +196,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
 
                                         <button
                                             onClick={() => { setShowCardSelection(false); setShowNewCardForm(true); }}
-                                            className="w-full p-4 border border-dashed border-slate-700 rounded-2xl text-slate-500 text-xs font-bold uppercase hover:text-white hover:border-slate-500 transition"
+                                            className="w-full p-4 border border-dashed border-slate-700 rounded-xl text-slate-500 text-xs font-bold uppercase hover:text-white hover:border-slate-500 transition"
                                         >
                                             Usar outro cartão
                                         </button>
@@ -211,7 +211,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
             {/* --- MODAL: NEW CARD FORM --- */}
             {showNewCardForm && selectedPlan && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in">
-                    <div className="w-full max-w-md bg-[#111] border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl relative">
+                    <div className="w-full max-w-md bg-[#111] border border-slate-800 rounded-xl overflow-hidden shadow-2xl relative">
                         <button onClick={() => setShowNewCardForm(false)} className="absolute top-4 right-4 p-2 bg-slate-900 rounded-full z-20 text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
 
                         <div className="p-6 pb-2">
@@ -234,7 +234,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
             {/* --- PLANS LIST --- */}
             {plans.length > 0 ? (
                 plans.map((plan) => (
-                    <div key={plan.id} className="bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] p-[1px] rounded-[2.5rem] border border-primary/10 hover:border-primary/30 transition group">
+                    <div key={plan.id} className="bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] p-[1px] rounded-xl border border-primary/10 hover:border-primary/30 transition group">
                         <div className="bg-[#0A0A0A] rounded-[2.4rem] p-6 relative overflow-hidden h-full flex flex-col">
 
                             {/* Header */}
@@ -278,7 +278,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                             <button
                                 onClick={() => handleSubscribeClick(plan)}
                                 disabled={loading === plan.id}
-                                className="w-full bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition shadow-xl hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-[1.02] active:scale-95"
+                                className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition shadow-xl hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-[1.02] active:scale-95"
                             >
                                 {loading === plan.id ? 'Processando...' : 'Assinar Agora'}
                             </button>
@@ -286,7 +286,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                     </div>
                 ))
             ) : (
-                <div className="text-center py-20 bg-[#0A0A0A] rounded-[3rem] border border-dashed border-slate-800">
+                <div className="text-center py-20 bg-[#0A0A0A] rounded-xl border border-dashed border-slate-800">
                     <Crown className="w-12 h-12 text-slate-800 mx-auto mb-4" />
                     <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Nenhuma assinatura disponível.</p>
                 </div>

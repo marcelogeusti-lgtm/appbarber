@@ -59,17 +59,17 @@ export default function CommissionsReportPage() {
     return (
         <div className="space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-xl border border-border shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32" />
                 <div className="relative z-10">
                     <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Relatório de Equipe</h1>
                     <p className="text-muted-foreground text-sm font-medium italic mt-2">Monitoramento de produtividade e repasses financeiros</p>
                 </div>
                 <div className="flex flex-wrap gap-4 relative z-10">
-                    <button className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
+                    <button className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
                         <DollarSign className="w-4 h-4" /> Efetuar Pagamentos
                     </button>
-                    <button className="flex items-center gap-2 bg-background border border-border text-muted-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 transition-all font-bold">
+                    <button className="flex items-center gap-2 bg-background border border-border text-muted-foreground px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 transition-all font-bold">
                         <Download className="w-4 h-4" /> Exportar Dados
                     </button>
                 </div>
@@ -85,7 +85,7 @@ export default function CommissionsReportPage() {
             </div>
 
             {/* Gráfico de Pizza + Filtros */}
-            <div className="bg-card p-10 rounded-[2.5rem] border border-border shadow-2xl relative overflow-hidden">
+            <div className="bg-card p-10 rounded-xl border border-border shadow-2xl relative overflow-hidden">
                 <div className="flex flex-col lg:flex-row gap-16">
                     {/* Gráfico */}
                     <div className="flex-1">
@@ -121,7 +121,7 @@ export default function CommissionsReportPage() {
                         </div>
                         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
                             {chartData.map((item, idx) => (
-                                <div key={idx} className="flex items-center gap-3 bg-muted/30 p-4 rounded-2xl border border-border/50">
+                                <div key={idx} className="flex items-center gap-3 bg-muted/30 p-4 rounded-xl border border-border/50">
                                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.name.includes('var') ? `hsl(${item.color})` : item.color }}></div>
                                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest truncate flex-1">{item.name}</span>
                                     <span className="text-xs font-black text-foreground">R$ {item.value.toFixed(0)}</span>
@@ -132,7 +132,7 @@ export default function CommissionsReportPage() {
 
                     {/* Filtros */}
                     <div className="flex-1 space-y-6">
-                        <div className="bg-background/50 p-8 rounded-[2rem] border border-border shadow-inner">
+                        <div className="bg-background/50 p-8 rounded-xl border border-border shadow-inner">
                             <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
@@ -162,13 +162,13 @@ export default function CommissionsReportPage() {
                                 </div>
                                 <button
                                     onClick={fetchReport}
-                                    className="w-full bg-primary text-primary-foreground px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-2xl shadow-primary/20 flex items-center justify-center gap-3"
+                                    className="w-full bg-primary text-primary-foreground px-8 py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-2xl shadow-primary/20 flex items-center justify-center gap-3"
                                 >
                                     <Zap className="w-5 h-5" /> Atualizar Dashboard
                                 </button>
                             </div>
                         </div>
-                        <div className="p-8 border border-primary/10 rounded-3xl bg-primary/5 flex items-start gap-4">
+                        <div className="p-8 border border-primary/10 rounded-xl bg-primary/5 flex items-start gap-4">
                             <AlertCircle className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed italic">
                                 Use os filtros para visualizar a performance em janelas de tempo específicas ou conferir repasses de ciclos fechados para toda sua equipe.
@@ -179,7 +179,7 @@ export default function CommissionsReportPage() {
             </div>
 
             {/* Tabela de Barbeiros */}
-            <div className="bg-card rounded-[2.5rem] border border-border shadow-xl overflow-hidden">
+            <div className="bg-card rounded-xl border border-border shadow-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>
@@ -241,7 +241,7 @@ function KPICard({ label, value, desc, color }) {
     };
 
     return (
-        <div className={`p-8 rounded-[2.5rem] border shadow-md relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 ${colors[color]}`}>
+        <div className={`p-8 rounded-xl border shadow-md relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 ${colors[color]}`}>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 opacity-100">{label}</p>
             <p className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors">{value}</p>
             {desc && <p className="text-[10px] font-bold uppercase tracking-widest mt-2 opacity-50 italic">{desc}</p>}

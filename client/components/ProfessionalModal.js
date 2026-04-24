@@ -308,12 +308,12 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300 overflow-y-auto">
-            <div className="bg-[#0f172a] w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-800 flex flex-col my-auto">
+            <div className="bg-[#0f172a] w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden border border-slate-800 flex flex-col my-auto">
 
                 {/* Header */}
                 <header className="p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-primary/10 text-primary rounded-2xl">
+                        <div className="p-3 bg-primary/10 text-primary rounded-xl">
                             {isEdit ? <Edit className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
                         </div>
                         <div>
@@ -337,7 +337,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                             key={t.id}
                             type="button"
                             onClick={() => setTab(t.id)}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === t.id
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === t.id
                                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
                                 : 'text-slate-500 hover:bg-slate-900 hover:text-slate-300'
                                 }`}
@@ -373,7 +373,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                 <Input label="RG" name="rg" register={register} error={errors.rg} />
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Gênero</label>
-                                    <select {...register('gender')} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition appearance-none">
+                                    <select {...register('gender')} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:ring-2 ring-primary transition appearance-none">
                                         <option value="">Selecione</option>
                                         <option value="Masculino">Masculino</option>
                                         <option value="Feminino">Feminino</option>
@@ -384,7 +384,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                 <Input label="Comissão (%)" name="commissionPercent" type="number" step="0.1" placeholder="Ex: 50" register={register} error={errors.commissionPercent} />
                                 <div className="md:col-span-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Observações</label>
-                                    <textarea {...register('notes')} rows={3} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition" />
+                                    <textarea {...register('notes')} rows={3} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:ring-2 ring-primary transition" />
                                 </div>
                             </div>
                         )}
@@ -392,10 +392,10 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         {/* Tab 2: Profile & Visibility */}
                         {tab === 2 && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                                <div className="flex flex-col md:flex-row items-center gap-8 bg-slate-900/40 p-8 rounded-[2rem] border border-slate-800">
+                                <div className="flex flex-col md:flex-row items-center gap-8 bg-slate-900/40 p-8 rounded-xl border border-slate-800">
                                     <div className="relative group w-32 h-32">
                                         <input type="file" onChange={handleAvatarChange} className="absolute inset-0 opacity-0 z-10 cursor-pointer" />
-                                        <div className="w-full h-full rounded-3xl bg-slate-950 border-2 border-slate-800 flex items-center justify-center overflow-hidden group-hover:border-primary transition">
+                                        <div className="w-full h-full rounded-xl bg-slate-950 border-2 border-slate-800 flex items-center justify-center overflow-hidden group-hover:border-primary transition">
                                             {watch('avatarUrl') ? (
                                                 <img src={watch('avatarUrl')} alt="Avatar" className="w-full h-full object-cover" />
                                             ) : (
@@ -403,7 +403,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                             )}
                                         </div>
                                         {uploading && (
-                                            <div className="absolute inset-0 bg-black/60 rounded-3xl flex items-center justify-center">
+                                            <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center">
                                                 <Loader2 className="w-6 h-6 text-white animate-spin" />
                                             </div>
                                         )}
@@ -427,7 +427,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                     <Input label="Função / Especialidade" name="position" placeholder="Ex: Barbeiro Master" register={register} error={errors.position} required />
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Intervalo entre agendamentos (Min)</label>
-                                        <select {...register('appointmentInterval', { valueAsNumber: true })} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none appearance-none">
+                                        <select {...register('appointmentInterval', { valueAsNumber: true })} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none appearance-none">
                                             <option value={15}>15 minutos</option>
                                             <option value={30}>30 minutos</option>
                                             <option value={45}>45 minutos</option>
@@ -436,7 +436,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Biografia Curta</label>
-                                        <textarea {...register('bio')} rows={4} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition" placeholder="Conte um pouco sobre a experiência do profissional..." />
+                                        <textarea {...register('bio')} rows={4} className="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:ring-2 ring-primary transition" placeholder="Conte um pouco sobre a experiência do profissional..." />
                                     </div>
                                 </div>
 
@@ -450,13 +450,13 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         {/* Tab 3: Services */}
                         {tab === 3 && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                                <div className="flex items-center gap-3 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 text-blue-500">
+                                <div className="flex items-center gap-3 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20 text-blue-500">
                                     <Info className="w-5 h-5 flex-shrink-0" />
                                     <p className="text-[10px] font-bold uppercase tracking-widest">Selecione os serviços que este profissional realiza.</p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {Array.isArray(availableServices) && availableServices.map(service => (
-                                        <label key={service.id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${watch('services')?.includes(service.id)
+                                        <label key={service.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${watch('services')?.includes(service.id)
                                             ? 'bg-primary/10 border-primary'
                                             : 'bg-slate-900 border-slate-800 hover:border-slate-700'
                                             }`}>
@@ -493,7 +493,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         {tab === 4 && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                                 {Array.isArray(schedules) && schedules.map((s, idx) => (
-                                    <div key={idx} className={`p-6 rounded-[2rem] border transition-all ${s.isOff ? 'bg-slate-900/30 border-slate-800' : 'bg-slate-900 border-slate-700 shadow-xl shadow-black/20'}`}>
+                                    <div key={idx} className={`p-6 rounded-xl border transition-all ${s.isOff ? 'bg-slate-900/30 border-slate-800' : 'bg-slate-900 border-slate-700 shadow-xl shadow-black/20'}`}>
                                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                                             <div>
                                                 <h4 className="text-white font-black uppercase tracking-widest text-sm">{['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][s.dayOfWeek]}</h4>
@@ -540,22 +540,22 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         {/* Tab 5: Access */}
                         {tab === 5 && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                                <div className="bg-slate-900/40 p-8 rounded-[2rem] border border-slate-800 space-y-6">
+                                <div className="bg-slate-900/40 p-8 rounded-xl border border-slate-800 space-y-6">
                                     <h4 className="text-white font-bold uppercase tracking-tight flex items-center gap-2">
                                         <Shield className="w-5 h-5 text-primary" /> Nível de Acesso
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <label className={`p-6 rounded-2xl border transition-all cursor-pointer ${watch('role') === 'BARBER' ? 'bg-primary text-white border-primary' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
+                                        <label className={`p-6 rounded-xl border transition-all cursor-pointer ${watch('role') === 'BARBER' ? 'bg-primary text-white border-primary' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
                                             <input type="radio" value="BARBER" {...register('role')} className="hidden" />
                                             <p className="font-black uppercase tracking-widest text-[10px]">Barbeiro</p>
                                             <p className="text-[9px] opacity-70 mt-1 uppercase font-bold">Acesso básico à agenda e seus agendamentos.</p>
                                         </label>
-                                        <label className={`p-6 rounded-2xl border transition-all cursor-pointer ${watch('role') === 'BARBER_CONSULTA' ? 'bg-orange-500 text-white border-orange-500' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
+                                        <label className={`p-6 rounded-xl border transition-all cursor-pointer ${watch('role') === 'BARBER_CONSULTA' ? 'bg-orange-500 text-white border-orange-500' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
                                             <input type="radio" value="BARBER_CONSULTA" {...register('role')} className="hidden" />
                                             <p className="font-black uppercase tracking-widest text-[10px]">Somente Consulta</p>
                                             <p className="text-[9px] opacity-70 mt-1 uppercase font-bold">Pode ver a agenda mas não pode realizar agendamentos.</p>
                                         </label>
-                                        <label className={`p-6 rounded-2xl border transition-all cursor-pointer ${watch('role') === 'ADMIN' ? 'bg-blue-500 text-white border-blue-500' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
+                                        <label className={`p-6 rounded-xl border transition-all cursor-pointer ${watch('role') === 'ADMIN' ? 'bg-blue-500 text-white border-blue-500' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
                                             <input type="radio" value="ADMIN" {...register('role')} className="hidden" />
                                             <p className="font-black uppercase tracking-widest text-[10px]">Gerente / Admin</p>
                                             <p className="text-[9px] opacity-70 mt-1 uppercase font-bold">Acesso total às configurações e relatórios da unidade.</p>
@@ -586,7 +586,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                                         {...register('zipCode')}
                                         onBlur={handleZipCodeBlur}
                                         placeholder="00000-000"
-                                        className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition"
+                                        className="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:ring-2 ring-primary transition"
                                     />
                                 </div>
                                 <Input label="Rua / Logradouro" name="street" register={register} />
@@ -611,7 +611,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                     <button
                         type="button"
                         onClick={() => tab > 1 && setTab(tab - 1)}
-                        className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${tab === 1 ? 'opacity-30 cursor-not-allowed text-slate-600' : 'bg-slate-800 text-white hover:bg-slate-700'
+                        className={`flex items-center gap-2 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${tab === 1 ? 'opacity-30 cursor-not-allowed text-slate-600' : 'bg-slate-800 text-white hover:bg-slate-700'
                             }`}
                         disabled={tab === 1}
                     >
@@ -622,7 +622,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                         <button
                             type="button"
                             onClick={() => tab < 6 ? setTab(tab + 1) : null}
-                            className={`flex items-center gap-2 bg-white text-slate-900 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95 ${tab === 6 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            className={`flex items-center gap-2 bg-white text-slate-900 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95 ${tab === 6 ? 'opacity-30 cursor-not-allowed' : ''}`}
                             disabled={tab === 6}
                         >
                             Próximo Passo <ChevronRight className="w-4 h-4" />
@@ -632,7 +632,7 @@ export default function ProfessionalModal({ isOpen, onClose, professional, onSuc
                             type="submit"
                             form="proForm"
                             disabled={loading || uploading}
-                            className={`flex items-center gap-2 bg-primary text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 ${(loading || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`flex items-center gap-2 bg-primary text-white px-10 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 ${(loading || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                             {isEdit ? 'SALVAR ALTERAÇÕES' : 'FINALIZAR CADASTRO'}
@@ -653,7 +653,7 @@ const Input = ({ label, name, type = 'text', register, error, required, ...rest 
         <input
             type={type}
             {...register(name)}
-            className={`w-full p-4 bg-slate-900 border appearance-none rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition ${error ? 'border-red-500/50 ring-red-500/10' : 'border-slate-800'
+            className={`w-full p-4 bg-slate-900 border appearance-none rounded-xl text-white font-bold outline-none focus:ring-2 ring-primary transition ${error ? 'border-red-500/50 ring-red-500/10' : 'border-slate-800'
                 }`}
             {...rest}
         />
@@ -662,7 +662,7 @@ const Input = ({ label, name, type = 'text', register, error, required, ...rest 
 );
 
 const Toggle = ({ label, name, register, watch }) => (
-    <label className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${watch(name) ? 'bg-primary/10 border-primary' : 'bg-slate-900 border-slate-800'
+    <label className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${watch(name) ? 'bg-primary/10 border-primary' : 'bg-slate-900 border-slate-800'
         }`}>
         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</span>
         <div className={`w-12 h-6 rounded-full relative transition-all ${watch(name) ? 'bg-primary' : 'bg-slate-800'}`}>

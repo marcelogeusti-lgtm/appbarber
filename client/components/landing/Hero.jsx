@@ -75,12 +75,12 @@ export default function Hero() {
 
                         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-5 mb-14">
                             <Link href="/register">
-                                <button className="w-full sm:w-auto px-12 py-5 bg-white text-black text-base font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 group">
+                                <button className="w-full sm:w-auto px-12 py-5 bg-white text-black text-base font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 group">
                                     Lotar Minha Agenda <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>
                             <Link href="#pricing" scroll={true}>
-                                <button className="w-full sm:w-auto px-10 py-5 bg-[#0A0A0B]/80 backdrop-blur-md text-white text-base font-bold rounded-2xl border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all flex items-center justify-center gap-2">
+                                <button className="w-full sm:w-auto px-10 py-5 bg-[#0A0A0B]/80 backdrop-blur-md text-white text-base font-bold rounded-xl border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all flex items-center justify-center gap-2">
                                     Ver demonstração
                                 </button>
                             </Link>
@@ -146,10 +146,10 @@ export default function Hero() {
                     >
                         <div className="relative z-20 group">
                             {/* Decorative Glow */}
-                            <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                            <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                            <LEDCardWrapper className="rounded-[3rem]">
-                                <div className="rounded-[3rem] bg-[#0A0A0B]/80 backdrop-blur-2xl border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] p-4 relative overflow-hidden transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
+                            <LEDCardWrapper className="rounded-xl">
+                                <div className="rounded-xl bg-[#0A0A0B]/80 backdrop-blur-2xl border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] p-4 relative overflow-hidden transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
                                     <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-blue-500 shadow-[0_0_20px_#4d72e4]" />
 
                                     {/* Mockup Header */}
@@ -166,7 +166,7 @@ export default function Hero() {
                                     </div>
 
                                     {/* Real Dashboard Screenshot */}
-                                    <div className="rounded-[2rem] border border-white/5 overflow-hidden bg-black relative aspect-[14/9] group/img shadow-2xl">
+                                    <div className="rounded-xl border border-white/5 overflow-hidden bg-black relative aspect-[14/9] group/img shadow-2xl">
                                         <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
                                         <img 
                                             src="/screenshots/dashboard-overview.png" 

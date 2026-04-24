@@ -11,7 +11,7 @@ export default function BarberCard({ shop }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4 }}
-            className="group relative bg-[#1E1E1E]/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-all"
+            className="group relative bg-[#1E1E1E]/40 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition-all"
         >
             <Link href={`/${shop.slug}`}>
                 <div className="relative h-48 w-full overflow-hidden">

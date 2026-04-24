@@ -72,12 +72,12 @@ export default function CardForm({ publicKey: initialKey, amount, onSubmit, onCa
 
     return (
         <div className="card-cartao w-full max-w-full sm:max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 px-2 sm:px-0">
-            <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+            <div className="bg-[#0f172a] border border-slate-800 rounded-xl overflow-hidden shadow-2xl relative">
                 {/* Premium Card Header Mockup */}
                 <div className="relative h-40 bg-gradient-to-br from-emerald-600/20 to-slate-900 overflow-hidden border-b border-white/5">
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
                     <div className="absolute top-6 left-8 z-10">
-                        <div className="w-12 h-12 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 backdrop-blur-xl">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 backdrop-blur-xl">
                             <CreditCard className="w-6 h-6 text-emerald-500" />
                         </div>
                     </div>
@@ -115,7 +115,7 @@ export default function CardForm({ publicKey: initialKey, amount, onSubmit, onCa
                             {!forceSave && (
                                 <div 
                                     onClick={() => setSaveCard(!saveCard)}
-                                    className={`mt-6 mx-1 p-4 rounded-2xl border flex items-center gap-4 cursor-pointer transition-all duration-300 ${saveCard ? 'bg-emerald-500/5 border-emerald-500/30 text-white' : 'bg-slate-800/20 border-slate-700/50 text-slate-500'}`}
+                                    className={`mt-6 mx-1 p-4 rounded-xl border flex items-center gap-4 cursor-pointer transition-all duration-300 ${saveCard ? 'bg-emerald-500/5 border-emerald-500/30 text-white' : 'bg-slate-800/20 border-slate-700/50 text-slate-500'}`}
                                 >
                                     <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${saveCard ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-slate-700 border-slate-600'}`}>
                                         {saveCard && <span className="text-white text-[10px] font-black">✓</span>}

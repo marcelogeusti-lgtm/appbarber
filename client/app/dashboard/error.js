@@ -17,7 +17,7 @@ export default function Error({ error, reset }) {
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#111827] text-white p-6 text-center">
             <h2 className="text-3xl font-black text-red-500 mb-4 uppercase tracking-widest">Algo deu errado!</h2>
 
-            <div className="bg-slate-900 border border-red-500/20 p-6 rounded-2xl max-w-lg w-full mb-8 overflow-auto">
+            <div className="bg-slate-900 border border-red-500/20 p-6 rounded-xl max-w-lg w-full mb-8 overflow-auto">
                 <p className="font-mono text-xs text-red-300 break-words text-left">
                     {error.message || "Erro desconhecido"}
                 </p>

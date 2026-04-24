@@ -44,7 +44,7 @@ export default function ProfileDropdown({ isOpen, onClose }) {
             {/* Backdrop for mobile/tablet to close on click outside if needed, though usually handled by parent */}
             <div className="fixed inset-0 z-[90] lg:hidden" onClick={onClose} />
 
-            <div className="absolute top-14 right-0 w-72 bg-[#0A0A0B] border border-white/5 rounded-[2rem] shadow-2xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+            <div className="absolute top-14 right-0 w-72 bg-[#0A0A0B] border border-white/5 rounded-xl shadow-2xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                 {/* User Info Header */}
                 <div className="p-6 border-b border-white/5 bg-white/5 flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full border border-primary/20 bg-slate-900 overflow-hidden shrink-0">
@@ -93,7 +93,7 @@ export default function ProfileDropdown({ isOpen, onClose }) {
                             logout();
                             onClose();
                         }}
-                        className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all group group"
+                        className="w-full flex items-center justify-center gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all group group"
                     >
                         <LogOut className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span className="text-[11px] font-black text-red-500 group-hover:text-white uppercase tracking-[0.2em]">Sair da Conta</span>

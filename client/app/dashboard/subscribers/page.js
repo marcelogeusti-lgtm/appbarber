@@ -67,13 +67,13 @@ export default function SubscribersPage() {
     return (
         <div className="space-y-10 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-xl border border-border shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 blur-[120px] -mr-40 -mt-40" />
                 <div className="relative z-10">
                     <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Clube de Membros</h1>
                     <p className="text-muted-foreground text-sm font-medium italic mt-2 uppercase tracking-widest text-[10px] opacity-80">Gestão de assinaturas e recorrência da sua base VIP.</p>
                 </div>
-                <button className="relative z-10 flex items-center gap-3 bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95">
+                <button className="relative z-10 flex items-center gap-3 bg-primary text-primary-foreground px-10 py-5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95">
                     <Download className="w-5 h-5" /> Exportar Dados
                 </button>
             </header>
@@ -87,10 +87,10 @@ export default function SubscribersPage() {
             </div>
 
             {/* Content Table Container */}
-            <div className="bg-card rounded-[3rem] border border-border shadow-2xl overflow-hidden relative">
+            <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden relative">
                 {/* Search & Tabs */}
                 <div className="p-10 border-b border-border bg-muted/10 flex flex-col xl:flex-row gap-10">
-                    <div className="flex bg-background rounded-2xl p-2 border border-border shadow-inner w-fit">
+                    <div className="flex bg-background rounded-xl p-2 border border-border shadow-inner w-fit">
                         <button className="px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-card text-primary shadow-xl border border-border">Base de Clientes</button>
                         <button className="px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all">Relatório LTV</button>
                     </div>
@@ -102,21 +102,21 @@ export default function SubscribersPage() {
                                 placeholder="Buscar por nome ou ID do assinante..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                className="w-full bg-background border border-border rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-foreground focus:ring-4 ring-primary/10 outline-none transition-all placeholder:text-muted-foreground/40 shadow-inner"
+                                className="w-full bg-background border border-border rounded-xl py-5 pl-14 pr-6 text-sm font-bold text-foreground focus:ring-4 ring-primary/10 outline-none transition-all placeholder:text-muted-foreground/40 shadow-inner"
                             />
                         </div>
                         <div className="flex gap-4">
                             <select
                                 value={statusFilter}
                                 onChange={e => setStatusFilter(e.target.value)}
-                                className="bg-background border border-border rounded-2xl px-8 py-5 text-[10px] font-black uppercase tracking-widest text-foreground outline-none focus:ring-4 ring-primary/10 appearance-none min-w-[180px] shadow-inner"
+                                className="bg-background border border-border rounded-xl px-8 py-5 text-[10px] font-black uppercase tracking-widest text-foreground outline-none focus:ring-4 ring-primary/10 appearance-none min-w-[180px] shadow-inner"
                             >
                                 <option value="ALL">Todos os Status</option>
                                 <option value="ACTIVE">Ativos</option>
                                 <option value="EXPIRED">Vencidos</option>
                                 <option value="CANCELLED">Cancelados</option>
                             </select>
-                            <button className="bg-foreground text-background px-10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-foreground/90 transition-all active:scale-95 shadow-xl">
+                            <button className="bg-foreground text-background px-10 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-foreground/90 transition-all active:scale-95 shadow-xl">
                                 Filtrar
                             </button>
                         </div>
@@ -170,7 +170,7 @@ export default function SubscribersPage() {
                                         <StatusBadge status={sub.status} />
                                     </td>
                                     <td className="px-8 py-8 text-right">
-                                        <div className="w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
+                                        <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
                                             <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary-foreground" />
                                         </div>
                                     </td>
@@ -184,8 +184,8 @@ export default function SubscribersPage() {
                 <footer className="p-10 bg-muted/20 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Exibindo {filtered.length} de {stats.total} registros</p>
                     <div className="flex gap-4">
-                        <button className="px-10 py-3.5 rounded-2xl bg-background text-muted-foreground font-black text-[10px] uppercase tracking-widest border border-border hover:text-foreground transition-all shadow-sm">Anterior</button>
-                        <button className="px-10 py-3.5 rounded-2xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all active:scale-95">Próxima Página</button>
+                        <button className="px-10 py-3.5 rounded-xl bg-background text-muted-foreground font-black text-[10px] uppercase tracking-widest border border-border hover:text-foreground transition-all shadow-sm">Anterior</button>
+                        <button className="px-10 py-3.5 rounded-xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all active:scale-95">Próxima Página</button>
                     </div>
                 </footer>
             </div>
@@ -212,10 +212,10 @@ function KPICard({ label, value, desc, icon, color }) {
     const style = colorStyles[color] || colorStyles.primary;
 
     return (
-        <div className="bg-card p-8 rounded-[2.5rem] border border-border hover:border-primary/20 transition-all group shadow-sm hover:shadow-2xl relative overflow-hidden flex flex-col h-full">
+        <div className="bg-card p-8 rounded-xl border border-border hover:border-primary/20 transition-all group shadow-sm hover:shadow-2xl relative overflow-hidden flex flex-col h-full">
             <div className={`absolute -right-6 -bottom-6 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${style.glow}`}></div>
 
-            <div className={`p-5 rounded-2xl w-fit mb-8 group-hover:scale-110 transition-transform border ${style.iconContainer} shadow-sm`}>
+            <div className={`p-5 rounded-xl w-fit mb-8 group-hover:scale-110 transition-transform border ${style.iconContainer} shadow-sm`}>
                 {icon}
             </div>
 

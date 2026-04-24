@@ -51,9 +51,9 @@ export default function SuperAdminCoursesPage() {
 
     if (isLoading) return (
         <div className="p-10 space-y-10">
-            <Skeleton className="h-40 rounded-[2.5rem]" />
+            <Skeleton className="h-40 rounded-xl" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 rounded-3xl" />)}
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 rounded-xl" />)}
             </div>
         </div>
     );
@@ -61,7 +61,7 @@ export default function SuperAdminCoursesPage() {
     return (
         <div className="space-y-10 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-xl border border-border shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 blur-[120px] -mr-40 -mt-40" />
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="w-16 h-16 bg-primary/10 rounded-[1.8rem] border border-primary/20 flex items-center justify-center text-3xl shadow-inner">
@@ -74,7 +74,7 @@ export default function SuperAdminCoursesPage() {
                 </div>
                 <button
                     onClick={() => { setEditingCourse(null); setIsCreateOpen(true); }}
-                    className="bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-3 relative z-10"
+                    className="bg-primary text-primary-foreground px-10 py-5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-3 relative z-10"
                 >
                     <Plus className="w-5 h-5" /> Inserir Novo Conteúdo
                 </button>
@@ -83,7 +83,7 @@ export default function SuperAdminCoursesPage() {
             {/* Courses Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {courses.map((course) => (
-                    <div key={course.id} className={`group bg-card border rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 flex flex-col ${!course.active ? 'border-destructive/30 grayscale-[0.5]' : 'border-border'}`}>
+                    <div key={course.id} className={`group bg-card border rounded-xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 flex flex-col ${!course.active ? 'border-destructive/30 grayscale-[0.5]' : 'border-border'}`}>
                         <div className="relative h-48 bg-muted overflow-hidden">
                             {course.thumbnailUrl ? (
                                 <img src={course.thumbnailUrl} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
@@ -118,7 +118,7 @@ export default function SuperAdminCoursesPage() {
                 ))}
 
                 {courses.length === 0 && (
-                    <div className="md:col-span-3 py-32 bg-card rounded-[3rem] border-2 border-dashed border-border flex flex-col items-center justify-center text-center">
+                    <div className="md:col-span-3 py-32 bg-card rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center text-center">
                         <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6">
                             <GraduationCap className="w-10 h-10 text-muted-foreground/30" />
                         </div>

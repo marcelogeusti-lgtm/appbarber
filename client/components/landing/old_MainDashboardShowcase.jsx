@@ -22,16 +22,16 @@ export default function MainDashboardShowcase() {
                     <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full scale-90 pointer-events-none" />
 
                     {/* The Image Container */}
-                    <div className="relative z-10 rounded-[2.5rem] border border-gray-100 bg-white p-2 shadow-[0_50px_100px_rgba(0,0,0,0.1)] overflow-hidden">
+                    <div className="relative z-10 rounded-xl border border-gray-100 bg-white p-2 shadow-[0_50px_100px_rgba(0,0,0,0.1)] overflow-hidden">
                         <img
                             src="/screenshots/dashboard_main_1772068419823.png"
                             alt="Dashboard Maestro NEXT"
-                            className="w-full h-auto rounded-[2rem]"
+                            className="w-full h-auto rounded-xl"
                         />
                     </div>
 
                     {/* Floating Badges */}
-                    <div className="absolute -left-10 top-1/4 hidden lg:flex p-4 bg-white rounded-2xl shadow-2xl border border-gray-50 items-center gap-4 animate-float">
+                    <div className="absolute -left-10 top-1/4 hidden lg:flex p-4 bg-white rounded-xl shadow-2xl border border-gray-50 items-center gap-4 animate-float">
                         <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center text-green-600">
                             <DollarSign className="w-5 h-5 font-bold" />
                         </div>
@@ -41,7 +41,7 @@ export default function MainDashboardShowcase() {
                         </div>
                     </div>
 
-                    <div className="absolute -right-10 bottom-1/4 hidden lg:flex p-4 bg-white rounded-2xl shadow-2xl border border-gray-50 items-center gap-4 animate-float-delayed">
+                    <div className="absolute -right-10 bottom-1/4 hidden lg:flex p-4 bg-white rounded-xl shadow-2xl border border-gray-50 items-center gap-4 animate-float-delayed">
                         <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600">
                             <Calendar className="w-5 h-5" />
                         </div>

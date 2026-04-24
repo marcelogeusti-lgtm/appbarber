@@ -21,7 +21,7 @@ export default function EditModal({
             ></div>
 
             {/* Modal Content */}
-            <div className="relative bg-[#111827] border border-slate-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="relative bg-[#111827] border border-slate-800 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">

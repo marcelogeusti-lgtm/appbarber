@@ -80,7 +80,7 @@ export default function SqueezeInModal({ isOpen, onClose, services, professional
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-[#111827] w-full max-w-lg rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-[#111827] w-full max-w-lg rounded-xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
                 {/* Header */}
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
@@ -156,7 +156,7 @@ export default function SqueezeInModal({ isOpen, onClose, services, professional
                                     <button
                                         key={srv.id}
                                         onClick={() => handleServiceSelect(srv)}
-                                        className="flex items-center gap-4 p-4 bg-slate-950 rounded-2xl border border-slate-800 hover:border-primary/50 hover:bg-primary/5 transition text-left group"
+                                        className="flex items-center gap-4 p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-primary/50 hover:bg-primary/5 transition text-left group"
                                     >
                                         <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-primary group-hover:text-white transition-colors">
                                             <Scissors className="w-4 h-4" />
@@ -192,7 +192,7 @@ export default function SqueezeInModal({ isOpen, onClose, services, professional
                                     <button
                                         key={pro.id}
                                         onClick={() => handleProSelect(pro)}
-                                        className="flex items-center gap-4 p-4 bg-slate-950 rounded-2xl border border-slate-800 hover:border-primary/50 hover:bg-primary/5 transition text-left group"
+                                        className="flex items-center gap-4 p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-primary/50 hover:bg-primary/5 transition text-left group"
                                     >
                                         <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-white group-hover:bg-primary transition-colors">
                                             {pro.name.charAt(0)}
@@ -215,7 +215,7 @@ export default function SqueezeInModal({ isOpen, onClose, services, professional
                                 <span className="whitespace-nowrap bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-[9px] font-black text-primary uppercase tracking-widest">{selectedPro?.name}</span>
                             </div>
 
-                            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 flex gap-4 items-start">
+                            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex gap-4 items-start">
                                 <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                                 <p className="text-xs text-primary/90 font-bold leading-relaxed">
                                     Esta função força a inserção de um agendamento na agenda do profissional ignorando choques de horário ou descansos.

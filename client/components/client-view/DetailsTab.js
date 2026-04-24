@@ -5,7 +5,7 @@ export default function DetailsTab({ barbershop }) {
     return (
         <div className="space-y-8 text-slate-300 pb-24">
             {/* Address & Map Block */}
-            <div className="bg-[#111] rounded-3xl border border-white/5 overflow-hidden flex flex-col sm:flex-row shadow-2xl">
+            <div className="bg-[#111] rounded-xl border border-white/5 overflow-hidden flex flex-col sm:flex-row shadow-2xl">
                 {/* Text Section */}
                 <div className="p-6 flex-1 flex flex-col justify-center bg-gradient-to-br from-[#151a23] to-[#0c0f14]">
                     <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1.5 flex items-center gap-2">
@@ -54,7 +54,7 @@ export default function DetailsTab({ barbershop }) {
                         { icon: Accessibility, label: 'Acessível' },
                         { icon: Baby, label: 'Kids' }
                     ].map((item, idx) => (
-                        <div key={idx} className="bg-[#111] aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 border border-white/5 text-slate-500 hover:text-primary hover:border-primary/30 transition">
+                        <div key={idx} className="bg-[#111] aspect-square rounded-xl flex flex-col items-center justify-center gap-2 border border-white/5 text-slate-500 hover:text-primary hover:border-primary/30 transition">
                             <item.icon className="w-6 h-6" />
                             {/* <span className="text-[10px] uppercase font-bold">{item.label}</span> */}
                         </div>
@@ -80,7 +80,7 @@ export default function DetailsTab({ barbershop }) {
             <div className="space-y-4">
                 <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Contato & Redes Sociais</h3>
                 <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3 bg-[#111] p-4 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-3 bg-[#111] p-4 rounded-xl border border-white/5">
                         <Phone className="w-5 h-5 text-primary" />
                         <span className="font-bold text-white text-sm">{barbershop.phone || '(00) 00000-0000'}</span>
                     </div>
@@ -92,7 +92,7 @@ export default function DetailsTab({ barbershop }) {
                                     href={barbershop.instagramUrl.startsWith('http') ? barbershop.instagramUrl : `https://instagram.com/${barbershop.instagramUrl.replace('@', '')}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-pink-500/30 hover:text-pink-500 transition group"
+                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-xl border border-white/5 hover:border-pink-500/30 hover:text-pink-500 transition group"
                                 >
                                     <Instagram className="w-5 h-5 group-hover:scale-110 transition" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Instagram</span>
@@ -103,7 +103,7 @@ export default function DetailsTab({ barbershop }) {
                                     href={barbershop.facebookUrl.startsWith('http') ? barbershop.facebookUrl : `https://facebook.com/${barbershop.facebookUrl}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-blue-500/30 hover:text-blue-500 transition group"
+                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-xl border border-white/5 hover:border-blue-500/30 hover:text-blue-500 transition group"
                                 >
                                     <Facebook className="w-5 h-5 group-hover:scale-110 transition" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Facebook</span>
@@ -114,7 +114,7 @@ export default function DetailsTab({ barbershop }) {
                                     href={barbershop.youtubeUrl.startsWith('http') ? barbershop.youtubeUrl : `https://youtube.com/${barbershop.youtubeUrl}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-2xl border border-white/5 hover:border-red-500/30 hover:text-red-500 transition group"
+                                    className="flex-1 flex items-center justify-center gap-2 bg-[#111] p-4 rounded-xl border border-white/5 hover:border-red-500/30 hover:text-red-500 transition group"
                                 >
                                     <Youtube className="w-5 h-5 group-hover:scale-110 transition" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">YouTube</span>

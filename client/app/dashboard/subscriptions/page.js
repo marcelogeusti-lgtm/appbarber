@@ -61,9 +61,9 @@ export default function SubscriptionPlansPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
                         <CreditCard className="w-8 h-8" />
                     </div>
                     <div>
@@ -73,14 +73,14 @@ export default function SubscriptionPlansPage() {
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
-                    className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
                 >
                     {isAdding ? 'CANCELAR' : <><Plus className="w-4 h-4" /> CRIAR NOVO PLANO</>}
                 </button>
             </header>
 
             {isAdding && (
-                <form onSubmit={handleCreatePlan} className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl animate-in zoom-in-95 duration-300 space-y-6">
+                <form onSubmit={handleCreatePlan} className="bg-card p-8 rounded-xl border border-border shadow-2xl animate-in zoom-in-95 duration-300 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nome do Plano</label>
@@ -144,7 +144,7 @@ export default function SubscriptionPlansPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {plans.map(plan => (
-                    <div key={plan.id} className="bg-card p-8 rounded-[3rem] border border-border shadow-sm hover:shadow-2xl hover:border-primary/50 transition-all relative group overflow-hidden">
+                    <div key={plan.id} className="bg-card p-8 rounded-xl border border-border shadow-sm hover:shadow-2xl hover:border-primary/50 transition-all relative group overflow-hidden">
                         <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => handleDelete(plan.id)} className="p-2 text-muted-foreground hover:text-destructive transition-colors">
                                 <Trash2 className="w-5 h-5" />
@@ -203,7 +203,7 @@ export default function SubscriptionPlansPage() {
                 ))}
 
                 {plans.length === 0 && !isAdding && (
-                    <div className="col-span-full py-20 text-center space-y-4 bg-card rounded-[3rem] border-2 border-dashed border-border">
+                    <div className="col-span-full py-20 text-center space-y-4 bg-card rounded-xl border-2 border-dashed border-border">
                         <CreditCard className="w-12 h-12 text-muted-foreground mx-auto" />
                         <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">Nenhum plano disponível para esta unidade.</p>
                     </div>

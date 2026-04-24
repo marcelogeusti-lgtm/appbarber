@@ -46,9 +46,9 @@ export default function ProblemSolution() {
                 <div className="grid lg:grid-cols-2 gap-12 items-stretch">
                     {/* Pain Side */}
                     <LEDCardWrapper className="h-full">
-                        <div className="p-8 lg:p-14 rounded-[3rem] bg-[#0A0A0B]/40 backdrop-blur-3xl border border-white/5 flex flex-col group/pain transition-all hover:bg-[#0A0A0B]/60 h-full">
+                        <div className="p-8 lg:p-14 rounded-xl bg-[#0A0A0B]/40 backdrop-blur-3xl border border-white/5 flex flex-col group/pain transition-all hover:bg-[#0A0A0B]/60 h-full">
                             <div className="flex items-center gap-4 mb-14">
-                                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 group-hover/pain:scale-110 transition-transform">
+                                <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 group-hover/pain:scale-110 transition-transform">
                                     <XCircle className="w-6 h-6" />
                                 </div>
                                 <h3 className="text-2xl font-black text-slate-300 uppercase tracking-tighter transition-colors group-hover/pain:text-white">Sem o NEXT</h3>
@@ -74,12 +74,12 @@ export default function ProblemSolution() {
 
                     {/* Solution Side */}
                     <LEDCardWrapper className="h-full">
-                        <div className="p-8 lg:p-14 rounded-[3rem] bg-gradient-to-br from-[#0A0A0B] to-[#050505] border-2 border-primary flex flex-col relative overflow-hidden shadow-[0_0_100px_rgba(77,114,228,0.15)] group/solution hover:shadow-[0_0_120px_rgba(77,114,228,0.25)] transition-all h-full">
+                        <div className="p-8 lg:p-14 rounded-xl bg-gradient-to-br from-[#0A0A0B] to-[#050505] border-2 border-primary flex flex-col relative overflow-hidden shadow-[0_0_100px_rgba(77,114,228,0.15)] group/solution hover:shadow-[0_0_120px_rgba(77,114,228,0.25)] transition-all h-full">
                             <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 blur-[130px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
 
                             <div className="flex items-center gap-4 mb-14 relative z-10">
-                                <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-[0_0_40px_#4d72e4] group-hover/solution:scale-110 transition-transform">
+                                <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white shadow-[0_0_40px_#4d72e4] group-hover/solution:scale-110 transition-transform">
                                     <CheckCircle2 className="w-6 h-6" />
                                 </div>
                                 <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Com o NEXT</h3>

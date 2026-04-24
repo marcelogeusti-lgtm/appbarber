@@ -65,10 +65,10 @@ function GoogleCalendarCard() {
     const isConnected = status.connected;
 
     return (
-        <div className="p-8 rounded-[2rem] border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden mb-6">
+        <div className="p-8 rounded-xl border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden mb-6">
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
                 <div className="flex gap-5">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-inner shrink-0 group-hover:scale-110 transition-transform ${isConnected ? 'bg-primary/10 border-primary/20' : 'bg-zinc-100 border-zinc-200'}`}>
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center border shadow-inner shrink-0 group-hover:scale-110 transition-transform ${isConnected ? 'bg-primary/10 border-primary/20' : 'bg-zinc-100 border-zinc-200'}`}>
                         <Calendar className={`w-6 h-6 ${isConnected ? 'text-primary' : 'text-zinc-400'}`} />
                     </div>
                     <div>
@@ -125,10 +125,10 @@ function WhatsAppCard() {
     };
 
     return (
-        <div className="p-8 rounded-[2rem] border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden mb-6">
+        <div className="p-8 rounded-xl border border-border bg-card hover:border-primary/30 transition-all duration-500 group relative overflow-hidden mb-6">
             <div className="flex flex-col md:flex-row items-start justify-between gap-6">
                 <div className="flex gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-[#25D366]/10 overflow-hidden flex items-center justify-center border border-[#25D366]/20 shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+                    <div className="w-14 h-14 rounded-xl bg-[#25D366]/10 overflow-hidden flex items-center justify-center border border-[#25D366]/20 shadow-inner shrink-0 group-hover:scale-110 transition-transform">
                         <Smartphone className="w-8 h-8 text-[#25D366]" />
                     </div>
                     <div>

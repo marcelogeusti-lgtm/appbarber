@@ -79,7 +79,7 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
                 <div className="p-6 space-y-6 overflow-y-auto h-[calc(100vh-5rem)]">
 
                     {/* Status Card */}
-                    <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800">
+                    <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status do Caixa</span>
                             <div className="flex items-center gap-2">

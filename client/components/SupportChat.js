@@ -87,7 +87,7 @@ export default function SupportChat() {
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="fixed bottom-6 right-6 w-[380px] max-w-[90vw] h-[550px] max-h-[80vh] bg-card/80 backdrop-blur-xl border border-border rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300 z-[101]">
+                <div className="fixed bottom-6 right-6 w-[380px] max-w-[90vw] h-[550px] max-h-[80vh] bg-card/80 backdrop-blur-xl border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300 z-[101]">
                     {/* Header */}
                     <div className="p-4 bg-primary flex items-center justify-between text-white shadow-lg">
                         <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export default function SupportChat() {
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-card/30">
                         {messages.map((msg) => (
                             <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-top-1`}>
-                                <div className={`max-w-[85%] p-4 rounded-2xl text-sm shadow-sm ${
+                                <div className={`max-w-[85%] p-4 rounded-xl text-sm shadow-sm ${
                                     msg.type === 'user' 
                                         ? 'bg-primary text-white rounded-tr-none' 
                                         : 'bg-muted border border-border text-foreground rounded-tl-none'
@@ -123,7 +123,7 @@ export default function SupportChat() {
                         
                         {isTyping && (
                             <div className="flex justify-start">
-                                <div className="bg-muted border border-border p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
+                                <div className="bg-muted border border-border p-4 rounded-xl rounded-tl-none flex items-center gap-2">
                                     <div className="flex gap-1">
                                         <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                                         <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -157,7 +157,7 @@ export default function SupportChat() {
                                 onKeyDown={handleKeyPress}
                                 placeholder="Digite sua dúvida..."
                                 rows={1}
-                                className="w-full bg-muted border border-border rounded-2xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-primary/50 transition-all resize-none max-h-32"
+                                className="w-full bg-muted border border-border rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-primary/50 transition-all resize-none max-h-32"
                             />
                             <button
                                 onClick={handleSend}

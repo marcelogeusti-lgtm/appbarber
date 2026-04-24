@@ -171,10 +171,10 @@ export default function OrderDetailsPage() {
     return (
         <div className="max-w-5xl mx-auto space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-6 md:p-8 rounded-[2.5rem] border border-border shadow-xl relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-6 md:p-8 rounded-xl border border-border shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32" />
                 <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
-                    <div className={`p-4 rounded-3xl border shadow-inner ${isClosed ? 'bg-primary/10 text-primary border-primary/20' : 'bg-secondary/10 text-secondary border-secondary/20'}`}>
+                    <div className={`p-4 rounded-xl border shadow-inner ${isClosed ? 'bg-primary/10 text-primary border-primary/20' : 'bg-secondary/10 text-secondary border-secondary/20'}`}>
                         <Receipt className="w-8 h-8 md:w-10 md:h-10" />
                     </div>
                     <div className="flex-1">
@@ -197,7 +197,7 @@ export default function OrderDetailsPage() {
                 {!isClosed && (
                     <button
                         onClick={handleOpenPayment}
-                        className="w-full md:w-auto relative z-10 bg-primary text-primary-foreground px-8 py-4 md:px-10 md:py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center justify-center gap-3"
+                        className="w-full md:w-auto relative z-10 bg-primary text-primary-foreground px-8 py-4 md:px-10 md:py-5 rounded-xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center justify-center gap-3"
                     >
                         <CheckCircle className="w-6 h-6" /> Finalizar Conta
                     </button>
@@ -207,7 +207,7 @@ export default function OrderDetailsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Items List */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-card rounded-[2.5rem] border border-border overflow-hidden shadow-sm">
+                    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
                         <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
                             <h3 className="text-foreground font-black uppercase text-sm tracking-widest flex items-center gap-3">
                                 <Receipt className="w-5 h-5 text-primary" /> Itens do Pedido
@@ -215,9 +215,9 @@ export default function OrderDetailsPage() {
                         </div>
                         <div className="p-6 md:p-8 space-y-4">
                             {ensureArray(order.items).map(item => (
-                                <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-6 bg-background rounded-3xl border border-border group hover:border-primary/30 transition-all gap-4">
+                                <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-6 bg-background rounded-xl border border-border group hover:border-primary/30 transition-all gap-4">
                                     <div className="flex items-center gap-5">
-                                        <div className="p-3 md:p-4 bg-muted rounded-2xl text-muted-foreground border border-border group-hover:text-primary transition-colors">
+                                        <div className="p-3 md:p-4 bg-muted rounded-xl text-muted-foreground border border-border group-hover:text-primary transition-colors">
                                             {item.type === 'SERVICE' ? <Scissors className="w-5 h-5 md:w-6 md:h-6" /> : <Package className="w-5 h-5 md:w-6 md:h-6" />}
                                         </div>
                                         <div>
@@ -243,7 +243,7 @@ export default function OrderDetailsPage() {
                             ))}
 
                             {order.items?.length === 0 && (
-                                <div className="text-center py-24 text-muted-foreground font-black uppercase tracking-widest text-[10px] italic bg-muted/10 rounded-3xl border-2 border-dashed border-border">
+                                <div className="text-center py-24 text-muted-foreground font-black uppercase tracking-widest text-[10px] italic bg-muted/10 rounded-xl border-2 border-dashed border-border">
                                     Nenhum item adicionado à comanda.
                                 </div>
                             )}
@@ -253,10 +253,10 @@ export default function OrderDetailsPage() {
                             <div className="p-6 md:p-8 bg-muted/30 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                 {/* Add Service Dropdown */}
                                 <div className="relative group">
-                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
                                         <Scissors className="w-5 h-5" /> Add Serviço
                                     </button>
-                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
+                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
                                         {ensureArray(services).length > 0 ? ensureArray(services).map(serv => (
                                             <button
                                                 key={serv.id}
@@ -276,10 +276,10 @@ export default function OrderDetailsPage() {
 
                                 {/* Add Product Dropdown */}
                                 <div className="relative group">
-                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
                                         <Package className="w-5 h-5" /> Add Produto
                                     </button>
-                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
+                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
                                         {ensureArray(products).length > 0 ? ensureArray(products).map(prod => (
                                             <button
                                                 key={prod.id}
@@ -303,7 +303,7 @@ export default function OrderDetailsPage() {
 
                 {/* Summary */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-card p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-border shadow-xl sticky top-8">
+                    <div className="bg-card p-8 md:p-10 rounded-xl md:rounded-xl border border-border shadow-xl sticky top-8">
                         <h3 className="text-muted-foreground font-black text-[10px] uppercase tracking-[0.2em] mb-8">Resumo do Fechamento</h3>
 
                         <div className="space-y-5 mb-10 border-b border-border pb-10">
@@ -337,9 +337,9 @@ export default function OrderDetailsPage() {
                         <div className="space-y-4">
                             {isClosed && (
                                 <div className="space-y-4">
-                                    <div className="p-6 bg-primary/10 rounded-3xl border border-primary/20 flex flex-col gap-4">
+                                    <div className="p-6 bg-primary/10 rounded-xl border border-primary/20 flex flex-col gap-4">
                                         <div className="flex items-center gap-5">
-                                            <div className="p-3 bg-primary text-primary-foreground rounded-2xl">
+                                            <div className="p-3 bg-primary text-primary-foreground rounded-xl">
                                                 <CheckCircle className="w-6 h-6" />
                                             </div>
                                             <div>
@@ -351,7 +351,7 @@ export default function OrderDetailsPage() {
 
                                     {/* NFe Integration Section */}
                                     {order.nfe ? (
-                                        <div className="p-6 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 space-y-4">
+                                        <div className="p-6 bg-emerald-500/10 rounded-xl border border-emerald-500/20 space-y-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Nota Fiscal Emitida</p>
@@ -388,7 +388,7 @@ export default function OrderDetailsPage() {
                                         <button
                                             onClick={handleRetroactiveNfe}
                                             disabled={processing}
-                                            className="w-full mt-4 bg-muted hover:bg-muted/80 text-foreground px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-border disabled:opacity-50"
+                                            className="w-full mt-4 bg-muted hover:bg-muted/80 text-foreground px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-border disabled:opacity-50"
                                         >
                                             {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
                                             Gerar Nota Fiscal Retroativa
@@ -400,7 +400,7 @@ export default function OrderDetailsPage() {
                             {!isClosed && order.balance > 0 && (
                                 <button
                                     onClick={handleOpenPayment}
-                                    className="w-full relative z-10 bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center justify-center gap-3 mb-4"
+                                    className="w-full relative z-10 bg-primary text-primary-foreground px-10 py-5 rounded-xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary/90 hover:scale-105 transition active:scale-95 flex items-center justify-center gap-3 mb-4"
                                 >
                                     <DollarSign className="w-5 h-5" /> Pagar Saldo {formatBRL(order.balance)}
                                 </button>
@@ -412,7 +412,7 @@ export default function OrderDetailsPage() {
                                         setDiscountValue(order.discount || 0);
                                         setShowDiscountModal(true);
                                     }}
-                                    className="w-full p-5 bg-background text-foreground rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-muted transition flex items-center justify-center gap-3 shadow-inner"
+                                    className="w-full p-5 bg-background text-foreground rounded-xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-muted transition flex items-center justify-center gap-3 shadow-inner"
                                 >
                                     <Percent className="w-5 h-5 text-primary" /> Aplicar Desconto
                                 </button>
@@ -425,7 +425,7 @@ export default function OrderDetailsPage() {
             {/* Discount Modal */}
             {showDiscountModal && (
                 <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="bg-card w-full max-w-md rounded-[2.5rem] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95">
+                    <div className="bg-card w-full max-w-md rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95">
                         <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
                             <h3 className="text-foreground font-black text-lg uppercase tracking-widest flex items-center gap-3">
                                 <Percent className="w-6 h-6 text-primary" />
@@ -450,13 +450,13 @@ export default function OrderDetailsPage() {
                                         max={order.subtotal}
                                         value={discountValue}
                                         onChange={(e) => setDiscountValue(e.target.value)}
-                                        className="w-full p-6 pl-16 bg-background border border-border rounded-2xl text-foreground font-black text-2xl focus:ring-4 ring-primary/10 outline-none transition-all"
+                                        className="w-full p-6 pl-16 bg-background border border-border rounded-xl text-foreground font-black text-2xl focus:ring-4 ring-primary/10 outline-none transition-all"
                                         placeholder="0.00"
                                     />
                                 </div>
                             </div>
 
-                            <div className="bg-muted/50 p-6 rounded-3xl border border-border space-y-3 shadow-inner">
+                            <div className="bg-muted/50 p-6 rounded-xl border border-border space-y-3 shadow-inner">
                                 <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                     <span>Subtotal Original</span>
                                     <span>{formatBRL(order.subtotal)}</span>
@@ -493,7 +493,7 @@ export default function OrderDetailsPage() {
             {/* Payment Selection Modal - RESPONSIVE FIX */}
             {showPaymentModal && (
                 <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-[60] flex items-center justify-center p-2 md:p-4 animate-in fade-in duration-300">
-                    <div className="bg-card w-full max-w-lg rounded-[2rem] md:rounded-[3rem] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+                    <div className="bg-card w-full max-w-lg rounded-xl md:rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
 
                         <div className="p-6 md:p-10 border-b border-border bg-muted/10 shrink-0">
                             <h3 className="text-foreground font-black text-2xl md:text-3xl uppercase tracking-tighter mb-2">Finalizar Comanda</h3>
@@ -511,7 +511,7 @@ export default function OrderDetailsPage() {
                                     <button
                                         key={method.id}
                                         onClick={() => setSelectedMethod(method.id)}
-                                        className={`p-4 md:p-6 rounded-[2rem] border-2 flex flex-col items-center gap-2 md:gap-3 transition-all duration-300 ${selectedMethod === method.id
+                                        className={`p-4 md:p-6 rounded-xl border-2 flex flex-col items-center gap-2 md:gap-3 transition-all duration-300 ${selectedMethod === method.id
                                             ? 'border-primary bg-primary/5 text-primary shadow-xl shadow-primary/10 scale-105'
                                             : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:bg-muted/50'
                                             }`}
@@ -529,7 +529,7 @@ export default function OrderDetailsPage() {
 
                             {/* Informativo sobre Método Selecionado */}
                             {selectedMethod && (
-                                <div className="mb-6 p-4 bg-muted/30 rounded-2xl border border-border text-center">
+                                <div className="mb-6 p-4 bg-muted/30 rounded-xl border border-border text-center">
                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Método Selecionado</p>
                                     <p className="text-sm font-black text-primary uppercase">
                                         {[
@@ -569,7 +569,7 @@ export default function OrderDetailsPage() {
                             <button
                                 onClick={() => handleConfirmPayment(false)}
                                 disabled={processing || !selectedMethod}
-                                className={`w-full py-5 md:py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 scale-100 active:scale-95 ${processing || !selectedMethod
+                                className={`w-full py-5 md:py-6 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 scale-100 active:scale-95 ${processing || !selectedMethod
                                     ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed opacity-50'
                                     : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/20 flex items-center justify-center gap-2'
                                     }`}
