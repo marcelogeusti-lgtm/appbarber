@@ -3,8 +3,11 @@ import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import {
     Calendar, ArrowUpRight, Target, UserPlus, Zap, BarChart3,
-    Star, Clock, Trophy, Award
+    Star, Clock, Trophy, Award, BrainCircuit, TrendingUp, 
+    ChevronRight, Sparkles, AlertCircle, Info, Filter, 
+    ArrowDownRight, Users
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function OwnerDashboardPage() {
     const [data, setData] = useState(null);
@@ -47,23 +50,35 @@ export default function OwnerDashboardPage() {
     };
 
     if (loading) {
-        return <div className="p-8 text-center text-muted-foreground animate-pulse uppercase font-bold tracking-widest text-xs">Acessando inteligência de negócio...</div>;
+        return (
+            <div className="min-h-[80vh] flex flex-col items-center justify-center gap-6">
+                <div className="relative">
+                    <div className="w-24 h-24 border-2 border-primary/10 border-t-primary rounded-full animate-spin"></div>
+                    <BrainCircuit className="w-10 h-10 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Acessando Inteligência NEXT...</p>
+            </div>
+        );
     }
 
     if (error || !data) {
         return (
-            <div className="p-12 flex flex-col items-center justify-center gap-4 text-center">
-                <BarChart3 className="w-12 h-12 text-muted-foreground/30" />
-                <h2 className="text-lg font-bold text-foreground">Análise Indisponível</h2>
-                <p className="text-sm text-muted-foreground max-w-sm">{error || 'Nenhum dado encontrado para o período selecionado.'}</p>
-                <button onClick={fetchOwnerData} className="mt-2 px-6 py-2.5 bg-primary text-white font-bold text-xs rounded-xl hover:opacity-90 transition-opacity uppercase tracking-wider">
-                    Tentar Novamente
+            <div className="p-12 flex flex-col items-center justify-center gap-6 text-center bg-card/30 backdrop-blur-xl rounded-[3rem] border border-border/50">
+                <div className="w-20 h-20 bg-muted/20 rounded-[2rem] flex items-center justify-center">
+                    <BarChart3 className="w-10 h-10 text-muted-foreground/50" />
+                </div>
+                <div className="space-y-2">
+                    <h2 className="text-2xl font-black uppercase tracking-tight text-foreground">Análise não disponível</h2>
+                    <p className="text-muted-foreground text-sm max-w-sm font-medium">{error || 'Sem dados suficientes para gerar insights agora.'}</p>
+                </div>
+                <button onClick={fetchOwnerData} className="px-10 py-4 bg-primary text-white font-black text-[11px] rounded-2xl hover:scale-105 transition-all uppercase tracking-widest shadow-xl shadow-primary/20">
+                    Sincronizar Agora
                 </button>
             </div>
         );
     }
 
-    const { kpis, rankings, charts } = data;
+    const { kpis, rankings, charts, alerts } = data;
     const professionals = rankings?.professionals || [];
     const services = rankings?.services || [];
     const clients = rankings?.clients || [];
@@ -72,170 +87,191 @@ export default function OwnerDashboardPage() {
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
     return (
-        <div className="space-y-6 pb-12">
-            {/* --- HEADER --- */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-xl border border-border">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <BarChart3 className="w-4 h-4 text-primary" />
-                        <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">Análise Estratégica</span>
-                    </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Gestão de Negócio</h1>
-                    <p className="text-muted-foreground text-sm mt-0.5">Visão estratégica para maximizar lucros e crescimento.</p>
-                </div>
-
-                <div className="flex gap-2 bg-background p-1.5 rounded-lg border border-border">
-                    <input
-                        type="date"
-                        value={startDate}
-                        onChange={e => setStartDate(e.target.value)}
-                        className="bg-transparent border-none text-xs font-medium outline-none px-2 text-foreground"
-                    />
-                    <div className="w-px bg-border self-stretch" />
-                    <input
-                        type="date"
-                        value={endDate}
-                        onChange={e => setEndDate(e.target.value)}
-                        className="bg-transparent border-none text-xs font-medium outline-none px-2 text-foreground"
-                    />
-                    <button onClick={fetchOwnerData} className="bg-primary text-primary-foreground p-1.5 rounded-md hover:opacity-90 transition-opacity">
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            </div>
-
-            {/* --- INTELLIGENCE ALERTS --- */}
-            {data.alerts && data.alerts.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {data.alerts.map((alert, i) => (
-                        <div key={i} className={`p-4 rounded-xl border-l-4 flex gap-3 items-start ${alert.type === 'DANGER' ? 'bg-red-500/5 border-red-500 text-red-500' :
-                            alert.type === 'WARNING' ? 'bg-yellow-500/5 border-yellow-500 text-yellow-500' :
-                                'bg-blue-500/5 border-blue-500 text-blue-500'
-                            }`}>
-                            <Zap className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider">{alert.title}</p>
-                                <p className="text-sm font-medium mt-0.5 text-foreground leading-snug">{alert.message}</p>
+        <div className="space-y-8 pb-32 animate-in fade-in duration-700">
+            {/* --- HEADER PREMIUM --- */}
+            <header className="relative overflow-hidden bg-card/40 backdrop-blur-2xl p-10 rounded-[3rem] border border-border/50 shadow-2xl group">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full -mr-64 -mt-64 transition-all duration-1000 group-hover:bg-primary/20"></div>
+                <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                    <div>
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-primary/20 text-primary rounded-xl flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/5">
+                                <BrainCircuit className="w-5 h-5" />
                             </div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Next Intelligence v2.0</span>
                         </div>
-                    ))}
-                </div>
-            )}
+                        <h1 className="text-5xl font-black uppercase tracking-tighter text-foreground leading-[0.9]">Gestão de <br/><span className="text-primary">Negócio</span></h1>
+                    </div>
 
-            {/* --- MAIN KPIs --- */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <ManagementCard label="Ticket Médio" value={formatBRL(kpis.ticketMedio)} desc="Gasto médio por cliente" icon={Target} />
-                <ManagementCard label="Taxa de Retenção" value={`${kpis.retentionRate.toFixed(1)}%`} desc="Clientes que voltaram" icon={UserPlus} />
-                <ManagementCard label="Previsão (30d)" value={formatBRL(kpis.forecast)} desc="Receita já agendada" icon={Calendar} color="primary" />
-                <ManagementCard label="Lucro" value={formatBRL(kpis.estimatedProfit)} desc="Resultado líquido" icon={Zap} color="secondary" />
+                    <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                        <div className="flex items-center bg-background/50 p-2 rounded-2xl border border-border shadow-inner backdrop-blur-xl">
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={e => setStartDate(e.target.value)}
+                                className="bg-transparent border-none text-[11px] font-black uppercase tracking-widest outline-none px-4 text-foreground w-full sm:w-auto"
+                            />
+                            <div className="w-px h-6 bg-border mx-2 hidden sm:block" />
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={e => setEndDate(e.target.value)}
+                                className="bg-transparent border-none text-[11px] font-black uppercase tracking-widest outline-none px-4 text-foreground w-full sm:w-auto"
+                            />
+                            <button onClick={fetchOwnerData} className="ml-2 bg-primary text-white p-3 rounded-xl hover:scale-110 transition-all shadow-lg shadow-primary/20">
+                                <Filter className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* --- AI INSIGHTS HUB --- */}
+            <AnimatePresence>
+                {alerts && alerts.length > 0 && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+                    >
+                        {alerts.map((alert, i) => (
+                            <div key={i} className={`relative overflow-hidden p-8 rounded-[2.5rem] border backdrop-blur-xl group transition-all hover:translate-y-[-4px] ${
+                                alert.type === 'DANGER' ? 'bg-red-500/10 border-red-500/30' :
+                                alert.type === 'WARNING' ? 'bg-amber-500/10 border-amber-500/30' :
+                                'bg-blue-500/10 border-blue-500/30'
+                            }`}>
+                                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <Sparkles className="w-20 h-20" />
+                                </div>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                        alert.type === 'DANGER' ? 'bg-red-500 text-white' :
+                                        alert.type === 'WARNING' ? 'bg-amber-500 text-white' :
+                                        'bg-blue-500 text-white'
+                                    }`}>
+                                        <Zap className="w-5 h-5" />
+                                    </div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">{alert.title}</h4>
+                                </div>
+                                <p className="text-lg font-bold leading-tight text-foreground/90">{alert.message}</p>
+                                <button className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:gap-4 transition-all">
+                                    Aplicar Estratégia <ArrowRight className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* --- KPI MATRIX --- */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { label: 'Ticket Médio', value: formatBRL(kpis.ticketMedio), icon: Target, desc: 'Faturamento por cliente' },
+                    { label: 'Retenção', value: `${kpis.retentionRate.toFixed(1)}%`, icon: Users, desc: 'Fidelidade da base' },
+                    { label: 'Previsão 30d', value: formatBRL(kpis.forecast), icon: Calendar, desc: 'Receita já garantida', highlight: true },
+                    { label: 'Lucro Líquido', value: formatBRL(kpis.estimatedProfit), icon: TrendingUp, desc: 'Sobra real no bolso', success: true }
+                ].map((kpi, idx) => (
+                    <div key={idx} className={`p-8 rounded-[2.5rem] border transition-all hover:shadow-2xl ${
+                        kpi.highlight ? 'bg-primary border-primary text-white shadow-primary/20' : 
+                        kpi.success ? 'bg-green-500/10 border-green-500/30 text-green-500 shadow-green-500/5' : 
+                        'bg-card border-border/50 text-foreground'
+                    }`}>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${kpi.highlight ? 'bg-white/20' : 'bg-muted/50 text-muted-foreground'}`}>
+                            <kpi.icon className="w-6 h-6" />
+                        </div>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${kpi.highlight ? 'opacity-70' : 'text-muted-foreground'}`}>{kpi.label}</p>
+                        <h2 className="text-3xl font-black tracking-tighter leading-none mb-2">{kpi.value}</h2>
+                        <p className={`text-[10px] font-medium ${kpi.highlight ? 'opacity-50' : 'text-muted-foreground/60'}`}>{kpi.desc}</p>
+                    </div>
+                ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* --- PROFIT PER BARBER --- */}
-                <div className="lg:col-span-2 bg-card p-6 rounded-xl border border-border relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
-                        <Trophy className="w-32 h-32" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* --- TEAM RANKING --- */}
+                <div className="lg:col-span-2 bg-card p-10 rounded-[3rem] border border-border/50 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full -mr-32 -mt-32"></div>
+                    <div className="flex justify-between items-center mb-10">
+                        <h3 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
+                            <Trophy className="w-6 h-6 text-primary" /> Performance por Profissional
+                        </h3>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
+                            Top Performers
+                        </div>
                     </div>
-                    <h3 className="text-sm font-bold tracking-tight text-foreground mb-4 flex items-center gap-2">
-                        <Award className="w-4 h-4 text-primary" /> Ranking por Lucro Gerado
-                    </h3>
-                    <div className="space-y-3">
-                        {professionals.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhum profissional com faturamento no período.</p>
-                        ) : professionals.map((pro, i) => (
-                            <div key={i} className="flex items-center justify-between p-3.5 bg-muted/20 rounded-xl border border-transparent hover:border-primary/20 transition-all">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-background rounded-lg flex items-center justify-center font-bold text-primary border border-border text-xs">
-                                        {i + 1}º
+                    
+                    <div className="space-y-4">
+                        {professionals.map((pro, i) => (
+                            <div key={i} className="group/item flex items-center justify-between p-6 bg-muted/20 hover:bg-muted/40 rounded-3xl border border-border/50 transition-all">
+                                <div className="flex items-center gap-6">
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl transition-all group-hover/item:scale-110 ${
+                                        i === 0 ? 'bg-primary text-white shadow-xl shadow-primary/20' : 
+                                        i === 1 ? 'bg-muted text-foreground' : 'bg-muted/50 text-muted-foreground'
+                                    }`}>
+                                        {i + 1}
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-sm text-foreground">{pro.name}</p>
-                                        <div className="flex gap-3 mt-0.5">
-                                            <p className="text-[10px] text-muted-foreground">Bruto: {formatBRL(pro.revenue)}</p>
-                                            <p className="text-[10px] text-destructive">Comissão: {formatBRL(pro.commission)}</p>
+                                        <p className="font-black text-lg uppercase tracking-tight">{pro.name}</p>
+                                        <div className="flex items-center gap-4 mt-1">
+                                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Revenue: {formatBRL(pro.revenue)}</span>
+                                            <div className="w-1 h-1 bg-muted-foreground/30 rounded-full"></div>
+                                            <span className="text-[10px] text-destructive font-bold uppercase tracking-widest">Comissão: {formatBRL(pro.commission)}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sm font-bold text-primary">{formatBRL(pro.net)}</p>
-                                    <p className="text-[10px] text-muted-foreground">Líquido</p>
+                                    <p className="text-2xl font-black text-primary tracking-tighter">{formatBRL(pro.net)}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-1">Lucro Líquido</p>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* --- TOP SERVICES --- */}
-                <div className="bg-card p-6 rounded-xl border border-border">
-                    <h3 className="text-sm font-bold tracking-tight text-foreground mb-4">Serviços em Destaque</h3>
-                    <div className="space-y-2">
-                        {services.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhum serviço no período.</p>
-                        ) : services.slice(0, 5).map((s, i) => (
-                            <div key={i} className="p-3 bg-muted/20 rounded-xl border border-border flex justify-between items-center hover:border-primary/30 transition-all">
-                                <div>
-                                    <p className="text-xs font-semibold text-foreground">{s.name}</p>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5">{s.count} vendas</p>
-                                </div>
-                                <p className="text-sm font-bold text-primary">{formatBRL(s.revenue)}</p>
-                            </div>
-                        ))}
-                    </div>
-                    {services.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-border">
-                            <div className="bg-primary/5 p-3 rounded-xl border border-primary/10 flex items-start gap-2">
-                                <Zap className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                                <p className="text-xs text-foreground leading-relaxed">
-                                    <span className="font-semibold text-primary">Insight:</span> &quot;{services[0]?.name}&quot; representa {((services[0]?.revenue / kpis.monthlyRevenue) * 100).toFixed(0)}% do faturamento.
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* --- HOURLY HEATMAP --- */}
-                <div className="bg-card p-6 rounded-xl border border-border">
-                    <h3 className="text-sm font-bold tracking-tight text-foreground mb-4 flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-primary" /> Horários com Maior Receita
-                    </h3>
-                    <div className="flex items-end gap-1.5 h-36 px-1">
-                        {[9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(h => {
-                            const val = hourlyHeatmap.find(x => x.hour === h)?.value || 0;
-                            const max = Math.max(...hourlyHeatmap.map(x => x.value), 1);
-                            const height = (val / max) * 100;
-                            return (
-                                <div key={h} className="flex-1 flex flex-col items-center group h-full justify-end">
-                                    <div
-                                        className="w-full rounded-t-sm bg-primary/20 group-hover:bg-primary transition-all"
-                                        style={{ height: `${Math.max(8, height)}%` }}
-                                    />
-                                    <p className="text-[8px] text-muted-foreground mt-1.5 opacity-60 group-hover:opacity-100">{h}h</p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <p className="text-[10px] text-center text-muted-foreground mt-3 italic">A barra mais alta indica o horário de maior faturamento.</p>
-                </div>
-
-                {/* --- VIP CLIENTS --- */}
-                <div className="bg-card p-6 rounded-xl border border-border">
-                    <h3 className="text-sm font-bold tracking-tight text-foreground mb-4">Clientes VIP (Top 5)</h3>
-                    <div className="space-y-2">
-                        {clients.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhum cliente com pedido fechado no período.</p>
-                        ) : clients.slice(0, 5).map((c, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 bg-muted/20 rounded-xl border border-transparent hover:border-yellow-500/20 transition-all">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${i === 0 ? 'bg-yellow-500 text-white' : 'bg-muted text-muted-foreground'}`}>
-                                        {i === 0 ? <Star className="w-3.5 h-3.5" /> : i + 1}
+                {/* --- HEATMAP & SERVICES --- */}
+                <div className="space-y-8">
+                    {/* Heatmap Vertical */}
+                    <div className="bg-card p-10 rounded-[3rem] border border-border/50 shadow-sm">
+                        <h3 className="text-xl font-black uppercase tracking-tighter mb-8 flex items-center gap-3">
+                            <Clock className="w-6 h-6 text-primary" /> Fluxo por Horário
+                        </h3>
+                        <div className="flex items-end justify-between h-40 gap-2 px-2">
+                            {[9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(h => {
+                                const val = hourlyHeatmap.find(x => x.hour === h)?.value || 0;
+                                const max = Math.max(...hourlyHeatmap.map(x => x.value), 1);
+                                const height = (val / max) * 100;
+                                return (
+                                    <div key={h} className="flex-1 flex flex-col items-center group h-full justify-end">
+                                        <div 
+                                            className={`w-full rounded-full transition-all duration-700 ${val > 0 ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-muted/50'}`}
+                                            style={{ height: `${Math.max(10, height)}%` }}
+                                        ></div>
+                                        <p className="text-[8px] font-black text-muted-foreground mt-3 uppercase">{h}h</p>
                                     </div>
-                                    <p className="font-medium text-sm text-foreground">{c.name}</p>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Quick Insight Service */}
+                    <div className="bg-primary p-10 rounded-[3rem] text-white shadow-2xl shadow-primary/20 relative overflow-hidden group">
+                        <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mb-10 -mr-10 group-hover:bg-white/20 transition-all"></div>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-6">Principal Serviço</h3>
+                        {services[0] ? (
+                            <>
+                                <h4 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">{services[0].name}</h4>
+                                <p className="text-sm font-medium opacity-80 mb-6">{services[0].count} agendamentos no período</p>
+                                <div className="flex items-center justify-between border-t border-white/20 pt-6">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Faturamento</p>
+                                        <p className="text-xl font-black tracking-tight">{formatBRL(services[0].revenue)}</p>
+                                    </div>
+                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                                        <Scissors className="w-6 h-6" />
+                                    </div>
                                 </div>
-                                <p className="font-bold text-sm text-foreground">{formatBRL(c.amount)}</p>
-                            </div>
-                        ))}
+                            </>
+                        ) : (
+                            <p className="text-sm opacity-60">Sem dados no momento</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -243,29 +279,3 @@ export default function OwnerDashboardPage() {
     );
 }
 
-function ManagementCard({ label, value, desc, icon: Icon, color = 'muted', trend }) {
-    const colors = {
-        primary: 'bg-primary border-primary/20 text-primary-foreground shadow-md shadow-primary/10',
-        secondary: 'bg-secondary border-secondary/20 text-secondary-foreground shadow-md shadow-secondary/10',
-        muted: 'bg-card border-border text-foreground',
-    };
-
-    return (
-        <div className={`p-5 rounded-xl border transition-all hover:scale-[1.02] cursor-default ${colors[color]}`}>
-            <div className="flex justify-between items-start mb-3">
-                <div className={`p-2 rounded-lg ${color === 'muted' ? 'bg-primary/10 text-primary' : 'bg-foreground/10'}`}>
-                    <Icon className="w-4 h-4 opacity-90" />
-                </div>
-                {trend && (
-                    <div className="flex items-center gap-1 bg-green-500/15 text-green-500 px-2 py-0.5 rounded-full">
-                        <ArrowUpRight className="w-3 h-3" />
-                        <span className="text-[10px] font-bold">{trend}</span>
-                    </div>
-                )}
-            </div>
-            <p className={`text-[10px] font-semibold uppercase tracking-wider mb-1 ${color === 'muted' ? 'text-muted-foreground' : 'opacity-70'}`}>{label}</p>
-            <p className="text-xl font-bold tracking-tight mb-1 leading-none">{value}</p>
-            <p className={`text-[10px] ${color === 'muted' ? 'text-muted-foreground/60' : 'opacity-60'}`}>{desc}</p>
-        </div>
-    );
-}
