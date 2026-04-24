@@ -13,6 +13,8 @@ const { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } = require('date-fns-t
 const FeatureFlagService = require('../services/FeatureFlagService');
 const NfeService = require('../services/NfeService');
 const internalNotifier = require('../services/notificationService/internalNotifier');
+const eventBus = require('../services/events/eventBus');
+const socket = require('../socket');
 const TIMEZONE = 'America/Sao_Paulo';
 
 const generateToken = (user) => {
@@ -501,6 +503,8 @@ exports.createAppointment = async (req, res) => {
 
         setImmediate(async () => {
             try {
+                console.log(`[Notification Diagnostic] Starting side-effects for Appointment ID: ${appointment.id}`);
+                
                 const fullApp = await prisma.appointment.findUnique({
                     where: { id: appointment.id },
                     include: {
@@ -517,7 +521,10 @@ exports.createAppointment = async (req, res) => {
                         }
                     }
                 });
+
                 if (fullApp) {
+                    console.log(`[Notification Diagnostic] Full appointment data retrieved for ${fullApp.id}. Emitting event...`);
+                    
                     // Sync with Digital Wallet (Fire and forget, don't block response)
                     try {
                         const WalletService = require('../services/WalletService');
@@ -526,19 +533,31 @@ exports.createAppointment = async (req, res) => {
                         console.error('[AppointmentController] Wallet sync failed:', e.message);
                     }
 
-                    const eventBus = require('../services/events/eventBus');
+                    // Emit to EventBus (Listeners: Email, WhatsApp, etc)
+                    const listenersCount = eventBus.listenerCount('APPOINTMENT_CREATED');
+                    console.log(`[Notification Diagnostic] EventBus 'APPOINTMENT_CREATED' has ${listenersCount} listeners.`);
+                    
                     eventBus.emit('APPOINTMENT_CREATED', fullApp);
+                    console.log(`[Notification Diagnostic] Event 'APPOINTMENT_CREATED' emitted.`);
 
-                    // Emit to Socket Room for the Barbershop
+                    // Emit to Socket Room for the Barbershop (Dashboard Real-time)
                     try {
-                        const socket = require('../socket');
                         const io = socket.getIO();
                         if (io) {
                             io.to(appointment.barbershopId).emit('new_appointment', fullApp);
+                            console.log(`[Notification Diagnostic] Socket event 'new_appointment' emitted to room ${appointment.barbershopId}`);
+                        } else {
+                            console.warn(`[Notification Diagnostic] Socket.IO instance not available.`);
                         }
-                    } catch (sErr) { /* ignore */ }
+                    } catch (sErr) { 
+                        console.error('[Notification Diagnostic] Socket emit error:', sErr.message);
+                    }
+                } else {
+                    console.error(`[Notification Diagnostic] CRITICAL: Failed to retrieve fullApp for ID ${appointment.id}. Record might have been deleted or query failed.`);
                 }
-            } catch (err) { console.error('EventBus Error:', err.message); }
+            } catch (err) { 
+                console.error('[Notification Diagnostic] Unexpected Error in side-effect block:', err.message); 
+            }
         });
 
         res.status(201).json({

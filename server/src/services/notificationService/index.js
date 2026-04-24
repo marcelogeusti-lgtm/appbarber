@@ -6,9 +6,14 @@ const prisma = require('../../lib/prisma');
 
 console.log('[NotificationService] Initializing listeners...');
 
+// Diagnostic Event: TEST_PING
+eventBus.on('DIAGNOSTIC_PING', () => {
+    console.log('[NotificationService] 🏓 PONG! EventBus is working and listener is active.');
+});
+
 // Event: APPOINTMENT_CREATED
 eventBus.on('APPOINTMENT_CREATED', async (payload) => {
-    console.log(`[NotificationService] Event Received: APPOINTMENT_CREATED for ID ${payload.id}`);
+    console.log(`[NotificationService] 📥 Event Received: APPOINTMENT_CREATED for ID ${payload.id}`);
 
     try {
         const dateObj = new Date(payload.date);
