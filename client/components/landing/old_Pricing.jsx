@@ -20,7 +20,7 @@ export default function Pricing() {
                 <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
 
                     {/* Aut├┤nomo */}
-                    <div className="p-10 rounded-xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col hover:border-primary/20 transition-all duration-300">
+                    <div className="p-10 rounded-3xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col hover:border-primary/20 transition-all duration-300">
                         <h4 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight italic">Aut├┤nomo</h4>
                         <p className="text-[10px] font-black uppercase tracking-widest mb-8 text-gray-400">Para unidades individuais.</p>
                         <div className="flex items-baseline gap-1 mb-8">
@@ -35,14 +35,14 @@ export default function Pricing() {
                             ))}
                         </ul>
                         <Link href="/register">
-                            <button className="w-full py-5 rounded-xl border border-gray-200 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-50 transition-all text-gray-900 italic">
+                            <button className="w-full py-5 rounded-2xl border border-gray-200 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-50 transition-all text-gray-900 italic">
                                 Ativar Plano
                             </button>
                         </Link>
                     </div>
 
                     {/* Diamond Pro */}
-                    <div className="p-10 rounded-xl bg-white border-2 border-primary shadow-[0_20px_60px_rgba(77,114,228,0.1)] flex flex-col relative scale-[1.03] z-10">
+                    <div className="p-10 rounded-3xl bg-white border-2 border-primary shadow-[0_20px_60px_rgba(77,114,228,0.1)] flex flex-col relative scale-[1.03] z-10">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1.5 bg-primary rounded-full text-[10px] font-black text-white uppercase tracking-widest">Recomendado</div>
                         <h4 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight italic">Diamond Pro</h4>
                         <p className="text-[10px] font-black uppercase tracking-widest mb-8 text-primary">Crescimento acelerado.</p>
@@ -58,14 +58,14 @@ export default function Pricing() {
                             ))}
                         </ul>
                         <Link href="/register">
-                            <button className="w-full py-5 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 italic flex items-center justify-center gap-2">
+                            <button className="w-full py-5 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 italic flex items-center justify-center gap-2">
                                 Experimentar Gr├ítis <ArrowRight className="w-4 h-4" />
                             </button>
                         </Link>
                     </div>
 
                     {/* Empire */}
-                    <div className="p-10 rounded-xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col hover:border-primary/20 transition-all duration-300">
+                    <div className="p-10 rounded-3xl bg-white border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col hover:border-primary/20 transition-all duration-300">
                         <h4 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight italic">Empire</h4>
                         <p className="text-[10px] font-black uppercase tracking-widest mb-8 text-gray-400">Escala sem limites.</p>
                         <div className="flex items-baseline gap-1 mb-8">
@@ -80,7 +80,7 @@ export default function Pricing() {
                             ))}
                         </ul>
                         <Link href="/register">
-                            <button className="w-full py-5 rounded-xl border border-gray-200 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-50 transition-all text-gray-900 italic">
+                            <button className="w-full py-5 rounded-2xl border border-gray-200 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-50 transition-all text-gray-900 italic">
                                 Ativar Plano
                             </button>
                         </Link>

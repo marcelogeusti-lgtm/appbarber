@@ -36,7 +36,7 @@ export default function ConnectWhatsAppModal({ isOpen, onClose }) {
 
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-md relative">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md relative">
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition text-slate-500">
                     <X className="w-5 h-5" />
                 </button>

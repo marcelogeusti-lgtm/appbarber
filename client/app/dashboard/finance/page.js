@@ -58,11 +58,11 @@ export default function FinancePage() {
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-32 animate-in fade-in duration-700">
             {/* Header com Design Premium */}
-            <header className="relative overflow-hidden bg-card/40 backdrop-blur-xl p-10 rounded-xl border border-border/50 shadow-2xl group">
+            <header className="relative overflow-hidden bg-card/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-border/50 shadow-2xl group">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full -mr-32 -mt-32 transition-all duration-1000 group-hover:bg-primary/20"></div>
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-primary/20 text-primary rounded-xl flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/5">
+                        <div className="w-16 h-16 bg-primary/20 text-primary rounded-3xl flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/5">
                             <TrendingUp className="w-8 h-8" />
                         </div>
                         <div>
@@ -90,12 +90,12 @@ export default function FinancePage() {
                                     toast.error("Erro ao exportar dados");
                                 }
                             }}
-                            className="p-4 bg-muted hover:bg-muted/80 text-foreground rounded-xl border border-border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest"
+                            className="p-4 bg-muted hover:bg-muted/80 text-foreground rounded-2xl border border-border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest"
                         >
                             <Download className="w-4 h-4" /> Exportar CSV
                         </button>
 
-                        <div className="flex bg-background/50 p-1.5 rounded-xl border border-border shadow-inner">
+                        <div className="flex bg-background/50 p-1.5 rounded-2xl border border-border shadow-inner">
                             {['day', 'week', 'month'].map(p => (
                                 <button
                                     key={p}
@@ -128,8 +128,8 @@ export default function FinancePage() {
                             { label: 'Despesas e Comissões', value: (stats?.totalExpenses || 0) + (stats?.totalCommissions || 0), icon: ArrowDownRight, color: 'destructive' },
                             { label: 'Lucro Líquido', value: stats?.netProfit, icon: Wallet, color: 'green', highlight: true }
                         ].map((item, idx) => (
-                            <div key={idx} className={`relative overflow-hidden p-8 rounded-xl border border-border/50 shadow-xl transition-all hover:translate-y-[-4px] ${item.highlight ? 'bg-primary text-white border-primary shadow-primary/20' : 'bg-card'}`}>
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 ${item.highlight ? 'bg-white/20' : 'bg-muted/50 text-muted-foreground'}`}>
+                            <div key={idx} className={`relative overflow-hidden p-8 rounded-[2.5rem] border border-border/50 shadow-xl transition-all hover:translate-y-[-4px] ${item.highlight ? 'bg-primary text-white border-primary shadow-primary/20' : 'bg-card'}`}>
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${item.highlight ? 'bg-white/20' : 'bg-muted/50 text-muted-foreground'}`}>
                                     <item.icon className="w-6 h-6" />
                                 </div>
                                 <p className={`text-[10px] font-black uppercase tracking-widest ${item.highlight ? 'opacity-80' : 'text-muted-foreground'}`}>{item.label}</p>
@@ -143,7 +143,7 @@ export default function FinancePage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Listagem de Transações */}
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
+                            <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
                                 <div className="p-8 border-b border-border/30 flex justify-between items-center">
                                     <h3 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
                                         <BarChart3 className="w-6 h-6 text-primary" />
@@ -151,7 +151,7 @@ export default function FinancePage() {
                                     </h3>
                                     <button
                                         onClick={() => setIsTransactionModalOpen(true)}
-                                        className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 transition-all"
+                                        className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 transition-all"
                                     >
                                         <Plus className="w-4 h-4" /> Novo Lançamento
                                     </button>
@@ -159,9 +159,9 @@ export default function FinancePage() {
 
                                 <div className="p-4 space-y-3">
                                     {transactions.length > 0 ? transactions.map((t, i) => (
-                                        <div key={i} className="flex items-center justify-between p-6 bg-muted/20 hover:bg-muted/40 rounded-xl border border-border/50 transition-all group">
+                                        <div key={i} className="flex items-center justify-between p-6 bg-muted/20 hover:bg-muted/40 rounded-3xl border border-border/50 transition-all group">
                                             <div className="flex items-center gap-5">
-                                                <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${t.type === 'INCOME' ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'}`}>
+                                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${t.type === 'INCOME' ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'}`}>
                                                     {t.type === 'INCOME' ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
                                                 </div>
                                                 <div>
@@ -195,7 +195,7 @@ export default function FinancePage() {
                         {/* Coluna de Insights (Ranking e Métodos) */}
                         <div className="space-y-8">
                             {/* Ranking Equipe */}
-                            <div className="bg-card p-10 rounded-xl border border-border/50 shadow-sm relative overflow-hidden">
+                            <div className="bg-card p-10 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-10 -mt-10"></div>
                                 <h3 className="text-xl font-black uppercase text-foreground mb-8 flex items-center gap-3">
                                     <Users className="w-6 h-6 text-primary" /> Performance Equipe
@@ -222,13 +222,13 @@ export default function FinancePage() {
                             </div>
 
                             {/* Breakdown Métodos */}
-                            <div className="bg-card p-10 rounded-xl border border-border/50 shadow-sm">
+                            <div className="bg-card p-10 rounded-[2.5rem] border border-border/50 shadow-sm">
                                 <h3 className="text-xl font-black uppercase text-foreground mb-8 flex items-center gap-3">
                                     <PieChart className="w-6 h-6 text-primary" /> Meios de Pagamento
                                 </h3>
                                 <div className="space-y-4">
                                     {Object.entries(stats?.revenueByMethod || {}).map(([method, value], idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/50">
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/50">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-primary"></div>
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{method}</span>

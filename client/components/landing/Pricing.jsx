@@ -65,7 +65,7 @@ export default function Pricing() {
                                     <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Autônomo</h4>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">Para unidades individuais.</p>
                                 </div>
-                                <div className="w-14 h-14 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-primary transition-all duration-500 border border-white/5">
+                                <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-primary transition-all duration-500 border border-white/5">
                                     <Zap className="w-7 h-7" />
                                 </div>
                             </div>
@@ -86,7 +86,7 @@ export default function Pricing() {
                             </ul>
 
                             <Link href="/register">
-                                <button className="w-full py-5 rounded-xl border border-white/15 text-[11px] font-black uppercase tracking-[0.2em] transition-all text-white hover:bg-white hover:text-black">
+                                <button className="w-full py-5 rounded-2xl border border-white/15 text-[11px] font-black uppercase tracking-[0.2em] transition-all text-white hover:bg-white hover:text-black">
                                     Ativar Plano Core
                                 </button>
                             </Link>
@@ -139,7 +139,7 @@ export default function Pricing() {
                             </ul>
 
                             <Link href="/register">
-                                <button className="w-full py-5 rounded-xl bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-100 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 group/btn relative z-10">
+                                <button className="w-full py-5 rounded-2xl bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-100 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 group/btn relative z-10">
                                     Upgrade Diamond <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
                                 </button>
                             </Link>
@@ -159,7 +159,7 @@ export default function Pricing() {
                                     <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Empire</h4>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">Escala sem limites.</p>
                                 </div>
-                                <div className="w-14 h-14 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-white transition-all duration-500 border border-white/5">
+                                <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-white transition-all duration-500 border border-white/5">
                                     <Trophy className="w-7 h-7" />
                                 </div>
                             </div>
@@ -182,7 +182,7 @@ export default function Pricing() {
                             </ul>
 
                             <Link href="/register">
-                                <button className="w-full py-5 rounded-xl border border-white/15 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all text-white">
+                                <button className="w-full py-5 rounded-2xl border border-white/15 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all text-white">
                                     Solicitar Convite Empire
                                 </button>
                             </Link>
@@ -192,8 +192,8 @@ export default function Pricing() {
                 </motion.div>
 
                 <div className="mt-24">
-                    <div className="max-w-3xl mx-auto bg-white/[0.02] border border-white/5 rounded-xl p-10 flex flex-col lg:flex-row items-center gap-10 justify-center backdrop-blur-3xl group/trust">
-                        <div className="w-16 h-16 bg-primary/10 rounded-xl shadow-inner flex items-center justify-center flex-shrink-0 text-primary group-hover/trust:scale-110 transition-transform">
+                    <div className="max-w-3xl mx-auto bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10 flex flex-col lg:flex-row items-center gap-10 justify-center backdrop-blur-3xl group/trust">
+                        <div className="w-16 h-16 bg-primary/10 rounded-2xl shadow-inner flex items-center justify-center flex-shrink-0 text-primary group-hover/trust:scale-110 transition-transform">
                             <Zap className="w-8 h-8 fill-current" />
                         </div>
                         <div className="text-center lg:text-left">

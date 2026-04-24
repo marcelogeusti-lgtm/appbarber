@@ -381,7 +381,7 @@ function VisualTab({ barbershop, setBarbershop }) {
 
             {/* Smartphone Mockup Preview */}
             <div className="lg:col-span-1 flex justify-center sticky top-8">
-                <div className="relative w-[280px] h-[580px] bg-[#09090b] rounded-xl border-[8px] border-[#18181b] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col">
+                <div className="relative w-[280px] h-[580px] bg-[#09090b] rounded-[40px] border-[8px] border-[#18181b] shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col">
                     {/* Notch */}
                     <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-50">
                         <div className="w-28 h-5 bg-[#18181b] rounded-b-2xl"></div>
@@ -563,7 +563,7 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
 
                 {/* QR Code Display Section */}
                 {waStatus.status === 'WAITING_QR' && qrCode && (
-                    <div className="mt-8 flex flex-col items-center justify-center p-8 bg-muted/30 rounded-xl border border-dashed border-border animate-in zoom-in-95 duration-300">
+                    <div className="mt-8 flex flex-col items-center justify-center p-8 bg-muted/30 rounded-2xl border border-dashed border-border animate-in zoom-in-95 duration-300">
                         <div className="bg-white p-4 rounded-xl shadow-xl mb-6">
                             <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64" />
                         </div>

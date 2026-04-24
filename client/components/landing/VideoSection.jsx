@@ -20,7 +20,7 @@ export default function VideoSection() {
                 {/* Video Container */}
                 <div className="relative max-w-5xl mx-auto group cursor-pointer">
                     {/* Border Gradient */}
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary via-blue-500 to-primary rounded-xl opacity-75 group-hover:opacity-100 blur transition duration-1000 group-hover:duration-200 animate-gradient-xy"></div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary via-blue-500 to-primary rounded-2xl opacity-75 group-hover:opacity-100 blur transition duration-1000 group-hover:duration-200 animate-gradient-xy"></div>
 
                     {/* Main Video Box */}
                     <div className="relative rounded-xl bg-slate-900 aspect-video flex items-center justify-center overflow-hidden border border-white/10 shadow-2xl">

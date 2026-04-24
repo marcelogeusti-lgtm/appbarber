@@ -38,7 +38,7 @@ export default function FAQ() {
 
                 <div className="space-y-4">
                     {faqs.map((faq, i) => (
-                        <div key={i} className={`border rounded-xl transition-all duration-300 ${openIndex === i ? 'border-primary/50 bg-[#0F1115]' : 'border-white/5 bg-[#09090b]'}`}>
+                        <div key={i} className={`border rounded-2xl transition-all duration-300 ${openIndex === i ? 'border-primary/50 bg-[#0F1115]' : 'border-white/5 bg-[#09090b]'}`}>
                             <button
                                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                                 className="w-full text-left p-6 flex justify-between items-center"

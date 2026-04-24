@@ -81,9 +81,9 @@ export default function OrdersPage() {
 
     return (
         <div className="space-y-6 pb-20 animate-in fade-in duration-500">
-            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-8 rounded-xl border border-border shadow-sm">
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <ShoppingBag className="w-8 h-8" />
                     </div>
                     <div>
@@ -93,7 +93,7 @@ export default function OrdersPage() {
                 </div>
                 <button
                     onClick={() => setIsCreating(true)}
-                    className="bg-primary text-primary-foreground px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all"
+                    className="bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all"
                 >
                     + Nova Comanda
                 </button>
@@ -105,7 +105,7 @@ export default function OrdersPage() {
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
-                        className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border ${filter === f
+                        className={`px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border ${filter === f
                             ? 'bg-primary text-white border-primary shadow-lg shadow-primary/10'
                             : 'bg-card text-muted-foreground border-border hover:border-primary/30'
                             }`}
@@ -124,7 +124,7 @@ export default function OrdersPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredOrders.map(order => (
                         <Link href={`/dashboard/orders/${order.id}`} key={order.id} className="block group transition-all">
-                            <div className="bg-card p-8 rounded-xl border border-border group-hover:border-primary/50 relative overflow-hidden flex flex-col h-full shadow-sm hover:shadow-2xl transition-all">
+                            <div className="bg-card p-8 rounded-[2.5rem] border border-border group-hover:border-primary/50 relative overflow-hidden flex flex-col h-full shadow-sm hover:shadow-2xl transition-all">
                                 <div className={`absolute top-0 right-0 px-4 py-2 font-black text-[8px] uppercase tracking-widest border-l border-b border-border/10 ${order.status === 'OPEN' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                                     {order.status === 'OPEN' ? 'EM ABERTO' : 'LIQUIDADO'}
                                 </div>
@@ -139,7 +139,7 @@ export default function OrdersPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 mb-8 bg-muted/30 p-4 rounded-xl border border-border/50">
+                                <div className="flex items-center gap-4 mb-8 bg-muted/30 p-4 rounded-2xl border border-border/50">
                                     <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black text-primary border border-border">
                                         {(order.professional?.name || 'P').charAt(0)}
                                     </div>
@@ -164,7 +164,7 @@ export default function OrdersPage() {
                 </div>
             )}
 
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm mt-8">
+            <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm mt-8">
                 <Pagination
                     currentPage={page}
                     totalPages={totalPages}
@@ -179,7 +179,7 @@ export default function OrdersPage() {
             {isCreating && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCreating(false)} />
-                    <div className="relative bg-card w-full max-w-lg rounded-xl border border-border shadow-2xl p-10 animate-in zoom-in-95 duration-200">
+                    <div className="relative bg-card w-full max-w-lg rounded-[2.5rem] border border-border shadow-2xl p-10 animate-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-black uppercase text-foreground tracking-tighter">Nova <span className="text-primary italic">Comanda</span></h2>
                             <button onClick={() => setIsCreating(false)} className="text-muted-foreground hover:text-destructive"><X className="w-6 h-6" /></button>
@@ -203,7 +203,7 @@ export default function OrdersPage() {
                                         {ensureArray(services).map(s => <option key={s.id} value={s.id}>{s.name} - R$ {s.price}</option>)}
                                     </select>
                             </div>
-                            <button type="submit" disabled={createMutation.isPending} className="w-full bg-primary text-white py-5 rounded-xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.01] transition-all">ABRIR COMANDA AGORA</button>
+                            <button type="submit" disabled={createMutation.isPending} className="w-full bg-primary text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.01] transition-all">ABRIR COMANDA AGORA</button>
                         </form>
                     </div>
                 </div>

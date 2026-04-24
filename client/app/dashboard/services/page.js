@@ -145,9 +145,9 @@ export default function ServicesPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <Scissors className="w-8 h-8" />
                     </div>
                     <div>
@@ -158,7 +158,7 @@ export default function ServicesPage() {
                 {!isAdding && (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
+                        className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
                     >
                         <Plus className="w-4 h-4" /> Novo Serviço
                     </button>
@@ -166,7 +166,7 @@ export default function ServicesPage() {
             </header>
 
             {isAdding && (
-                <div className="bg-card p-8 rounded-xl border border-border shadow-2xl animate-in fade-in slide-in-from-top-4">
+                <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl animate-in fade-in slide-in-from-top-4">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold uppercase tracking-wider text-foreground">
                             {editingId ? 'Editar Serviço' : 'Novo Serviço'}
@@ -350,10 +350,10 @@ export default function ServicesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {services.map(service => (
-                    <div key={service.id} className="bg-card p-8 rounded-xl border border-border hover:border-primary/50 transition-all group relative">
+                    <div key={service.id} className="bg-card p-8 rounded-[2rem] border border-border hover:border-primary/50 transition-all group relative">
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-4">
-                                <div className="p-4 bg-muted rounded-xl border border-border overflow-hidden w-16 h-16 flex items-center justify-center">
+                                <div className="p-4 bg-muted rounded-2xl border border-border overflow-hidden w-16 h-16 flex items-center justify-center">
                                     {service.imageUrl ? (
                                         <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -366,7 +366,7 @@ export default function ServicesPage() {
                                         <Clock className="w-3 h-3" /> {service.duration} MINUTOS
                                     </p>
                                 </div>
-                                <div className="text-xl font-black text-primary bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
+                                <div className="text-xl font-black text-primary bg-primary/10 px-4 py-2 rounded-2xl border border-primary/20">
                                     R$ {service.price}
                                 </div>
                             </div>
@@ -405,8 +405,8 @@ export default function ServicesPage() {
             />
 
             {services.length === 0 && !isAdding && (
-                <div className="text-center py-32 bg-card rounded-xl border-2 border-dashed border-border">
-                    <div className="w-20 h-20 bg-muted rounded-xl flex items-center justify-center mx-auto mb-6 text-muted-foreground">
+                <div className="text-center py-32 bg-card rounded-[3rem] border-2 border-dashed border-border">
+                    <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6 text-muted-foreground">
                         <Scissors className="w-10 h-10" />
                     </div>
                     <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Nenhum serviço disponível</p>

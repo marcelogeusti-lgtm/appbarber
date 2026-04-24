@@ -61,12 +61,12 @@ export default function WhatsAppHighlight() {
                                             </div>
                                         </div>
 
-                                        <div className="bg-[#202C33] p-5 rounded-xl rounded-tl-none shadow-2xl max-w-[85%] border border-white/5 flex flex-col relative z-10">
+                                        <div className="bg-[#202C33] p-5 rounded-2xl rounded-tl-none shadow-2xl max-w-[85%] border border-white/5 flex flex-col relative z-10">
                                             <p className="text-[13px] text-slate-200 font-medium leading-relaxed">Corte + Barba hoje às 15h?</p>
                                             <span className="text-[10px] text-slate-500 self-end mt-2">10:45</span>
                                         </div>
 
-                                        <div className="bg-[#005C4B] p-5 rounded-xl rounded-tr-none shadow-2xl max-w-[90%] ml-auto border border-white/10 flex flex-col relative overflow-hidden group/msg z-10">
+                                        <div className="bg-[#005C4B] p-5 rounded-2xl rounded-tr-none shadow-2xl max-w-[90%] ml-auto border border-white/10 flex flex-col relative overflow-hidden group/msg z-10">
                                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/msg:translate-x-full transition-transform duration-1000" />
                                             <div className="flex items-center gap-2 mb-3">
                                                 <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md">
@@ -76,7 +76,7 @@ export default function WhatsAppHighlight() {
                                             </div>
                                             <p className="text-[13px] text-white font-bold mb-3 leading-relaxed">Seu agendamento foi confirmado automaticamente.</p>
 
-                                            <div className="bg-black/20 backdrop-blur-md p-4 rounded-xl border-l-4 border-primary shadow-inner space-y-1.5 mb-3">
+                                            <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border-l-4 border-primary shadow-inner space-y-1.5 mb-3">
                                                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Confirmação NEXT</p>
                                                 <p className="text-sm font-black text-white">Hoje às 15:00</p>
                                                 <p className="text-[10px] text-white/60 font-medium">Com Profissional Marcelo</p>
@@ -123,8 +123,8 @@ export default function WhatsAppHighlight() {
                                 { title: 'Link de Agendamento Elite', desc: 'Seu cliente agenda em segundos, direto do WhatsApp ou Instagram.' },
                                 { title: 'Confirmação via Chatbot', desc: 'O sistema valida a disponibilidade e reserva o horário instantaneamente.' }
                             ].map((item, idx) => (
-                                <div key={idx} className="flex gap-6 p-6 rounded-xl border border-white/5 bg-white/[0.02] hover:border-primary/40 hover:bg-white/[0.05] transition-all duration-500 group">
-                                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(77,114,228,0.2)] border border-primary/20">
+                                <div key={idx} className="flex gap-6 p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] hover:border-primary/40 hover:bg-white/[0.05] transition-all duration-500 group">
+                                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(77,114,228,0.2)] border border-primary/20">
                                         <Zap className="w-6 h-6 fill-current" />
                                     </div>
                                     <div>
@@ -136,7 +136,7 @@ export default function WhatsAppHighlight() {
                         </div>
 
                         <Link href="/register">
-                            <button className="px-10 py-5 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:scale-105 transition-all shadow-2xl flex items-center gap-4">
+                            <button className="px-10 py-5 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-105 transition-all shadow-2xl flex items-center gap-4">
                                 Começar Agora <ArrowRight className="w-4 h-4 text-black" />
                             </button>
                         </Link>

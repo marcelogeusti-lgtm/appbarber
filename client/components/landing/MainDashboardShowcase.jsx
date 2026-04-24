@@ -34,7 +34,7 @@ export default function MainDashboardShowcase() {
                                 <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/40" />
                             </div>
 
-                            <div className="rounded-xl overflow-hidden border border-white/5 bg-black relative shadow-2xl">
+                            <div className="rounded-[2.5rem] overflow-hidden border border-white/5 bg-black relative shadow-2xl">
                                 <img 
                                     src="/screenshots/dashboard-overview.png" 
                                     alt="Dashboard Central" 
@@ -45,8 +45,8 @@ export default function MainDashboardShowcase() {
                     </LEDCardWrapper>
 
                     {/* Floating Badges */}
-                    <div className="absolute -left-12 top-1/4 hidden lg:flex p-6 bg-[#0A0A0B]/90 backdrop-blur-3xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 items-center gap-5 translate-x-10 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-1000">
-                        <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                    <div className="absolute -left-12 top-1/4 hidden lg:flex p-6 bg-[#0A0A0B]/90 backdrop-blur-3xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 items-center gap-5 translate-x-10 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-1000">
+                        <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-500 border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
                             <DollarSign className="w-6 h-6" />
                         </div>
                         <div className="text-left">
@@ -55,8 +55,8 @@ export default function MainDashboardShowcase() {
                         </div>
                     </div>
 
-                    <div className="absolute -right-12 bottom-1/4 hidden lg:flex p-6 bg-[#0A0A0B]/90 backdrop-blur-3xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 items-center gap-5 -translate-x-10 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-1000 delay-150">
-                        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_15px_rgba(77,114,228,0.2)]">
+                    <div className="absolute -right-12 bottom-1/4 hidden lg:flex p-6 bg-[#0A0A0B]/90 backdrop-blur-3xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 items-center gap-5 -translate-x-10 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-1000 delay-150">
+                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_15px_rgba(77,114,228,0.2)]">
                             <Calendar className="w-6 h-6" />
                         </div>
                         <div className="text-left">

@@ -33,7 +33,7 @@ export default function PackagesTab({ plans = [] }) {
         <div className="space-y-4 pb-24">
             {plans.length > 0 ? (
                 plans.map((pkg) => (
-                    <div key={pkg.id} className="bg-[#111] p-6 rounded-xl border border-white/5 hover:border-primary/50 transition-all relative overflow-hidden group">
+                    <div key={pkg.id} className="bg-[#111] p-6 rounded-3xl border border-white/5 hover:border-primary/50 transition-all relative overflow-hidden group">
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h3 className="font-black text-white text-lg uppercase tracking-tight max-w-[70%]">{pkg.name}</h3>
@@ -46,7 +46,7 @@ export default function PackagesTab({ plans = [] }) {
                                     </span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 bg-[#1e293b] rounded-xl flex items-center justify-center text-white group-hover:text-primary transition">
+                            <div className="w-12 h-12 bg-[#1e293b] rounded-2xl flex items-center justify-center text-white group-hover:text-primary transition">
                                 <Package className="w-6 h-6" />
                             </div>
                         </div>

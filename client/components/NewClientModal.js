@@ -111,7 +111,7 @@ export default function NewClientModal({ isOpen, onClose, onSuccess, barbershopI
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#111827] w-full max-w-md rounded-xl border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="bg-[#111827] w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">

@@ -71,9 +71,9 @@ export default function LoyaltyPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <Crown className="w-8 h-8" />
                     </div>
                     <div>
@@ -83,7 +83,7 @@ export default function LoyaltyPage() {
                 </div>
             </header>
 
-            <form onSubmit={handleSubmit} className="bg-card p-8 rounded-xl border border-border shadow-2xl relative overflow-hidden">
+            <form onSubmit={handleSubmit} className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl relative overflow-hidden">
                 {status === 'success' && (
                     <div className="absolute top-0 left-0 right-0 bg-primary text-white p-2 text-center text-xs font-black uppercase tracking-widest animate-in slide-in-from-top">
                         Configurações salvas com sucesso!
@@ -98,7 +98,7 @@ export default function LoyaltyPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
 
                     {/* Active Toggle */}
-                    <div className="md:col-span-2 bg-muted/30 p-6 rounded-xl border border-border/50 flex items-center justify-between">
+                    <div className="md:col-span-2 bg-muted/30 p-6 rounded-2xl border border-border/50 flex items-center justify-between">
                         <div>
                             <h3 className="font-bold text-foreground uppercase tracking-tight text-lg">Ativar Programa</h3>
                             <p className="text-xs text-muted-foreground mt-1">Seus clientes acumularão pontos a cada agendamento concluído.</p>

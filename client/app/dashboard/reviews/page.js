@@ -39,9 +39,9 @@ export default function ReviewsPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-yellow-500/10 text-yellow-500 rounded-xl">
+                    <div className="p-3 bg-yellow-500/10 text-yellow-500 rounded-2xl">
                         <Star className="w-8 h-8 fill-yellow-500" />
                     </div>
                     <div>
@@ -49,7 +49,7 @@ export default function ReviewsPage() {
                         <p className="text-muted-foreground text-sm font-medium italic">Veja o que seus clientes estão dizendo.</p>
                     </div>
                 </div>
-                <div className="bg-card border border-border px-6 py-3 rounded-xl flex items-center gap-4">
+                <div className="bg-card border border-border px-6 py-3 rounded-2xl flex items-center gap-4">
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block">Média Geral</span>
                         <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export default function ReviewsPage() {
                         } catch (e) { console.error('Date error', e); }
 
                         return (
-                            <div key={review.id} className="bg-card p-6 rounded-xl border border-border shadow-sm hover:border-primary/30 transition group">
+                            <div key={review.id} className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:border-primary/30 transition group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">

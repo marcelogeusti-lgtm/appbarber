@@ -76,9 +76,9 @@ export default function ClientsPage() {
     return (
         <div className="space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <Users className="w-8 h-8" />
                     </div>
                     <div>
@@ -88,14 +88,14 @@ export default function ClientsPage() {
                 </div>
                 <button
                     onClick={() => setIsNewClientModalOpen(true)}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2 transition-all active:scale-95"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2 transition-all active:scale-95"
                 >
                     <Plus className="w-5 h-5" /> Novo Cliente
                 </button>
             </header>
 
             {/* Filters */}
-            <div className="bg-card p-6 rounded-xl border border-border flex flex-col md:flex-row gap-4 items-center">
+            <div className="bg-card p-6 rounded-[2rem] border border-border flex flex-col md:flex-row gap-4 items-center">
                 <div className="flex-1 relative w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
@@ -113,7 +113,7 @@ export default function ClientsPage() {
             </div>
 
             {/* List */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
@@ -145,7 +145,7 @@ export default function ClientsPage() {
                                 <tr key={client.id} className="hover:bg-muted/10 transition-colors group border-b border-border/50 last:border-0">
                                     <td className="p-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center border border-border text-primary font-black overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
+                                            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center border border-border text-primary font-black overflow-hidden shadow-inner group-hover:scale-105 transition-transform">
                                                 {client.avatarUrl ? (
                                                     <img src={client.avatarUrl} alt={client.name} className="w-full h-full object-cover" />
                                                 ) : <User className="w-5 h-5" />}

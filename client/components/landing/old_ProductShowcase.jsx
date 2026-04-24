@@ -37,7 +37,7 @@ export default function ProductShowcase() {
                             {/* Image Side */}
                             <div className={`relative group ${section.reverse ? 'lg:order-2' : ''}`}>
                                 <div className="absolute inset-0 bg-primary/5 blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="relative rounded-xl border border-gray-100 overflow-hidden shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]">
+                                <div className="relative rounded-3xl border border-gray-100 overflow-hidden shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]">
                                     <img
                                         src={section.img}
                                         alt={section.title}

@@ -200,7 +200,7 @@ export default function DashboardLayout({ children }) {
                     <main className="flex-1 p-4 md:p-6 overflow-x-hidden relative">
                         {/* Overdue Warning Banner */}
                         {isOverdue && !isLocked && (
-                            <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl animate-pulse">
+                            <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl animate-pulse">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center animate-bounce">
                                         <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -218,7 +218,7 @@ export default function DashboardLayout({ children }) {
 
                         {/* Proactive Connection Banner */}
                         {!loading && googleStatus && googleStatus.error && !localStorage.getItem('hide-google-banner') && (
-                            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-4">
+                            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
                                         <AlertTriangle className="w-5 h-5 text-amber-600" />
@@ -254,7 +254,7 @@ export default function DashboardLayout({ children }) {
                                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-destructive/10 blur-[150px] -ml-[250px] -mb-[250px]" />
                                 
                                 <div className="bg-card border border-border/50 p-12 rounded-[3.5rem] max-w-xl w-full text-center shadow-2xl relative z-10">
-                                    <div className="w-20 h-20 bg-destructive/10 rounded-xl border border-destructive/20 flex items-center justify-center mx-auto mb-8 shadow-inner">
+                                    <div className="w-20 h-20 bg-destructive/10 rounded-[2rem] border border-destructive/20 flex items-center justify-center mx-auto mb-8 shadow-inner">
                                         <Shield className="w-10 h-10 text-destructive" />
                                     </div>
                                     <h2 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tighter">Acesso Restrito</h2>
@@ -262,12 +262,12 @@ export default function DashboardLayout({ children }) {
                                         Detectamos que sua assinatura <b>NEXT Diamond</b> expirou ou foi suspensa pela rede master. A governança do orquestrador restringiu os acessos administrativos para esta unidade.
                                     </p>
                                     <div className="space-y-4">
-                                        <button className="w-full bg-primary text-primary-foreground font-black uppercase text-xs tracking-[0.2em] py-5 rounded-xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                                        <button className="w-full bg-primary text-primary-foreground font-black uppercase text-xs tracking-[0.2em] py-5 rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
                                             Regularizar Assinatura
                                         </button>
                                         <button 
                                             onClick={logout}
-                                            className="w-full bg-background border border-border text-muted-foreground font-black uppercase text-xs tracking-[0.2em] py-5 rounded-xl hover:bg-muted transition-all"
+                                            className="w-full bg-background border border-border text-muted-foreground font-black uppercase text-xs tracking-[0.2em] py-5 rounded-2xl hover:bg-muted transition-all"
                                         >
                                             Sair da Conta
                                         </button>

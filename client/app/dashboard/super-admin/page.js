@@ -44,7 +44,7 @@ export default function SuperAdminPage() {
     if (loading) return <div className="p-10 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Acessando Camada de Governança...</div>;
 
     if (error) return (
-        <div className="p-10 text-center bg-destructive/10 border border-destructive/20 rounded-xl m-8">
+        <div className="p-10 text-center bg-destructive/10 border border-destructive/20 rounded-[2.5rem] m-8">
             <h2 className="text-destructive font-black uppercase text-xl mb-2 tracking-tighter">Acesso Restrito</h2>
             <p className="text-muted-foreground text-sm font-medium italic">{error}</p>
         </div>
@@ -53,7 +53,7 @@ export default function SuperAdminPage() {
     return (
         <div className="space-y-10 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-xl border border-border shadow-sm relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 blur-[120px] -mr-40 -mt-40" />
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="w-16 h-16 bg-primary/10 rounded-[1.8rem] border border-primary/20 flex items-center justify-center text-4xl shadow-inner group">
@@ -65,10 +65,10 @@ export default function SuperAdminPage() {
                     </div>
                 </div>
                 <div className="flex gap-4 relative z-10">
-                    <button className="bg-primary text-primary-foreground px-10 py-5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-2">
+                    <button className="bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" /> Relatório de Tráfego
                     </button>
-                    <button className="bg-card border border-border text-muted-foreground px-8 py-5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
+                    <button className="bg-card border border-border text-muted-foreground px-8 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
                         Logs de Sistema
                     </button>
                 </div>
@@ -108,12 +108,12 @@ export default function SuperAdminPage() {
             </div>
 
             {/* Master Update Manager */}
-            <div className="bg-card rounded-xl border border-border shadow-md overflow-hidden">
+            <div className="bg-card rounded-[3rem] border border-border shadow-md overflow-hidden">
                 <UpdateRolloutManager />
             </div>
 
             {/* Partners Table */}
-            <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden relative">
+            <div className="bg-card rounded-[3rem] border border-border shadow-2xl overflow-hidden relative">
                 <div className="p-10 border-b border-border bg-muted/10 flex items-center justify-between">
                     <div>
                         <h3 className="font-black text-foreground uppercase tracking-[0.2em] text-xs flex items-center gap-3">
@@ -234,9 +234,9 @@ function KPICard({ label, value, desc, icon, color, isSolid, trend }) {
     const style = colorStyles[color] || colorStyles.primary;
 
     return (
-        <div className={`${style.bg} p-8 rounded-xl border shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-all duration-500`}>
+        <div className={`${style.bg} p-8 rounded-[2.5rem] border shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-all duration-500`}>
             <div className="relative z-10">
-                <div className={`p-4 rounded-xl w-fit mb-8 group-hover:scale-110 transition-transform border ${style.icon}`}>
+                <div className={`p-4 rounded-2xl w-fit mb-8 group-hover:scale-110 transition-transform border ${style.icon}`}>
                     {icon}
                 </div>
                 <h4 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${style.label}`}>{label}</h4>

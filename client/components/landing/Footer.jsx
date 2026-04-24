@@ -7,7 +7,7 @@ export default function Footer() {
         <footer className="bg-[#050505] border-t border-white/5 pt-20 pb-10">
             <div className="container mx-auto px-4">
                 {/* Final Pitch Section */}
-                <div className="mb-24 text-center max-w-4xl mx-auto py-16 px-8 rounded-xl bg-gradient-to-br from-[#0A0A0B] to-[#050505] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                <div className="mb-24 text-center max-w-4xl mx-auto py-16 px-8 rounded-[3rem] bg-gradient-to-br from-[#0A0A0B] to-[#050505] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] pointer-events-none" />
                     <h2 className="text-3xl lg:text-5xl font-extrabold text-white mb-8 tracking-tight relative z-10">
                         Sua barbearia pode funcionar sozinha <br />
@@ -15,7 +15,7 @@ export default function Footer() {
                     </h2>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
                         <Link href="/register">
-                            <button className="px-10 py-5 bg-white text-black text-base font-black uppercase tracking-widest rounded-xl hover:bg-gray-100 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95">
+                            <button className="px-10 py-5 bg-white text-black text-base font-black uppercase tracking-widest rounded-2xl hover:bg-gray-100 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95">
                                 🚀 Começar grátis agora
                             </button>
                         </Link>

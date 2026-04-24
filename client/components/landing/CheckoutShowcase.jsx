@@ -54,7 +54,7 @@ export default function CheckoutShowcase() {
                                     <div key={idx} className="relative z-10 flex flex-col items-center">
                                         <div
                                             onClick={() => setActiveStep(idx)}
-                                            className={`w-12 lg:w-14 h-12 lg:h-14 rounded-xl flex items-center justify-center transition-all duration-700 cursor-pointer shadow-2xl ${isCompleted ? 'bg-primary text-white scale-110 shadow-[0_0_30px_rgba(77,114,228,0.4)]' :
+                                            className={`w-12 lg:w-14 h-12 lg:h-14 rounded-2xl flex items-center justify-center transition-all duration-700 cursor-pointer shadow-2xl ${isCompleted ? 'bg-primary text-white scale-110 shadow-[0_0_30px_rgba(77,114,228,0.4)]' :
                                                 isActive ? 'bg-primary/20 text-primary border-2 border-primary ring-8 ring-primary/5 lg:scale-125' :
                                                     'bg-white/5 text-slate-500 border border-white/5 hover:bg-white/10 hover:text-white'
                                                 }`}
@@ -79,10 +79,10 @@ export default function CheckoutShowcase() {
                                     <h3 className="text-3xl lg:text-4xl font-black text-white tracking-tighter">{STEPS[activeStep].title}</h3>
                                 </div>
 
-                                <div className="bg-white/[0.03] border border-white/5 rounded-xl p-8 space-y-6 backdrop-blur-md shadow-inner">
+                                <div className="bg-white/[0.03] border border-white/5 rounded-[2rem] p-8 space-y-6 backdrop-blur-md shadow-inner">
                                     {STEPS.map((step, idx) => (
                                         <div key={idx} className={`flex items-center gap-6 transition-all duration-500 ${idx <= activeStep ? 'opacity-100' : 'opacity-20 translate-x-4'}`}>
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${idx === activeStep ? 'bg-primary text-white shadow-[0_0_20px_rgba(77,114,228,0.3)]' : 'bg-white/5 text-slate-400'}`}>
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${idx === activeStep ? 'bg-primary text-white shadow-[0_0_20px_rgba(77,114,228,0.3)]' : 'bg-white/5 text-slate-400'}`}>
                                                 <step.icon className="w-5 h-5" />
                                             </div>
                                             <div className="flex-1">
@@ -98,10 +98,10 @@ export default function CheckoutShowcase() {
                             <div className="relative group/card">
                                 <div className="absolute inset-0 bg-primary/20 blur-[80px] rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-1000 shadow-[0_0_100px_#4d72e4]" />
                                 
-                            <LEDCardWrapper className="rounded-xl">
-                                <div className="relative bg-gradient-to-br from-[#121214] to-[#0A0A0B] border border-white/10 rounded-xl p-10 shadow-2xl transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
+                            <LEDCardWrapper className="rounded-[3rem]">
+                                <div className="relative bg-gradient-to-br from-[#121214] to-[#0A0A0B] border border-white/10 rounded-[3rem] p-10 shadow-2xl transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
                                     <div className="flex items-center justify-between mb-10">
-                                        <div className="w-16 h-16 bg-white/[0.05] border border-white/10 rounded-xl flex items-center justify-center text-primary shadow-xl">
+                                        <div className="w-16 h-16 bg-white/[0.05] border border-white/10 rounded-2xl flex items-center justify-center text-primary shadow-xl">
                                             <CreditCard className="w-8 h-8" />
                                         </div>
                                         <div className="text-right">
@@ -111,7 +111,7 @@ export default function CheckoutShowcase() {
                                     </div>
 
                                     <div className="space-y-6">
-                                        <div className="p-6 rounded-xl bg-white text-black text-center font-black uppercase text-xs tracking-[0.3em] shadow-[0_0_40px_rgba(255,255,255,0.2)] cursor-pointer hover:bg-slate-100 transition-all active:scale-95">
+                                        <div className="p-6 rounded-2xl bg-white text-black text-center font-black uppercase text-xs tracking-[0.3em] shadow-[0_0_40px_rgba(255,255,255,0.2)] cursor-pointer hover:bg-slate-100 transition-all active:scale-95">
                                             Finalizar Agendamento
                                         </div>
                                         <p className="text-[10px] text-center text-slate-500 font-black uppercase tracking-widest leading-none">✨ Pagamento Seguro via Maestro Payments</p>

@@ -131,11 +131,11 @@ export default function ImportPage() {
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
             {/* Glass Header */}
-            <div className="bg-card/50 backdrop-blur-xl rounded-xl p-10 border border-border/50 shadow-2xl relative overflow-hidden group">
+            <div className="bg-card/50 backdrop-blur-xl rounded-3xl p-10 border border-border/50 shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-20 -mt-20 group-hover:bg-primary/20 transition-all duration-1000"></div>
                 <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20">
+                        <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center border border-primary/20">
                             <UploadCloud className="w-6 h-6 text-primary" />
                         </div>
                         <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Importador de Dados Pro</h1>
@@ -167,25 +167,25 @@ export default function ImportPage() {
             {/* STEP 1: UPLOAD */}
             {step === 1 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-bottom-4 duration-500">
-                    <div className="bg-card p-10 rounded-xl border border-border hover:border-primary/30 transition-all group flex flex-col items-center text-center">
-                        <div className="w-20 h-20 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <div className="bg-card p-10 rounded-3xl border border-border hover:border-primary/30 transition-all group flex flex-col items-center text-center">
+                        <div className="w-20 h-20 bg-blue-500/10 text-blue-500 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                             <Download className="w-10 h-10" />
                         </div>
                         <h3 className="text-xl font-bold text-foreground mb-3">Baixar Modelo</h3>
                         <p className="text-sm text-muted-foreground mb-8 leading-relaxed">Se você prefere organizar os dados antes, use nossa planilha oficial.</p>
-                        <button onClick={downloadTemplate} className="w-full py-4 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-xl font-bold uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all">
+                        <button onClick={downloadTemplate} className="w-full py-4 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-2xl font-bold uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all">
                             Baixar CSV <FileText className="w-4 h-4" />
                         </button>
                     </div>
 
-                    <div className="bg-primary/5 p-10 rounded-xl border-2 border-dashed border-primary/30 hover:border-primary transition-all group flex flex-col items-center text-center relative overflow-hidden">
+                    <div className="bg-primary/5 p-10 rounded-3xl border-2 border-dashed border-primary/30 hover:border-primary transition-all group flex flex-col items-center text-center relative overflow-hidden">
                         <input type="file" accept=".csv" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                        <div className="w-20 h-20 bg-primary/20 text-primary rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <div className="w-20 h-20 bg-primary/20 text-primary rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                             {isParsing ? <Loader2 className="w-10 h-10 animate-spin" /> : <UploadCloud className="w-10 h-10" />}
                         </div>
                         <h3 className="text-xl font-bold text-foreground mb-3">Subir Arquivo</h3>
                         <p className="text-sm text-muted-foreground mb-8 leading-relaxed">Arraste sua lista (CSV) aqui. <br/>Não importa os nomes das colunas!</p>
-                        <div className="w-full py-4 bg-primary text-white rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20">
+                        <div className="w-full py-4 bg-primary text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20">
                             Selecionar CSV
                         </div>
                     </div>
@@ -194,7 +194,7 @@ export default function ImportPage() {
 
             {/* STEP 2: MAPPING */}
             {step === 2 && (
-                <div className="bg-card rounded-xl border border-border p-10 animate-in slide-in-from-right-4 duration-500">
+                <div className="bg-card rounded-3xl border border-border p-10 animate-in slide-in-from-right-4 duration-500">
                     <div className="flex items-center gap-3 mb-8">
                         <Settings2 className="w-6 h-6 text-primary" />
                         <h3 className="text-xl font-bold">Mapear Colunas</h3>
@@ -227,7 +227,7 @@ export default function ImportPage() {
 
                     <div className="flex justify-end gap-4">
                         <button onClick={() => setStep(1)} className="px-6 py-3 text-sm font-bold text-muted-foreground hover:text-foreground">Voltar</button>
-                        <button onClick={applyMapping} className="px-10 py-4 bg-primary text-white rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 flex items-center gap-3">
+                        <button onClick={applyMapping} className="px-10 py-4 bg-primary text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 flex items-center gap-3">
                             Ver Preview <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
@@ -236,7 +236,7 @@ export default function ImportPage() {
 
             {/* STEP 3: PREVIEW */}
             {step === 3 && (
-                <div className="bg-card rounded-xl border border-border p-10 animate-in zoom-in-95 duration-500">
+                <div className="bg-card rounded-3xl border border-border p-10 animate-in zoom-in-95 duration-500">
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h3 className="text-xl font-bold">Revisar Importação</h3>
@@ -244,14 +244,14 @@ export default function ImportPage() {
                         </div>
                         <div className="flex gap-4">
                             <button onClick={() => setStep(2)} className="px-6 py-3 text-sm font-bold text-muted-foreground">Ajustar Mapeamento</button>
-                            <button onClick={confirmImport} disabled={isSubmitting} className="px-10 py-4 bg-primary text-white rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 flex items-center gap-3">
+                            <button onClick={confirmImport} disabled={isSubmitting} className="px-10 py-4 bg-primary text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 flex items-center gap-3">
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                                 Iniciar Importação
                             </button>
                         </div>
                     </div>
 
-                    <div className="overflow-hidden border border-border rounded-xl">
+                    <div className="overflow-hidden border border-border rounded-2xl">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-muted">
                                 <tr className="text-[10px] font-black uppercase text-primary tracking-widest">
@@ -284,7 +284,7 @@ export default function ImportPage() {
 
             {/* STEP 5: SUCCESS */}
             {step === 5 && result && (
-                <div className="bg-card rounded-xl border border-border p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden animate-in zoom-in-90 duration-700">
+                <div className="bg-card rounded-[40px] border border-border p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden animate-in zoom-in-90 duration-700">
                     <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
                     <div className="w-24 h-24 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 border border-green-500/20 shadow-lg shadow-green-500/5">
                         <CheckCircle className="w-12 h-12" />
@@ -293,17 +293,17 @@ export default function ImportPage() {
                     <p className="text-muted-foreground text-lg mb-10 font-medium">Sua base de dados foi processada e integrada com sucesso.</p>
                     
                     <div className="grid grid-cols-2 gap-6 mb-10">
-                        <div className="bg-muted/50 p-8 rounded-xl border border-border group hover:border-primary/30 transition-all">
+                        <div className="bg-muted/50 p-8 rounded-3xl border border-border group hover:border-primary/30 transition-all">
                             <p className="text-[10px] font-black uppercase text-primary mb-2 tracking-widest">Clientes</p>
                             <p className="text-5xl text-foreground font-black tracking-tighter">{result.successCount?.clients || 0}</p>
                         </div>
-                        <div className="bg-muted/50 p-8 rounded-xl border border-border group hover:border-primary/30 transition-all">
+                        <div className="bg-muted/50 p-8 rounded-3xl border border-border group hover:border-primary/30 transition-all">
                             <p className="text-[10px] font-black uppercase text-primary mb-2 tracking-widest">Agendamentos</p>
                             <p className="text-5xl text-foreground font-black tracking-tighter">{result.successCount?.appointments || 0}</p>
                         </div>
                     </div>
 
-                    <button onClick={() => window.location.href = '/dashboard'} className="px-12 py-5 bg-foreground text-background rounded-xl font-black uppercase tracking-widest text-[12px] hover:scale-105 transition-all shadow-2xl shadow-black/20">
+                    <button onClick={() => window.location.href = '/dashboard'} className="px-12 py-5 bg-foreground text-background rounded-2xl font-black uppercase tracking-widest text-[12px] hover:scale-105 transition-all shadow-2xl shadow-black/20">
                         Acessar Painel Agora
                     </button>
                 </div>

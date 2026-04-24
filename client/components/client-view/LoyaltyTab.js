@@ -62,7 +62,7 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
     return (
         <div className="space-y-6 pb-24">
             {/* Points Balance Card */}
-            <div className="bg-gradient-to-br from-emerald-900 to-black p-6 rounded-xl border border-primary/30 relative overflow-hidden shadow-2xl shadow-emerald-900/20">
+            <div className="bg-gradient-to-br from-emerald-900 to-black p-6 rounded-[2rem] border border-primary/30 relative overflow-hidden shadow-2xl shadow-emerald-900/20">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full"></div>
                 <div className="relative z-10">
                     <div className="flex justify-between items-start mb-4">
@@ -83,7 +83,7 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
             </div>
 
             {/* Progress / Rules */}
-            <div className="bg-[#111] p-6 rounded-xl border border-white/5 space-y-4">
+            <div className="bg-[#111] p-6 rounded-[2rem] border border-white/5 space-y-4">
                 <div>
                     <div className="flex justify-between text-xs font-bold uppercase mb-2">
                         <span className="text-white">Progresso</span>

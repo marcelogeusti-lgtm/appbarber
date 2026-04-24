@@ -93,7 +93,7 @@ export default function NotificationsModal({ isOpen, onClose }) {
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-2xl bg-[#111] border border-white/5 rounded-xl shadow-2xl p-8 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="relative w-full max-w-2xl bg-[#111] border border-white/5 rounded-3xl shadow-2xl p-8 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                 <button
                     onClick={onClose}
                     className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-full transition"
@@ -159,7 +159,7 @@ export default function NotificationsModal({ isOpen, onClose }) {
                                 <div
                                     key={notif.id}
                                     onClick={() => handleMarkAsRead(notif.id, notif.appointmentId)}
-                                    className="group relative bg-[#0A0A0A] border border-white/5 rounded-xl p-6 hover:border-primary/30 transition cursor-pointer overflow-hidden"
+                                    className="group relative bg-[#0A0A0A] border border-white/5 rounded-2xl p-6 hover:border-primary/30 transition cursor-pointer overflow-hidden"
                                 >
                                     <div className="flex gap-4">
                                         <div className={`p-3 rounded-xl ${notif.isRead ? 'bg-white/5 text-slate-600' : 'bg-primary/10 text-primary'}`}>
@@ -212,7 +212,7 @@ export default function NotificationsModal({ isOpen, onClose }) {
 
             {isLoadingDetails && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-[#111] p-8 rounded-xl border border-white/5 flex flex-col items-center gap-4">
+                    <div className="bg-[#111] p-8 rounded-3xl border border-white/5 flex flex-col items-center gap-4">
                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Carregando detalhes...</p>
                     </div>

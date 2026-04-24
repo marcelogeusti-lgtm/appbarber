@@ -46,7 +46,7 @@ export default function PremiumExperience() {
                         <LEDCardWrapper key={idx} className="h-full">
                             <div className="group relative h-full">
                                 {/* Card Background with subtle glow */}
-                                <div className={`p-10 rounded-xl bg-white/[0.02] border border-white/5 backdrop-blur-3xl transition-all duration-700 hover:border-primary/40 hover:bg-white/[0.05] flex flex-col h-full relative overflow-hidden shadow-2xl`}>
+                                <div className={`p-10 rounded-[3rem] bg-white/[0.02] border border-white/5 backdrop-blur-3xl transition-all duration-700 hover:border-primary/40 hover:bg-white/[0.05] flex flex-col h-full relative overflow-hidden shadow-2xl`}>
                                     <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-1000`} />
                                     
                                     <div className="relative z-10">

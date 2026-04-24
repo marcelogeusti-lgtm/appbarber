@@ -35,7 +35,7 @@ export default function ForgotPasswordModal() {
                 onClick={closeForgotPasswordModal}
             />
 
-            <div className="relative w-full max-w-md bg-[#111111] border border-white/10 rounded-xl shadow-2xl p-8 animate-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-md bg-[#111111] border border-white/10 rounded-3xl shadow-2xl p-8 animate-in zoom-in-95 duration-200">
                 <button
                     onClick={closeForgotPasswordModal}
                     className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-full transition"

@@ -34,7 +34,7 @@ export default function HowItWorks() {
                     <div className="hidden md:block absolute top-[60%] left-[20%] w-[60%] h-[2px] bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 z-0" />
 
                     {steps.map((step, i) => (
-                        <div key={i} className="relative z-10 bg-[#09090b] p-8 rounded-xl border border-white/5">
+                        <div key={i} className="relative z-10 bg-[#09090b] p-8 rounded-3xl border border-white/5">
                             <span className="text-6xl font-black text-white/5 absolute top-4 right-6">{step.num}</span>
                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold mb-6 border border-primary/20">
                                 {i + 1}

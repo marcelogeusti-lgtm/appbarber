@@ -40,7 +40,7 @@ export default function StatsCounter() {
                     {stats.map((stat, i) => (
                         <div key={i} className="text-center group">
                             <LEDCardWrapper className="mx-auto mb-6 w-fit">
-                                <div className="w-14 h-14 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-500 shadow-xl backdrop-blur-sm">
+                                <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-500 shadow-xl backdrop-blur-sm">
                                     <stat.icon className="w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
                                 </div>
                             </LEDCardWrapper>

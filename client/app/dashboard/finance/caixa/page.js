@@ -86,7 +86,7 @@ export default function CaixaPage() {
     return (
         <div className="space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-primary/10 text-primary rounded-lg">
@@ -122,7 +122,7 @@ export default function CaixaPage() {
             {!shift ? (
                 /* Opening Screen */
                 <div className="max-w-2xl mx-auto bg-card p-12 rounded-[3.5rem] border border-border text-center space-y-8">
-                    <div className="w-24 h-24 bg-background rounded-xl border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-2xl">
+                    <div className="w-24 h-24 bg-background rounded-[2.5rem] border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-2xl">
                         <Lock className="w-10 h-10" />
                     </div>
                     <div>
@@ -130,7 +130,7 @@ export default function CaixaPage() {
                         <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-2">Abra o caixa para começar a registrar vendas e recebimentos.</p>
                     </div>
 
-                    <form onSubmit={handleOpenShift} className="space-y-6 bg-background/50 p-8 rounded-xl border border-border/50">
+                    <form onSubmit={handleOpenShift} className="space-y-6 bg-background/50 p-8 rounded-[2rem] border border-border/50">
                         <div className="space-y-2 text-left">
                             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-4">Saldo Inicial (Opcional)</label>
                             <div className="relative">
@@ -141,14 +141,14 @@ export default function CaixaPage() {
                                     placeholder="0,00"
                                     value={openingBalance}
                                     onChange={e => setOpeningBalance(e.target.value)}
-                                    className="w-full bg-background border border-border rounded-xl py-5 pl-14 pr-6 text-xl font-black text-foreground focus:ring-2 ring-primary outline-none transition"
+                                    className="w-full bg-background border border-border rounded-2xl py-5 pl-14 pr-6 text-xl font-black text-foreground focus:ring-2 ring-primary outline-none transition"
                                 />
                             </div>
                         </div>
 
                         <button
                             disabled={actionLoading}
-                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition shadow-xl shadow-primary/10 flex items-center justify-center gap-3 disabled:opacity-50"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition shadow-xl shadow-primary/10 flex items-center justify-center gap-3 disabled:opacity-50"
                         >
                             {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Unlock className="w-5 h-5" />}
                             Abrir Caixa Agora
@@ -163,7 +163,7 @@ export default function CaixaPage() {
                     <div className="xl:col-span-2 space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Opening Balance Card */}
-                            <div className="bg-card p-8 rounded-xl border border-border relative overflow-hidden group">
+                            <div className="bg-card p-8 rounded-[2.5rem] border border-border relative overflow-hidden group">
                                 <div className="space-y-1 relative z-10">
                                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Saldo de Abertura</p>
                                     <p className="text-4xl font-black text-foreground">R$ {parseFloat(shift.openingBalance).toFixed(2).replace('.', ',')}</p>
@@ -172,7 +172,7 @@ export default function CaixaPage() {
                             </div>
 
                             {/* Current Balance Card */}
-                            <div className="bg-primary p-8 rounded-xl border border-primary/20 relative overflow-hidden group shadow-2xl shadow-primary/10">
+                            <div className="bg-primary p-8 rounded-[2.5rem] border border-primary/20 relative overflow-hidden group shadow-2xl shadow-primary/10">
                                 <div className="space-y-1 relative z-10">
                                     <p className="text-[10px] font-black text-primary-foreground/50 uppercase tracking-widest">Saldo Atual em Caixa</p>
                                     <p className="text-4xl font-black text-primary-foreground">R$ {parseFloat(shift.currentBalance).toFixed(2).replace('.', ',')}</p>
@@ -182,7 +182,7 @@ export default function CaixaPage() {
                         </div>
 
                         {/* Recent Movements List */}
-                        <div className="bg-card rounded-xl border border-border overflow-hidden">
+                        <div className="bg-card rounded-[2.5rem] border border-border overflow-hidden">
                             <div className="p-8 border-b border-border flex justify-between items-center">
                                 <h3 className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
                                     <ClipboardList className="w-4 h-4 text-primary" /> Movimentações do Turno
@@ -193,7 +193,7 @@ export default function CaixaPage() {
                             <div className="divide-y divide-border/50">
                                 {/* Placeholder for movements list - to be implemented in phase 2 */}
                                 <div className="p-20 text-center space-y-4">
-                                    <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mx-auto text-muted-foreground">
+                                    <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto text-muted-foreground">
                                         <ArrowDownCircle className="w-8 h-8" />
                                     </div>
                                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">O histórico detalhado aparecerá aqui.</p>
@@ -205,7 +205,7 @@ export default function CaixaPage() {
                     {/* Sidebar Actions Column */}
                     <div className="space-y-8">
                         {/* Close Shift Card */}
-                        <div className="bg-card p-8 rounded-xl border border-border space-y-6">
+                        <div className="bg-card p-8 rounded-[2.5rem] border border-border space-y-6">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-secondary/10 text-secondary rounded-lg text-xs">
                                     <Lock size={16} />
@@ -235,7 +235,7 @@ export default function CaixaPage() {
                         </div>
 
                         {/* Info Helper */}
-                        <div className="bg-muted/50 p-6 rounded-xl border border-border flex gap-4">
+                        <div className="bg-muted/50 p-6 rounded-[2rem] border border-border flex gap-4">
                             <AlertCircle className="w-6 h-6 text-muted-foreground shrink-0" />
                             <p className="text-[10px] text-muted-foreground font-bold leading-relaxed uppercase tracking-tighter">
                                 Movimentações automáticas são geradas sempre que uma <span className="text-foreground">Comanda</span> é finalizada.

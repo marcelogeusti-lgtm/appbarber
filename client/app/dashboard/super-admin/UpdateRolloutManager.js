@@ -109,7 +109,7 @@ export default function UpdateRolloutManager() {
             </div>
 
             {isCreating && (
-                <div className="bg-card border border-border p-8 rounded-xl shadow-xl animate-in fade-in slide-in-from-top-4">
+                <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl animate-in fade-in slide-in-from-top-4">
                     <h4 className="font-black text-lg uppercase tracking-tight mb-6">Criar Nova Flag de Recurso</h4>
                     <form onSubmit={handleCreateFlag} className="flex flex-col md:flex-row gap-6 items-end">
                         <div className="flex-1 space-y-2 w-full">
@@ -166,7 +166,7 @@ export default function UpdateRolloutManager() {
                     const isGlobalActive = globalFlag?.enabled;
 
                     return (
-                        <div key={key} className="bg-card border border-border rounded-xl p-10 flex flex-col xl:flex-row gap-12 items-start justify-between shadow-2xl relative overflow-hidden group">
+                        <div key={key} className="bg-card border border-border rounded-[3rem] p-10 flex flex-col xl:flex-row gap-12 items-start justify-between shadow-2xl relative overflow-hidden group">
                             <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors"></div>
 
                             <div className="flex-1 space-y-8">
@@ -196,7 +196,7 @@ export default function UpdateRolloutManager() {
                                     </p>
                                     <div className="flex flex-col gap-3">
                                         {overrides.length > 0 ? overrides.map(o => (
-                                            <div key={o.id} className="bg-background border border-border px-5 py-3 rounded-xl flex items-center justify-between gap-4 shadow-sm hover:border-primary/40 transition-all max-w-md">
+                                            <div key={o.id} className="bg-background border border-border px-5 py-3 rounded-2xl flex items-center justify-between gap-4 shadow-sm hover:border-primary/40 transition-all max-w-md">
                                                 <span className="text-foreground text-xs font-black uppercase tracking-tighter">{o.barbershop?.name || 'ID: ' + o.barbershopId}</span>
                                                 <div className="flex items-center gap-2">
                                                     <span className={`text-[9px] font-black uppercase ${o.enabled ? 'text-primary' : 'text-red-500'}`}>{o.enabled ? 'ATIVO' : 'INATIVO'}</span>
@@ -239,7 +239,7 @@ export default function UpdateRolloutManager() {
                                 <button
                                     onClick={() => handleRollout(key)}
                                     disabled={isGlobalActive}
-                                    className={`w-full xl:min-w-[280px] px-10 py-6 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 shadow-2xl active:scale-95 ${isGlobalActive
+                                    className={`w-full xl:min-w-[280px] px-10 py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 shadow-2xl active:scale-95 ${isGlobalActive
                                         ? 'bg-muted text-muted-foreground/30 border border-border cursor-not-allowed'
                                         : 'bg-primary text-white hover:bg-primary/90 shadow-primary/20 hover:scale-105'
                                         }`}
@@ -248,7 +248,7 @@ export default function UpdateRolloutManager() {
                                 </button>
 
                                 {!isGlobalActive && (
-                                    <div className="bg-orange-500/10 p-4 rounded-xl border border-orange-500/20 max-w-[280px]">
+                                    <div className="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/20 max-w-[280px]">
                                         <p className="text-[9px] text-orange-600 text-center font-bold uppercase tracking-widest leading-relaxed">
                                             <AlertTriangle className="w-3 h-3 inline mr-1" />
                                             Rollout pendente. Ative individualmente para validar antes da liberação geral.
@@ -261,7 +261,7 @@ export default function UpdateRolloutManager() {
                 })}
 
                 {uniqueKeys.length === 0 && (
-                    <div className="bg-card border-2 border-dashed border-border rounded-xl p-24 text-center">
+                    <div className="bg-card border-2 border-dashed border-border rounded-[3rem] p-24 text-center">
                         <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
                             <Shield className="w-8 h-8 text-muted-foreground/30" />
                         </div>

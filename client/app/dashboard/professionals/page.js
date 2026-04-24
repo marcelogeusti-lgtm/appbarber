@@ -60,9 +60,9 @@ export default function ProfessionalsPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
                         <User className="w-8 h-8" />
                     </div>
                     <div>
@@ -72,7 +72,7 @@ export default function ProfessionalsPage() {
                 </div>
                 <button
                     onClick={handleAdd}
-                    className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition active:scale-95"
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition active:scale-95"
                 >
                     <Plus className="w-4 h-4" /> Novo Profissional
                 </button>
@@ -80,14 +80,14 @@ export default function ProfessionalsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Array.isArray(professionals) && professionals.map(pro => (
-                    <div key={pro.id} className="bg-card p-10 rounded-xl border border-border hover:border-primary/50 transition-all group relative flex flex-col items-center text-center shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                    <div key={pro.id} className="bg-card p-10 rounded-[2.5rem] border border-border hover:border-primary/50 transition-all group relative flex flex-col items-center text-center shadow-sm hover:shadow-xl hover:shadow-primary/5">
                         <div className="absolute top-6 right-6 flex gap-2">
                             <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${pro.active ? 'bg-primary/10 text-primary' : 'bg-red-500/10 text-red-500'}`}>
                                 {pro.active ? 'Ativo' : 'Inativo'}
                             </span>
                         </div>
 
-                        <div className="w-24 h-24 rounded-xl bg-muted mb-6 flex items-center justify-center border-4 border-background shadow-inner relative group-hover:scale-105 transition-transform duration-500 overflow-hidden">
+                        <div className="w-24 h-24 rounded-[2rem] bg-muted mb-6 flex items-center justify-center border-4 border-background shadow-inner relative group-hover:scale-105 transition-transform duration-500 overflow-hidden">
                             {pro.user?.avatarUrl || pro.avatarUrl ? (
                                 <img src={pro.user?.avatarUrl || pro.avatarUrl} alt={pro.name} className="w-full h-full object-cover" />
                             ) : <User className="w-10 h-10 text-primary" />}
@@ -120,13 +120,13 @@ export default function ProfessionalsPage() {
                         <div className="flex gap-4 w-full mt-auto">
                             <button
                                 onClick={() => handleEdit(pro)}
-                                className="flex-1 bg-muted border border-border p-4 rounded-xl flex justify-center items-center text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all font-black text-[10px] uppercase tracking-widest"
+                                className="flex-1 bg-muted border border-border p-4 rounded-2xl flex justify-center items-center text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all font-black text-[10px] uppercase tracking-widest"
                             >
                                 <Edit2 className="w-4 h-4 mr-2" /> Editar Completo
                             </button>
                             <button
                                 onClick={() => handleDelete(pro.id)}
-                                className="p-4 bg-muted border border-border rounded-xl flex justify-center items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all"
+                                className="p-4 bg-muted border border-border rounded-2xl flex justify-center items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
@@ -136,8 +136,8 @@ export default function ProfessionalsPage() {
             </div>
 
             {professionals.length === 0 && (
-                <div className="text-center py-32 bg-card rounded-xl border-2 border-dashed border-border shadow-inner">
-                    <div className="w-20 h-20 bg-muted rounded-xl flex items-center justify-center mx-auto mb-6 text-muted-foreground/30">
+                <div className="text-center py-32 bg-card rounded-[3rem] border-2 border-dashed border-border shadow-inner">
+                    <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6 text-muted-foreground/30">
                         <Award className="w-10 h-10" />
                     </div>
                     <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest italic">Nenhum profissional encontrado.</p>
