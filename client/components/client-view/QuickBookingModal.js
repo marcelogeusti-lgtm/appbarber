@@ -15,7 +15,7 @@ export default function QuickBookingModal({ isOpen, onClose, favorites = [] }) {
                 onClick={onClose}
             />
             
-            <div className="relative w-full max-w-md bg-[#111] border border-white/10 rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+            <div className="relative w-full max-w-md bg-[#111] border border-white/10 rounded-t-3xl md:rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-bold text-white">Agendamento Rápido</h2>
@@ -39,7 +39,7 @@ export default function QuickBookingModal({ isOpen, onClose, favorites = [] }) {
                                     router.push(`/${shop.slug}`);
                                     onClose();
                                 }}
-                                className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                                className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all group"
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10">
@@ -69,7 +69,7 @@ export default function QuickBookingModal({ isOpen, onClose, favorites = [] }) {
                             router.push('/buscar');
                             onClose();
                         }}
-                        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-white text-black font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                        className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-white text-black font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
                     >
                         Ver todas as barbearias
                     </button>

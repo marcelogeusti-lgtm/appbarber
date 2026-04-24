@@ -15,7 +15,7 @@ export default function DayDetailsModal({ isOpen, onClose, date, appointments, p
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-end sm:justify-center bg-black/80 backdrop-blur-sm sm:p-4 transition-all overflow-hidden">
             <div
-                className={`bg-[#0F111A] w-full max-w-2xl sm:rounded-[2.5rem] border-l sm:border sm:border-slate-800/50 shadow-2xl h-full sm:h-[85vh] flex flex-col transition-transform duration-500 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`bg-[#0F111A] w-full max-w-2xl sm:rounded-xl border-l sm:border sm:border-slate-800/50 shadow-2xl h-full sm:h-[85vh] flex flex-col transition-transform duration-500 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -67,7 +67,7 @@ export default function DayDetailsModal({ isOpen, onClose, date, appointments, p
                                     </span>
 
                                     {/* Card */}
-                                    <div className={`rounded-2xl border p-6 transition-all ${borderColor} ${bgColor} hover:border-opacity-40`}>
+                                    <div className={`rounded-xl border p-6 transition-all ${borderColor} ${bgColor} hover:border-opacity-40`}>
                                         <div className="flex justify-between items-start mb-4">
                                             <div>
                                                 <h3 className={`font-black text-lg uppercase tracking-tight text-white ${isCancelled ? 'opacity-50' : ''}`}>

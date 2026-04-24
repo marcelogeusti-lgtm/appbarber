@@ -155,7 +155,7 @@ export default function NotificationCenter({ user: propUser }) {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-4">
+                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#111827] border border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-4">
                     <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
                         <h3 className="font-black text-white uppercase tracking-widest text-xs">Notificações</h3>
                         {unreadCount > 0 && (
@@ -249,7 +249,7 @@ export default function NotificationCenter({ user: propUser }) {
 
             {isLoadingDetails && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-[#111827] p-8 rounded-3xl border border-slate-800 flex flex-col items-center gap-4">
+                    <div className="bg-[#111827] p-8 rounded-xl border border-slate-800 flex flex-col items-center gap-4">
                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Carregando detalhes...</p>
                     </div>

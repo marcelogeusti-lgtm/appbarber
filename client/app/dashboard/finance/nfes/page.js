@@ -105,13 +105,13 @@ export default function NfeListingPage() {
                     <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Fluxo <span className="text-primary italic">Fiscal</span></h1>
                     <p className="text-slate-400 text-sm font-medium">Gestão automatizada de emissões NFS-e.</p>
                 </div>
-                <button onClick={handleOpenManual} className="bg-primary hover:bg-primary/90 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs transition-all shadow-xl shadow-primary/20 flex items-center gap-2">
+                <button onClick={handleOpenManual} className="bg-primary hover:bg-primary/90 text-white px-6 py-4 rounded-xl font-black uppercase text-xs transition-all shadow-xl shadow-primary/20 flex items-center gap-2">
                     <Plus className="w-4 h-4" /> Emitir Nota Avulsa
                 </button>
             </header>
 
             {/* Status Indicator */}
-            <div className={`p-5 rounded-2xl border flex items-center justify-between ${isConfigured ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20 animate-pulse'}`}>
+            <div className={`p-5 rounded-xl border flex items-center justify-between ${isConfigured ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20 animate-pulse'}`}>
                 <div className="flex items-center gap-4">
                     <div className={`p-2.5 rounded-xl ${isConfigured ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-500'}`}>
                         {isConfigured ? <CheckCircle2 className="w-5 h-5" /> : <Info className="w-5 h-5" />}
@@ -130,9 +130,9 @@ export default function NfeListingPage() {
             <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                            <input placeholder="Buscar por cliente ou número..." className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 text-sm text-white focus:ring-2 ring-primary/20 outline-none" value={search} onChange={e => setSearch(e.target.value)} />
+                            <input placeholder="Buscar por cliente ou número..." className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 pl-12 text-sm text-white focus:ring-2 ring-primary/20 outline-none" value={search} onChange={e => setSearch(e.target.value)} />
                         </div>
-                        <select className="bg-slate-900 border border-slate-800 rounded-2xl px-6 py-4 text-[10px] font-black uppercase text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                        <select className="bg-slate-900 border border-slate-800 rounded-xl px-6 py-4 text-[10px] font-black uppercase text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                             <option value="ALL">Todos Status</option>
                             <option value="EMITTED">Emitidas</option>
                             <option value="PROCESSING">Processando</option>
@@ -140,7 +140,7 @@ export default function NfeListingPage() {
                         </select>
                     </div>
 
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-md">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead className="bg-slate-950/50 border-b border-slate-800">
@@ -183,7 +183,7 @@ export default function NfeListingPage() {
             {showManualModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowManualModal(false)} />
-                    <div className="relative bg-[#0d0d0f] border border-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-2xl p-10 animate-in zoom-in-95 duration-200">
+                    <div className="relative bg-[#0d0d0f] border border-slate-800 w-full max-w-lg rounded-xl shadow-2xl p-10 animate-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center mb-8">
                             <div>
                                 <h3 className="text-xl font-black text-white uppercase tracking-tighter">Emissão <span className="text-primary italic">Manual</span></h3>
@@ -201,16 +201,16 @@ export default function NfeListingPage() {
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="relative">
                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                        <input autoFocus placeholder="Buscar Cliente (Nome, CPF...)" className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-4 pl-12 text-sm text-white outline-none" value={clientSearch} onChange={e => setClientSearch(e.target.value)} />
+                                        <input autoFocus placeholder="Buscar Cliente (Nome, CPF...)" className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 pl-12 text-sm text-white outline-none" value={clientSearch} onChange={e => setClientSearch(e.target.value)} />
                                         {searchingClient && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />}
                                         {searchResults.length > 0 && !selectedClient && (
-                                            <div className="absolute top-full left-0 w-full mt-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden z-20 max-h-40 overflow-y-auto">
+                                            <div className="absolute top-full left-0 w-full mt-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden z-20 max-h-40 overflow-y-auto">
                                                 {searchResults.map(c => <button key={c.id} onClick={() => handleSelectClient(c)} className="w-full text-left p-4 hover:bg-slate-800 text-sm font-bold text-white border-b border-slate-800/50 last:border-0">{c.name}</button>)}
                                             </div>
                                         )}
                                     </div>
                                     {selectedClient && (
-                                        <div className="p-5 bg-primary/5 border border-primary/20 rounded-2xl space-y-4">
+                                        <div className="p-5 bg-primary/5 border border-primary/20 rounded-xl space-y-4">
                                             <div className="flex justify-between items-center"><p className="text-sm font-black text-white uppercase">{selectedClient.name}</p><button onClick={() => setSelectedClient(null)} className="text-[10px] font-black text-slate-500 uppercase underline">Trocar</button></div>
                                             <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-500 uppercase ml-1">CPF (Obrigatório)*</label><input className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold text-xs" value={manualForm.cpf} onChange={e => setManualForm(p => ({ ...p, cpf: e.target.value }))} /></div>
                                             <button onClick={() => setModalStep(2)} className="w-full bg-primary text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest mt-2">Seguir para Detalhes</button>
@@ -222,16 +222,16 @@ export default function NfeListingPage() {
                             {modalStep === 2 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="space-y-4">
-                                        <input placeholder="Descrição do Serviço" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white font-bold" value={manualForm.description} onChange={e => setManualForm(p => ({ ...p, description: e.target.value }))} />
+                                        <input placeholder="Descrição do Serviço" className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold" value={manualForm.description} onChange={e => setManualForm(p => ({ ...p, description: e.target.value }))} />
                                         <div className="grid grid-cols-2 gap-4">
-                                            <input type="number" placeholder="Valor R$" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white font-black" value={manualForm.amount} onChange={e => setManualForm(p => ({ ...p, amount: e.target.value }))} />
-                                            <input type="date" className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white font-bold uppercase text-[10px]" value={manualForm.date} onChange={e => setManualForm(p => ({ ...p, date: e.target.value }))} />
+                                            <input type="number" placeholder="Valor R$" className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-black" value={manualForm.amount} onChange={e => setManualForm(p => ({ ...p, amount: e.target.value }))} />
+                                            <input type="date" className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white font-bold uppercase text-[10px]" value={manualForm.date} onChange={e => setManualForm(p => ({ ...p, date: e.target.value }))} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-3 gap-3">
-                                        <button disabled={manualMutation.isPending} onClick={() => manualMutation.mutate({ ...manualForm, barbershopId: currentBarbershop.id, clientId: selectedClient.id, type: 'EMAIL' })} className="flex flex-col items-center gap-2 p-4 bg-slate-900 border border-slate-800 hover:border-primary/50 rounded-2xl group"><Mail className="w-5 h-5 text-slate-500 group-hover:text-primary" /><span className="text-[8px] font-black uppercase">E-mail</span></button>
-                                        <button disabled={manualMutation.isPending} onClick={() => manualMutation.mutate({ ...manualForm, barbershopId: currentBarbershop.id, clientId: selectedClient.id, type: 'WA' })} className="flex flex-col items-center gap-2 p-4 bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl group"><MessageSquare className="w-5 h-5 text-slate-500 group-hover:text-emerald-500" /><span className="text-[8px] font-black uppercase">Whats</span></button>
-                                        <button disabled={manualMutation.isPending} onClick={() => manualMutation.mutate({ ...manualForm, barbershopId: currentBarbershop.id, clientId: selectedClient.id, type: 'PDF' })} className="flex flex-col items-center gap-2 p-4 bg-slate-900 border border-slate-800 hover:border-white/50 rounded-2xl group"><Download className="w-5 h-5 text-slate-500 group-hover:text-white" /><span className="text-[8px] font-black uppercase">PDF</span></button>
+                                        <button disabled={manualMutation.isPending} onClick={() => manualMutation.mutate({ ...manualForm, barbershopId: currentBarbershop.id, clientId: selectedClient.id, type: 'EMAIL' })} className="flex flex-col items-center gap-2 p-4 bg-slate-900 border border-slate-800 hover:border-primary/50 rounded-xl group"><Mail className="w-5 h-5 text-slate-500 group-hover:text-primary" /><span className="text-[8px] font-black uppercase">E-mail</span></button>
+                                        <button disabled={manualMutation.isPending} onClick={() => manualMutation.mutate({ ...manualForm, barbershopId: currentBarbershop.id, clientId: selectedClient.id, type: 'WA' })} className="flex flex-col items-center gap-2 p-4 bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-xl group"><MessageSquare className="w-5 h-5 text-slate-500 group-hover:text-emerald-500" /><span className="text-[8px] font-black uppercase">Whats</span></button>
+                                        <button disabled={manualMutation.isPending} onClick={() => manualMutation.mutate({ ...manualForm, barbershopId: currentBarbershop.id, clientId: selectedClient.id, type: 'PDF' })} className="flex flex-col items-center gap-2 p-4 bg-slate-900 border border-slate-800 hover:border-white/50 rounded-xl group"><Download className="w-5 h-5 text-slate-500 group-hover:text-white" /><span className="text-[8px] font-black uppercase">PDF</span></button>
                                     </div>
                                     {manualMutation.isPending && <div className="flex items-center justify-center gap-2 text-primary animate-pulse py-2"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-[9px] font-black uppercase">Emitindo Nota Fiscal...</span></div>}
                                 </div>
@@ -244,7 +244,7 @@ export default function NfeListingPage() {
                                         <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Sucesso Total!</h4>
                                         <p className="text-slate-400 text-sm">Sua nota fiscal foi processada e enviada.</p>
                                     </div>
-                                    <button onClick={() => setShowManualModal(false)} className="bg-primary text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20">Concluir</button>
+                                    <button onClick={() => setShowManualModal(false)} className="bg-primary text-white px-10 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20">Concluir</button>
                                 </div>
                             )}
                         </div>

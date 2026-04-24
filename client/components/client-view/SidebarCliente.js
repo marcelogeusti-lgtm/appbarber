@@ -80,7 +80,7 @@ export default function SidebarCliente({ isOpen, onClose }) {
 
                     {/* User Profile & Logout */}
                     <div className="p-4 border-t border-white/5">
-                        <div className="bg-white/5 rounded-2xl p-4 mb-4">
+                        <div className="bg-white/5 rounded-xl p-4 mb-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 overflow-hidden">
                                     {user?.avatarUrl ? (

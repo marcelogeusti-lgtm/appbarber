@@ -38,13 +38,13 @@ export default function SearchFilters({
                         placeholder="Buscar por nome, cidade ou serviço..."
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all text-sm"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all text-sm"
                     />
                 </div>
                 <button
                     onClick={onLocationSearch}
                     disabled={isLocating}
-                    className={`flex items-center justify-center aspect-square h-[54px] rounded-2xl border transition-all ${
+                    className={`flex items-center justify-center aspect-square h-[54px] rounded-xl border transition-all ${
                         isLocating 
                         ? 'bg-primary/20 border-primary/40 animate-pulse' 
                         : 'bg-white/5 border-white/10 hover:border-white/20 active:scale-95'

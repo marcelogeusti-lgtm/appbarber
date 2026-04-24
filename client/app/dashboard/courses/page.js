@@ -17,15 +17,15 @@ export default function CoursesPage() {
 
     if (isError) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 bg-card rounded-[3rem] border border-border shadow-sm">
-                <div className="p-6 bg-destructive/10 rounded-3xl mb-6 shadow-inner">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 bg-card rounded-xl border border-border shadow-sm">
+                <div className="p-6 bg-destructive/10 rounded-xl mb-6 shadow-inner">
                     <AlertCircle className="w-12 h-12 text-destructive" />
                 </div>
                 <h2 className="text-2xl font-black text-foreground mb-3 uppercase tracking-tighter">Sincronização Falhou</h2>
                 <p className="text-muted-foreground text-sm font-medium italic mb-8 max-w-sm">Não foi possível conectar com a Academia NEXT no momento.</p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="px-10 py-4 bg-primary text-primary-foreground rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+                    className="px-10 py-4 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all"
                 >
                     Tentar Novamente
                 </button>
@@ -36,7 +36,7 @@ export default function CoursesPage() {
     return (
         <div className="space-y-10 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-xl border border-border shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 blur-[120px] -mr-40 -mt-40" />
                 <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-2">
@@ -47,7 +47,7 @@ export default function CoursesPage() {
                         Evolua suas técnicas e gestão com nossos conteúdos exclusivos para parceiros.
                     </p>
                 </div>
-                <div className="bg-primary/5 border border-primary/20 px-6 py-3 rounded-2xl relative z-10">
+                <div className="bg-primary/5 border border-primary/20 px-6 py-3 rounded-xl relative z-10">
                     <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
                         <Zap className="w-4 h-4" /> Acesso Premium Liberado
                     </span>
@@ -56,7 +56,7 @@ export default function CoursesPage() {
 
             {/* Content Grid */}
             {courses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[50vh] border-2 border-dashed border-border rounded-[3rem] bg-card/30 p-12 text-center shadow-inner">
+                <div className="flex flex-col items-center justify-center min-h-[50vh] border-2 border-dashed border-border rounded-xl bg-card/30 p-12 text-center shadow-inner">
                     <div className="p-6 bg-muted rounded-full mb-6">
                         <GraduationCap className="w-10 h-10 text-muted-foreground/30" />
                     </div>
@@ -78,7 +78,7 @@ export default function CoursesPage() {
 
 function CourseCard({ course }) {
     return (
-        <div className="group bg-card border border-border rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 hover:border-primary/30 flex flex-col shadow-sm">
+        <div className="group bg-card border border-border rounded-xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 hover:border-primary/30 flex flex-col shadow-sm">
             <div className="relative h-56 bg-muted overflow-hidden">
                 {course.thumbnailUrl ? (
                     <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-700" />
@@ -110,7 +110,7 @@ function CourseCard({ course }) {
                     href={course.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 bg-secondary text-secondary-foreground border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-sm group-hover:shadow-xl group-hover:shadow-primary/20"
+                    className="w-full flex items-center justify-center gap-3 bg-secondary text-secondary-foreground border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary py-5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-sm group-hover:shadow-xl group-hover:shadow-primary/20"
                 >
                     <span>Assistir Agora</span>
                     <ExternalLink className="w-4 h-4" />
@@ -124,11 +124,11 @@ function CoursesSkeleton() {
     return (
         <div className="p-10 space-y-10">
             <div className="space-y-4">
-                <Skeleton className="w-64 h-10 rounded-2xl" />
+                <Skeleton className="w-64 h-10 rounded-xl" />
                 <Skeleton className="w-96 h-4 rounded-xl" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-96 rounded-[2.5rem]" />)}
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-96 rounded-xl" />)}
             </div>
         </div>
     );

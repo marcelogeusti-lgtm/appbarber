@@ -310,7 +310,7 @@ export default function SchedulePage() {
     return (
         <div className="space-y-6 pb-20 text-muted-foreground">
             {/* Header Redesign */}
-            <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-card p-8 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden">
+            <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm relative overflow-hidden">
                 <div className="relative z-10 w-full xl:w-auto">
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground mb-4">
                         AGENDA OPERACIONAL {appointments.length > 0 ? `(${appointments.length})` : ''}
@@ -323,7 +323,7 @@ export default function SchedulePage() {
                                 value={selectedPro}
                                 onChange={(e) => user?.role !== 'BARBER' && setSelectedPro(e.target.value)}
                                 disabled={user?.role === 'BARBER'}
-                                className={`appearance-none bg-background text-foreground pl-12 pr-12 py-4 rounded-2xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none font-black text-xs uppercase tracking-widest cursor-pointer hover:bg-muted transition min-w-[280px] ${user?.role === 'BARBER' ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`appearance-none bg-background text-foreground pl-12 pr-12 py-4 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none font-black text-xs uppercase tracking-widest cursor-pointer hover:bg-muted transition min-w-[280px] ${user?.role === 'BARBER' ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
                                 {user?.role !== 'BARBER' && <option value="all">Todos Profissionais</option>}
                                 {professionals.map(pro => (
@@ -337,7 +337,7 @@ export default function SchedulePage() {
                         </div>
 
                         {/* Date Navigation */}
-                        <div className="flex items-center gap-3 bg-background p-2 rounded-2xl border border-border w-full sm:w-auto justify-between sm:justify-start">
+                        <div className="flex items-center gap-3 bg-background p-2 rounded-xl border border-border w-full sm:w-auto justify-between sm:justify-start">
                             <button onClick={handlePrev} className="p-2 hover:bg-muted rounded-xl transition shadow-sm"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
                             <div className="px-4 text-center min-w-[140px]">
                                 <p className="font-black text-xs text-foreground uppercase tracking-widest">
@@ -354,7 +354,7 @@ export default function SchedulePage() {
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto relative z-10">
 
                     {/* View Mode */}
-                    <div className="flex bg-background p-1 rounded-2xl border border-border w-full sm:w-auto">
+                    <div className="flex bg-background p-1 rounded-xl border border-border w-full sm:w-auto">
                         {['day', 'week', 'month'].map(v => (
                             <button
                                 key={v}
@@ -372,7 +372,7 @@ export default function SchedulePage() {
                     {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'RECEPTIONIST') && (
                         <button
                             onClick={() => setIsSqueezeInOpen(true)}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20"
                         >
                             <PlusCircle className="w-4 h-4" /> Encaixe Rápido
                         </button>
@@ -403,7 +403,7 @@ export default function SchedulePage() {
                 </button>
             </div>
 
-            <div className="bg-card rounded-[2.5rem] border border-border shadow-2xl overflow-hidden min-h-[600px]">
+            <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden min-h-[600px]">
                     {activeTab === 'appointments' && (
                         <>
                             {viewMode === 'day' && (
@@ -542,7 +542,7 @@ export default function SchedulePage() {
 function WaitlistView({ waitlist, professionals }) {
     if (waitlist.length === 0) return (
         <div className="py-40 text-center space-y-6">
-            <div className="w-24 h-24 bg-card rounded-[2.5rem] border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-inner">
+            <div className="w-24 h-24 bg-card rounded-xl border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-inner">
                 <Clock className="w-10 h-10" />
             </div>
             <div className="max-w-xs mx-auto">
@@ -557,7 +557,7 @@ function WaitlistView({ waitlist, professionals }) {
             {waitlist.map(entry => (
                 <div key={entry.id} className="p-8 hover:bg-primary/5 transition flex items-center justify-between group">
                     <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-background rounded-2xl border border-border flex items-center justify-center text-muted-foreground font-black text-xl">
+                        <div className="w-16 h-16 bg-background rounded-xl border border-border flex items-center justify-center text-muted-foreground font-black text-xl">
                             {entry.clientName?.charAt(0)}
                         </div>
                         <div>
@@ -609,7 +609,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
 
                         <div className="flex-1 space-y-3 cursor-pointer" onClick={() => onEdit && onEdit(app)}>
                             <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-2xl border border-border flex items-center justify-center font-black group-hover:scale-110 transition-transform ${isCancelled ? 'bg-red-500/10 text-red-500' : 'bg-background text-muted-foreground'}`}>
+                                <div className={`w-12 h-12 rounded-xl border border-border flex items-center justify-center font-black group-hover:scale-110 transition-transform ${isCancelled ? 'bg-red-500/10 text-red-500' : 'bg-background text-muted-foreground'}`}>
                                     {app.client?.name.charAt(0)}
                                 </div>
                                 <div>
@@ -644,7 +644,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
                                 <a
                                     href={`https://wa.me/55${app.client?.phone?.replace(/\D/g, '')}?text=Olá ${app.client?.name}! Confirmamos seu horário às ${format(new Date(app.date), 'HH:mm')} na ${encodeURIComponent(barbershopName)}.`}
                                     target="_blank"
-                                    className="flex-1 md:flex-none bg-primary text-primary-foreground px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 text-center"
+                                    className="flex-1 md:flex-none bg-primary text-primary-foreground px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-xl shadow-primary/20 text-center"
                                 >
                                     WhatsApp
                                 </a>
@@ -659,7 +659,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
                                             }
                                         }
                                     }}
-                                    className="flex-1 md:flex-none bg-card text-destructive border border-border px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive hover:text-destructive-foreground transition text-center"
+                                    className="flex-1 md:flex-none bg-card text-destructive border border-border px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive hover:text-destructive-foreground transition text-center"
                                 >
                                     Excluir
                                 </button>
@@ -669,7 +669,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
                             <div className="flex gap-2 w-full md:w-auto opacity-0 group-hover:opacity-100 transition-all">
                                 <button
                                     onClick={() => onEdit && onEdit(app)} // Opens edit modal to allow restoring nicely if needed
-                                    className="flex-1 md:flex-none bg-card text-muted-foreground border border-border px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-foreground transition text-center"
+                                    className="flex-1 md:flex-none bg-card text-muted-foreground border border-border px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-foreground transition text-center"
                                 >
                                     Detalhes
                                 </button>
@@ -715,7 +715,7 @@ function WeekView({ currentDate, getFilteredAppointments, professionals, selecte
                                                 e.stopPropagation(); // Prevent opening DayDetailsModal
                                                 onEdit && onEdit(app);
                                             }}
-                                            className={`p-4 rounded-2xl border shadow-sm transition-all group group hover:bg-card cursor-pointer ${isCancelled ? 'bg-red-500/5 border-red-500/20 opacity-70' : 'bg-background border-border hover:border-primary/40'}`}
+                                            className={`p-4 rounded-xl border shadow-sm transition-all group group hover:bg-card cursor-pointer ${isCancelled ? 'bg-red-500/5 border-red-500/20 opacity-70' : 'bg-background border-border hover:border-primary/40'}`}
                                         >
                                             <p className={`font-black text-[11px] leading-none tracking-widest ${isCancelled ? 'text-red-500 line-through' : 'text-foreground'}`}>{format(new Date(app.date), 'HH:mm')}</p>
                                             <p className="text-[10px] font-bold text-muted-foreground mt-2 truncate group-hover:text-foreground transition-colors uppercase">{app.client?.name}</p>
@@ -868,7 +868,7 @@ function AvailabilityView({ currentDate, professionals, selectedPro, barbershopI
 function EmptyState() {
     return (
         <div className="py-40 text-center space-y-6">
-            <div className="w-24 h-24 bg-card rounded-[2.5rem] border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-2xl">
+            <div className="w-24 h-24 bg-card rounded-xl border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-2xl">
                 <CalendarIcon className="w-10 h-10" />
             </div>
             <div className="max-w-xs mx-auto">

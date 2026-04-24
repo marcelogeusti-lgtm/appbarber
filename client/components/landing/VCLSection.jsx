@@ -15,7 +15,7 @@ export default function VCLSection() {
 
                 <div className="max-w-5xl mx-auto relative group">
                     <LEDCardWrapper className="w-full">
-                        <div className="relative aspect-video rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-[#0A0A0B] group/video cursor-pointer border border-white/10 h-full">
+                        <div className="relative aspect-video rounded-xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-[#0A0A0B] group/video cursor-pointer border border-white/10 h-full">
                             {/* Decorative Glow behind video */}
                             <div className="absolute -inset-10 bg-primary/10 blur-[120px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                             

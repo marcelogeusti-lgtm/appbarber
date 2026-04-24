@@ -86,7 +86,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300 overflow-y-auto">
-            <div className="bg-[#0f172a] w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-800 flex flex-col my-auto">
+            <div className="bg-[#0f172a] w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border border-slate-800 flex flex-col my-auto">
                 <header className="p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
                     <div>
                         <h2 className="text-2xl font-black uppercase tracking-tighter text-white">
@@ -116,7 +116,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                         />
 
                         {/* Link Checkout */}
-                        <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">
+                        <div className="bg-primary/5 p-6 rounded-xl border border-primary/20 space-y-4">
                             <div className="flex items-center gap-2 text-primary mb-2">
                                 <LinkIcon className="w-4 h-4" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Link de Venda (Checkout)</span>
@@ -146,7 +146,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                                 placeholder="https://..."
                             />
                             {watch('thumbnailUrl') && (
-                                <div className="h-40 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 relative">
+                                <div className="h-40 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 relative">
                                     <img
                                         src={watch('thumbnailUrl')}
                                         alt="Preview"
@@ -166,7 +166,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                             <textarea
                                 {...register('description')}
                                 rows={3}
-                                className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition resize-none"
+                                className="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:ring-2 ring-primary transition resize-none"
                                 placeholder="Resumo do que será ensinado..."
                             />
                         </div>
@@ -190,7 +190,7 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                         </div>
 
                         {/* Status Toggle */}
-                        <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between cursor-pointer" onClick={() => setValue('active', !watch('active'))}>
+                        <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between cursor-pointer" onClick={() => setValue('active', !watch('active'))}>
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Curso Ativo / Visível?</span>
                             <div className={`w-12 h-6 rounded-full relative transition-all ${watch('active') ? 'bg-primary' : 'bg-slate-800'}`}>
                                 <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${watch('active') ? 'right-1' : 'left-1'}`} />
@@ -202,14 +202,14 @@ export default function CourseFormModal({ isOpen, onClose, course, onSuccess }) 
                 </div>
 
                 <footer className="p-8 border-t border-slate-800 bg-slate-900/50 flex justify-end gap-4">
-                    <button type="button" onClick={onClose} className="px-6 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-slate-400 hover:text-white transition-colors">
+                    <button type="button" onClick={onClose} className="px-6 py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest text-slate-400 hover:text-white transition-colors">
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         form="courseForm"
                         disabled={loading}
-                        className={`flex items-center gap-2 bg-primary text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`flex items-center gap-2 bg-primary text-white px-10 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         {isEdit ? 'SALVAR ALTERAÇÕES' : 'CRIAR CURSO'}
@@ -227,7 +227,7 @@ const Input = ({ label, name, register, error, required, icon, className, ...res
         </label>
         <input
             {...register(name)}
-            className={`w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-primary transition ${error ? 'border-red-500/50 ring-red-500/10' : ''} ${className}`}
+            className={`w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:ring-2 ring-primary transition ${error ? 'border-red-500/50 ring-red-500/10' : ''} ${className}`}
             {...rest}
         />
         {error && <p className="text-[9px] text-red-500 font-bold uppercase tracking-widest ml-1">{error.message}</p>}

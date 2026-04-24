@@ -61,7 +61,7 @@ export default function PaymentSettings() {
 
     return (
         <div className="space-y-10 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-[2.5rem] border border-border shadow-sm relative overflow-hidden mb-10">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-10 rounded-xl border border-border shadow-sm relative overflow-hidden mb-10">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 blur-[120px] -mr-40 -mt-40" />
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="w-16 h-16 bg-primary/10 rounded-[1.8rem] border border-primary/20 flex items-center justify-center text-3xl shadow-inner">
@@ -72,7 +72,7 @@ export default function PaymentSettings() {
                         <p className="text-muted-foreground text-sm font-medium italic mt-1 uppercase tracking-widest text-[10px] opacity-80">Configure como sua barbearia processa fluxos financeiros.</p>
                     </div>
                 </div>
-                <div className="bg-primary/5 border border-primary/20 px-6 py-4 rounded-2xl relative z-10">
+                <div className="bg-primary/5 border border-primary/20 px-6 py-4 rounded-xl relative z-10">
                     <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-3">
                         <Shield className="w-4 h-4" /> Camada de Segurança Diamond
                     </span>
@@ -88,7 +88,7 @@ export default function PaymentSettings() {
                     config={getConfig('mercadopago')}
                     onSave={handleSave}
                     saving={saving === 'mercadopago'}
-                    icon={<div className="w-16 h-16 rounded-2xl bg-white p-2 border border-border shadow-xl group-hover:scale-110 transition-transform flex items-center justify-center">
+                    icon={<div className="w-16 h-16 rounded-xl bg-white p-2 border border-border shadow-xl group-hover:scale-110 transition-transform flex items-center justify-center">
                         <img src="/logos/mercadopago.png" alt="Mercado Pago" className="w-full h-full object-contain" />
                     </div>}
                     helpText="Acesse suas credenciais no painel do Mercado Pago Developers."
@@ -138,7 +138,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
     };
 
     return (
-        <div className={`p-10 rounded-[3rem] border transition-all duration-500 group relative overflow-hidden ${localData.isActive ? 'bg-card border-primary/30 shadow-2xl shadow-primary/5' : 'bg-card border-border opacity-70 hover:opacity-100'}`}>
+        <div className={`p-10 rounded-xl border transition-all duration-500 group relative overflow-hidden ${localData.isActive ? 'bg-card border-primary/30 shadow-2xl shadow-primary/5' : 'bg-card border-border opacity-70 hover:opacity-100'}`}>
             <div className="flex flex-col xl:flex-row items-start justify-between gap-10 mb-10">
                 <div className="flex flex-col md:flex-row gap-8">
                     {icon}
@@ -154,14 +154,14 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                             )}
                         </div>
                         <p className="text-muted-foreground text-sm font-medium italic max-w-lg leading-relaxed">{description}</p>
-                        <div className="bg-muted/30 p-4 rounded-2xl border border-border/50 max-w-lg">
+                        <div className="bg-muted/30 p-4 rounded-xl border border-border/50 max-w-lg">
                             <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-1">Como conectar:</p>
                             <p className="text-[11px] text-muted-foreground font-bold tracking-tight">{helpText}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 bg-background p-3 px-6 rounded-2xl border border-border shadow-inner">
+                <div className="flex items-center gap-4 bg-background p-3 px-6 rounded-xl border border-border shadow-inner">
                     <span className={`text-[10px] font-black uppercase tracking-widest ${localData.isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                         {localData.isActive ? 'OPERANDO' : 'DESATIVADO'}
                     </span>
@@ -205,7 +205,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                                 {f.type === 'radio' ? (
                                     <div className="flex flex-wrap gap-4">
                                         {f.options.map(opt => (
-                                            <label key={opt.value} className={`flex items-center gap-3 cursor-pointer px-6 py-4 rounded-2xl border-2 transition-all duration-300 ${localData.credentials[f.name] === opt.value ? 'bg-primary/5 border-primary text-primary shadow-lg' : 'bg-background border-border text-muted-foreground hover:border-primary/30'}`}>
+                                            <label key={opt.value} className={`flex items-center gap-3 cursor-pointer px-6 py-4 rounded-xl border-2 transition-all duration-300 ${localData.credentials[f.name] === opt.value ? 'bg-primary/5 border-primary text-primary shadow-lg' : 'bg-background border-border text-muted-foreground hover:border-primary/30'}`}>
                                                 <input
                                                     type="radio"
                                                     name={`env-${gateway}`}
@@ -228,7 +228,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                                             value={localData.credentials[f.name] || ''}
                                             onChange={e => handleChange(f.name, e.target.value)}
                                             placeholder={f.placeholder}
-                                            className="w-full p-5 bg-background border border-border rounded-2xl focus:ring-4 ring-primary/10 outline-none text-sm text-foreground font-mono shadow-inner group-hover/field:border-primary/30 transition-all font-bold"
+                                            className="w-full p-5 bg-background border border-border rounded-xl focus:ring-4 ring-primary/10 outline-none text-sm text-foreground font-mono shadow-inner group-hover/field:border-primary/30 transition-all font-bold"
                                         />
                                     </div>
                                 )}
@@ -240,7 +240,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                         <div className="flex items-center gap-6">
                             <button
                                 onClick={handleTestConnection}
-                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary bg-muted/50 px-6 py-4 rounded-2xl transition-all hover:bg-muted border border-border/50 active:scale-95"
+                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary bg-muted/50 px-6 py-4 rounded-xl transition-all hover:bg-muted border border-border/50 active:scale-95"
                             >
                                 {testStatus === 'testing' ? 'Validando Camada API...' : 'Testar Comunicação'}
                             </button>
@@ -260,7 +260,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                         <button
                             onClick={() => onSave(gateway, localData)}
                             disabled={saving}
-                            className="w-full md:w-auto bg-primary text-primary-foreground px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-primary/90 shadow-2xl shadow-primary/20 disabled:opacity-50 disabled:pointer-events-none active:scale-95 flex items-center justify-center gap-3"
+                            className="w-full md:w-auto bg-primary text-primary-foreground px-12 py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-primary/90 shadow-2xl shadow-primary/20 disabled:opacity-50 disabled:pointer-events-none active:scale-95 flex items-center justify-center gap-3"
                         >
                             <Zap className="w-5 h-5" /> {saving ? 'SALVANDO CONFIGURAÇÃO...' : 'SINCRONIZAR CREDENCIAIS'}
                         </button>

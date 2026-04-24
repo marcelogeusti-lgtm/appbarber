@@ -101,9 +101,9 @@ export default function ProductsPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-3xl border border-border shadow-sm">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-card p-8 rounded-xl border border-border shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-2xl">
+                    <div className="p-3 bg-primary/10 text-primary rounded-xl">
                         <ShoppingBag className="w-8 h-8" />
                     </div>
                     <div>
@@ -117,14 +117,14 @@ export default function ProductsPage() {
                         setIsEditing(null);
                         setNewProduct({ name: '', price: '', costPrice: '', stock: '' });
                     }}
-                    className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
                 >
                     {isAdding ? 'CANCELAR' : <><Plus className="w-4 h-4" /> NOVO PRODUTO</>}
                 </button>
             </header>
 
             {isAdding && (
-                <form onSubmit={isEditing ? handleUpdateProduct : handleCreateProduct} className="bg-card p-8 rounded-[2.5rem] border border-border shadow-2xl">
+                <form onSubmit={isEditing ? handleUpdateProduct : handleCreateProduct} className="bg-card p-8 rounded-xl border border-border shadow-2xl">
                     <h3 className="text-foreground font-bold uppercase mb-6 flex items-center gap-2">
                         {isEditing ? <Edit className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary" />}
                         {isEditing ? 'Editar Produto' : 'Novo Produto'}
@@ -225,13 +225,13 @@ export default function ProductsPage() {
                     placeholder="Buscar produtos..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-2xl text-foreground outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/70 font-medium"
+                    className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-xl text-foreground outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/70 font-medium"
                 />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map(product => (
-                    <div key={product.id} className="bg-card p-6 rounded-[2rem] border border-border hover:border-primary/50 transition-all group relative overflow-hidden">
+                    <div key={product.id} className="bg-card p-6 rounded-xl border border-border hover:border-primary/50 transition-all group relative overflow-hidden">
                         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => startEditing(product)} className="p-2 bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
                                 <Edit className="w-4 h-4" />
@@ -242,7 +242,7 @@ export default function ProductsPage() {
                         </div>
 
                         <div className="flex items-start gap-4">
-                            <div className="p-4 bg-muted rounded-2xl border border-border">
+                            <div className="p-4 bg-muted rounded-xl border border-border">
                                 <Package className="w-8 h-8 text-primary" />
                             </div>
                             <div>
@@ -271,7 +271,7 @@ export default function ProductsPage() {
                 ))}
             </div>
 
-            <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm mt-8">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm mt-8">
                 <Pagination
                     currentPage={page}
                     totalPages={productRes.totalPages}

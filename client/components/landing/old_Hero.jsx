@@ -74,7 +74,7 @@ export default function Hero() {
                                 </div>
 
                                 {/* Mockup Image - Using actual Dahsboard screenshot */}
-                                <div className="rounded-2xl border border-gray-50 overflow-hidden bg-gray-50">
+                                <div className="rounded-xl border border-gray-50 overflow-hidden bg-gray-50">
                                     <img
                                         src="/screenshots/dashboard_main_1772068419823.png"
                                         alt="Dashboard NEXT"

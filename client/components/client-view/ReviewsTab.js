@@ -77,7 +77,7 @@ export default function ReviewsTab({ barbershopId }) {
     return (
         <div className="space-y-6 pb-24">
             {/* Summary */}
-            <div className="bg-[#111] p-6 rounded-[2rem] border border-white/5 flex items-center justify-between">
+            <div className="bg-[#111] p-6 rounded-xl border border-white/5 flex items-center justify-between">
                 <div>
                     <h3 className="text-5xl font-black text-white tracking-tighter">{average}</h3>
                     <div className="flex text-yellow-500 gap-1 my-2">
@@ -89,7 +89,7 @@ export default function ReviewsTab({ barbershopId }) {
                 {unreviewed.length > 0 && !isWriting && (
                     <button
                         onClick={() => setIsWriting(true)}
-                        className="bg-primary text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20"
+                        className="bg-primary text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20"
                     >
                         Avaliar Última Visita
                     </button>
@@ -98,7 +98,7 @@ export default function ReviewsTab({ barbershopId }) {
 
             {/* Writing Form */}
             {isWriting && unreviewed.length > 0 && (
-                <div className="bg-[#0b0f19] p-6 rounded-[2rem] border border-primary/30 animate-in slide-in-from-top-4">
+                <div className="bg-[#0b0f19] p-6 rounded-xl border border-primary/30 animate-in slide-in-from-top-4">
                     <h4 className="text-white font-black text-xs uppercase tracking-widest mb-4">Sua avaliação para {unreviewed[0].service?.name}</h4>
                     <div className="flex gap-2 mb-6 justify-center">
                         {[1, 2, 3, 4, 5].map(s => (
@@ -111,7 +111,7 @@ export default function ReviewsTab({ barbershopId }) {
                         value={comment}
                         onChange={e => setComment(e.target.value)}
                         placeholder="Como foi sua experiência? (Opcional)"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white text-sm outline-none focus:border-primary transition h-24 mb-4 resize-none"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white text-sm outline-none focus:border-primary transition h-24 mb-4 resize-none"
                     />
                     <div className="flex gap-3">
                         <button onClick={handleSubmitReview} className="flex-1 bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition">Enviar Avaliação</button>
@@ -129,7 +129,7 @@ export default function ReviewsTab({ barbershopId }) {
             ) : (
                 <div className="space-y-4">
                     {reviews.map((review) => (
-                        <div key={review.id} className="bg-[#111] p-5 rounded-2xl border border-white/5 hover:border-white/10 transition">
+                        <div key={review.id} className="bg-[#111] p-5 rounded-xl border border-white/5 hover:border-white/10 transition">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 overflow-hidden">

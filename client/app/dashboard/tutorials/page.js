@@ -62,7 +62,7 @@ export default function TutorialsPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-[#0A0A0B] border border-white/5 p-8 rounded-[2rem] relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-[#0A0A0B] border border-white/5 p-8 rounded-xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
 
                 <div className="relative z-10 max-w-2xl">
@@ -112,7 +112,7 @@ export default function TutorialsPage() {
             {/* Video Player Modal */}
             {playingVideo && (
                 <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-                    <div className="w-full max-w-5xl bg-[#0A0A0B] rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl relative">
+                    <div className="w-full max-w-5xl bg-[#0A0A0B] rounded-xl border border-white/10 overflow-hidden shadow-2xl relative">
                         <button
                             onClick={() => setPlayingVideo(null)}
                             className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white z-10 transition-colors"
@@ -160,7 +160,7 @@ export default function TutorialsPage() {
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="aspect-video bg-white/5 animate-pulse rounded-[2rem]" />
+                        <div key={i} className="aspect-video bg-white/5 animate-pulse rounded-xl" />
                     ))}
                 </div>
             ) : videos.length > 0 ? (
@@ -168,7 +168,7 @@ export default function TutorialsPage() {
                     {videos.map((video) => (
                         <div
                             key={video.id}
-                            className="bg-[#0A0A0B] border border-white/5 rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all cursor-pointer shadow-xl flex flex-col"
+                            className="bg-[#0A0A0B] border border-white/5 rounded-xl overflow-hidden group hover:border-primary/30 transition-all cursor-pointer shadow-xl flex flex-col"
                             onClick={() => setPlayingVideo(video)}
                         >
                             <div className="relative aspect-video overflow-hidden">
@@ -205,7 +205,7 @@ export default function TutorialsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="py-20 text-center border border-white/5 border-dashed rounded-[2rem] bg-[#0A0A0B]">
+                <div className="py-20 text-center border border-white/5 border-dashed rounded-xl bg-[#0A0A0B]">
                     <Video className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-white mb-2">Nenhum tutorial encontrado</h3>
                     <p className="text-gray-500 text-sm">Tente buscar por termos diferentes ou selecione outra categoria.</p>
@@ -213,7 +213,7 @@ export default function TutorialsPage() {
             )}
 
             {/* Help / Support CTA */}
-            <div className="mt-12 bg-gradient-to-r from-blue-900/40 to-primary/20 border border-primary/20 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="mt-12 bg-gradient-to-r from-blue-900/40 to-primary/20 border border-primary/20 rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
                     <h3 className="text-xl font-bold text-white mb-2">Ainda precisa de ajuda?</h3>
                     <p className="text-blue-200/70 text-sm">Nossa equipe de suporte Mestre VIP está online para te auxiliar.</p>

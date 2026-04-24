@@ -45,28 +45,28 @@ export default function ProductShowcase() {
                             <div className={`relative group ${section.reverse ? 'lg:order-2' : ''}`}>
                                 <LEDCardWrapper className="h-full">
                                     {section.isAgenda ? (
-                                        <div className="relative rounded-[3rem] border border-white/10 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-[#0A0A0B]/60 backdrop-blur-3xl group/img p-4 lg:p-6 h-full">
+                                        <div className="relative rounded-xl border border-white/10 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-[#0A0A0B]/60 backdrop-blur-3xl group/img p-4 lg:p-6 h-full">
                                             <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
                                             <img 
                                                 src="/screenshots/agenda-schedule.png" 
                                                 alt="Agenda Maestro" 
-                                                className="w-full h-auto rounded-2xl transition-transform duration-1000 group-hover:scale-105"
+                                                className="w-full h-auto rounded-xl transition-transform duration-1000 group-hover:scale-105"
                                             />
                                         </div>
                                     ) : section.isAnalytics ? (
-                                        <div className="relative rounded-[3rem] border border-white/10 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-[#0A0A0B]/60 backdrop-blur-3xl group/img p-4 lg:p-6 h-full">
+                                        <div className="relative rounded-xl border border-white/10 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)] bg-[#0A0A0B]/60 backdrop-blur-3xl group/img p-4 lg:p-6 h-full">
                                             <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-transparent pointer-events-none z-10" />
                                             <img 
                                                 src="/screenshots/analytics-performance.png" 
                                                 alt="Analytics Performance" 
-                                                className="w-full h-auto rounded-2xl transition-transform duration-1000 group-hover:scale-105"
+                                                className="w-full h-auto rounded-xl transition-transform duration-1000 group-hover:scale-105"
                                             />
                                         </div>
                                     ) : section.isBooking ? (
-                                        <div className="relative rounded-3xl border border-gray-100 overflow-hidden shadow-2xl bg-gray-900 p-4 lg:p-8 flex justify-center group/img h-full">
+                                        <div className="relative rounded-xl border border-gray-100 overflow-hidden shadow-2xl bg-gray-900 p-4 lg:p-8 flex justify-center group/img h-full">
                                             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent pointer-events-none z-10" />
                                             {/* Mobile Frame */}
-                                            <div className="relative w-[280px] lg:w-[320px] aspect-[9/19] rounded-[3rem] border-8 border-gray-800 bg-gray-900 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+                                            <div className="relative w-[280px] lg:w-[320px] aspect-[9/19] rounded-xl border-8 border-gray-800 bg-gray-900 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
                                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-gray-800 rounded-b-2xl z-20" />
                                                 <img 
                                                     src="/screenshots/online-booking-mobile.png" 
@@ -76,7 +76,7 @@ export default function ProductShowcase() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="relative rounded-3xl border border-gray-100 overflow-hidden shadow-2xl transition-transform duration-700 group-hover:scale-[1.01] h-full">
+                                        <div className="relative rounded-xl border border-gray-100 overflow-hidden shadow-2xl transition-transform duration-700 group-hover:scale-[1.01] h-full">
                                             <img
                                                 src={section.img}
                                                 alt={section.title}
@@ -110,7 +110,7 @@ export default function ProductShowcase() {
                                 </ul>
 
                                 {section.isAgenda && (
-                                    <div className="p-8 rounded-[2rem] bg-white/[0.03] border border-white/5 mb-12 backdrop-blur-md">
+                                    <div className="p-8 rounded-xl bg-white/[0.03] border border-white/5 mb-12 backdrop-blur-md">
                                         <div className="flex items-center gap-5">
                                             <div className="flex -space-x-3">
                                                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=32&h=32" alt="Avatar" className="w-10 h-10 rounded-full border-2 border-[#050505] bg-[#0A0A0B]" />

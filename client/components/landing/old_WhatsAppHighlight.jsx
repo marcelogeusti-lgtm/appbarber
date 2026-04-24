@@ -14,7 +14,7 @@ export default function WhatsAppHighlight() {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
 
                         {/* Mockup Container */}
-                        <div className="relative w-[300px] h-[600px] bg-white rounded-[3rem] border-[4px] border-gray-900 shadow-2xl overflow-hidden ring-8 ring-gray-100">
+                        <div className="relative w-[300px] h-[600px] bg-white rounded-xl border-[4px] border-gray-900 shadow-2xl overflow-hidden ring-8 ring-gray-100">
                             {/* Status Bar */}
                             <div className="h-6 bg-gray-900 flex justify-center items-end pb-1">
                                 <div className="w-16 h-3.5 bg-black rounded-full" />
@@ -78,7 +78,7 @@ export default function WhatsAppHighlight() {
                                 { title: 'Link de Agendamento Pro', desc: 'Seu cliente agenda em segundos, direto do WhatsApp ou Instagram.' },
                                 { title: 'Confirma├º├úo via Chat', desc: 'O sistema valida a disponibilidade e reserva o hor├írio instantaneamente.' }
                             ].map((item, idx) => (
-                                <div key={idx} className="flex gap-4 p-4 rounded-2xl border border-gray-100 bg-white hover:border-primary/20 transition-all hover:shadow-sm group">
+                                <div key={idx} className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-primary/20 transition-all hover:shadow-sm group">
                                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
                                         <Zap className="w-5 h-5 fill-current" />
                                     </div>
@@ -91,7 +91,7 @@ export default function WhatsAppHighlight() {
                         </div>
 
                         <Link href="/register">
-                            <button className="px-10 py-5 bg-gray-900 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-black transition-all shadow-xl flex items-center gap-3 italic">
+                            <button className="px-10 py-5 bg-gray-900 text-white text-xs font-black uppercase tracking-[0.2em] rounded-xl hover:bg-black transition-all shadow-xl flex items-center gap-3 italic">
                                 Come├ºar Agora <ArrowRight className="w-4 h-4" />
                             </button>
                         </Link>

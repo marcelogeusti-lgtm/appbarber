@@ -21,7 +21,7 @@ export default function ServicesTab({ services, onSelect }) {
                     <div
                         key={service.id}
                         onClick={() => onSelect(service)}
-                        className="group bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-[2px] rounded-3xl cursor-pointer hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 transform hover:-translate-y-1"
+                        className="group bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-[2px] rounded-xl cursor-pointer hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 transform hover:-translate-y-1"
                     >
                         <div className="bg-[#0b0f19] rounded-[22px] p-5 h-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden">
 
@@ -31,7 +31,7 @@ export default function ServicesTab({ services, onSelect }) {
                             <div className="flex gap-4 items-start w-full sm:w-auto relative z-10">
                                 {/* Premium Icon/Image Container */}
                                 <div
-                                    className="relative w-20 h-20 rounded-2xl overflow-hidden group/img cursor-pointer shrink-0 border border-primary/20"
+                                    className="relative w-20 h-20 rounded-xl overflow-hidden group/img cursor-pointer shrink-0 border border-primary/20"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setSelectedService(service);
@@ -89,12 +89,12 @@ export default function ServicesTab({ services, onSelect }) {
             {/* Service Details Modal */}
             {selectedService && (
                 <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in">
-                    <div className="bg-[#111] w-full max-w-sm rounded-[2rem] border border-slate-800 p-6 relative shadow-2xl animate-in zoom-in-95">
+                    <div className="bg-[#111] w-full max-w-sm rounded-xl border border-slate-800 p-6 relative shadow-2xl animate-in zoom-in-95">
                         <button onClick={() => setSelectedService(null)} className="absolute top-4 right-4 w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors z-20">
                             <X className="w-4 h-4" />
                         </button>
 
-                        <div className="aspect-square bg-slate-900 rounded-2xl mb-6 overflow-hidden flex items-center justify-center border border-white/5 relative group">
+                        <div className="aspect-square bg-slate-900 rounded-xl mb-6 overflow-hidden flex items-center justify-center border border-white/5 relative group">
                             {selectedService.imageUrl ? (
                                 <img src={selectedService.imageUrl} alt={selectedService.name} className="w-full h-full object-cover" />
                             ) : (
@@ -111,7 +111,7 @@ export default function ServicesTab({ services, onSelect }) {
                         <h2 className="text-2xl font-black text-white uppercase leading-tight mb-1">{selectedService.name}</h2>
                         <p className="text-primary/80 font-black text-2xl mb-4">{formatCurrency(selectedService.price)}</p>
 
-                        <div className="bg-slate-900/50 p-4 rounded-2xl mb-6 border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
+                        <div className="bg-slate-900/50 p-4 rounded-xl mb-6 border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
                             <p className="text-slate-400 text-sm leading-relaxed">{selectedService.description || 'Nenhuma descrição detalhada disponível para este serviço.'}</p>
                         </div>
 
