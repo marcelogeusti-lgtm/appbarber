@@ -969,12 +969,20 @@ exports.getPendingFees = async (req, res) => {
 exports.getUnreviewedAppointments = async (req, res) => {
     try {
         const userId = req.user.id;
+        const { barbershopId } = req.query;
+        
+        const whereClause = {
+            clientId: userId,
+            status: 'COMPLETED',
+            review: null
+        };
+
+        if (barbershopId) {
+            whereClause.barbershopId = barbershopId;
+        }
+
         const unreviewed = await prisma.appointment.findMany({
-            where: {
-                clientId: userId,
-                status: 'COMPLETED',
-                review: null
-            },
+            where: whereClause,
             include: {
                 service: true,
                 professional: { select: { name: true } }

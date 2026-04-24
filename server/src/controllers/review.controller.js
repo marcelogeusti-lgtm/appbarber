@@ -3,10 +3,14 @@ const prisma = require('../lib/prisma');
 exports.createReview = async (req, res) => {
     try {
         const { appointmentId, rating, comment } = req.body;
-        const clientId = req.user.clientId; // Assuming auth middleware sets this
+        const clientId = req.user.id; // The auth middleware sets user id as id
+        
+        if (req.user.role !== 'CLIENT') {
+            return res.status(403).json({ message: 'Apenas clientes podem fazer avaliações' });
+        }
 
         if (!clientId) {
-            return res.status(401).json({ message: 'User must be a client' });
+            return res.status(401).json({ message: 'Usuário não autenticado' });
         }
 
         // Validate appointment
