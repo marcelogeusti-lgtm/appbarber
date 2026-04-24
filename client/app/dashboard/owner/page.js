@@ -125,37 +125,25 @@ export default function OwnerDashboardPage() {
                 </div>
             </header>
 
-            {/* --- AI INSIGHTS HUB --- */}
+            {/* --- INTELLIGENCE ALERTS --- */}
             <AnimatePresence>
                 {alerts && alerts.length > 0 && (
                     <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
                     >
                         {alerts.map((alert, i) => (
-                            <div key={i} className={`relative overflow-hidden p-8 rounded-[2.5rem] border backdrop-blur-xl group transition-all hover:translate-y-[-4px] ${
-                                alert.type === 'DANGER' ? 'bg-red-500/10 border-red-500/30' :
-                                alert.type === 'WARNING' ? 'bg-amber-500/10 border-amber-500/30' :
-                                'bg-blue-500/10 border-blue-500/30'
+                            <div key={i} className={`p-4 rounded-xl border-l-4 flex gap-3 items-start ${
+                                alert.type === 'DANGER' ? 'bg-red-500/5 border-red-500 text-red-500' :
+                                alert.type === 'WARNING' ? 'bg-amber-500/5 border-amber-500 text-amber-500' :
+                                'bg-blue-500/5 border-blue-500 text-blue-500'
                             }`}>
-                                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <Sparkles className="w-20 h-20" />
+                                <Zap className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider">{alert.title}</p>
+                                    <p className="text-sm font-medium mt-0.5 text-foreground leading-snug">{alert.message}</p>
                                 </div>
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                        alert.type === 'DANGER' ? 'bg-red-500 text-white' :
-                                        alert.type === 'WARNING' ? 'bg-amber-500 text-white' :
-                                        'bg-blue-500 text-white'
-                                    }`}>
-                                        <Zap className="w-5 h-5" />
-                                    </div>
-                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">{alert.title}</h4>
-                                </div>
-                                <p className="text-lg font-bold leading-tight text-foreground/90">{alert.message}</p>
-                                <button className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:gap-4 transition-all">
-                                    Aplicar Estratégia <ArrowRight className="w-3 h-3" />
-                                </button>
                             </div>
                         ))}
                     </motion.div>
