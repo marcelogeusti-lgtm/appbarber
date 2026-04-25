@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
     MapPin, Star, Heart, Share2,
-    ChevronLeft, ShoppingBag, Clock, CalendarCheck,
+    ChevronLeft, ShoppingBag, Clock, CalendarCheck, Calendar,
     Banknote, CreditCard, Bell, Zap,
     ExternalLink, Check, Crown, Scissors
 } from 'lucide-react';
@@ -1020,13 +1019,16 @@ export default function BarbershopPage() {
                                         <div className="space-y-6 animate-in slide-in-from-right">
                                             <div className="bg-slate-900 p-5 rounded-3xl border border-slate-800 space-y-4">
                                                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Selecione a Data</h3>
-                                                <input
-                                                    type="date"
-                                                    min={new Date().toISOString().split('T')[0]}
-                                                    value={formData.date}
-                                                    onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                                    className="w-full bg-slate-800 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-primary"
-                                                />
+                                                <div className="relative">
+                                                    <input
+                                                        type="date"
+                                                        min={new Date().toISOString().split('T')[0]}
+                                                        value={formData.date}
+                                                        onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                                        className="w-full bg-slate-800 border-none rounded-xl p-3 text-white font-bold text-sm outline-none focus:ring-1 ring-primary [color-scheme:dark] appearance-none"
+                                                    />
+                                                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
+                                                </div>
                                             </div>
                                             {formData.date && (
                                                 <div className="animate-in fade-in space-y-4">
