@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Info, Sparkles, Zap, Award } from 'lucide-react';
+import { Gift, Info, Sparkles, Zap, Award, Target } from 'lucide-react';
 import api from '../../lib/clientApi';
 import { motion } from 'framer-motion';
 
@@ -68,7 +68,6 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
         >
             {/* Points Balance Card */}
             <div className="relative group overflow-hidden rounded-[2.5rem] border border-white/5 bg-black p-8 shadow-2xl">
-                {/* Animated Background Gradients */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/30 transition-colors duration-700"></div>
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/10 blur-[60px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
                 
@@ -98,7 +97,7 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                     </div>
                     
                     <div className="bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-2xl">
-                        <p className="text-white/80 text-xs font-bold flex items-center gap-2">
+                        <div className="text-white/80 text-xs font-bold flex items-center gap-2">
                             {isReady ? (
                                 <>
                                     <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400" />
@@ -110,7 +109,7 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                                     <span>Faltam {target - points} pontos para sua próxima recompensa.</span>
                                 </>
                             )}
-                        </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -167,4 +166,3 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
         </motion.div>
     );
 }
-
