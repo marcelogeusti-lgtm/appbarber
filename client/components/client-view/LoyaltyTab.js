@@ -43,7 +43,7 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
             <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center py-16 px-6 bg-card/40 rounded-3xl border border-white/5"
+                className="text-center py-16 px-6 bg-card/40 rounded-3xl border border-border/50"
             >
                 <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Gift className="w-8 h-8 text-muted-foreground/40" />
@@ -67,9 +67,9 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
             className="space-y-6 pb-24"
         >
             {/* Points Balance Card */}
-            <div className="relative group overflow-hidden rounded-[2.5rem] border border-white/5 bg-black p-8 shadow-2xl">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/30 transition-colors duration-700"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/10 blur-[60px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
+            <div className="relative group overflow-hidden rounded-[2.5rem] border border-border bg-card p-8 shadow-2xl shadow-primary/5">
+                {/* Glow Effect matching palette */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors duration-700"></div>
                 
                 <div className="relative z-10">
                     <div className="flex justify-between items-start mb-8">
@@ -79,8 +79,8 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                                 <p className="text-primary font-black uppercase tracking-[0.25em] text-[10px]">Seu Saldo</p>
                             </div>
                             <div className="flex items-baseline gap-1">
-                                <h2 className="text-7xl font-black text-white tracking-tighter tabular-nums">{points}</h2>
-                                <span className="text-primary/40 font-black text-sm uppercase tracking-tighter">PTS</span>
+                                <h2 className="text-7xl font-black text-foreground tracking-tighter tabular-nums">{points}</h2>
+                                <span className="text-primary/60 font-black text-sm uppercase tracking-tighter">PTS</span>
                             </div>
                         </div>
                         <motion.div 
@@ -88,19 +88,19 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                             transition={{ repeat: Infinity, duration: 2 }}
                             className={`w-16 h-16 rounded-2xl flex items-center justify-center border shadow-xl ${
                                 isReady 
-                                ? 'bg-primary border-primary shadow-primary/20 text-white' 
-                                : 'bg-white/5 border-white/10 text-primary'
+                                ? 'bg-primary border-primary shadow-primary/20 text-primary-foreground' 
+                                : 'bg-muted border-border text-primary'
                             }`}
                         >
                             {isReady ? <Award className="w-8 h-8" /> : <Gift className="w-8 h-8" />}
                         </motion.div>
                     </div>
                     
-                    <div className="bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-2xl">
-                        <div className="text-white/80 text-xs font-bold flex items-center gap-2">
+                    <div className="bg-muted/50 backdrop-blur-sm border border-border p-4 rounded-2xl">
+                        <div className="text-foreground/80 text-xs font-bold flex items-center gap-2">
                             {isReady ? (
                                 <>
-                                    <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                    <Zap className="w-4 h-4 text-primary fill-primary/20" />
                                     <span>Você atingiu a meta! Resgate seu prêmio agora.</span>
                                 </>
                             ) : (
@@ -115,36 +115,36 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
             </div>
 
             {/* Progress / Rules */}
-            <div className="bg-card/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-white/5 space-y-8">
+            <div className="bg-card/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-border space-y-8">
                 <div>
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] mb-3">
-                        <span className="text-white/60">Progresso Atual</span>
+                        <span className="text-foreground/60">Progresso Atual</span>
                         <span className="text-primary">{Math.round(progress)}%</span>
                     </div>
-                    <div className="h-4 bg-white/5 rounded-full overflow-hidden p-1 border border-white/5">
+                    <div className="h-4 bg-muted rounded-full overflow-hidden p-1 border border-border">
                         <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-primary via-primary/80 to-primary rounded-full relative overflow-hidden"
+                            className="h-full bg-primary rounded-full relative overflow-hidden"
                         >
                             <motion.div 
                                 initial={{ x: '-100%' }}
                                 animate={{ x: '100%' }}
                                 transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                                className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)]"
+                                className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.3)_50%,transparent_100%)]"
                             />
                         </motion.div>
                     </div>
                 </div>
 
-                <div className="pt-8 border-t border-white/5">
-                    <h3 className="text-white font-black uppercase text-xs mb-4 flex items-center gap-2 tracking-widest">
+                <div className="pt-8 border-t border-border">
+                    <h3 className="text-foreground font-black uppercase text-xs mb-4 flex items-center gap-2 tracking-widest">
                         <Info className="w-4 h-4 text-primary" />
                         Regras & Prêmios
                     </h3>
-                    <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl">
-                        <p className="text-white/60 text-sm leading-relaxed italic font-medium">
+                    <div className="bg-muted/30 border border-border p-5 rounded-2xl">
+                        <p className="text-foreground/70 text-sm leading-relaxed italic font-medium">
                             "{effectiveProgram.rewardDescription || 'Acumule pontos em cada atendimento e troque por serviços ou descontos exclusivos!'}"
                         </p>
                     </div>
@@ -155,8 +155,8 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                                 R$ 1.00 = {effectiveProgram.pointsPerReal} PONTOS
                             </p>
                         </div>
-                        <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10">
-                            <p className="text-[10px] text-white/40 font-black uppercase tracking-tighter">
+                        <div className="px-4 py-2 bg-muted rounded-full border border-border">
+                            <p className="text-[10px] text-foreground/40 font-black uppercase tracking-tighter">
                                 META: {target} PTS
                             </p>
                         </div>
