@@ -127,9 +127,14 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-primary via-primary/80 to-primary rounded-full relative"
+                            className="h-full bg-gradient-to-r from-primary via-primary/80 to-primary rounded-full relative overflow-hidden"
                         >
-                            <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]"></div>
+                            <motion.div 
+                                initial={{ x: '-100%' }}
+                                animate={{ x: '100%' }}
+                                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                                className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)]"
+                            />
                         </motion.div>
                     </div>
                 </div>
@@ -159,13 +164,7 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-                @keyframes shimmer {
-                    from { transform: translateX(-100%); }
-                    to { transform: translateX(100%); }
-                }
-            `}</style>
         </motion.div>
     );
 }
+
