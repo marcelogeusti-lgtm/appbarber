@@ -1,2 +1,34 @@
+# Vercel
 .vercel
+.vercelignore
+
+# Environment Variables
 .env*.local
+.env
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js Build
+.next/
+out/
+
+# Sensitive Maintenance Scripts (PROTECTION)
+api-lib/scripts/
+prisma/seed.js
+scripts/
+
+# Logs and Temporaries
+*.log
+build_log.txt
+deploy_log.txt
+diag.txt
+*.bak
+*.txt
+.DS_Store
+
+# Credentials (SAFETY)
+**/credentials.json
+**/*.pem
+**/*.key

@@ -18,7 +18,7 @@ exports.getLoyaltySettings = async (req, res) => {
 
 exports.updateLoyaltySettings = async (req, res) => {
     try {
-        const { barbershopId } = req.body; // Or from req.user/params
+        const { barbershopId } = req.body;
         const { active, pointsPerReal, rewardDescription, minPointsToRedeem } = req.body;
 
         const effectiveBarbershopId = req.user?.barbershopId || barbershopId;
@@ -27,29 +27,37 @@ exports.updateLoyaltySettings = async (req, res) => {
             return res.status(400).json({ message: 'Barbershop ID required' });
         }
 
+        // Validate types to prevent NaN issues in Prisma
+        const validatedPointsPerReal = parseFloat(pointsPerReal) || 1;
+        const validatedMinPoints = parseInt(minPointsToRedeem) || 100;
+
         const settings = await prisma.loyaltyProgram.upsert({
             where: { barbershopId: effectiveBarbershopId },
             update: {
-                active,
-                pointsPerReal: parseFloat(pointsPerReal),
-                rewardDescription,
-                minPointsToRedeem: parseInt(minPointsToRedeem)
+                active: Boolean(active),
+                pointsPerReal: validatedPointsPerReal,
+                rewardDescription: rewardDescription || '',
+                minPointsToRedeem: validatedMinPoints
             },
             create: {
                 barbershopId: effectiveBarbershopId,
-                active,
-                pointsPerReal: parseFloat(pointsPerReal),
-                rewardDescription,
-                minPointsToRedeem: parseInt(minPointsToRedeem)
+                active: Boolean(active),
+                pointsPerReal: validatedPointsPerReal,
+                rewardDescription: rewardDescription || '',
+                minPointsToRedeem: validatedMinPoints
             }
         });
 
         res.json(settings);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating loyalty settings' });
+        console.error('[LoyaltyController] Update Error:', error);
+        res.status(500).json({ 
+            message: 'Erro ao salvar configurações de fidelidade',
+            error: error.message 
+        });
     }
 };
+
 
 exports.getAppleWalletPass = async (req, res) => {
     try {

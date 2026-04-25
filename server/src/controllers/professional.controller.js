@@ -103,10 +103,9 @@ exports.createProfessional = async (req, res) => {
         const userPlan = barbershop.saasPlan || 'BASIC';
         const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
 
-        const activeBarbersCount = await prisma.user.count({
+        const activeBarbersCount = await prisma.professional.count({
             where: {
-                workedBarbershopId: barbershopId,
-                role: 'BARBER'
+                user: { workedBarbershopId: barbershopId }
             }
         });
 

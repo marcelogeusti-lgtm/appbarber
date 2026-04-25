@@ -1,1 +1,20 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Logs and Temporaries
+*.log
+*.txt
+*.sql
+auth_info_baileys/
+
+# Maintenance Scripts (PROTECTION)
+src/scripts/
+prisma/seed.js
+
+# Vercel
 .vercel

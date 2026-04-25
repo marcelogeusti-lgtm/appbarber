@@ -10,6 +10,19 @@ SOCIAL_LOGIN_SETUP.md
 .env.example
 .env.local
 .env
+
+# Sensitive Scripts (PROTECTION)
+api-lib/scripts/
+prisma/seed.js
+scripts/
+*.txt
+*.bak
+*.json
+!package.json
+!components.json
+!tsconfig.json
+!jsconfig.json
+
 public/**/*.zip
 public/**/*.rar
 public/**/*.mp4

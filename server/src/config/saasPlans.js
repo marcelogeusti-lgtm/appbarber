@@ -1,16 +1,16 @@
 module.exports = {
     SOLO: {
-        name: 'Solo',
+        name: 'Básico',
         maxBarbers: 1,
         prices: {
             monthly: 79.90,
-            semiannual: 67.80, // valor mensal no plano semestral
-            annual: 55.90      // valor mensal no plano anual
+            semiannual: 67.80,
+            annual: 55.90
         },
         features: ['agenda', 'finance', 'comanda']
     },
     BASIC: {
-        name: 'Basic',
+        name: 'Médio',
         maxBarbers: 5,
         prices: {
             monthly: 109.90,
@@ -30,8 +30,8 @@ module.exports = {
         features: ['agenda', 'finance', 'comanda', 'whatsapp', 'webhook', 'marketing']
     },
     ENTERPRISE: {
-        name: 'Enterprise',
-        maxBarbers: 999,
+        name: 'Empire',
+        maxBarbers: 100, // Safe limit for performance
         prices: {
             monthly: 219.90,
             semiannual: 186.80,

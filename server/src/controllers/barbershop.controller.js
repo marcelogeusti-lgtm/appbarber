@@ -606,21 +606,28 @@ exports.updateSaasPlan = async (req, res) => {
         if (newPlan !== barbershop.saasPlan) {
             // Check Barber Limit
             const maxBarbers = planConfig.maxBarbers;
-            const currentBarbers = await prisma.user.findMany({
-                where: { workedBarbershopId: id, role: 'BARBER' },
-                orderBy: { createdAt: 'desc' } // Newest first
+            const currentBarbers = await prisma.professional.findMany({
+                where: { user: { workedBarbershopId: id } },
+                include: { user: true },
+                orderBy: { createdAt: 'desc' }
             });
 
             if (currentBarbers.length > maxBarbers) {
                 const excessCount = currentBarbers.length - maxBarbers;
-                const barbersToDowngrade = currentBarbers.slice(0, excessCount);
+                const prosToDowngrade = currentBarbers.slice(0, excessCount);
+                const userIds = prosToDowngrade.map(p => p.userId);
 
-                console.log(`Downgrading ${excessCount} barbers due to plan change (${barbershop.saasPlan} -> ${newPlan})`);
+                console.log(`Downgrading ${excessCount} professionals due to plan change (${barbershop.saasPlan} -> ${newPlan})`);
 
-                // Downgrade excess barbers to CLIENT
+                // 1. Remove from Professional table
+                await prisma.professional.deleteMany({
+                    where: { userId: { in: userIds } }
+                });
+
+                // 2. Downgrade roles to CLIENT
                 await prisma.user.updateMany({
-                    where: { id: { in: barbersToDowngrade.map(u => u.id) } },
-                    data: { role: 'CLIENT' } // Keep workedBarbershopId for record? Or assume Client implies no work.
+                    where: { id: { in: userIds } },
+                    data: { role: 'CLIENT' }
                 });
             }
         }
