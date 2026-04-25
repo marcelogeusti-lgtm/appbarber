@@ -619,7 +619,7 @@ export default function BarbershopPage() {
                     </h3>
                     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
                         {Array.isArray(barbershop?.services) && barbershop.services.filter(s => s.isFeatured).map(service => (
-                            <div key={`feat-svc-${service.id}`} onClick={() => handleServiceSelect(service)} className="min-w-[160px] snap-center bg-[#111] rounded-2xl p-3 border border-yellow-500/20 hover:border-yellow-500 cursor-pointer transition group">
+                            <div key={`feat-svc-${service.id}`} onClick={() => handleServiceSelect(service)} className="w-[150px] flex-shrink-0 snap-center bg-[#111] rounded-2xl p-2.5 border border-yellow-500/20 hover:border-yellow-500 cursor-pointer transition group">
                                 <div className="aspect-square bg-slate-900 rounded-xl mb-2 overflow-hidden flex items-center justify-center">
                                     {service.imageUrl ? (
                                         <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
@@ -633,12 +633,12 @@ export default function BarbershopPage() {
                                     <div className="bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase px-2 py-1 rounded-lg">Popular</div>
                                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 group-hover:scale-110 transition" />
                                 </div>
-                                <h4 className="font-black text-white text-sm uppercase leading-tight mb-1">{service.name}</h4>
-                                <p className="text-primary font-bold text-xs">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                <h4 className="font-black text-white text-[11px] uppercase leading-tight mb-0.5 truncate">{service.name}</h4>
+                                <p className="text-primary font-bold text-[10px]">{Number(service.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                             </div>
                         ))}
                         {Array.isArray(products) && products.filter(p => p.isFeatured).map(product => (
-                            <div key={`feat-prod-${product.id}`} className="min-w-[140px] snap-center bg-[#111] rounded-2xl p-3 border border-blue-500/20 hover:border-blue-500 cursor-pointer transition group">
+                            <div key={`feat-prod-${product.id}`} className="w-[130px] flex-shrink-0 snap-center bg-[#111] rounded-2xl p-2.5 border border-blue-500/20 hover:border-blue-500 cursor-pointer transition group">
                                 <div className="aspect-square bg-slate-900 rounded-xl mb-2 overflow-hidden">
                                     {product.imageUrl ? (
                                         <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
