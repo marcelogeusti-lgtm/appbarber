@@ -619,8 +619,8 @@ export default function BarbershopPage() {
                     </h3>
                     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
                         {Array.isArray(barbershop?.services) && barbershop.services.filter(s => s.isFeatured).map(service => (
-                            <div key={`feat-svc-${service.id}`} onClick={() => handleServiceSelect(service)} className="min-w-[200px] snap-center bg-[#111] rounded-2xl p-4 border border-yellow-500/20 hover:border-yellow-500 cursor-pointer transition group">
-                                <div className="aspect-square bg-slate-900 rounded-xl mb-3 overflow-hidden flex items-center justify-center">
+                            <div key={`feat-svc-${service.id}`} onClick={() => handleServiceSelect(service)} className="min-w-[160px] snap-center bg-[#111] rounded-2xl p-3 border border-yellow-500/20 hover:border-yellow-500 cursor-pointer transition group">
+                                <div className="aspect-square bg-slate-900 rounded-xl mb-2 overflow-hidden flex items-center justify-center">
                                     {service.imageUrl ? (
                                         <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -638,8 +638,8 @@ export default function BarbershopPage() {
                             </div>
                         ))}
                         {Array.isArray(products) && products.filter(p => p.isFeatured).map(product => (
-                            <div key={`feat-prod-${product.id}`} className="min-w-[160px] snap-center bg-[#111] rounded-2xl p-4 border border-blue-500/20 hover:border-blue-500 cursor-pointer transition group">
-                                <div className="aspect-square bg-slate-900 rounded-xl mb-3 overflow-hidden">
+                            <div key={`feat-prod-${product.id}`} className="min-w-[140px] snap-center bg-[#111] rounded-2xl p-3 border border-blue-500/20 hover:border-blue-500 cursor-pointer transition group">
+                                <div className="aspect-square bg-slate-900 rounded-xl mb-2 overflow-hidden">
                                     {product.imageUrl ? (
                                         <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                                     ) : (
