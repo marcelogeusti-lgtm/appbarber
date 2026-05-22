@@ -283,7 +283,6 @@ exports.updateDiscount = async (req, res) => {
 };
 
 const TransactionService = require('../services/TransactionService');
-const NfeService = require('../services/NfeService');
 
 // Close/Pay Order
 exports.closeOrder = async (req, res) => {
@@ -356,21 +355,7 @@ exports.closeOrder = async (req, res) => {
             return { order: updatedOrder, transaction };
         });
 
-        // --- NFE ISSUANCE ---
-        if (emitNfe && order.clientId) {
-            try {
-                // Fire and forget
-                NfeService.emitNfe({
-                    barbershopId: order.barbershopId,
-                    orderId: order.id,
-                    appointmentId: order.appointmentId,
-                    clientId: order.clientId,
-                    amount: finalTotal
-                }).catch(e => console.error('[NfeQueue] Error in background emission from order:', e));
-            } catch (nfeErr) {
-                console.error('[NfeQueue] Could not trigger Nfe emission:', nfeErr);
-            }
-        }
+
 
         res.json(result);
     } catch (error) {

@@ -42,7 +42,7 @@ app.get('/api/diag', async (req, res) => {
     try {
         const prisma = require('./lib/prisma');
         const dbConnected = await prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
-        
+
         res.json({
             status: 'Diagnostic Info',
             cwd: process.cwd(),
@@ -87,7 +87,6 @@ app.use('/api/rollout', require('./routes/rollout.routes'));
 app.use('/api/loyalty', require('./routes/loyalty.routes'));
 app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/tutorials', require('./routes/tutorial.routes'));
-app.use('/api/nfes', require('./routes/nfe.routes'));
 // app.use('/api/audit-logs', require('./routes/auditLog.routes')); // Future
 
 // Initialize services only if not in a serverless environment (Optimization for Vercel)
