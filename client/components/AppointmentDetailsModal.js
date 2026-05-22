@@ -19,10 +19,7 @@ export default function AppointmentDetailsModal({
 }) {
     const { user } = useClientAuth();
     const [showPaymentSelector, setShowPaymentSelector] = useState(false);
-    const [emitNfe, setEmitNfe] = useState(false);
-    const [mounted, setMounted] = useState(false);
-    const [isCancelling, setIsCancelling] = useState(false);
-    const [isGeneratingNfe, setIsGeneratingNfe] = useState(false);
+
     const [isRedeeming, setIsRedeeming] = useState(false);
 
     const { data: loyaltyData } = useQuery({
@@ -42,14 +39,14 @@ export default function AppointmentDetailsModal({
         },
         enabled: !!appointment?.barbershopId && !!isOpen,
     });
-    
+
     const isProfessional = user?.role !== 'CLIENT';
 
     useEffect(() => {
         setMounted(true);
         if (isOpen) {
             setShowPaymentSelector(false);
-            setEmitNfe(appointment?.client?.requiresNfe || false);
+
         }
     }, [isOpen, appointment]);
 
@@ -64,12 +61,12 @@ export default function AppointmentDetailsModal({
     };
 
     const handlePaymentSelect = (method) => {
-        onComplete(appointment.id, method, { emitNfe });
+        onComplete(appointment.id, method);
     };
 
     const handleCancel = async () => {
         if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
-        
+
         setIsCancelling(true);
         try {
             await api.patch(`/appointments/${appointment.id}/status`, { status: 'CANCELLED' });
@@ -84,18 +81,7 @@ export default function AppointmentDetailsModal({
         }
     };
 
-    const handleRetroactiveNfe = async () => {
-        if (!confirm('Deseja emitir uma nota fiscal retroativa para este agendamento?')) return;
-        setIsGeneratingNfe(true);
-        try {
-            await api.post(`/nfes/retroactive/appointment/${appointment.id}`);
-            alert('Emissão solicitada com sucesso! Verifique o painel fiscal.');
-        } catch (err) {
-            alert('Erro ao emitir nota: ' + (err.response?.data?.error || err.message));
-        } finally {
-            setIsGeneratingNfe(false);
-        }
-    };
+
 
     const handleRedeemPoints = async () => {
         if (!confirm('Deseja resgatar os pontos deste cliente e conceder o prêmio? (Isso abaterá os pontos do saldo dele)')) return;
@@ -177,11 +163,7 @@ export default function AppointmentDetailsModal({
                                 <p className="text-white font-bold">{appointment.client?.name || 'Cliente não identificado'}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <p className="text-xs text-slate-400">{appointment.client?.phone}</p>
-                                    {appointment.client?.requiresNfe && (
-                                        <span className="flex items-center gap-1 text-[8px] font-black uppercase text-primary bg-primary/10 px-1.5 py-0.5 rounded-full border border-primary/20">
-                                            <ScrollText className="w-2.5 h-2.5" /> Exige NFe
-                                        </span>
-                                    )}
+
                                 </div>
                             </div>
                         </div>
@@ -237,7 +219,7 @@ export default function AppointmentDetailsModal({
                                     </div>
                                 </div>
                                 {loyaltyConfig.minPointsToRedeem > 0 && loyaltyData.points >= loyaltyConfig.minPointsToRedeem && (
-                                    <button 
+                                    <button
                                         onClick={handleRedeemPoints}
                                         disabled={isRedeeming}
                                         className="bg-amber-500 text-black px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-400 transition shadow-[0_0_15px_rgba(245,158,11,0.3)] flex items-center gap-1 disabled:opacity-50"
@@ -281,24 +263,7 @@ export default function AppointmentDetailsModal({
                                             <button onClick={() => setShowPaymentSelector(false)} className="text-[10px] text-red-400 hover:text-red-300 uppercase font-black">Cancelar</button>
                                         </div>
 
-                                        {/* NFe Toggle */}
-                                        <div 
-                                            onClick={() => setEmitNfe(!emitNfe)}
-                                            className={`flex items-center justify-between p-3 rounded-xl border border-dashed cursor-pointer transition-all ${emitNfe ? 'border-primary/50 bg-primary/5' : 'border-slate-800 hover:bg-slate-800/50'}`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${emitNfe ? 'bg-primary/20 text-primary' : 'bg-slate-800 text-slate-400'}`}>
-                                                    <ScrollText className="w-4 h-4" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-white uppercase tracking-tighter leading-none mb-1">Emitir Nota Fiscal</p>
-                                                    <p className="text-[9px] text-slate-500 uppercase font-bold">Automatizada via E-mail</p>
-                                                </div>
-                                            </div>
-                                            <div className={`w-10 h-5 rounded-full relative transition-colors ${emitNfe ? 'bg-primary' : 'bg-slate-700'}`}>
-                                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${emitNfe ? 'left-6' : 'left-1'}`} />
-                                            </div>
-                                        </div>
+
                                         <div className="grid grid-cols-3 gap-2">
                                             <button onClick={() => handlePaymentSelect('CASH')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-700 hover:border-primary transition-colors">
                                                 <DollarSign className="w-6 h-6 text-primary" />
@@ -328,18 +293,7 @@ export default function AppointmentDetailsModal({
                         </div>
                     )}
 
-                    {appointment.status === 'COMPLETED' && isProfessional && (
-                        <div className="pt-4 mt-2 border-t border-slate-800">
-                             <button
-                                onClick={handleRetroactiveNfe}
-                                disabled={isGeneratingNfe}
-                                className="w-full bg-slate-800/50 hover:bg-slate-800 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 border border-slate-700 disabled:opacity-50"
-                            >
-                                {isGeneratingNfe ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScrollText className="w-4 h-4" />}
-                                Gerar Nota Fiscal Retroativa
-                            </button>
-                        </div>
-                    )}
+
 
                 </div>
             </div>

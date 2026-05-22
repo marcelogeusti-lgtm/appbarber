@@ -18,7 +18,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export default function SchedulePage() {
     const socket = useSocket();
-    
+
     // Centralized Barbershop Data from Cache
     const { data: barbershop } = useQuery({
         queryKey: ['barbershop-me'],
@@ -48,7 +48,7 @@ export default function SchedulePage() {
     const [loadedRange, setLoadedRange] = useState({ start: null, end: null });
     const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
     const [barbershopId, setBarbershopId] = useState(null);
-    
+
     // Pagination States
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(25);
@@ -111,7 +111,7 @@ export default function SchedulePage() {
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const user = JSON.parse(userStr);
-            
+
             // Derive shop ID from cached data or user object
             const bId = barbershop?.id || user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
             if (bId && !barbershopId) setBarbershopId(bId);
@@ -287,8 +287,7 @@ export default function SchedulePage() {
             setLoading(true);
             await api.patch(`/appointments/${appointmentId}/status`, {
                 status: 'COMPLETED',
-                paymentMethod: paymentMethod, // Optional, only if passed (Local Payment)
-                emitNfe: options.emitNfe
+                paymentMethod: paymentMethod // Optional, only if passed (Local Payment)
             });
 
             // Refresh
@@ -404,23 +403,23 @@ export default function SchedulePage() {
             </div>
 
             <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden min-h-[600px]">
-                    {activeTab === 'appointments' && (
-                        <>
-                            {viewMode === 'day' && (
-                                <>
-                                    <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} barbershopName={barbershop?.name} />
-                                    <Pagination
-                                        currentPage={page}
-                                        totalPages={totalPages}
-                                        totalItems={totalItems}
-                                        limit={limit}
-                                        onPageChange={setPage}
-                                        onLimitChange={(l) => { setLimit(l); setPage(1); }}
-                                        label="agendamentos"
-                                    />
-                                </>
-                            )}
-                            {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
+                {activeTab === 'appointments' && (
+                    <>
+                        {viewMode === 'day' && (
+                            <>
+                                <DayView appointments={getFilteredAppointments(currentDate)} professionals={professionals} selectedPro={selectedPro} onEdit={handleViewClick} barbershopName={barbershop?.name} />
+                                <Pagination
+                                    currentPage={page}
+                                    totalPages={totalPages}
+                                    totalItems={totalItems}
+                                    limit={limit}
+                                    onPageChange={setPage}
+                                    onLimitChange={(l) => { setLimit(l); setPage(1); }}
+                                    label="agendamentos"
+                                />
+                            </>
+                        )}
+                        {viewMode === 'week' && <WeekView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                         {viewMode === 'month' && <MonthView currentDate={currentDate} getFilteredAppointments={getFilteredAppointments} professionals={professionals} selectedPro={selectedPro} onDayClick={setDayDetailsDate} onEdit={handleViewClick} />}
                     </>
                 )}

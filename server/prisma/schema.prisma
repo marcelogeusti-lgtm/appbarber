@@ -180,7 +180,7 @@ model Client {
   active        Boolean        @default(true)
   cpf           String?        @unique
   cnpj          String?        @unique
-  requiresNfe   Boolean        @default(false)
+
 
   // Payment Gateway Customers (For Reusability)
   gatewayCustomers GatewayCustomer[]
@@ -190,7 +190,7 @@ model Client {
 
   addresses ClientAddress[]
   payments  Payment[]
-  nfes      Nfe[]
+
   loyaltyBalances ClientLoyaltyBalance[]
 
   // Antigravity V3: Migration Bridges
@@ -438,9 +438,9 @@ model Barbershop {
   reviews               Review[]
   favorites             FavoriteBarbershop[]
   notificationTemplates NotificationTemplate[]
-  nfes                  Nfe[]
 
-  fiscalConfig          Json?     @map("fiscal_config") // Stores NFe tokens, env, etc.
+
+
   loyaltyBalances       ClientLoyaltyBalance[]
 }
 
@@ -627,7 +627,7 @@ model Appointment {
   clientSubscription   ClientSubscription? @relation(fields: [clientSubscriptionId], references: [id])
 
   review Review?
-  nfe    Nfe?
+
 
   @@index([barbershopId])
   @@index([professionalId])
@@ -879,7 +879,7 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  nfe       Nfe?
+
 
   @@index([barbershopId])
   @@index([status])
@@ -1267,44 +1267,6 @@ model Tutorial {
   updatedAt   DateTime @updatedAt
 }
 
-enum NfeStatus {
-  PROCESSING
-  EMITTED
-  ERROR
-  CANCELLED
-}
-
-model Nfe {
-  id        String   @id @default(uuid())
-  number    String?  // Invoice number from provider
-  protocol  String?  // Protocol from Gov/Provider
-  status    NfeStatus @default(PROCESSING)
-  amount    Decimal  @db.Decimal(10, 2)
-  pdfUrl    String?  @db.Text
-  xmlUrl    String?  @db.Text
-  errorMsg  String?  @db.Text
-  
-  // Relations
-  clientId  String
-  client    Client   @relation(fields: [clientId], references: [id])
-  
-  barbershopId String
-  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
-  
-  appointmentId String? @unique
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
-  
-  orderId String? @unique
-  order   Order?  @relation(fields: [orderId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([clientId])
-  @@index([barbershopId])
-  @@index([status])
-  @@index([barbershopId, status])
-}
 
 // --- Loyalty Tracking ---
 model ClientLoyaltyBalance {

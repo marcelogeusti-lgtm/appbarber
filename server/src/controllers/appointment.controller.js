@@ -11,7 +11,7 @@ const whatsappNotifier = require('../services/notificationService/whatsappNotifi
 const PaymentOrchestrator = require('../services/payment/PaymentOrchestrator');
 const { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } = require('date-fns-tz');
 const FeatureFlagService = require('../services/FeatureFlagService');
-const NfeService = require('../services/NfeService');
+
 const internalNotifier = require('../services/notificationService/internalNotifier');
 const eventBus = require('../services/events/eventBus');
 const socket = require('../socket');
@@ -291,7 +291,7 @@ exports.createAppointment = async (req, res) => {
                 status: { not: 'CANCELLED' },
                 OR: [
                     { status: { not: 'PENDING_PAYMENT' } },
-                    { 
+                    {
                         status: 'PENDING_PAYMENT',
                         createdAt: { gte: subMinutes(new Date(), 7) } // 5 min + grace
                     }
@@ -471,7 +471,7 @@ exports.createAppointment = async (req, res) => {
             }
         } catch (paymentError) {
             console.error('[Appointment] 🛑 Payment orchestration failed. REVERTING booking.', paymentError);
-            
+
             // Critical Rollback: Free the slot if payment setup crashed
             try {
                 await prisma.appointment.delete({
@@ -481,10 +481,10 @@ exports.createAppointment = async (req, res) => {
                 console.error('[Appointment] 🛑 Failed to delete appointment during rollback:', deleteError.message);
             }
 
-            return res.status(500).json({ 
+            return res.status(500).json({
                 error: 'Falha ao configurar pagamento. O horário foi liberado.',
-                message: 'Falha ao configurar pagamento. O horário foi liberado.', 
-                detail: paymentError.message 
+                message: 'Falha ao configurar pagamento. O horário foi liberado.',
+                detail: paymentError.message
             });
         }
 
@@ -495,7 +495,7 @@ exports.createAppointment = async (req, res) => {
             // Notify Professional about sync failure
             if (appointment.professionalId) {
                 await internalNotifier.createGoogleSyncErrorNotification(
-                    appointment.professionalId, 
+                    appointment.professionalId,
                     syncErr.message || 'Erro desconhecido'
                 );
             }
@@ -504,7 +504,7 @@ exports.createAppointment = async (req, res) => {
         setImmediate(async () => {
             try {
                 console.log(`[Notification Diagnostic] Starting side-effects for Appointment ID: ${appointment.id}`);
-                
+
                 const fullApp = await prisma.appointment.findUnique({
                     where: { id: appointment.id },
                     include: {
@@ -524,7 +524,7 @@ exports.createAppointment = async (req, res) => {
 
                 if (fullApp) {
                     console.log(`[Notification Diagnostic] Full appointment data retrieved for ${fullApp.id}. Emitting event...`);
-                    
+
                     // Sync with Digital Wallet (Fire and forget, don't block response)
                     try {
                         const WalletService = require('../services/WalletService');
@@ -536,7 +536,7 @@ exports.createAppointment = async (req, res) => {
                     // Emit to EventBus (Listeners: Email, WhatsApp, etc)
                     const listenersCount = eventBus.listenerCount('APPOINTMENT_CREATED');
                     console.log(`[Notification Diagnostic] EventBus 'APPOINTMENT_CREATED' has ${listenersCount} listeners.`);
-                    
+
                     eventBus.emit('APPOINTMENT_CREATED', fullApp);
                     console.log(`[Notification Diagnostic] Event 'APPOINTMENT_CREATED' emitted.`);
 
@@ -549,14 +549,14 @@ exports.createAppointment = async (req, res) => {
                         } else {
                             console.warn(`[Notification Diagnostic] Socket.IO instance not available.`);
                         }
-                    } catch (sErr) { 
+                    } catch (sErr) {
                         console.error('[Notification Diagnostic] Socket emit error:', sErr.message);
                     }
                 } else {
                     console.error(`[Notification Diagnostic] CRITICAL: Failed to retrieve fullApp for ID ${appointment.id}. Record might have been deleted or query failed.`);
                 }
-            } catch (err) { 
-                console.error('[Notification Diagnostic] Unexpected Error in side-effect block:', err.message); 
+            } catch (err) {
+                console.error('[Notification Diagnostic] Unexpected Error in side-effect block:', err.message);
             }
         });
 
@@ -644,11 +644,11 @@ exports.getProAppointments = async (req, res) => {
 exports.getAllAppointments = async (req, res) => {
     try {
         let { barbershopId, start, end, page = 1, limit = 25 } = req.query;
-        
+
         // Fallback: If no barbershopId in query (or is string 'null'), use from token or DB
         if ((!barbershopId || barbershopId === 'null' || barbershopId === 'undefined') && req.user) {
             barbershopId = req.user.barbershopId;
-            
+
             if (!barbershopId) {
                 const user = await prisma.user.findUnique({
                     where: { id: req.user.id },
@@ -740,7 +740,7 @@ exports.getAppointmentById = async (req, res) => {
 exports.updateAppointmentStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, emitNfe } = req.body; // CONFIRMED, COMPLETED, CANCELLED
+        const { status } = req.body; // CONFIRMED, COMPLETED, CANCELLED
 
         // 1. Fetch current appointment Check Security
         const curApp = await prisma.appointment.findUnique({
@@ -867,23 +867,6 @@ exports.updateAppointmentStatus = async (req, res) => {
                     }
                 }
 
-                // --- NFE ISSUANCE ---
-                if (emitNfe && appointment.clientId) {
-                    try {
-                        const amount = Number(appointment.order?.total || appointment.service.price);
-                        
-                        // Fire and forget (don't block the client waiting for API completion)
-                        NfeService.emitNfe({
-                            barbershopId: appointment.barbershopId,
-                            appointmentId: appointment.id,
-                            orderId: appointment.order?.id,
-                            clientId: appointment.clientId,
-                            amount: amount
-                        }).catch(e => console.error('[NfeService.emitNfe] Background error:', e));
-                    } catch (nfeErr) {
-                        console.error('[NfeQueue] Could not trigger Nfe emission:', nfeErr);
-                    }
-                }
 
             } catch (err) {
                 console.error('[FinancialSync] Error processing completion:', err);
@@ -970,7 +953,7 @@ exports.getUnreviewedAppointments = async (req, res) => {
     try {
         const userId = req.user.id;
         const { barbershopId } = req.query;
-        
+
         const whereClause = {
             clientId: userId,
             status: 'COMPLETED',

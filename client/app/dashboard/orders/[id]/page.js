@@ -26,7 +26,7 @@ export default function OrderDetailsPage() {
     const [discountValue, setDiscountValue] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState('');
     const [processing, setProcessing] = useState(false);
-    const [emitNfe, setEmitNfe] = useState(false);
+
 
     useEffect(() => {
         if (id) {
@@ -39,7 +39,7 @@ export default function OrderDetailsPage() {
         try {
             const res = await api.get(`/orders/${id}`);
             setOrder(res.data);
-            if (res.data?.client?.requiresNfe) setEmitNfe(true);
+
             setLoading(false);
         } catch (err) {
             console.error(err);
@@ -127,9 +127,7 @@ export default function OrderDetailsPage() {
         setProcessing(true);
         try {
             await api.post(`/orders/${id}/pay`, {
-                paymentMethod: isAutomatic ? 'PIX' : selectedMethod,
-                discount: order.discount || 0,
-                emitNfe
+                discount: order.discount || 0
             });
 
             // Refresh order
@@ -148,18 +146,7 @@ export default function OrderDetailsPage() {
         }
     };
 
-    const handleRetroactiveNfe = async () => {
-        if (!confirm('Deseja emitir uma nota fiscal retroativa para esta comanda?')) return;
-        setProcessing(true);
-        try {
-            await api.post(`/nfes/retroactive/order/${id}`);
-            toast.success('Emissão solicitada com sucesso! Verifique o painel fiscal.');
-        } catch (err) {
-            toast.error('Erro ao emitir nota: ' + (err.response?.data?.error || err.message));
-        } finally {
-            setProcessing(false);
-        }
-    };
+
 
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
@@ -349,51 +336,7 @@ export default function OrderDetailsPage() {
                                         </div>
                                     </div>
 
-                                    {/* NFe Integration Section */}
-                                    {order.nfe ? (
-                                        <div className="p-6 bg-emerald-500/10 rounded-xl border border-emerald-500/20 space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Nota Fiscal Emitida</p>
-                                                    <p className="text-xs font-bold text-white uppercase italic">Status: {order.nfe.status === 'EMITTED' ? 'AUTORIZADA' : order.nfe.status}</p>
-                                                </div>
-                                                <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-500">
-                                                    <ScrollText className="w-5 h-5" />
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {order.nfe.pdfUrl && (
-                                                    <a 
-                                                        href={order.nfe.pdfUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center justify-center gap-2 p-3 bg-emerald-500 text-white rounded-xl font-bold text-[10px] uppercase hover:bg-emerald-600 transition"
-                                                    >
-                                                        <Download className="w-4 h-4" /> PDF
-                                                    </a>
-                                                )}
-                                                <button
-                                                    onClick={() => {
-                                                        const msg = `Olá! Aqui está sua nota fiscal: ${order.nfe.pdfUrl}`;
-                                                        window.open(`https://wa.me/${(order.client?.phone || order.guestPhone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-                                                    }}
-                                                    className="flex items-center justify-center gap-2 p-3 bg-green-600 text-white rounded-xl font-bold text-[10px] uppercase hover:bg-green-700 transition"
-                                                >
-                                                    <MessageSquare className="w-4 h-4" /> WhatsApp
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={handleRetroactiveNfe}
-                                            disabled={processing}
-                                            className="w-full mt-4 bg-muted hover:bg-muted/80 text-foreground px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-border disabled:opacity-50"
-                                        >
-                                            {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
-                                            Gerar Nota Fiscal Retroativa
-                                        </button>
-                                    )}
+
                                 </div>
                             )}
 
@@ -547,24 +490,7 @@ export default function OrderDetailsPage() {
                                 </div>
                             )}
 
-                            {/* NFe Toggle */}
-                            <div 
-                                onClick={() => setEmitNfe(!emitNfe)}
-                                className={`mb-6 flex items-center justify-between p-3 rounded-xl border border-dashed cursor-pointer transition-all ${emitNfe ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted/50'}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg ${emitNfe ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                                        <Receipt className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-foreground uppercase tracking-tighter leading-none mb-1">Emitir Nota Fiscal</p>
-                                        <p className="text-[9px] text-muted-foreground uppercase font-bold">Automatizada via E-mail</p>
-                                    </div>
-                                </div>
-                                <div className={`w-10 h-5 rounded-full relative transition-colors ${emitNfe ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
-                                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${emitNfe ? 'left-6' : 'left-1'}`} />
-                                </div>
-                            </div>
+
 
                             <button
                                 onClick={() => handleConfirmPayment(false)}

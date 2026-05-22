@@ -55,12 +55,7 @@ function SettingsContent() {
         zipCode: '',
         instagramUrl: '',
         facebookUrl: '',
-        youtubeUrl: '',
-        fiscalConfig: {
-            cnpj: '',
-            im: '',
-            token: ''
-        }
+
     });
 
     // Sync state with query data
@@ -118,11 +113,7 @@ function SettingsContent() {
                     });
                 }
             }
-            
-            // Save Fiscal Config if on that tab or if modified
-            if (barbershop.fiscalConfig) {
-                await api.post(`/barbershops/${barbershop.id}/fiscal-config`, barbershop.fiscalConfig);
-            }
+
 
             // Refetch fresh data to update cache
             await Promise.all([
@@ -145,7 +136,7 @@ function SettingsContent() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
-        { name: 'Fiscal', icon: ScrollText },
+
         { name: 'Alertas', icon: Bell },
     ];
 
@@ -194,9 +185,9 @@ function SettingsContent() {
                 {activeTab === 'Geral' && <GeneralTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
-                { activeTab === 'Comunicação' && <CommunicationTab barbershop={ barbershop } setBarbershop={ setBarbershop } templates={ templates } editingTemplateId={ editingTemplateId } setEditingTemplateId={ setEditingTemplateId } editContent={ editContent } setEditContent={ setEditContent } saving={ saving } fetchTemplates={ fetchInitialData } /> }
-                { activeTab === 'Fiscal' && <FiscalTab barbershop={ barbershop } setBarbershop={ setBarbershop } saving={ saving } /> }
-                { activeTab === 'Alertas' && <AlertsTab /> }
+                {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
+
+                {activeTab === 'Alertas' && <AlertsTab />}
             </div>
         </div>
     );
@@ -210,11 +201,11 @@ function GeneralTab({ barbershop, setBarbershop }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-muted-foreground ml-1">Nome da Empresa</label>
-                        <input 
-                            value={barbershop.commercialName || barbershop.name || ''} 
-                            onChange={e => setBarbershop({ ...barbershop, name: e.target.value, commercialName: e.target.value })} 
-                            className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" 
-                            placeholder="Ex: Barbearia do João" 
+                        <input
+                            value={barbershop.commercialName || barbershop.name || ''}
+                            onChange={e => setBarbershop({ ...barbershop, name: e.target.value, commercialName: e.target.value })}
+                            className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground"
+                            placeholder="Ex: Barbearia do João"
                         />
                     </div>
                     <div className="space-y-1.5">
@@ -229,7 +220,7 @@ function GeneralTab({ barbershop, setBarbershop }) {
                     <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Endereço Completo (Visível no App)</label>
                     <input value={barbershop.address || ''} onChange={e => setBarbershop({ ...barbershop, address: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="Rua Exemplo, 123 - Centro" />
                 </div>
-                
+
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground ml-1">Rua / Logradouro</label>
                     <input value={barbershop.street || ''} onChange={e => setBarbershop({ ...barbershop, street: e.target.value })} className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" placeholder="Rua Augusta" />
@@ -386,7 +377,7 @@ function VisualTab({ barbershop, setBarbershop }) {
                     <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-50">
                         <div className="w-28 h-5 bg-[#18181b] rounded-b-2xl"></div>
                     </div>
-                    
+
                     {/* Screen Content */}
                     <div className="w-full flex-1 bg-background overflow-y-auto scrollbar-hide relative flex flex-col">
                         {/* Header Banner */}
@@ -472,19 +463,19 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
 
     useEffect(() => {
         if (!barbershop?.id) return;
-        
+
         const checkStatus = async () => {
             try {
                 const res = await api.get(`/whatsapp/status/${barbershop.id}`);
                 setWaStatus(res.data);
-                
+
                 // If we were waiting for QR but now it's connected, clear QR
                 if (res.data.status === 'CONNECTED') {
                     setQrCode(null);
                 }
-            } catch (e) { 
+            } catch (e) {
                 console.error('Error fetching WA status:', e);
-                setWaStatus({ status: 'ERROR' }); 
+                setWaStatus({ status: 'ERROR' });
             }
         };
         checkStatus();
@@ -531,14 +522,14 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                     </div>
                     <div className="flex items-center gap-4">
                         {waStatus.status === 'CONNECTED' ? (
-                            <button 
+                            <button
                                 onClick={handleDisconnect}
                                 className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
                             >
                                 Desconectar
                             </button>
                         ) : (
-                            <button 
+                            <button
                                 onClick={handleConnect}
                                 disabled={connecting || waStatus.status === 'WAITING_QR'}
                                 className="px-4 py-2 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-[#25D366] hover:text-white transition-all disabled:opacity-50"
@@ -546,12 +537,12 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                                 {connecting ? 'Iniciando...' : 'Conectar WhatsApp'}
                             </button>
                         )}
-                        
+
                         <div className={`px-4 py-2 rounded-lg border flex items-center gap-2 transition-all ${waStatus.status === 'CONNECTED' ? 'bg-[#25D366]/10 text-[#25D366] border-[#25D366]/20' : 'bg-muted text-muted-foreground border-border'}`}>
                             {waStatus.status === 'CONNECTED' ? <CheckCircle className="w-4 h-4" /> : <Loader2 className="w-4 h-4 animate-spin" />}
                             <span className="text-[10px] font-bold uppercase tracking-widest">
-                                {waStatus.status === 'CONNECTED' ? 'Conectado' : 
-                                 waStatus.status === 'WAITING_QR' ? 'Aguardando QR' : 'Desconectado'}
+                                {waStatus.status === 'CONNECTED' ? 'Conectado' :
+                                    waStatus.status === 'WAITING_QR' ? 'Aguardando QR' : 'Desconectado'}
                             </span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -611,77 +602,6 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
     );
 }
 
-function FiscalTab({ barbershop, setBarbershop, saving }) {
-    const config = barbershop.fiscalConfig || { cnpj: '', im: '', token: '' };
-
-    const updateField = (field, value) => {
-        setBarbershop({
-            ...barbershop,
-            fiscalConfig: { ...config, [field]: value }
-        });
-    };
-
-    return (
-        <div className="bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-8 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="space-y-1">
-                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><ScrollText className="w-5 h-5 text-primary" /> Perfil Fiscal</h2>
-                    <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-widest">Configuração NFS-e via FocusNFe</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-border pb-2">Informações da Empresa</h4>
-                    <div className="space-y-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground ml-1">CNPJ</label>
-                            <input 
-                                value={config.cnpj || ''} 
-                                onChange={e => updateField('cnpj', e.target.value)}
-                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" 
-                                placeholder="00.000.000/0000-00"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground ml-1">Inscrição Municipal</label>
-                            <input 
-                                value={config.im || ''} 
-                                onChange={e => updateField('im', e.target.value)}
-                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-medium text-foreground" 
-                                placeholder="1234567-8"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-border pb-2">Credenciais de API</h4>
-                    <div className="space-y-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-2">Token FocusNFe <ExternalLink className="w-3 h-3 text-muted-foreground/50" /></label>
-                            <input 
-                                type="password"
-                                value={config.token || ''} 
-                                onChange={e => updateField('token', e.target.value)}
-                                className="w-full h-11 px-4 bg-muted border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-mono text-sm text-foreground" 
-                                placeholder="Seu token de acesso FocusNFe"
-                            />
-                        </div>
-                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                            <div className="flex gap-3">
-                                <Info className="w-4 h-4 text-primary shrink-0" />
-                                <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
-                                    Esses dados são necessários para gerar Notas Fiscais de Serviço (NFS-e) automaticamente após a conclusão de cada agendamento.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 function AlertsTab() {
     return (

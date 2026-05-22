@@ -90,20 +90,6 @@
         }
       ]
     },
-    "fiscal": {
-      "title": "Nota Fiscal (NFe)",
-      "context": "Emissão de notas fiscais automáticas ou manuais.",
-      "flows": [
-        {
-          "intent": "Como emitir uma nota fiscal?",
-          "steps": [
-            "O sistema está configurado para Emissão Manual ou Automática conforme os Ajustes Gerais.",
-            "Ao finalizar uma comanda, clique na aba 'Fiscal' para processar o RPS/Nota.",
-            "Certifique-se de que os dados fiscais da barbearia estão preenchidos em Ajustes > Fiscal."
-          ]
-        }
-      ]
-    },
     "links": {
       "title": "Link de Agendamento Online",
       "context": "Link para clientes agendarem sozinhos via Instagram/WhatsApp.",

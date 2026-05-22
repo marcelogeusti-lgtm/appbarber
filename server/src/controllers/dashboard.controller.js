@@ -70,7 +70,7 @@ exports.getDashboardStats = async (req, res) => {
             // Config checks for onboarding
             prisma.service.count({ where: { barbershopId, active: true } }),
             prisma.gatewayConfig.count({ where: { barbershopId } }),
-            prisma.barbershop.findUnique({ where: { id: barbershopId }, select: { fiscalConfig: true } })
+            prisma.barbershop.findUnique({ where: { id: barbershopId }, select: { facebookUrl: true, enabledPaymentMethods: true } })
         ]);
 
         const appointmentsToday = appointmentsTodayCount || 0;
@@ -78,9 +78,7 @@ exports.getDashboardStats = async (req, res) => {
         const revenueYesterday = Number(yesterdayRevenueResult._sum.total || 0);
         const revenueTotal = Number(totalRevenueResult._sum.total || 0);
         const clientsTotal = uniqueClientsCount || 0;
-        const hasNfeConfig = barbershopConfig?.fiscalConfig ? true : false;
 
-        // Trend calculation
         let revenueTrend = "0% vs ontem";
         if (revenueYesterday > 0) {
             const percent = ((revenueToday - revenueYesterday) / revenueYesterday) * 100;
@@ -96,10 +94,11 @@ exports.getDashboardStats = async (req, res) => {
             appointmentsToday,
             clientsTotal,
             openCommands: openCommandsCount,
-            onboarding: {
-                hasServices: servicesCount > 0,
-                hasGateway: gatewayConfigCount > 0,
-                hasNfe: hasNfeConfig
+            config: {
+                pixelFacebook: barbershopConfig && barbershopConfig.facebookUrl ? true : false,
+                googleAnalytics: false,
+                paymentGateways: gateways.map(g => g.gateway),
+                enabledPaymentMethods: barbershopConfig?.enabledPaymentMethods || []
             }
         });
 

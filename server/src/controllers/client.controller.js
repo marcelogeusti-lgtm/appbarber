@@ -293,12 +293,6 @@ exports.getClientDetails = async (req, res) => {
             where: { clientId: id, barbershopId }
         });
 
-        // NFE History
-        const nfes = await prisma.nfe.findMany({
-            where: { clientId: id, barbershopId },
-            orderBy: { createdAt: 'desc' }
-        });
-
         res.json({
             client: {
                 ...client,
@@ -307,7 +301,6 @@ exports.getClientDetails = async (req, res) => {
             appointments,
             orders,
             subscriptions: subscriptions.map(s => ({ ...s, subscriptionPlan: s.plan })), // Compatibility with frontend
-            nfes,
             stats: {
                 totalSpent,
                 totalVisits: appointments.filter(a => a.status === 'COMPLETED').length,
@@ -325,7 +318,7 @@ exports.getClientDetails = async (req, res) => {
 exports.updateClientProfile = async (req, res) => {
     try {
         const clientId = req.user.id; // From Client Token
-        let { name, phone, birthDate, gender, avatarUrl, cpf, cnpj, requiresNfe } = req.body;
+        let { name, phone, birthDate, gender, avatarUrl, cpf, cnpj } = req.body;
 
         // Validations
         if (!clientId) return res.status(401).json({ message: 'Unauthorized' });

@@ -62,7 +62,7 @@ class TransactionService {
                         // Calculate values for commission
                         const items = await tx.orderItem.findMany({ where: { orderId } });
                         const totalGrossVolume = items.reduce((sum, i) => sum + i.total, 0);
-                        
+
                         // Fallback to the transaction amount if no items are found
                         // This ensures commissioned volume is tracked even for top-level comanda payments.
                         commissionBaseValue = totalGrossVolume > 0 ? totalGrossVolume : amount;
@@ -165,21 +165,7 @@ class TransactionService {
                 });
             }
 
-            // 7. EMIT NFE (IF REQUESTED)
-            if (params.emitNfe) {
-                if (finalClientId) {
-                    const nfeService = require('./NfeService');
-                    // We don't necessarily 'await' the full process if we want fast response, 
-                    // but for MOCK simplicity we wait here.
-                    nfeService.emitNfe({
-                        barbershopId,
-                        clientId: finalClientId,
-                        appointmentId,
-                        orderId,
-                        amount
-                    }).catch(e => console.error('[TransactionService] Background NFe Error:', e));
-                }
-            }
+
 
             return transaction;
 
