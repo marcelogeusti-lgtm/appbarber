@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, User, Calendar, DollarSign, Award, Clock, Phone, Mail, MapPin, Package, ScrollText, Download, RefreshCcw } from 'lucide-react';
+import { X, User, Calendar, DollarSign, Award, Clock, Phone, Mail, MapPin, Package, RefreshCcw } from 'lucide-react';
 import api from '../lib/api';
 
 export default function ClientDetailsModal({ isOpen, onClose, clientId, user }) {

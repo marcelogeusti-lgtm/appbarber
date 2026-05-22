@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Calendar, Users, Scissors, Package,
     ShoppingBag, Receipt, DollarSign, PieChart, Wallet,
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
-    Store, CreditCard, UserCheck, ScrollText, MessageSquare,
+    Store, CreditCard, UserCheck, MessageSquare,
     PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3,
     PlayCircle, Database, UploadCloud
 } from 'lucide-react';
