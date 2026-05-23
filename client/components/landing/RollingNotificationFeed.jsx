@@ -23,8 +23,6 @@ export default function RollingNotificationFeed() {
         const interval = setInterval(() => {
             const nextText = SERVICES[Math.floor(Math.random() * SERVICES.length)];
             const nextNotif = { id: Date.now().toString(), text: nextText };
-
-            // Keep 4 items briefly so the 4th can animate out, then it's removed on next tick
             setNotifications(prev => [nextNotif, ...prev].slice(0, 4));
         }, 4000);
 
@@ -39,12 +37,11 @@ export default function RollingNotificationFeed() {
                         key={notif.id}
                         className={`
                             p-2.5 bg-gray-50 border border-gray-100 rounded-xl shadow-sm
-                            flex items-center gap-3 w-full
-                            ${index === 0 ? 'animate-slide-in-push' : 'transition-all duration-500 ease-out'}
-                            ${index === 3 ? 'animate-fade-out-bottom absolute w-full' : 'relative opacity-100'}
+                            flex items-center gap-3 w-full transition-all duration-500 ease-out
+                            ${index === 0 ? 'animate-slide-up opacity-100' : 'opacity-100'}
+                            ${index === 3 ? 'opacity-0 pointer-events-none absolute' : 'relative'}
                         `}
                         style={{
-                            // For the 4th item, position it exactly where it would be to slide down and out
                             top: index === 3 ? '150px' : 'auto',
                             marginBottom: index < 3 ? '8px' : '0'
                         }}
@@ -60,37 +57,6 @@ export default function RollingNotificationFeed() {
                     </div>
                 ))}
             </div>
-
-            <style jsx>{`
-                @keyframes slide-in-push {
-                    0% { 
-                        transform: translateY(-20px) scale(0.95); 
-                        opacity: 0; 
-                        margin-top: -55px; /* Height + gap to push others down */
-                    }
-                    100% { 
-                        transform: translateY(0) scale(1); 
-                        opacity: 1; 
-                        margin-top: 0;
-                    }
-                }
-                @keyframes fade-out-bottom {
-                    0% { 
-                        transform: translateY(0) scale(1); 
-                        opacity: 1; 
-                    }
-                    100% { 
-                        transform: translateY(30px) scale(0.95); 
-                        opacity: 0; 
-                    }
-                }
-                .animate-slide-in-push {
-                    animation: slide-in-push 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
-                .animate-fade-out-bottom {
-                    animation: fade-out-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
-            `}</style>
         </div>
     );
 }

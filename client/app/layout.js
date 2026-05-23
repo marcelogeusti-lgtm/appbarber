@@ -34,11 +34,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en">
-            <body className="min-h-screen bg-background antialiased">
+        <html lang="en" className={clsx(outfit.variable, syne.variable)}>
+            <body className="min-h-screen bg-background font-body antialiased">
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
-                        {/* <FcmManager /> */}
+                        <FcmManager />
                         <LoginModal />
                         <RegisterModal />
                         <ForgotPasswordModal />
