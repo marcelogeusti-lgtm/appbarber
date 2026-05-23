@@ -24,7 +24,7 @@ const Counter = ({ target, duration = 2000 }) => {
         requestAnimationFrame(animate);
     }, [target, duration, inView]);
 
-    return <span ref={ref}>{count.toLocaleString('pt-BR')}</span>;
+    return <span ref={ref}>{Math.floor(count)}</span>;
 };
 
 export default function StatsCounter() {
