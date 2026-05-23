@@ -15,15 +15,7 @@ import CheckoutShowcase from '../components/landing/CheckoutShowcase';
 import Footer from '../components/landing/Footer';
 
 export default function Home() {
-    const [hasMounted, setHasMounted] = useState(false);
-
-    useEffect(() => {
-        setHasMounted(true);
-    }, []);
-
-    if (!hasMounted) {
-        return <div className="min-h-screen bg-[#050505]" />;
-    }
+    // hasMounted logic removed to restore proper SSR hydration
 
     return (
         <main className="min-h-screen bg-[#050505] text-white relative pb-20 md:pb-0 overflow-x-hidden selection:bg-primary/30">
