@@ -2,17 +2,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/landing/Navbar';
 import Hero from '../components/landing/Hero';
-import VCLSection from '../components/landing/VCLSection';
-import StatsCounter from '../components/landing/StatsCounter';
-import WhatsAppHighlight from '../components/landing/WhatsAppHighlight';
-import ProductShowcase from '../components/landing/ProductShowcase';
-import PremiumExperience from '../components/landing/PremiumExperience';
-import Features from '../components/landing/Features';
-import Pricing from '../components/landing/Pricing';
-import MainDashboardShowcase from '../components/landing/MainDashboardShowcase';
-import ProblemSolution from '../components/landing/ProblemSolution';
-import CheckoutShowcase from '../components/landing/CheckoutShowcase';
-import Footer from '../components/landing/Footer';
 
 export default function Home() {
     const [hasMounted, setHasMounted] = useState(false);
@@ -26,25 +15,9 @@ export default function Home() {
     }
 
     return (
-        <main className="min-h-screen bg-[#050505] text-white relative pb-20 md:pb-0 overflow-x-hidden selection:bg-primary/30 selection:text-primary-foreground">
-            {/* Ultra-Premium Cinematic Grain Texture */}
-            <div className="fixed inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-            <div className="relative z-10">
-                <Navbar />
-                <Hero />
-                <StatsCounter />
-                <ProblemSolution />
-                <VCLSection />
-                <ProductShowcase />
-                <MainDashboardShowcase />
-                <WhatsAppHighlight />
-                <PremiumExperience />
-                <CheckoutShowcase />
-                <Features />
-                <Pricing />
-                <Footer />
-            </div>
+        <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
+            <Navbar />
+            <Hero />
         </main>
     );
 }
