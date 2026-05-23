@@ -38,7 +38,7 @@ export default function RootLayout({ children }) {
             <body className="min-h-screen bg-background font-body antialiased">
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
-                        <FcmManager />
+                        {/* <FcmManager /> */}
                         <LoginModal />
                         <RegisterModal />
                         <ForgotPasswordModal />
