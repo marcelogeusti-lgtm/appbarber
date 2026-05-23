@@ -69,10 +69,10 @@ export default function RollingNotificationFeed() {
                                 className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-black/5 shadow-sm"
                             />
                             <div className="flex flex-col overflow-hidden text-left flex-1">
-                                <span className="text-[11px] font-bold text-zinc-900 tracking-wide">
+                                <span className="text-xs font-medium text-zinc-900 not-italic">
                                     NEXT APP
                                 </span>
-                                <span className="text-[11px] font-medium text-zinc-600 truncate leading-snug">
+                                <span className="text-xs text-zinc-600 not-italic truncate leading-relaxed">
                                     {notif.text}
                                 </span>
                             </div>
