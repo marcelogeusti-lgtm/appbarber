@@ -100,23 +100,6 @@ export default function MapResults({ shops, center, userLocation }) {
                 ))}
             </MapContainer>
 
-            <style jsx global>{`
-                .leaflet-container {
-                    background: #0A0A0A !important;
-                }
-                .custom-popup .leaflet-popup-content-wrapper {
-                    background: white;
-                    border-radius: 12px;
-                    padding: 0;
-                    overflow: hidden;
-                }
-                .custom-popup .leaflet-popup-content {
-                    margin: 0;
-                }
-                .leaflet-popup-tip-container {
-                    display: none;
-                }
-            `}</style>
         </div>
     );
 }

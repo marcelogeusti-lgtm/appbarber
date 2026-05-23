@@ -48,18 +48,6 @@ export default function SideSocialProof() {
                 {notif.text}
             </span>
 
-            <style jsx>{`
-                @keyframes slide-right {
-                    from { transform: translateX(-40px); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slide-left {
-                    from { transform: translateX(40px); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                .animate-slide-right { animation: slide-right 0.7s ease-out forwards; }
-                .animate-slide-left { animation: slide-left 0.7s ease-out forwards; }
-            `}</style>
         </div>
     );
 }
