@@ -1,5 +1,5 @@
 'use client';
-import { Check, ArrowRight, User, Scissors, Calendar, CreditCard, ShoppingBag, Zap } from 'lucide-react';
+import { Check, ArrowRight, User, Scissors, Calendar, CreditCard, ShoppingBag, Zap, Lock } from 'lucide-react';
 import { useState } from 'react';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion, AnimatePresence } from 'framer-motion';

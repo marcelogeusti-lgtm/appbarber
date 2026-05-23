@@ -1,0 +1,12 @@
+﻿On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   client/app/page.js
+
+origin	https://github.com/marcelogeusti-lgtm/appbarber.git (fetch)
+origin	https://github.com/marcelogeusti-lgtm/appbarber.git (push)
+  develop
+* main
+c628b36 fix: remove all remaining styled-jsx instances crashing app router
