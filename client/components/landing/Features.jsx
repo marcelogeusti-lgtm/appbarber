@@ -39,11 +39,11 @@ export default function Features() {
                     transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     className="text-center max-w-4xl mx-auto mb-32"
                 >
-                    <h2 className="font-display text-4xl lg:text-[5rem] font-extrabold text-white mb-10 tracking-[-0.05em] leading-[0.95]">
+                    <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
                         Sua Barbearia no <br />
                         <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Piloto Automático.</span>
                     </h2>
-                    <p className="font-body text-slate-400 text-xl font-medium leading-relaxed max-w-2xl mx-auto">
+                    <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
                         Explore o maior ecossistema nativo do mercado. O NEXT consolida de agendas e comandas até uma universidade completa para o gestor.
                     </p>
                 </motion.div>
@@ -65,7 +65,7 @@ export default function Features() {
                                 <motion.div
                                     whileHover={{ y: -10, scale: 1.02 }}
                                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                    className="p-10 rounded-[2.5rem] bg-[#0A0A0B]/40 backdrop-blur-3xl border border-white/[0.06] hover:border-primary/40 shadow-2xl group flex flex-col h-full relative overflow-hidden transition-colors duration-500"
+                                    className="card-premium bg-[#0A0A0B]/40 backdrop-blur-3xl border border-white/[0.06] hover:border-primary/40 shadow-2xl group flex flex-col h-full relative overflow-hidden transition-colors duration-500"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
                                     <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/[0.03] to-transparent rotate-45 translate-x-[-100%] group-hover:animate-shine pointer-events-none" />
@@ -75,7 +75,7 @@ export default function Features() {
                                     </div>
 
                                     <h4 className="font-display text-xl font-extrabold text-white mb-4 uppercase tracking-tight relative z-10">{feature.title}</h4>
-                                    <p className="font-body text-slate-400 text-sm leading-relaxed font-medium flex-1 mb-10 relative z-10 group-hover:text-slate-300 transition-colors">
+                                    <p className="font-body secondary-text flex-1 mb-10 relative z-10 group-hover:text-slate-300 transition-colors">
                                         {feature.oneLiner}
                                     </p>
 

@@ -22,11 +22,11 @@ export default function Footer() {
 
                     <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
                         <div>
-                            <h2 className="font-display text-4xl lg:text-7xl font-extrabold text-white mb-8 tracking-[-0.05em] leading-[0.9] italic">
+                            <h2 className="font-display hero-title font-extrabold text-white mb-8 italic text-balance">
                                 PRONTO PARA O <br />
                                 <span className="not-italic">PRÓXIMO NÍVEL?</span>
                             </h2>
-                            <p className="font-body text-white/80 text-xl font-medium leading-relaxed max-w-xl">
+                            <p className="font-body secondary-text font-medium max-w-xl text-white/80">
                                 Junte-se a mais de 1.200 barbearias que já transformaram seu negócio com o NEXT.
                             </p>
                         </div>

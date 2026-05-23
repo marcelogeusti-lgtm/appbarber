@@ -38,12 +38,22 @@
 
     /* SaaS Minimalist Tokens */
     --radius: 8px;
-    /* Standard for buttons */
     --radius-card: 12px;
-    /* Smooth card corners */
 
     --sidebar: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
+
+    /* Premium SaaS Typographic Scale */
+    --font-xs: 11px;
+    --font-sm: 13px;
+    --font-base: 14px;
+    --font-md: 16px;
+    --font-lg: 22px;
+    --font-xl: 34px;
+
+    --line-xs: 1.1;
+    --line-sm: 1.3;
+    --line-base: 1.5;
   }
 
   [data-theme="dark"],
@@ -130,6 +140,27 @@
 }
 
 @layer utilities {
+
+  /* Typography Enhancements (High-Ticket SaaS) */
+  .hero-title {
+    font-size: clamp(32px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .card-premium {
+    padding: 20px;
+    border-radius: 20px;
+    background-color: var(--card);
+    /* Base styles if any */
+  }
+
+  .secondary-text {
+    font-size: 14px;
+    opacity: 0.72;
+    line-height: 1.5;
+  }
+
   .glass {
     @apply bg-white/5 backdrop-blur-lg border border-white/10;
   }

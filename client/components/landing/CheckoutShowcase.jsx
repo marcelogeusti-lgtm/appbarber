@@ -28,15 +28,18 @@ export default function CheckoutShowcase() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
                     >
-                        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] mb-10 backdrop-blur-md">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_#4d72e4]" />
-                            <span className="font-body text-[10px] font-black text-white uppercase tracking-[0.3em]">Conversão Máxima</span>
+                        <div className="text-[13px] leading-[1.3] px-1.5 py-[2px] rounded-md inline-flex items-center gap-1 font-medium bg-white/[0.04] border border-white/[0.08] mb-10 backdrop-blur-md text-white/80">
+                            <span className="relative w-1.5 h-1.5">
+                                <span className="animate-ping absolute inset-0 rounded-full bg-primary opacity-75" />
+                                <span className="absolute inset-0 rounded-full bg-primary shadow-[0_0_10px_#4d72e4]" />
+                            </span>
+                            <span>Conversão Máxima</span>
                         </div>
-                        <h2 className="font-display text-4xl lg:text-[5rem] font-extrabold text-white leading-[0.95] mb-8 tracking-[-0.05em] text-balance">
+                        <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
                             Agendamento Sem Fricção. <br />
                             <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Checkout de Elite.</span>
                         </h2>
-                        <p className="font-body text-slate-400 text-xl font-medium leading-relaxed max-w-3xl mx-auto">
+                        <p className="font-body secondary-text font-medium max-w-3xl mx-auto">
                             Inspirado nos checkouts de e-commerce mais rápidos do mundo. Seu cliente agenda e paga em menos de 30 segundos, direto do navegador.
                         </p>
                     </motion.div>
@@ -166,7 +169,7 @@ export default function CheckoutShowcase() {
                                 <div className="absolute -inset-10 bg-primary/10 blur-[100px] rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-1000 pointer-events-none" />
 
                                 <LEDCardWrapper className="rounded-[2.5rem]">
-                                    <div className="relative bg-[#0A0A0B] border border-white/[0.1] rounded-[2.5rem] p-12 lg:p-14 shadow-2xl transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
+                                    <div className="card-premium relative bg-[#0A0A0B] border border-white/[0.1] shadow-2xl transition-all duration-700 hover:scale-[1.02] hover:border-white/20">
                                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/5 to-primary/40 rounded-t-[2.5rem]" />
 
                                         <div className="flex items-center justify-between mb-14">

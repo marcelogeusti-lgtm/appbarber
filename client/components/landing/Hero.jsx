@@ -20,7 +20,7 @@ export default function Hero() {
     };
 
     return (
-        <section className="relative min-h-screen flex items-center pt-32 pb-20 overflow-hidden bg-[#050505]">
+        <section className="relative flex items-center pt-32 pb-20 overflow-hidden bg-[#050505]">
 
             {/* Premium Background: Animated Orbs */}
             <motion.div
@@ -60,29 +60,29 @@ export default function Hero() {
                         animate="visible"
                         variants={containerVariants}
                     >
-                        {/* Badge */}
-                        <motion.div variants={itemVariants} className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white/[0.04] border border-white/[0.08] mb-10 backdrop-blur-xl group hover:border-primary/30 transition-colors duration-500">
-                            <span className="relative flex h-2.5 w-2.5">
+                        {/* Badge / beautifulMention Equivalent */}
+                        <motion.div variants={itemVariants} className="text-[13px] leading-[1.3] px-1.5 py-[2px] rounded-md inline-flex items-center gap-1 font-medium bg-white/[0.04] border border-white/[0.08] mb-8 backdrop-blur-xl group hover:border-primary/30 transition-colors duration-500 text-white/80">
+                            <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary shadow-[0_0_12px_#4d72e4]" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_12px_#4d72e4]" />
                             </span>
-                            <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.3em] font-body">O Futuro é NEXT</span>
+                            O Futuro é NEXT
                         </motion.div>
 
-                        {/* Headline — Syne Display */}
-                        <motion.h1 variants={itemVariants} className="font-display text-4xl md:text-5xl lg:text-[4.5rem] font-extrabold text-white leading-[1.05] mb-8 tracking-[-0.04em] text-balance">
+                        {/* Headline — High-Ticket Typography */}
+                        <motion.h1 variants={itemVariants} className="font-display hero-title font-extrabold text-white mb-6 text-balance">
                             Acabe com as{' '}
                             <span className="bg-gradient-to-r from-[#4D72E4] via-[#6B8CFF] to-[#4D72E4] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">cadeiras vazias</span>
-                            {' '}da sua barbearia de uma vez por todas.
+                            {' '}da sua barbearia.
                         </motion.h1>
 
-                        {/* Subheadline — Outfit */}
-                        <motion.p variants={itemVariants} className="font-body text-lg md:text-xl text-slate-400 mb-12 leading-[1.7] max-w-xl font-normal">
+                        {/* Subheadline — secondary-text Equivalent */}
+                        <motion.p variants={itemVariants} className="font-body text-base text-slate-400 mb-10 leading-[1.6] max-w-lg font-normal opacity-90">
                             Zere a falta de clientes. O NEXT é o único sistema que agenda, cobra antecipado e traz seu cliente de volta no piloto automático enquanto você corta.
                         </motion.p>
 
                         {/* CTAs */}
-                        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-14">
+                        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-10">
                             <Link href="/register">
                                 <button className="w-full sm:w-auto px-10 py-4 bg-white text-black text-sm font-bold uppercase tracking-[0.15em] rounded-xl hover:scale-[1.03] active:scale-[0.98] transition-all shadow-[0_0_50px_rgba(255,255,255,0.08)] flex items-center justify-center gap-3 group font-body">
                                     Lotar Minha Agenda <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

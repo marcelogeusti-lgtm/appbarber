@@ -41,11 +41,11 @@ export default function PremiumExperience() {
                         viewport={{ once: true }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <h2 className="font-display text-4xl lg:text-[5.5rem] font-extrabold text-white mb-10 tracking-[-0.05em] uppercase leading-[0.9] italic">
+                        <h2 className="font-display hero-title font-extrabold text-white mb-8 uppercase italic text-balance">
                             A EXPERIÊNCIA <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent not-italic">PREMIUM</span> <br />
                             DE AGENDAMENTO.
                         </h2>
-                        <p className="font-body text-slate-400 text-xl font-medium leading-relaxed max-w-3xl">
+                        <p className="font-body secondary-text font-medium max-w-3xl">
                             O NEXT foi desenhado para eliminar fricção. Seu cliente não precisa de apps pesados ou cadastros complexos. É agendar e pronto.
                         </p>
                     </motion.div>
@@ -63,7 +63,7 @@ export default function PremiumExperience() {
                         >
                             <LEDCardWrapper className="h-full">
                                 <div className="group relative h-full">
-                                    <div className={`p-12 rounded-[2.5rem] bg-white/[0.02] border border-white/[0.06] backdrop-blur-3xl transition-all duration-700 hover:border-primary/40 hover:bg-white/[0.04] flex flex-col h-full relative overflow-hidden shadow-2xl`}>
+                                    <div className={`card-premium bg-white/[0.02] border border-white/[0.06] backdrop-blur-3xl transition-all duration-700 hover:border-primary/40 hover:bg-white/[0.04] flex flex-col h-full relative overflow-hidden shadow-2xl`}>
                                         <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-1000`} />
 
                                         <div className="relative z-10">
@@ -76,7 +76,7 @@ export default function PremiumExperience() {
                                                 <h4 className="font-display text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-snug">
                                                     {card.title}
                                                 </h4>
-                                                <p className="font-body text-sm text-slate-400 font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                                                <p className="font-body secondary-text group-hover:opacity-100 transition-opacity">
                                                     {card.desc}
                                                 </p>
                                             </div>

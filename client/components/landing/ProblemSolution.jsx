@@ -41,11 +41,11 @@ export default function ProblemSolution() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
                     >
-                        <h2 className="font-display text-4xl lg:text-7xl font-extrabold text-white mb-8 tracking-[-0.04em] leading-[1.05] text-balance">
+                        <h2 className="font-display hero-title font-extrabold text-white mb-6 text-balance">
                             Você corta cabelo ou <br />
                             <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">gerencia problemas?</span>
                         </h2>
-                        <p className="font-body text-slate-400 text-xl font-medium leading-relaxed max-w-2xl mx-auto">
+                        <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
                             Pare de perder tempo com tarefas manuais. Veja a diferença entre quem usa o NEXT e quem ainda está no escuro.
                         </p>
                     </motion.div>
@@ -60,7 +60,7 @@ export default function ProblemSolution() {
                         transition={{ duration: 0.8 }}
                     >
                         <LEDCardWrapper className="h-full">
-                            <div className="p-10 lg:p-16 rounded-[2.5rem] bg-[#0A0A0B]/40 backdrop-blur-3xl border border-white/[0.06] flex flex-col group/pain transition-all hover:bg-[#0A0A0B]/60 h-full relative overflow-hidden">
+                            <div className="card-premium lg:p-14 bg-[#0A0A0B]/40 backdrop-blur-3xl border border-white/[0.06] flex flex-col group/pain transition-all hover:bg-[#0A0A0B]/60 h-full relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-1 bg-red-500/20" />
 
                                 <div className="flex items-center gap-5 mb-16 relative z-10">
@@ -100,7 +100,7 @@ export default function ProblemSolution() {
                         transition={{ duration: 0.8 }}
                     >
                         <LEDCardWrapper className="h-full">
-                            <div className="p-10 lg:p-16 rounded-[2.5rem] bg-gradient-to-br from-[#0A0A0B] to-[#050505] border-2 border-primary/40 flex flex-col relative overflow-hidden shadow-[0_0_100px_rgba(77,114,228,0.15)] group/solution hover:border-primary transition-all h-full">
+                            <div className="card-premium lg:p-14 bg-gradient-to-br from-[#0A0A0B] to-[#050505] border-2 border-primary/40 flex flex-col relative overflow-hidden shadow-[0_0_100px_rgba(77,114,228,0.15)] group/solution hover:border-primary transition-all h-full">
                                 <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/20 blur-[130px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
 

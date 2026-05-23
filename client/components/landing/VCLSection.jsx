@@ -14,11 +14,11 @@ export default function VCLSection() {
                         viewport={{ once: true }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <h2 className="font-display text-4xl lg:text-[5.5rem] font-extrabold text-white leading-[0.95] tracking-[-0.05em] mb-10 text-balance">
+                        <h2 className="font-display hero-title font-extrabold text-white tracking-[-0.05em] mb-8 text-balance">
                             Assista agora e descubra <br className="hidden md:block" />
                             <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">o poder do NEXT</span>
                         </h2>
-                        <p className="font-body text-slate-400 text-xl font-medium leading-relaxed max-w-2xl mx-auto">
+                        <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
                             Veja em menos de 2 minutos como barbearias de alta performance estão automatizando tudo e focando no que importa.
                         </p>
                     </motion.div>

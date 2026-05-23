@@ -68,7 +68,7 @@ export default function Pricing() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
                     >
-                        <h2 className="font-display text-4xl lg:text-[5rem] font-extrabold text-white leading-[0.95] mb-10 tracking-[-0.05em]">
+                        <h2 className="font-display hero-title font-extrabold text-white mb-10 text-balance">
                             Um investimento que <br />
                             <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">se paga sozinho.</span>
                         </h2>
@@ -105,7 +105,7 @@ export default function Pricing() {
                             className="h-full"
                         >
                             <LEDCardWrapper className="h-full rounded-[2.5rem]">
-                                <div className={`relative h-full p-12 lg:p-14 rounded-[2.5rem] border ${plan.recommended ? 'border-primary border-2 shadow-[0_40px_100px_rgba(77,114,228,0.15)] ring-4 ring-primary/5' : 'border-white/[0.08] shadow-2xl'} ${plan.bg} flex flex-col group transition-all duration-700 hover:border-white/20`}>
+                                <div className={`card-premium relative h-full border ${plan.recommended ? 'border-primary border-2 shadow-[0_40px_100px_rgba(77,114,228,0.15)] ring-4 ring-primary/5' : 'border-white/[0.08] shadow-2xl'} ${plan.bg} flex flex-col group transition-all duration-700 hover:border-white/20`}>
 
                                     {plan.recommended && (
                                         <div className="absolute -top-6 left-1/2 -translate-x-1/2 px-6 py-2 bg-primary rounded-full flex items-center gap-2.5 shadow-[0_15px_30px_rgba(77,114,228,0.3)] animate-pulse">
@@ -120,7 +120,7 @@ export default function Pricing() {
                                             <span className="font-display text-4xl lg:text-7xl font-extrabold text-white tracking-tighter">{plan.price}</span>
                                             <span className="font-body text-slate-500 text-[11px] font-black uppercase tracking-[0.25em]">/mês</span>
                                         </div>
-                                        <p className="font-body text-sm text-slate-400 font-medium leading-relaxed">{plan.desc}</p>
+                                        <p className="font-body secondary-text">{plan.desc}</p>
                                     </div>
 
                                     <div className="space-y-6 flex-1 mb-16">

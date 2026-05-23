@@ -18,11 +18,11 @@ export default function MainDashboardShowcase() {
                         viewport={{ once: true }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <h2 className="font-display text-4xl lg:text-[5rem] font-extrabold text-white leading-[0.95] mb-10 tracking-[-0.05em] text-balance">
+                        <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
                             O Painel de Controle <br />
                             <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">do Seu Império.</span>
                         </h2>
-                        <p className="font-body text-xl text-slate-400 font-medium leading-relaxed max-w-3xl mx-auto">
+                        <p className="font-body secondary-text font-medium max-w-3xl mx-auto">
                             Uma interface limpa e poderosa. Tenha visão total do seu faturamento, agenda e desempenho da equipe em tempo real, sem planilhas confusas.
                         </p>
                     </motion.div>
@@ -41,7 +41,7 @@ export default function MainDashboardShowcase() {
                         transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                     >
                         <LEDCardWrapper className="rounded-[3rem]">
-                            <div className="relative z-10 rounded-[3rem] border border-white/[0.1] bg-[#0A0A0B]/80 backdrop-blur-3xl p-3 lg:p-5 shadow-[0_60px_120px_rgba(0,0,0,0.7)] flex flex-col items-center group transition-all duration-1000 hover:border-primary/30">
+                            <div className="card-premium relative z-10 rounded-[3rem] border border-white/[0.1] bg-[#0A0A0B]/80 backdrop-blur-3xl shadow-[0_60px_120px_rgba(0,0,0,0.7)] flex flex-col items-center group transition-all duration-1000 hover:border-primary/30">
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-400 to-primary rounded-t-[3rem] shadow-[0_0_20px_rgba(77,114,228,0.5)]" />
 
                                 {/* Realistic UI Header dots */}

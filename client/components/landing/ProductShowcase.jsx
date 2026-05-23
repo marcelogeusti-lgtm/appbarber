@@ -38,11 +38,11 @@ export default function ProductShowcase() {
                         viewport={{ once: true }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <h2 className="font-display text-4xl lg:text-[5rem] font-extrabold text-white mb-8 tracking-[-0.05em] leading-[0.95]">
+                        <h2 className="font-display hero-title font-extrabold text-white mb-6 text-balance">
                             Visão Geral do Seu <br />
                             <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Império.</span>
                         </h2>
-                        <p className="font-body text-slate-400 text-xl font-medium leading-relaxed max-w-2xl mx-auto">
+                        <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
                             Cada detalhe foi desenhado para facilitar sua gestão e encantar seus clientes.
                         </p>
                     </motion.div>
@@ -61,7 +61,7 @@ export default function ProductShowcase() {
                                 className={`relative group ${section.reverse ? 'lg:order-2' : ''}`}
                             >
                                 <LEDCardWrapper className="h-full">
-                                    <div className="relative rounded-[2.5rem] border border-white/[0.08] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.6)] bg-[#0A0A0B]/60 backdrop-blur-3xl group/img p-4 lg:p-6 h-full transition-all duration-700 hover:border-white/20">
+                                    <div className="card-premium relative border border-white/[0.08] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.6)] bg-[#0A0A0B]/60 backdrop-blur-3xl group/img h-full transition-all duration-700 hover:border-white/20">
                                         <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
 
                                         {section.isAgenda ? (
@@ -100,12 +100,12 @@ export default function ProductShowcase() {
                                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                                 className={section.reverse ? 'lg:order-1' : ''}
                             >
-                                <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-10 font-body">
+                                <div className="text-[13px] leading-[1.3] px-1.5 py-[2px] rounded-md inline-flex items-center gap-1 font-medium bg-white/[0.04] border border-white/[0.08] text-primary mb-8 font-body">
                                     <Zap className="w-3.5 h-3.5 fill-current" />
                                     <span>Recurso Pro</span>
                                 </div>
-                                <h3 className="font-display text-4xl lg:text-5xl font-extrabold text-white mb-8 tracking-[-0.04em] leading-[1.1]">{section.title}</h3>
-                                <p className="font-body text-slate-400 text-xl mb-12 leading-relaxed font-medium">
+                                <h3 className="font-display text-3xl lg:text-5xl font-extrabold text-white mb-6 tracking-[-0.04em] leading-[1.1]">{section.title}</h3>
+                                <p className="font-body secondary-text font-medium mb-10">
                                     {section.desc}
                                 </p>
 

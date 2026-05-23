@@ -125,17 +125,17 @@ export default function WhatsAppHighlight() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                         >
-                            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/[0.04] rounded-full mb-10 border border-white/[0.08] backdrop-blur-md">
-                                <MessageSquare className="w-4 h-4 text-[#25D366]" />
-                                <span className="font-body text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Automação Nativa</span>
+                            <div className="text-[13px] leading-[1.3] px-1.5 py-[2px] rounded-md inline-flex items-center gap-1 font-medium bg-white/[0.04] border border-white/[0.08] mb-8 backdrop-blur-xl text-white/80">
+                                <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
+                                <span>Automação Nativa</span>
                             </div>
 
-                            <h2 className="font-display text-4xl lg:text-[4.5rem] font-extrabold text-white leading-[1] mb-10 tracking-[-0.05em] text-balance">
+                            <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
                                 Onde seu cliente está, <br />
                                 <span className="bg-gradient-to-r from-primary via-[#25D366] to-[#25D366] bg-clip-text text-transparent italic">o NEXT também está.</span>
                             </h2>
 
-                            <p className="font-body text-xl text-slate-400 mb-14 leading-relaxed font-medium">
+                            <p className="font-body secondary-text font-medium mb-12 max-w-xl">
                                 Acabe com as interrupções para responder mensagens. O NEXT automatiza seu agendamento via WhatsApp, garantindo zero atrito e agenda lotada.
                             </p>
 
