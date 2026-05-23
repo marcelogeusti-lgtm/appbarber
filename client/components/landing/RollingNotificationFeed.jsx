@@ -61,18 +61,18 @@ export default function RollingNotificationFeed() {
                                 damping: 30,
                                 mass: 0.9
                             }}
-                            className="absolute top-2 left-2 right-2 p-3 bg-[#0A0A0B]/80 backdrop-blur-md border border-white/[0.10] shadow-[0_4px_24px_rgba(0,0,0,0.3)] rounded-2xl flex items-center gap-3 will-change-transform hover:will-change-auto"
+                            className="absolute top-2 left-2 right-2 p-3 bg-white/95 backdrop-blur-md border border-zinc-200 shadow-[0_8px_30px_rgba(0,0,0,0.12)] rounded-2xl flex items-center gap-3 will-change-transform hover:will-change-auto"
                         >
                             <img
                                 src="/logos/logo_icon.png"
                                 alt="Logo"
-                                className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white/10 shadow-md"
+                                className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-black/5 shadow-sm"
                             />
                             <div className="flex flex-col overflow-hidden text-left flex-1">
-                                <span className="text-[11px] font-semibold text-white/90 tracking-wide">
+                                <span className="text-[11px] font-bold text-zinc-900 tracking-wide">
                                     NEXT APP
                                 </span>
-                                <span className="text-[11px] font-medium text-white/60 truncate leading-snug truncate">
+                                <span className="text-[11px] font-medium text-zinc-600 truncate leading-snug">
                                     {notif.text}
                                 </span>
                             </div>
