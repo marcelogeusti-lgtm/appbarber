@@ -1,0 +1,24 @@
+==============================================================
+Sincronizando com o GitHub...
+==============================================================
+Everything up-to-date
+
+==============================================================
+Fazendo deploy do Backend para o Vercel...
+==============================================================
+Vercel CLI 50.22.1
+Retrieving project…
+Error: The provided path “~\Downloads\MARCELO\EU\App Barbeiro\server\server” does not exist. To change your Project Settings, go to https://vercel.com/appbarber/appbarber-api/settings
+
+==============================================================
+Fazendo deploy do Frontend para o Vercel...
+==============================================================
+Vercel CLI 50.22.1
+Retrieving project…
+Error: The provided path “~\Downloads\MARCELO\EU\App Barbeiro\client\client” does not exist. To change your Project Settings, go to https://vercel.com/appbarber/appbarber/settings
+
+==============================================================
+Deploy e Sincronizacao concluidos!
+==============================================================
+Pressione qualquer tecla para continuar. . . 
+Deseja finalizar o arquivo em lotes (S/N)? Deseja finalizar o arquivo em lotes (S/N)? 

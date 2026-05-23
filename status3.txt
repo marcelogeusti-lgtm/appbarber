@@ -1,0 +1,14 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   client/app/globals.css
+	modified:   client/app/layout.js
+	new file:   status.txt
+	new file:   status2.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	status3.txt
+
