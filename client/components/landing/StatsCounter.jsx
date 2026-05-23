@@ -1,12 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Users, Calendar, Scissors, TrendingUp } from 'lucide-react';
 import LEDCardWrapper from './LEDCardWrapper';
+import { motion, useInView } from 'framer-motion';
 
 const Counter = ({ target, duration = 2000 }) => {
     const [count, setCount] = useState(0);
+    const ref = useRef(null);
+    const inView = useInView(ref, { once: true });
 
     useEffect(() => {
+        if (!inView) return;
+
         let startTime = null;
         const animate = (timestamp) => {
             if (!startTime) startTime = timestamp;
@@ -17,39 +22,53 @@ const Counter = ({ target, duration = 2000 }) => {
             }
         };
         requestAnimationFrame(animate);
-    }, [target, duration]);
+    }, [target, duration, inView]);
 
-    return <span>{count.toLocaleString('pt-BR')}</span>;
+    return <span ref={ref}>{count.toLocaleString('pt-BR')}</span>;
 };
 
 export default function StatsCounter() {
     const stats = [
-        { label: "Barbearias Conectadas", val: 1284, icon: Users, color: "primary" },
-        { label: "Agendamentos Hoje", val: 642, icon: Calendar, color: "green" },
-        { label: "Serviços Realizados", val: 18420, icon: Scissors, color: "blue" },
-        { label: "Clientes Ativos", val: 89000, icon: TrendingUp, color: "orange" }
+        { label: "Barbearias Conectadas", val: 1284, icon: Users, color: "from-blue-500/20 to-transparent" },
+        { label: "Agendamentos Hoje", val: 642, icon: Calendar, color: "from-emerald-500/20 to-transparent" },
+        { label: "Serviços Realizados", val: 18420, icon: Scissors, color: "from-primary/20 to-transparent" },
+        { label: "Clientes Ativos", val: 89000, icon: TrendingUp, color: "from-orange-500/20 to-transparent" }
     ];
 
     return (
-        <section className="py-20 bg-[#050505] border-y border-white/5 relative overflow-hidden">
-            {/* Background Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 blur-[150px] pointer-events-none" />
+        <section className="py-24 bg-[#050505] border-y border-white/[0.06] relative overflow-hidden">
+            {/* Background Grain */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none" />
 
             <div className="container mx-auto px-4 relative z-10">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-16">
                     {stats.map((stat, i) => (
-                        <div key={i} className="text-center group">
-                            <LEDCardWrapper className="mx-auto mb-6 w-fit">
-                                <div className="w-14 h-14 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-500 shadow-xl backdrop-blur-sm">
-                                    <stat.icon className="w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
-                                </div>
-                            </LEDCardWrapper>
-                            <h4 className="text-3xl lg:text-5xl font-black text-white tracking-tighter mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: i * 0.1 }}
+                            className="text-center group"
+                        >
+                            <div className="relative inline-block mb-8">
+                                <LEDCardWrapper className="mx-auto w-fit">
+                                    <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-700 shadow-xl backdrop-blur-md group-hover:text-white text-slate-400 group-hover:scale-110">
+                                        <stat.icon className="w-7 h-7 transition-transform duration-500 group-hover:rotate-12" />
+                                    </div>
+                                </LEDCardWrapper>
+                                {/* Subtle ring ripple */}
+                                <div className="absolute inset-0 rounded-2xl border border-primary/0 group-hover:animate-ripple pointer-events-none" />
+                            </div>
+
+                            <h4 className="font-display text-3xl lg:text-5xl font-extrabold text-white tracking-[-0.03em] mb-3 tabular-nums">
                                 <Counter target={stat.val} />
                                 {stat.val > 1000 && "+"}
                             </h4>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.35em]">{stat.label}</p>
-                        </div>
+                            <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none mb-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                {stat.label}
+                            </p>
+                        </motion.div>
                     ))}
                 </div>
             </div>

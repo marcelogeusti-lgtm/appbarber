@@ -32,18 +32,17 @@ export default function Home() {
 
             <div className="relative z-10">
                 <Navbar />
-
-            <Hero />
-            <StatsCounter />
-            <VCLSection />
-            <ProblemSolution />
-            <ProductShowcase />
-            <WhatsAppHighlight />
-            <PremiumExperience />
-            <MainDashboardShowcase />
-            <CheckoutShowcase />
-            <Features />
-            <Pricing />
+                <Hero />
+                <StatsCounter />
+                <ProblemSolution />
+                <VCLSection />
+                <ProductShowcase />
+                <MainDashboardShowcase />
+                <WhatsAppHighlight />
+                <PremiumExperience />
+                <CheckoutShowcase />
+                <Features />
+                <Pricing />
                 <Footer />
             </div>
         </main>

@@ -1,5 +1,5 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
+import { Outfit, Syne } from 'next/font/google';
 import clsx from 'clsx';
 import Providers from './providers';
 import { Toaster } from 'sonner';
@@ -8,7 +8,17 @@ import LoginModal from '../components/client-view/LoginModal';
 import RegisterModal from '../components/client-view/RegisterModal';
 import ForgotPasswordModal from '../components/client-view/ForgotPasswordModal';
 
-const inter = Inter({ subsets: ['latin'] });
+const outfit = Outfit({
+    subsets: ['latin'],
+    variable: '--font-outfit',
+    display: 'swap',
+});
+
+const syne = Syne({
+    subsets: ['latin'],
+    variable: '--font-syne',
+    display: 'swap',
+});
 
 // Google Login Configuration Trigger Fix (Clean Env)
 export const metadata = {
@@ -24,8 +34,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en">
-            <body className={clsx(inter.className, 'min-h-screen bg-background antialiased')}>
+        <html lang="en" className={clsx(outfit.variable, syne.variable)}>
+            <body className="min-h-screen bg-background font-body antialiased">
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
                         <FcmManager />

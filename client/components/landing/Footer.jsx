@@ -1,117 +1,133 @@
 'use client';
-import { Scissors, Instagram, Facebook, Twitter, Apple, PlayCircle } from 'lucide-react';
+import { Instagram, Youtube, Facebook, Mail, Phone, MapPin, ArrowUpRight, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function Footer() {
+    const currentYear = 2025;
+
     return (
-        <footer className="bg-[#050505] border-t border-white/5 pt-20 pb-10">
-            <div className="container mx-auto px-4">
-                {/* Final Pitch Section */}
-                <div className="mb-24 text-center max-w-4xl mx-auto py-16 px-8 rounded-xl bg-gradient-to-br from-[#0A0A0B] to-[#050505] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] pointer-events-none" />
-                    <h2 className="text-3xl lg:text-5xl font-extrabold text-white mb-8 tracking-tight relative z-10">
-                        Sua barbearia pode funcionar sozinha <br />
-                        <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent italic">enquanto você corta cabelo.</span>
-                    </h2>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
-                        <Link href="/register">
-                            <button className="px-10 py-5 bg-white text-black text-base font-black uppercase tracking-widest rounded-xl hover:bg-gray-100 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95">
-                                🚀 Começar grátis agora
-                            </button>
-                        </Link>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-                            Teste por 15 dias sem compromisso
-                        </p>
-                    </div>
-                </div>
+        <footer className="bg-[#050505] pt-32 pb-12 relative overflow-hidden">
+            {/* Final CTA Wave */}
+            <div className="container mx-auto px-4 mb-32">
+                <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative rounded-[3.5rem] bg-gradient-to-br from-primary via-blue-500 to-indigo-600 p-16 lg:p-24 overflow-hidden group/cta shadow-[0_40px_100px_rgba(77,114,228,0.3)]"
+                >
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay" />
+                    <div className="absolute -top-24 -right-24 w-[500px] h-[500px] bg-white/10 blur-[120px] rounded-full group-hover:scale-125 transition-transform duration-[2s]" />
 
-                <div className="grid md:grid-cols-4 gap-12 mb-16">
-
-                    {/* Brand */}
-                    <div className="col-span-1 md:col-span-1">
-                        <div className="flex items-center gap-2 mb-6">
-                            <img
-                                src="/logos/logo_full.svg"
-                                alt="NEXT Logo"
-                                className="h-10 w-auto object-contain brightness-0 invert"
-                            />
+                    <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <h2 className="font-display text-4xl lg:text-7xl font-extrabold text-white mb-8 tracking-[-0.05em] leading-[0.9] italic">
+                                PRONTO PARA O <br />
+                                <span className="not-italic">PRÓXIMO NÍVEL?</span>
+                            </h2>
+                            <p className="font-body text-white/80 text-xl font-medium leading-relaxed max-w-xl">
+                                Junte-se a mais de 1.200 barbearias que já transformaram seu negócio com o NEXT.
+                            </p>
                         </div>
-                        <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                            A plataforma completa para barbeiros que desejam escalar seu negócio e fidelizar clientes.
+                        <div className="flex flex-col sm:flex-row gap-6">
+                            <Link href="/register" className="flex-1">
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="w-full py-6 bg-white text-black font-body font-black uppercase text-[12px] tracking-[0.4em] rounded-[1.5rem] shadow-2xl transition-all flex items-center justify-center gap-4"
+                                >
+                                    Começar Agora <ArrowUpRight className="w-5 h-5" />
+                                </motion.button>
+                            </Link>
+                            <Link href="#pricing" className="flex-1">
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="w-full py-6 bg-transparent border-2 border-white/20 text-white hover:bg-white/5 font-body font-black uppercase text-[12px] tracking-[0.4em] rounded-[1.5rem] transition-all flex items-center justify-center gap-4"
+                                >
+                                    Ver Preços
+                                </motion.button>
+                            </Link>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
+            <div className="container mx-auto px-4 relative z-10">
+                <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-16 mb-24 border-t border-white/[0.06] pt-24">
+
+                    {/* Brand Column */}
+                    <div className="lg:col-span-2">
+                        <Link href="/" className="inline-block mb-10 group">
+                            <img src="/logos/logo_full.svg" alt="NEXT Logo" className="h-10 w-auto group-hover:scale-105 transition-transform" />
+                        </Link>
+                        <p className="font-body text-slate-500 text-lg font-medium leading-relaxed max-w-md mb-10">
+                            A plataforma definitiva para agendamento e gestão de barbearias. <br />
+                            Do barbeiro iniciante às grandes redes.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-black transition-all">
-                                <Instagram className="w-5 h-5" />
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-black transition-all">
-                                <Facebook className="w-5 h-5" />
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-black transition-all">
-                                <Twitter className="w-5 h-5" />
-                            </a>
-                        </div>
-
-                        {/* App Store Badges */}
-                        <div className="flex flex-col gap-3 mt-8">
-                            <p className="text-white font-bold text-sm">Baixe o App</p>
-                            <div className="flex gap-2">
-                                <button className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 px-3 flex items-center gap-2 transition-colors group">
-                                    <Apple className="w-5 h-5 text-white group-hover:text-primary transition-colors" />
-                                    <div className="text-left">
-                                        <div className="text-[8px] uppercase text-gray-400">Download on</div>
-                                        <div className="text-xs font-bold text-white leading-none">App Store</div>
-                                    </div>
-                                </button>
-                                <button className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 px-3 flex items-center gap-2 transition-colors group">
-                                    <PlayCircle className="w-5 h-5 text-white group-hover:text-primary transition-colors" />
-                                    <div className="text-left">
-                                        <div className="text-[8px] uppercase text-gray-400">Get it on</div>
-                                        <div className="text-xs font-bold text-white leading-none">Google Play</div>
-                                    </div>
-                                </button>
-                            </div>
+                            {[Instagram, Youtube, Facebook].map((Icon, i) => (
+                                <Link key={i} href="#" className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white hover:scale-110 transition-all duration-500">
+                                    <Icon className="w-5 h-5" />
+                                </Link>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Links 1 */}
+                    {/* Links Columns */}
                     <div>
-                        <h4 className="text-white font-bold mb-6">Produto</h4>
-                        <ul className="space-y-4 text-sm text-slate-400">
-                            <li><a href="#" className="hover:text-white transition-colors">Funcionalidades</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Planos</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Atualizações</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Para Franquias</a></li>
+                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">Produto</h4>
+                        <ul className="space-y-5">
+                            {['Agenda', 'Financeiro', 'WhatsApp', 'Ponto'].map((link, i) => (
+                                <li key={i}>
+                                    <Link href="#" className="font-body text-slate-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest">{link}</Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
-                    {/* Links 2 */}
                     <div>
-                        <h4 className="text-white font-bold mb-6">Empresa</h4>
-                        <ul className="space-y-4 text-sm text-slate-400">
-                            <li><a href="#" className="hover:text-white transition-colors">Sobre Nós</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Carreiras</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Contato</a></li>
+                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">Barbearia</h4>
+                        <ul className="space-y-5">
+                            {['Sobre o NEXT', 'Planos', 'Blog', 'Contato'].map((link, i) => (
+                                <li key={i}>
+                                    <Link href="#" className="font-body text-slate-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest">{link}</Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
-                    {/* Links 3 */}
                     <div>
-                        <h4 className="text-white font-bold mb-6">Legal</h4>
-                        <ul className="space-y-4 text-sm text-slate-400">
-                            <li><Link href="/termos" className="hover:text-white transition-colors">Termos de Uso</Link></li>
-                            <li><Link href="/privacidade" className="hover:text-white transition-colors">Privacidade</Link></li>
-                            <li><Link href="/privacidade#cookies" className="hover:text-white transition-colors">Cookies</Link></li>
+                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">Contato</h4>
+                        <ul className="space-y-6">
+                            <li className="flex items-start gap-4 group cursor-pointer">
+                                <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                                    <Mail className="w-4 h-4" />
+                                </div>
+                                <span className="font-body text-slate-400 text-sm font-bold group-hover:text-white transition-colors">contato@next.com</span>
+                            </li>
+                            <li className="flex items-start gap-4 group cursor-pointer">
+                                <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                                    <Phone className="w-4 h-4" />
+                                </div>
+                                <span className="font-body text-slate-400 text-sm font-bold group-hover:text-white transition-colors">0800 000 0000</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center bg-[#050505] gap-4">
-                    <p className="text-slate-500 text-sm">© 2024 NEXT SaaS. Todos os direitos reservados.</p>
-                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span>Feito com</span>
-                        <span className="text-red-500">♥</span>
-                        <span>para barbeiros.</span>
+                <div className="border-t border-white/[0.06] pt-12 flex flex-col md:flex-row justify-between items-center gap-10">
+                    <p className="font-body text-slate-600 text-[10px] font-black uppercase tracking-[0.3em]">
+                        © {currentYear} NEXT SISTEMAS. TODOS OS DIREITOS RESERVADOS.
+                    </p>
+                    <div className="flex gap-12">
+                        <Link href="#" className="font-body text-slate-600 hover:text-white text-[9px] font-black uppercase tracking-[0.3em] transition-colors">Políticas de Privacidade</Link>
+                        <Link href="#" className="font-body text-slate-600 hover:text-white text-[9px] font-black uppercase tracking-[0.3em] transition-colors">Termos de Uso</Link>
+                    </div>
+                    <div className="flex items-center gap-3 px-5 py-2 bg-white/[0.02] border border-white/[0.06] rounded-full">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="font-body text-[9px] font-black text-slate-500 uppercase tracking-[0.4em]">Status: Operacional</span>
                     </div>
                 </div>
             </div>

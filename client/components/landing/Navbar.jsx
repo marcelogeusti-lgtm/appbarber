@@ -19,7 +19,7 @@ export default function Navbar() {
     }, []);
 
     return (
-        <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-[#0A0A0B]/80 backdrop-blur-3xl border-b border-white/10 py-3 shadow-2xl' : 'bg-transparent py-5'}`}>
+        <nav className={`fixed top-0 w-full z-50 transition-all duration-700 ${isScrolled ? 'bg-[#0A0A0B]/80 backdrop-blur-3xl border-b border-white/[0.06] py-3 shadow-[0_4px_30px_rgba(0,0,0,0.3)]' : 'bg-transparent py-5'}`}>
             <div className="container mx-auto px-4 flex justify-between items-center">
 
                 {/* Logo */}
@@ -33,26 +33,12 @@ export default function Navbar() {
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex items-center gap-8">
-                    <Link href="#" className="group relative font-bold text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all">
-                        Home
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-500 group-hover:w-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.8)]"></span>
-                    </Link>
-                    <Link href="#start" className="group relative font-bold text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all">
-                        Sobre
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-500 group-hover:w-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.8)]"></span>
-                    </Link>
-                    <Link href="#features" className="group relative font-bold text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all">
-                        Funções
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-500 group-hover:w-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.8)]"></span>
-                    </Link>
-                    <Link href="#pricing" className="group relative font-bold text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all">
-                        Preços
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-500 group-hover:w-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.8)]"></span>
-                    </Link>
-                    <Link href="#" className="group relative font-bold text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all">
-                        Blog
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-500 group-hover:w-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.8)]"></span>
-                    </Link>
+                    {['Home', 'Sobre', 'Funções', 'Preços'].map((item, i) => (
+                        <Link key={i} href={['#', '#start', '#features', '#pricing'][i]} className="group relative font-medium text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all duration-300 font-body">
+                            {item}
+                            <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-gradient-to-r from-primary to-blue-400 transition-all duration-500 group-hover:w-full" />
+                        </Link>
+                    ))}
                 </div>
 
                 {/* Auth Buttons */}
@@ -96,10 +82,10 @@ export default function Navbar() {
                                 Preços
                             </Link>
                         </div>
-                        
+
                         <div className="space-y-4">
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-1">Acesso ao Sistema</p>
-                            
+
                             <div className="flex flex-col gap-3">
                                 <div className="grid grid-cols-2 gap-3">
                                     <Link href="/login" onClick={() => setIsOpen(false)} className="flex items-center justify-center py-4 px-2 border border-white/10 bg-white/5 hover:bg-white/10 rounded-xl text-[11px] font-black uppercase tracking-widest text-white transition-all">
