@@ -1,5 +1,5 @@
 import './globals.css';
-import { Outfit, Syne } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import clsx from 'clsx';
 import Providers from './providers';
 import { Toaster } from 'sonner';
@@ -8,15 +8,9 @@ import LoginModal from '../components/client-view/LoginModal';
 import RegisterModal from '../components/client-view/RegisterModal';
 import ForgotPasswordModal from '../components/client-view/ForgotPasswordModal';
 
-const outfit = Outfit({
+const inter = Inter({
     subsets: ['latin'],
-    variable: '--font-outfit',
-    display: 'swap',
-});
-
-const syne = Syne({
-    subsets: ['latin'],
-    variable: '--font-syne',
+    variable: '--font-inter',
     display: 'swap',
 });
 
@@ -34,7 +28,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en" className={clsx(outfit.variable, syne.variable)}>
+        <html lang="en" className={inter.variable}>
             <body className="min-h-screen bg-background font-body antialiased">
                 <main className="relative flex min-h-screen flex-col">
                     <Providers>
