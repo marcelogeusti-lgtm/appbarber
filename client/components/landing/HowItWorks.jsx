@@ -33,7 +33,7 @@ const steps = [
 export default function HowItWorks() {
     const [activeIndex, setActiveIndex] = useState(0);
 
-    // Auto-advance tabs every 5 seconds, resetting the interval automatically on activeIndex changes (manual click)
+    // Auto-advance tabs every 5.5 seconds, resetting the interval automatically on activeIndex changes (manual click)
     useEffect(() => {
         const interval = setInterval(() => {
             setActiveIndex((prev) => (prev + 1) % steps.length);
@@ -49,19 +49,19 @@ export default function HowItWorks() {
         <section id="start" className="py-32 bg-[#050505] relative overflow-hidden border-t border-white/[0.04]">
             {/* Background glowing lights */}
             <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-amber-500/[0.03] blur-[140px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-primary/[0.03] blur-[140px] rounded-full pointer-events-none" />
 
             <div className="container mx-auto px-4 relative z-10">
                 
                 {/* Section Header */}
                 <div className="max-w-3xl mb-24">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold font-body bg-white/[0.03] border border-white/[0.08] text-amber-500 tracking-[0.2em] uppercase mb-5">
-                        <Sparkles className="w-3.5 h-3.5" />
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold font-body bg-white/[0.03] border border-white/[0.08] text-primary tracking-[0.2em] uppercase mb-5">
+                        <Sparkles className="w-3.5 h-3.5 animate-pulse" />
                         <span>Experiência do Cliente</span>
                     </div>
                     <h2 className="font-display text-4xl lg:text-6xl font-extrabold text-white mb-6 tracking-[-0.04em] leading-[1.1]">
                         Agendamento em <br />
-                        <span className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 bg-clip-text text-transparent italic">4 Passos Simples.</span>
+                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">4 Passos Simples.</span>
                     </h2>
                     <p className="font-body text-gray-400 text-lg max-w-xl">
                         Veja na prática como é rápido e intuitivo para o seu cliente realizar um agendamento na sua vitrine digital.
@@ -88,7 +88,7 @@ export default function HowItWorks() {
                                     <div className="flex justify-between items-start gap-4">
                                         <div>
                                             <span className={`text-[10px] font-black uppercase tracking-[0.2em] font-body transition-colors duration-500 ${
-                                                isActive ? 'text-amber-500' : 'text-slate-500'
+                                                isActive ? 'text-primary' : 'text-slate-500'
                                             }`}>
                                                 {step.label}
                                             </span>
@@ -107,7 +107,7 @@ export default function HowItWorks() {
                                         </div>
                                         
                                         <span className={`text-[13px] font-mono tracking-wider font-black transition-colors duration-500 ${
-                                            isActive ? 'text-amber-500/25' : 'text-white/5'
+                                            isActive ? 'text-primary/25' : 'text-white/5'
                                         }`}>
                                             {step.num}
                                         </span>
@@ -118,7 +118,7 @@ export default function HowItWorks() {
                                         <div className="absolute bottom-0 left-0 h-[2px] bg-white/5 w-full">
                                             <div 
                                                 key={activeIndex} // dynamic key triggers animation reset perfectly on change
-                                                className="h-full bg-gradient-to-r from-amber-500 to-amber-400 w-full origin-left animate-progress"
+                                                className="h-full bg-gradient-to-r from-primary to-blue-400 w-full origin-left animate-progress"
                                             />
                                         </div>
                                     )}
@@ -132,7 +132,7 @@ export default function HowItWorks() {
                         <div className="relative">
                             
                             {/* Glow Behind Mobile */}
-                            <div className="absolute inset-0 bg-amber-500/10 blur-[80px] rounded-full -z-10 animate-pulse duration-[8s]" />
+                            <div className="absolute inset-0 bg-primary/10 blur-[80px] rounded-full -z-10 animate-pulse duration-[8s]" />
 
                             {/* Ultra High-Fidelity Phone Frame container */}
                             <div className="relative mx-auto h-[580px] w-[275px] sm:h-[620px] sm:w-[295px] shrink-0 rounded-[48px] border-[10px] border-[#151516] bg-black shadow-[0_40px_90px_-20px_rgba(0,0,0,0.95)] ring-1 ring-white/15 overflow-hidden">
@@ -174,7 +174,7 @@ export default function HowItWorks() {
                                                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                                     className="absolute inset-0 flex flex-col px-3 py-3"
                                                 >
-                                                    <span className="text-[10px] font-black uppercase text-amber-500/80 tracking-wider">Passo 1</span>
+                                                    <span className="text-[10px] font-black uppercase text-primary tracking-wider">Passo 1</span>
                                                     <h4 className="text-[14px] font-bold text-white font-display mt-0.5 mb-4">Escolha o Profissional</h4>
                                                     
                                                     {/* Barbers List */}
@@ -182,12 +182,12 @@ export default function HowItWorks() {
                                                         
                                                         {/* Selected Barber Card */}
                                                         <motion.div 
-                                                            animate={{ borderColor: ["rgba(255,255,255,0.04)", "rgba(245,158,11,0.4)", "rgba(245,158,11,0.4)"] }}
+                                                            animate={{ borderColor: ["rgba(255,255,255,0.04)", "rgba(77,114,228,0.4)", "rgba(77,114,228,0.4)"] }}
                                                             transition={{ delay: 1.2, duration: 0.8 }}
                                                             className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] transition-all"
                                                         >
                                                             <div className="flex items-center gap-3">
-                                                                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 to-amber-700 flex items-center justify-center text-white text-[11px] font-black font-mono shadow-md">
+                                                                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-white text-[11px] font-black font-mono shadow-md">
                                                                     MS
                                                                 </div>
                                                                 <div>
@@ -241,9 +241,9 @@ export default function HowItWorks() {
                                                         initial={{ x: 120, y: 150, opacity: 0 }}
                                                         animate={{ x: 200, y: 35, opacity: [0, 1, 1, 0] }}
                                                         transition={{ delay: 0.4, duration: 1.2, ease: "easeInOut" }}
-                                                        className="absolute w-5 h-5 rounded-full bg-amber-500/40 border border-amber-400 flex items-center justify-center shadow-lg pointer-events-none z-40"
+                                                        className="absolute w-5 h-5 rounded-full bg-primary/40 border border-primary flex items-center justify-center shadow-lg pointer-events-none z-40"
                                                     >
-                                                        <div className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
+                                                        <div className="w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
                                                     </motion.div>
                                                 </motion.div>
                                             )}
@@ -258,7 +258,7 @@ export default function HowItWorks() {
                                                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                                     className="absolute inset-0 flex flex-col px-3 py-3"
                                                 >
-                                                    <span className="text-[10px] font-black uppercase text-amber-500/80 tracking-wider">Passo 2</span>
+                                                    <span className="text-[10px] font-black uppercase text-primary tracking-wider">Passo 2</span>
                                                     <h4 className="text-[14px] font-bold text-white font-display mt-0.5 mb-1">Escolha o Serviço</h4>
                                                     <p className="text-[9px] text-slate-500 font-body mb-3">Profissional: Marcos Silva</p>
                                                     
@@ -276,20 +276,20 @@ export default function HowItWorks() {
 
                                                         {/* Service 2: Selected Combo */}
                                                         <motion.div 
-                                                            animate={{ borderColor: ["rgba(255,255,255,0.02)", "rgba(245,158,11,0.4)", "rgba(245,158,11,0.4)"] }}
+                                                            animate={{ borderColor: ["rgba(255,255,255,0.02)", "rgba(77,114,228,0.4)", "rgba(77,114,228,0.4)"] }}
                                                             transition={{ delay: 1.2, duration: 0.8 }}
                                                             className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.02] relative"
                                                         >
-                                                            <div className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400">
+                                                            <div className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
                                                                 <Check className="w-2.5 h-2.5 stroke-[3px]" />
                                                             </div>
                                                             
                                                             <div className="flex justify-between items-start pr-5">
                                                                 <div>
-                                                                    <span className="text-[7px] font-black uppercase text-amber-500 tracking-wider bg-amber-500/10 px-1.5 py-0.5 rounded-full">Popular</span>
+                                                                    <span className="text-[7px] font-black uppercase text-primary tracking-wider bg-primary/10 px-1.5 py-0.5 rounded-full">Popular</span>
                                                                     <p className="text-[10px] font-bold text-white font-body mt-1">Combo Imperador</p>
                                                                 </div>
-                                                                <p className="text-[10px] font-bold text-amber-400 font-mono">R$ 75,00</p>
+                                                                <p className="text-[10px] font-bold text-primary font-mono">R$ 75,00</p>
                                                             </div>
                                                             <p className="text-[8px] text-slate-400 mt-1 font-body">Corte moderno + Barba navalhada + Toalha quente e massagem facial.</p>
                                                         </motion.div>
@@ -309,9 +309,9 @@ export default function HowItWorks() {
                                                         initial={{ x: 220, y: 30, opacity: 0 }}
                                                         animate={{ x: 200, y: 110, opacity: [0, 1, 1, 0] }}
                                                         transition={{ delay: 0.4, duration: 1.2, ease: "easeInOut" }}
-                                                        className="absolute w-5 h-5 rounded-full bg-amber-500/40 border border-amber-400 flex items-center justify-center shadow-lg pointer-events-none z-40"
+                                                        className="absolute w-5 h-5 rounded-full bg-primary/40 border border-primary flex items-center justify-center shadow-lg pointer-events-none z-40"
                                                     >
-                                                        <div className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
+                                                        <div className="w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
                                                     </motion.div>
                                                 </motion.div>
                                             )}
@@ -326,7 +326,7 @@ export default function HowItWorks() {
                                                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                                     className="absolute inset-0 flex flex-col px-3 py-3"
                                                 >
-                                                    <span className="text-[10px] font-black uppercase text-amber-500/80 tracking-wider">Passo 3</span>
+                                                    <span className="text-[10px] font-black uppercase text-primary tracking-wider">Passo 3</span>
                                                     <h4 className="text-[14px] font-bold text-white font-display mt-0.5 mb-1">Selecione Data e Hora</h4>
                                                     <p className="text-[9px] text-slate-500 font-body mb-3">Serviço: Combo Imperador</p>
                                                     
@@ -337,11 +337,11 @@ export default function HowItWorks() {
                                                             <p className="text-[10px] font-bold text-white font-mono mt-0.5">27</p>
                                                         </div>
                                                         <motion.div 
-                                                            animate={{ borderColor: ["rgba(255,255,255,0.04)", "rgba(245,158,11,0.4)"] }}
+                                                            animate={{ borderColor: ["rgba(255,255,255,0.04)", "rgba(77,114,228,0.4)"] }}
                                                             transition={{ delay: 0.8 }}
                                                             className="flex-1 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.04] text-center"
                                                         >
-                                                            <p className="text-[7px] text-amber-500 font-bold font-body">Sáb</p>
+                                                            <p className="text-[7px] text-primary font-bold font-body">Sáb</p>
                                                             <p className="text-[10px] font-bold text-white font-mono mt-0.5">28</p>
                                                         </motion.div>
                                                         <div className="flex-1 py-1.5 rounded-xl bg-white/[0.01] border border-white/[0.04] text-center opacity-40">
@@ -364,9 +364,9 @@ export default function HowItWorks() {
                                                         {/* Selected Hour Slot */}
                                                         <motion.div 
                                                             animate={{ 
-                                                                backgroundColor: ["rgba(255,255,255,0.02)", "rgba(245,158,11,1)"],
-                                                                color: ["#ffffff", "#000000"],
-                                                                borderColor: ["rgba(255,255,255,0.04)", "rgba(245,158,11,1)"]
+                                                                backgroundColor: ["rgba(255,255,255,0.02)", "rgba(77,114,228,1)"],
+                                                                color: ["#ffffff", "#ffffff"],
+                                                                borderColor: ["rgba(255,255,255,0.04)", "rgba(77,114,228,1)"]
                                                             }}
                                                             transition={{ delay: 1.2, duration: 0.6 }}
                                                             className="py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center flex items-center justify-center gap-1 font-bold text-white"
@@ -386,9 +386,9 @@ export default function HowItWorks() {
                                                         initial={{ x: 50, y: 50, opacity: 0 }}
                                                         animate={{ x: 130, y: 135, opacity: [0, 1, 1, 0] }}
                                                         transition={{ delay: 0.4, duration: 1.2, ease: "easeInOut" }}
-                                                        className="absolute w-5 h-5 rounded-full bg-amber-500/40 border border-amber-400 flex items-center justify-center shadow-lg pointer-events-none z-40"
+                                                        className="absolute w-5 h-5 rounded-full bg-primary/40 border border-primary flex items-center justify-center shadow-lg pointer-events-none z-40"
                                                     >
-                                                        <div className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
+                                                        <div className="w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
                                                     </motion.div>
                                                 </motion.div>
                                             )}
@@ -412,12 +412,12 @@ export default function HowItWorks() {
                                                             initial={{ scale: 0 }}
                                                             animate={{ scale: 1 }}
                                                             transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
-                                                            className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500 flex items-center justify-center text-amber-500 mb-4 shadow-[0_0_20px_rgba(245,158,11,0.2)] animate-pulse"
+                                                            className="w-14 h-14 rounded-full bg-primary/10 border border-primary flex items-center justify-center text-primary mb-4 shadow-[0_0_20px_rgba(77,114,228,0.2)] animate-pulse"
                                                         >
                                                             <Check className="w-7 h-7 stroke-[3px]" />
                                                         </motion.div>
                                                         
-                                                        <span className="text-[9px] font-black uppercase text-amber-500/80 tracking-widest font-body">Tudo Pronto!</span>
+                                                        <span className="text-[9px] font-black uppercase text-primary/80 tracking-widest font-body">Tudo Pronto!</span>
                                                         <h4 className="text-[15px] font-bold text-white font-display mt-1">Horário Agendado</h4>
                                                         
                                                         {/* Summary card */}
@@ -426,13 +426,13 @@ export default function HowItWorks() {
                                                             <p className="text-[10px] font-bold text-white font-body">Marcos Silva</p>
                                                             
                                                             <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider font-body mt-2">Data & Hora</p>
-                                                            <p className="text-[10px] font-bold text-amber-400 font-mono">Sáb, 28 Mai às 14:30</p>
+                                                            <p className="text-[10px] font-bold text-primary font-mono">Sáb, 28 Mai às 14:30</p>
                                                         </div>
                                                     </div>
 
                                                     {/* Bottom badge */}
                                                     <div className="text-[8px] text-slate-500 font-body flex items-center gap-1.5 justify-center py-1.5 px-3 rounded-full bg-white/[0.02] border border-white/[0.04]">
-                                                        <ShieldCheck className="w-3.5 h-3.5 text-amber-500/65" />
+                                                        <ShieldCheck className="w-3.5 h-3.5 text-primary/65" />
                                                         <span>Agendamento Criptografado</span>
                                                     </div>
 
