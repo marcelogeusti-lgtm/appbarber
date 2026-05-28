@@ -113,7 +113,7 @@ export default function Testimonials() {
             <div className="container mx-auto px-4 relative z-10 mb-20">
                 {/* Section Title */}
                 <div className="text-center max-w-3xl mx-auto">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold font-body bg-white/[0.03] border border-white/[0.08] text-primary tracking-[0.2em] uppercase mb-5 animate-pulse">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold font-body bg-white/[0.03] border border-white/[0.08] text-primary tracking-[0.2em] uppercase mb-5">
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>Depoimentos Reais</span>
                     </div>
@@ -132,27 +132,27 @@ export default function Testimonials() {
                 
                 {/* ROW 1: Moves Left */}
                 <div className="flex gap-6 overflow-hidden w-full relative group">
-                    <div className="flex gap-6 shrink-0 animate-marquee hover:[animation-play-state:paused] duration-[35s]">
+                    <div className="flex gap-6 shrink-0 animate-marquee">
                         {row1.map((t, idx) => renderCard(t, `r1-a-${idx}`))}
                     </div>
-                    <div className="flex gap-6 shrink-0 animate-marquee hover:[animation-play-state:paused] duration-[35s]" aria-hidden="true">
+                    <div className="flex gap-6 shrink-0 animate-marquee" aria-hidden="true">
                         {row1.map((t, idx) => renderCard(t, `r1-b-${idx}`))}
                     </div>
                 </div>
 
                 {/* ROW 2: Moves Right */}
                 <div className="flex gap-6 overflow-hidden w-full relative group">
-                    <div className="flex gap-6 shrink-0 animate-marquee-reverse hover:[animation-play-state:paused] duration-[35s]">
+                    <div className="flex gap-6 shrink-0 animate-marquee-reverse">
                         {row2.map((t, idx) => renderCard(t, `r2-a-${idx}`))}
                     </div>
-                    <div className="flex gap-6 shrink-0 animate-marquee-reverse hover:[animation-play-state:paused] duration-[35s]" aria-hidden="true">
+                    <div className="flex gap-6 shrink-0 animate-marquee-reverse" aria-hidden="true">
                         {row2.map((t, idx) => renderCard(t, `r2-b-${idx}`))}
                     </div>
                 </div>
 
             </div>
 
-            {/* Embedded Marquee keyframe styles */}
+            {/* Embedded Marquee keyframe styles with explicit 35s scrolling duration */}
             <style>{`
                 @keyframes marquee {
                     0% { transform: translateX(0); }
@@ -163,10 +163,15 @@ export default function Testimonials() {
                     100% { transform: translateX(0); }
                 }
                 .animate-marquee {
-                    animation: marquee linear infinite;
+                    animation: marquee 35s linear infinite;
                 }
                 .animate-marquee-reverse {
-                    animation: marquee-reverse linear infinite;
+                    animation: marquee-reverse 35s linear infinite;
+                }
+                .animate-marquee:hover, 
+                .animate-marquee-reverse:hover {
+                    animation-play-state: paused;
+                    cursor: grab;
                 }
             `}</style>
         </section>
