@@ -11,6 +11,7 @@ import ComparisonMatrix from '../components/landing/ComparisonMatrix';
 import PerspectiveCTA from '../components/landing/PerspectiveCTA';
 import PremiumExperience from '../components/landing/PremiumExperience';
 import Features from '../components/landing/Features';
+import Testimonials from '../components/landing/Testimonials';
 import Pricing from '../components/landing/Pricing';
 import MainDashboardShowcase from '../components/landing/MainDashboardShowcase';
 import CheckoutShowcase from '../components/landing/CheckoutShowcase';
@@ -37,6 +38,7 @@ export default function Home() {
                 <PremiumExperience />
                 <CheckoutShowcase />
                 <Features />
+                <Testimonials />
                 <Pricing />
                 <PerspectiveCTA />
                 <Footer />
