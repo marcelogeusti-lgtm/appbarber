@@ -1,9 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, Star, Sparkles } from 'lucide-react';
-import RollingNotificationFeed from './RollingNotificationFeed';
+import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
-import LEDCardWrapper from './LEDCardWrapper';
 
 export default function Hero() {
     const containerVariants = {
@@ -20,7 +18,22 @@ export default function Hero() {
     };
 
     return (
-        <section className="relative flex items-center pt-32 pb-20 overflow-hidden bg-[#050505]">
+        <section className="relative flex items-center pt-32 pb-20 overflow-hidden bg-[#050505] min-h-[90vh]">
+
+            {/* Background Video */}
+            <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
+            >
+                <source src="/hero-bg.mp4" type="video/mp4" />
+            </video>
+
+            {/* Dark Mask Overlay for Premium Readability (Booksy Style) */}
+            <div className="absolute inset-0 bg-[#050505]/70 mix-blend-multiply z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/50 via-transparent to-[#050505] z-0 pointer-events-none" />
 
             {/* Premium Background: Animated Orbs */}
             <motion.div
@@ -78,7 +91,7 @@ export default function Hero() {
 
                         {/* Subheadline — secondary-text Equivalent */}
                         <motion.p variants={itemVariants} className="font-body text-base text-slate-400 mb-10 leading-[1.6] max-w-lg font-normal opacity-90">
-                            Zere a falta de clientes. O NEXT é o único sistema que agenda, cobra antecipado e traz seu cliente de volta no piloto automático enquanto você corta.
+                            Zere a falta de clientes. O NEXT é o único sistema que agenda, cobra antecipado e traz seu client de volta no piloto automático enquanto você corta.
                         </motion.p>
 
                         {/* CTAs */}
@@ -143,54 +156,6 @@ export default function Hero() {
                                 </div>
                             ))}
                         </motion.div>
-                    </motion.div>
-
-                    {/* Right Visual / Dashboard Mockup */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 60, filter: 'blur(10px)' }}
-                        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                        transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                        className="relative hidden lg:block"
-                    >
-                        <div className="relative z-20 group">
-                            {/* Decorative Glow */}
-                            <div className="absolute -inset-8 bg-primary/10 blur-[60px] rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-
-                            <LEDCardWrapper className="rounded-2xl">
-                                <div className="rounded-2xl bg-[#0A0A0B]/90 backdrop-blur-2xl border border-white/[0.08] shadow-[0_60px_120px_rgba(0,0,0,0.6)] p-4 relative overflow-hidden transition-all duration-700 hover:scale-[1.015] hover:border-white/15">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-400 to-primary shadow-[0_0_20px_#4d72e4]" />
-
-                                    {/* Window Header */}
-                                    <div className="flex items-center justify-between mb-6 px-5 pt-4">
-                                        <div className="flex gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-[#FF5F57]/20 border border-[#FF5F57]/30" />
-                                            <div className="w-3 h-3 rounded-full bg-[#FEBC2E]/20 border border-[#FEBC2E]/30" />
-                                            <div className="w-3 h-3 rounded-full bg-[#28C840]/20 border border-[#28C840]/30" />
-                                        </div>
-                                        <div className="px-4 py-1.5 bg-white/[0.03] rounded-full flex items-center gap-2 border border-white/[0.06]">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_#22c55e]" />
-                                            <span className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.2em] font-body">Ativo</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Dashboard Screenshot */}
-                                    <div className="rounded-xl border border-white/[0.06] overflow-hidden bg-black relative aspect-[14/9] group/img shadow-inner">
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-primary/8 via-transparent to-transparent pointer-events-none z-10" />
-                                        <img
-                                            src="/screenshots/dashboard-overview.png"
-                                            alt="NexApp Dashboard"
-                                            className="w-full h-full object-cover object-top transition-transform duration-[1.5s] group-hover/img:scale-[1.04]"
-                                        />
-                                        <div className="absolute inset-0 bg-black/15 group-hover/img:bg-transparent transition-colors duration-700" />
-                                    </div>
-                                </div>
-                            </LEDCardWrapper>
-
-                            {/* Rolling Notification Feed */}
-                            <div className="absolute -left-12 bottom-0 z-30">
-                                <RollingNotificationFeed />
-                            </div>
-                        </div>
                     </motion.div>
 
                 </div>
