@@ -29,6 +29,20 @@ const row1 = [
         initials: "BC",
         bg: "from-amber-500 to-orange-600",
         text: "A função de múltiplos profissionais dividindo a agenda com painéis individuais mudou o jogo da nossa barbearia. Visualização limpa e profissional."
+    },
+    {
+        name: "Lucas Silveira",
+        role: "Dono - Barbearia Corleone, RJ",
+        initials: "LS",
+        bg: "from-cyan-500 to-blue-600",
+        text: "O link de agendamento online é extremamente rápido. Meus clientes elogiam muito a facilidade de agendar pelo celular em segundos."
+    },
+    {
+        name: "Marcos Souza",
+        role: "Proprietário - Club Men Salon, MG",
+        initials: "MS",
+        bg: "from-blue-600 to-indigo-700",
+        text: "Subimos o ticket médio da barbearia oferecendo combos pelo sistema. O cliente vê os combos na hora de agendar e acaba escolhendo."
     }
 ];
 
@@ -60,16 +74,34 @@ const row2 = [
         initials: "RM",
         bg: "from-cyan-500 to-blue-600",
         text: "O NEXT roda liso no celular, tablet e computador. Gerencio minhas duas unidades de qualquer lugar do mundo pelo celular com total segurança."
+    },
+    {
+        name: "Amanda Costa",
+        role: "Dona - Barber & Beauty, PE",
+        initials: "AC",
+        bg: "from-emerald-600 to-green-700",
+        text: "Os lembretes automáticos reduzem o no-show de forma drástica. O cliente recebe o link de cancelamento se precisar, liberando o horário."
+    },
+    {
+        name: "Gustavo Santos",
+        role: "Proprietário - Santo Bigode, CE",
+        initials: "GS",
+        bg: "from-orange-500 to-red-600",
+        text: "Excelente custo-benefício. O sistema se paga no primeiro dia com a economia de tempo e a redução de faltas dos clientes."
     }
 ];
 
 export default function Testimonials() {
     
-    // Render a single testimonial card
+    // Duplicate arrays to double the items in the scrolling container, making it a 50% translation loop
+    const row1Double = [...row1, ...row1];
+    const row2Double = [...row2, ...row2];
+
+    // Render a single testimonial card with mr-6 for pixel-perfect spacing
     const renderCard = (t, i) => (
         <div 
             key={i} 
-            className="w-[310px] sm:w-[360px] shrink-0 p-6 rounded-[24px] bg-[#0A0A0C]/90 border border-white/[0.04] backdrop-blur-xl hover:border-primary/20 hover:bg-[#0E0E12]/80 transition-all duration-300 relative select-none"
+            className="w-[310px] sm:w-[360px] shrink-0 p-6 rounded-[24px] bg-[#0A0A0C]/90 border border-white/[0.04] backdrop-blur-xl hover:border-primary/20 hover:bg-[#0E0E12]/80 transition-all duration-300 relative select-none mr-6"
         >
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
@@ -131,42 +163,36 @@ export default function Testimonials() {
             <div className="flex flex-col gap-6 relative w-full overflow-hidden py-4 select-none">
                 
                 {/* ROW 1: Moves Left */}
-                <div className="flex gap-6 overflow-hidden w-full relative group">
-                    <div className="flex gap-6 shrink-0 animate-marquee">
-                        {row1.map((t, idx) => renderCard(t, `r1-a-${idx}`))}
-                    </div>
-                    <div className="flex gap-6 shrink-0 animate-marquee" aria-hidden="true">
-                        {row1.map((t, idx) => renderCard(t, `r1-b-${idx}`))}
+                <div className="flex overflow-hidden w-full relative group">
+                    <div className="flex shrink-0 animate-marquee">
+                        {row1Double.map((t, idx) => renderCard(t, `r1-${idx}`))}
                     </div>
                 </div>
 
                 {/* ROW 2: Moves Right */}
-                <div className="flex gap-6 overflow-hidden w-full relative group">
-                    <div className="flex gap-6 shrink-0 animate-marquee-reverse">
-                        {row2.map((t, idx) => renderCard(t, `r2-a-${idx}`))}
-                    </div>
-                    <div className="flex gap-6 shrink-0 animate-marquee-reverse" aria-hidden="true">
-                        {row2.map((t, idx) => renderCard(t, `r2-b-${idx}`))}
+                <div className="flex overflow-hidden w-full relative group">
+                    <div className="flex shrink-0 animate-marquee-reverse">
+                        {row2Double.map((t, idx) => renderCard(t, `r2-${idx}`))}
                     </div>
                 </div>
 
             </div>
 
-            {/* Embedded Marquee keyframe styles with explicit 35s scrolling duration */}
+            {/* Embedded Marquee keyframe styles with 20s duration and -50% translation loop */}
             <style>{`
                 @keyframes marquee {
                     0% { transform: translateX(0); }
-                    100% { transform: translateX(-100%); }
+                    100% { transform: translateX(-50%); }
                 }
                 @keyframes marquee-reverse {
-                    0% { transform: translateX(-100%); }
+                    0% { transform: translateX(-50%); }
                     100% { transform: translateX(0); }
                 }
                 .animate-marquee {
-                    animation: marquee 35s linear infinite;
+                    animation: marquee 20s linear infinite;
                 }
                 .animate-marquee-reverse {
-                    animation: marquee-reverse 35s linear infinite;
+                    animation: marquee-reverse 20s linear infinite;
                 }
                 .animate-marquee:hover, 
                 .animate-marquee-reverse:hover {
