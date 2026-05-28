@@ -13,7 +13,6 @@ import PremiumExperience from '../components/landing/PremiumExperience';
 import Features from '../components/landing/Features';
 import Pricing from '../components/landing/Pricing';
 import MainDashboardShowcase from '../components/landing/MainDashboardShowcase';
-import ProblemSolution from '../components/landing/ProblemSolution';
 import CheckoutShowcase from '../components/landing/CheckoutShowcase';
 import Footer from '../components/landing/Footer';
 
@@ -29,7 +28,6 @@ export default function Home() {
                 <Navbar />
                 <Hero />
                 <StatsCounter />
-                <ProblemSolution />
                 <VCLSection />
                 <ProductShowcase />
                 <HowItWorks />
