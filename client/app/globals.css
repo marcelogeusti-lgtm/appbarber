@@ -420,3 +420,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   animation: gradient-shift 3s ease infinite;
   cursor: pointer;
 }
+
+/* ── Marquee animations ── */
+@keyframes marqueeLeft {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes marqueeRight {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}

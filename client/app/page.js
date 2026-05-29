@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/landing/Navbar';
 import Hero from '../components/landing/Hero';
+import Marquee from '../components/landing/Marquee';
 import VCLSection from '../components/landing/VCLSection';
-import StatsCounter from '../components/landing/StatsCounter';
 import WhatsAppHighlight from '../components/landing/WhatsAppHighlight';
 import ProductShowcase from '../components/landing/ProductShowcase';
 import HowItWorks from '../components/landing/HowItWorks';
@@ -29,7 +29,7 @@ export default function Home() {
             <div className="relative z-10">
                 <Navbar />
                 <Hero />
-                <StatsCounter />
+                <Marquee />
                 <VCLSection />
                 <ProductShowcase />
                 <HowItWorks />
