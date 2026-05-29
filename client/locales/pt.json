@@ -261,7 +261,11 @@
     "video_title_highlight": "Sucesso",
     "video_description": "Veja como barbearias de todo o Brasil estão transformando sua gestão com nossa plataforma.",
     "video_overlay_title": "A Revolução na Gestão",
-    "video_overlay_subtitle": "Assista ao depoimento completo"
+    "video_overlay_subtitle": "Assista ao depoimento completo",
+    "faq_label": "Perguntas Frequentes",
+    "faq_headline": "Respostas rápidas.",
+    "faq_desc": "Tudo que você precisa saber sobre o sistema e os planos. Não encontrou o que procurava? Nossa equipe está pronta para te ajudar.",
+    "faq_contact": "Falar com suporte"
   },
   "group2": {
     "ProblemSolution": {

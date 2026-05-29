@@ -261,7 +261,11 @@
     "video_title_highlight": "Éxito",
     "video_description": "Vea cómo las barberías de todo Brasil están transformando su gestión con nuestra plataforma.",
     "video_overlay_title": "La Revolución en la Gestión",
-    "video_overlay_subtitle": "Mira el testimonio completo"
+    "video_overlay_subtitle": "Mira el testimonio completo",
+    "faq_label": "Preguntas Frecuentes",
+    "faq_headline": "Respuestas rápidas.",
+    "faq_desc": "Todo lo que necesitas saber sobre el sistema y los planes. ¿No encontraste lo que buscabas? Nuestro equipo está listo para ayudarte.",
+    "faq_contact": "Hablar con soporte"
   },
   "group2": {
     "ProblemSolution": {

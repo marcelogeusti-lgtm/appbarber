@@ -265,7 +265,11 @@ const translations = {
     "video_title_highlight": "Sucesso",
     "video_description": "Veja como barbearias de todo o Brasil estão transformando sua gestão com nossa plataforma.",
     "video_overlay_title": "A Revolução na Gestão",
-    "video_overlay_subtitle": "Assista ao depoimento completo"
+    "video_overlay_subtitle": "Assista ao depoimento completo",
+    "faq_label": "Perguntas Frequentes",
+    "faq_headline": "Respostas rápidas.",
+    "faq_desc": "Tudo que você precisa saber sobre o sistema e os planos. Não encontrou o que procurava? Nossa equipe está pronta para te ajudar.",
+    "faq_contact": "Falar com suporte"
   },
   "group2": {
     "ProblemSolution": {
@@ -738,7 +742,11 @@ const translations = {
     "video_title_highlight": "Case",
     "video_description": "See how barbershops all over Brazil are transforming their management with our platform.",
     "video_overlay_title": "The Management Revolution",
-    "video_overlay_subtitle": "Watch the full testimonial"
+    "video_overlay_subtitle": "Watch the full testimonial",
+    "faq_label": "Frequently Asked Questions",
+    "faq_headline": "Quick answers.",
+    "faq_desc": "Everything you need to know about the system and plans. Didn't find what you were looking for? Our team is ready to help.",
+    "faq_contact": "Talk to support"
   },
   "group2": {
     "ProblemSolution": {
@@ -1211,7 +1219,11 @@ const translations = {
     "video_title_highlight": "Éxito",
     "video_description": "Vea cómo las barberías de todo Brasil están transformando su gestión con nuestra plataforma.",
     "video_overlay_title": "La Revolución en la Gestión",
-    "video_overlay_subtitle": "Mira el testimonio completo"
+    "video_overlay_subtitle": "Mira el testimonio completo",
+    "faq_label": "Preguntas Frecuentes",
+    "faq_headline": "Respuestas rápidas.",
+    "faq_desc": "Todo lo que necesitas saber sobre el sistema y los planes. ¿No encontraste lo que buscabas? Nuestro equipo está listo para ayudarte.",
+    "faq_contact": "Hablar con soporte"
   },
   "group2": {
     "ProblemSolution": {

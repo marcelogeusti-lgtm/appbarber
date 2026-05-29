@@ -261,7 +261,11 @@
     "video_title_highlight": "Case",
     "video_description": "See how barbershops all over Brazil are transforming their management with our platform.",
     "video_overlay_title": "The Management Revolution",
-    "video_overlay_subtitle": "Watch the full testimonial"
+    "video_overlay_subtitle": "Watch the full testimonial",
+    "faq_label": "Frequently Asked Questions",
+    "faq_headline": "Quick answers.",
+    "faq_desc": "Everything you need to know about the system and plans. Didn't find what you were looking for? Our team is ready to help.",
+    "faq_contact": "Talk to support"
   },
   "group2": {
     "ProblemSolution": {
