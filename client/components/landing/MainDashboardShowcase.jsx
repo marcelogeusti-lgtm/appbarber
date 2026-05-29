@@ -3,7 +3,11 @@ import { TrendingUp, Users, Calendar, DollarSign } from 'lucide-react';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
 
+import { useTranslation } from '../../contexts/LanguageContext';
+
 export default function MainDashboardShowcase() {
+    const { t } = useTranslation();
+
     return (
         <section className="py-32 bg-[#050505] relative overflow-hidden border-y border-white/[0.06]">
             {/* Background Grain & Glow */}
@@ -19,11 +23,11 @@ export default function MainDashboardShowcase() {
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
                         <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
-                            O Painel de Controle <br />
-                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">do Seu Império.</span>
+                            {t('group2.MainDashboardShowcase.titlePart1')} <br />
+                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group2.MainDashboardShowcase.titlePart2')}</span>
                         </h2>
                         <p className="font-body secondary-text font-medium max-w-3xl mx-auto">
-                            Uma interface limpa e poderosa. Tenha visão total do seu faturamento, agenda e desempenho da equipe em tempo real, sem planilhas confusas.
+                            {t('group2.MainDashboardShowcase.subtitle')}
                         </p>
                     </motion.div>
                 </div>
@@ -55,7 +59,7 @@ export default function MainDashboardShowcase() {
                                     <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
                                     <img
                                         src="/screenshots/dashboard-overview.png"
-                                        alt="Dashboard Central"
+                                        alt={t('group2.MainDashboardShowcase.imgAlt')}
                                         className="w-full h-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
                                     />
                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-1000" />
@@ -74,8 +78,8 @@ export default function MainDashboardShowcase() {
                             <DollarSign className="w-7 h-7" />
                         </div>
                         <div className="text-left">
-                            <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none mb-2">Faturamento</p>
-                            <p className="font-display text-2xl font-black text-white leading-none tracking-tighter tabular-nums">R$ 18.420</p>
+                            <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none mb-2">{t('group2.MainDashboardShowcase.revenue')}</p>
+                            <p className="font-display text-2xl font-black text-white leading-none tracking-tighter tabular-nums">{t('group2.MainDashboardShowcase.revenueValue')}</p>
                         </div>
                     </motion.div>
 
@@ -88,8 +92,8 @@ export default function MainDashboardShowcase() {
                             <Calendar className="w-7 h-7" />
                         </div>
                         <div className="text-left">
-                            <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none mb-2">Agendamentos</p>
-                            <p className="font-display text-2xl font-black text-white leading-none tracking-tighter tabular-nums">42 Hoje</p>
+                            <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none mb-2">{t('group2.MainDashboardShowcase.appointments')}</p>
+                            <p className="font-display text-2xl font-black text-white leading-none tracking-tighter tabular-nums">{t('group2.MainDashboardShowcase.appointmentsValue')}</p>
                         </div>
                     </motion.div>
                 </div>
@@ -97,10 +101,10 @@ export default function MainDashboardShowcase() {
                 {/* Stats Grid Under Image */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 max-w-5xl mx-auto mt-32">
                     {[
-                        { label: 'Lucro Previsto', val: 'R$ 18.420', color: 'emerald' },
-                        { label: 'Ranking Equipe', val: 'Felipe M.', color: 'blue' },
-                        { label: 'Ticket Médio', val: 'R$ 64,00', color: 'indigo' },
-                        { label: 'Taxa Retorno', val: '84%', color: 'rose' }
+                        { label: t('group2.MainDashboardShowcase.expectedProfit'), val: t('group2.MainDashboardShowcase.expectedProfitValue'), color: 'emerald' },
+                        { label: t('group2.MainDashboardShowcase.teamRanking'), val: t('group2.MainDashboardShowcase.teamRankingValue'), color: 'blue' },
+                        { label: t('group2.MainDashboardShowcase.avgTicket'), val: t('group2.MainDashboardShowcase.avgTicketValue'), color: 'indigo' },
+                        { label: t('group2.MainDashboardShowcase.returnRate'), val: t('group2.MainDashboardShowcase.returnRateValue'), color: 'rose' }
                     ].map((stat, i) => (
                         <motion.div
                             key={i}

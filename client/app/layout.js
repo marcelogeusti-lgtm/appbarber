@@ -7,6 +7,7 @@ import FcmManager from '../components/FcmManager';
 import LoginModal from '../components/client-view/LoginModal';
 import RegisterModal from '../components/client-view/RegisterModal';
 import ForgotPasswordModal from '../components/client-view/ForgotPasswordModal';
+import { LanguageProvider } from '../contexts/LanguageContext';
 
 const inter = Inter({
     subsets: ['latin'],
@@ -31,14 +32,16 @@ export default function RootLayout({ children }) {
         <html lang="en" className={inter.variable}>
             <body className="min-h-screen bg-background font-body antialiased">
                 <main className="relative flex min-h-screen flex-col">
-                    <Providers>
-                        <FcmManager />
-                        <LoginModal />
-                        <RegisterModal />
-                        <ForgotPasswordModal />
-                        {children}
-                        <Toaster richColors position="top-center" />
-                    </Providers>
+                    <LanguageProvider>
+                        <Providers>
+                            <FcmManager />
+                            <LoginModal />
+                            <RegisterModal />
+                            <ForgotPasswordModal />
+                            {children}
+                            <Toaster richColors position="top-center" />
+                        </Providers>
+                    </LanguageProvider>
                 </main>
             </body>
         </html>

@@ -3,27 +3,42 @@ import { TrendingUp, Calendar, Zap, Smartphone, Check, ArrowRight, Star } from '
 import Link from 'next/link';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function ProductShowcase() {
+    const { t } = useTranslation();
+
     const sections = [
         {
-            title: "Agenda Maestro: Controle Total",
-            desc: "Visualize toda a sua operação em segundos. Arraste e solte agendamentos, gerencie profissionais e elimine o papel definitivamente.",
+            title: t('group3.productShowcase.sections.0.title'),
+            desc: t('group3.productShowcase.sections.0.desc'),
             isAgenda: true,
-            features: ["Visão Diária/Semanal Pro", "Bloqueio de Horas Inteligente", "Sincronização Cloud"]
+            features: [
+                t('group3.productShowcase.sections.0.features.0'),
+                t('group3.productShowcase.sections.0.features.1'),
+                t('group3.productShowcase.sections.0.features.2')
+            ]
         },
         {
-            title: "As métricas que importam",
-            desc: "Decisões baseadas em dados, não em palpites. Acompanhe seu ticket médio, taxa de retenção e faturamento bruto com gráficos intuitivos.",
+            title: t('group3.productShowcase.sections.1.title'),
+            desc: t('group3.productShowcase.sections.1.desc'),
             isAnalytics: true,
-            features: ["Relatórios de Faturamento", "Ranking de Profissionais", "Previsão de Receita"],
+            features: [
+                t('group3.productShowcase.sections.1.features.0'),
+                t('group3.productShowcase.sections.1.features.1'),
+                t('group3.productShowcase.sections.1.features.2')
+            ],
             reverse: true
         },
         {
-            title: "O Site da Sua Barbearia",
-            desc: "Uma vitrine digital profissional que funciona 24h por dia. Seu cliente escolhe o serviço, o barbeiro e o horário sem precisar te ligar.",
+            title: t('group3.productShowcase.sections.2.title'),
+            desc: t('group3.productShowcase.sections.2.desc'),
             isBooking: true,
-            features: ["Agendamento Online 24/7", "Totalmente Responsivo", "Link Personalizado"]
+            features: [
+                t('group3.productShowcase.sections.2.features.0'),
+                t('group3.productShowcase.sections.2.features.1'),
+                t('group3.productShowcase.sections.2.features.2')
+            ]
         }
     ];
 
@@ -38,12 +53,14 @@ export default function ProductShowcase() {
                         viewport={{ once: true }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
+                        {/* SUBHEADLINE / HEADING → título secundário */}
                         <h2 className="font-display hero-title font-extrabold text-white mb-6 text-balance">
-                            Visão Geral do Seu <br />
-                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Império.</span>
+                            {t('group3.productShowcase.headingLine1')} <br />
+                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group3.productShowcase.headingLine2')}</span>
                         </h2>
+                        {/* BODY TEXT */}
                         <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
-                            Cada detalhe foi desenhado para facilitar sua gestão e encantar seus clientes.
+                            {t('group3.productShowcase.bodyText')}
                         </p>
                     </motion.div>
                 </div>
@@ -100,11 +117,14 @@ export default function ProductShowcase() {
                                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                                 className={section.reverse ? 'lg:order-1' : ''}
                             >
+                                {/* LABEL / EYEBROW */}
                                 <div className="text-[13px] leading-[1.3] px-1.5 py-[2px] rounded-md inline-flex items-center gap-1 font-medium bg-white/[0.04] border border-white/[0.08] text-primary mb-8 font-body">
                                     <Zap className="w-3.5 h-3.5 fill-current" />
-                                    <span>Recurso Pro</span>
+                                    <span>{t('group3.productShowcase.proFeature')}</span>
                                 </div>
+                                {/* SUBHEADLINE / HEADING → título secundário */}
                                 <h3 className="font-display text-3xl lg:text-5xl font-extrabold text-white mb-6 tracking-[-0.04em] leading-[1.1]">{section.title}</h3>
+                                {/* BODY TEXT */}
                                 <p className="font-body secondary-text font-medium mb-10">
                                     {section.desc}
                                 </p>
@@ -122,7 +142,7 @@ export default function ProductShowcase() {
 
                                 <Link href="/register">
                                     <button className="flex items-center gap-4 text-[11px] font-black text-white uppercase tracking-[0.3em] group/btn transition-all font-body">
-                                        Explorar Detalhes
+                                        {t('group3.productShowcase.exploreDetails')}
                                         <div className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center group-hover/btn:bg-white group-hover/btn:text-black transition-all duration-311">
                                             <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
                                         </div>

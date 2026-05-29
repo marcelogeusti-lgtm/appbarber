@@ -1,22 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-
-const MESSAGES = [
-    "Felipe entrou na plataforma",
-    "Lucas está explorando o sistema",
-    "Rafael iniciou teste grátis",
-    "Gabriel criou uma conta"
-];
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function SideSocialProof() {
+    const { t } = useTranslation();
     const [notif, setNotif] = useState(null);
 
     useEffect(() => {
         const showRandom = () => {
             const side = Math.random() > 0.5 ? 'left' : 'right';
-            const text = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
+            const textIndex = Math.floor(Math.random() * 4);
 
-            setNotif({ text, side });
+            setNotif({ textIndex, side });
 
             setTimeout(() => {
                 setNotif(null);
@@ -45,7 +40,7 @@ export default function SideSocialProof() {
         >
             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                {notif.text}
+                {t(`group3.sideSocialProof.messages.${notif.textIndex}`)}
             </span>
 
         </div>

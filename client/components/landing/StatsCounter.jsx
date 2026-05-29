@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Users, Calendar, Scissors, TrendingUp } from 'lucide-react';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion, useInView } from 'framer-motion';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 const Counter = ({ target, duration = 2000 }) => {
     const [count, setCount] = useState(0);
@@ -28,11 +29,12 @@ const Counter = ({ target, duration = 2000 }) => {
 };
 
 export default function StatsCounter() {
+    const { t } = useTranslation();
     const stats = [
-        { label: "Barbearias Conectadas", val: 1284, icon: Users, color: "from-blue-500/20 to-transparent" },
-        { label: "Agendamentos Hoje", val: 642, icon: Calendar, color: "from-emerald-500/20 to-transparent" },
-        { label: "Serviços Realizados", val: 18420, icon: Scissors, color: "from-primary/20 to-transparent" },
-        { label: "Clientes Ativos", val: 89000, icon: TrendingUp, color: "from-orange-500/20 to-transparent" }
+        { label: t('group1.stat1_label'), val: 1284, icon: Users, color: "from-blue-500/20 to-transparent" },
+        { label: t('group1.stat2_label'), val: 642, icon: Calendar, color: "from-emerald-500/20 to-transparent" },
+        { label: t('group1.stat3_label'), val: 18420, icon: Scissors, color: "from-primary/20 to-transparent" },
+        { label: t('group1.stat4_label'), val: 89000, icon: TrendingUp, color: "from-orange-500/20 to-transparent" }
     ];
 
     return (

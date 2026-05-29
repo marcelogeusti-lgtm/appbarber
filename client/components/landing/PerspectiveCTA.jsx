@@ -3,8 +3,10 @@ import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, Sparkles, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function PerspectiveCTA() {
+    const { t } = useTranslation();
     const [coords, setCoords] = useState({ rotateX: 0, rotateY: 0, mx: "50%", my: "50%" });
     const [hovering, setHovering] = useState(false);
     const cardRef = useRef(null);
@@ -112,8 +114,8 @@ export default function PerspectiveCTA() {
                             transformStyle: 'preserve-3d'
                         }}
                     >
-                        Pronto para lotar as <br />
-                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">suas cadeiras?</span>
+                        {t('perspectiveCta.title1')} <br />
+                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('perspectiveCta.title2')}</span>
                     </h2>
 
                     {/* Subtitle [translateZ(20px)] */}
@@ -124,7 +126,7 @@ export default function PerspectiveCTA() {
                             transformStyle: 'preserve-3d'
                         }}
                     >
-                        Configure sua barbearia em menos de 5 minutos. Teste grátis por 15 dias sem compromisso.
+                        {t('perspectiveCta.subtitle')}
                     </p>
 
                     {/* Features checklist row [translateZ(25px)] */}
@@ -137,15 +139,15 @@ export default function PerspectiveCTA() {
                     >
                         <li className="inline-flex items-center gap-2">
                             <Check className="h-4.5 w-4.5 text-primary stroke-[3px]" />
-                            <span>15 dias grátis</span>
+                            <span>{t('perspectiveCta.feature1')}</span>
                         </li>
                         <li className="inline-flex items-center gap-2">
                             <Check className="h-4.5 w-4.5 text-primary stroke-[3px]" />
-                            <span>Sem taxa de adesão</span>
+                            <span>{t('perspectiveCta.feature2')}</span>
                         </li>
                         <li className="inline-flex items-center gap-2">
                             <Check className="h-4.5 w-4.5 text-primary stroke-[3px]" />
-                            <span>Cancele a qualquer momento</span>
+                            <span>{t('perspectiveCta.feature3')}</span>
                         </li>
                     </ul>
 
@@ -159,13 +161,13 @@ export default function PerspectiveCTA() {
                     >
                         <Link href="/register">
                             <button className="group/btn inline-flex items-center gap-3 rounded-xl bg-white text-black px-8 py-4 text-xs font-black uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(255,255,255,0.06)] hover:scale-[1.03] active:scale-[0.98] transition-all font-body">
-                                Iniciar Teste Grátis
+                                {t('perspectiveCta.btnStart')}
                                 <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
                             </button>
                         </Link>
                         <Link href="/login">
                             <button className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] hover:border-white/20 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-white transition-all font-body">
-                                Acessar Minha Conta
+                                {t('perspectiveCta.btnAccess')}
                             </button>
                         </Link>
                     </div>
@@ -180,10 +182,10 @@ export default function PerspectiveCTA() {
                     >
                         <span className="inline-flex items-center gap-2">
                             <ShieldCheck className="w-4 h-4 text-primary/80" />
-                            <span>Suporte Humanizado incluso</span>
+                            <span>{t('perspectiveCta.trust1')}</span>
                         </span>
                         <span className="hidden h-1 w-1 rounded-full bg-white/15 sm:block"></span>
-                        <span>Integração Pix imediata</span>
+                        <span>{t('perspectiveCta.trust2')}</span>
                     </div>
 
                 </div>

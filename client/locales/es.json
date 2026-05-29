@@ -1,0 +1,473 @@
+{
+  "navbar": {
+    "home": "Inicio",
+    "about": "Sobre",
+    "features": "Funciones",
+    "pricing": "Precios",
+    "freeTrial": "Prueba Gratis",
+    "login": "Acceder",
+    "customer": "Soy Cliente",
+    "systemAccess": "Acceso al Sistema",
+    "professional": "Profesional",
+    "createFreeAccount": "Crear Cuenta Gratis",
+    "lang_pt": "Portugués",
+    "lang_en": "Inglés",
+    "lang_es": "Español",
+    "faq": "Preguntas Frecuentes"
+  },
+  "hero": {
+    "badge": "El Futuro es NEXT",
+    "title_part1": "Acaba con las ",
+    "title_highlight": "sillas vacías",
+    "title_part2": " en tu barbería.",
+    "subtitle": "Elimina la falta de clientes. NEXT es el único sistema que agenda, cobra por adelantado y trae a tu cliente de vuelta en piloto automático mientras cortas el pelo.",
+    "cta_main": "Empezar 15 Días Gratis",
+    "cta_secondary": "Ver Demostración",
+    "stat1_value": "+182.000",
+    "stat1_label": "Citas",
+    "stat2_value": "+$ 280K",
+    "stat2_label": "Gestionados",
+    "stat3_value": "+2.300",
+    "stat3_label": "Barberos",
+    "social_proof_start": "Únete a",
+    "social_proof_highlight": "+2.000 barberos",
+    "social_proof_end": "exitosos",
+    "trust1": "15 Días Gratis",
+    "trust2": "Sin compromiso"
+  },
+  "pricing": {
+    "title_part1": "Una inversión que",
+    "title_highlight": "se paga sola.",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "freeTrialText": "Pruébalo gratis por 7 días. Cancela cuando quieras.",
+    "recommended": "Recomendado",
+    "perMonth": "/mes",
+    "subscribe": "Suscribirse a",
+    "plan_start_desc": "Lo esencial para quienes empiezan y buscan profesionalismo.",
+    "plan_pro_desc": "El equilibrio perfecto para barberías en crecimiento.",
+    "plan_ultimate_desc": "Poder total para imperios y grandes barberías.",
+    "f_start_1": "Agenda Maestro Ilimitada",
+    "f_start_2": "Gestión de 1 Profesional",
+    "f_start_3": "Comandas Básicas",
+    "f_start_4": "Reportes Mensuales",
+    "f_start_5": "Soporte por Correo",
+    "f_pro_1": "Todo lo de Start",
+    "f_pro_2": "Hasta 3 Profesionales",
+    "f_pro_3": "Automatización WhatsApp",
+    "f_pro_4": "Comandas de Consumo",
+    "f_pro_5": "Fidelidad y Promociones",
+    "f_pro_6": "Soporte Prioritario",
+    "f_ult_1": "Todo lo de PRO",
+    "f_ult_2": "Profesionales Ilimitados",
+    "f_ult_3": "Reportes en Tiempo Real",
+    "f_ult_4": "Checkout Personalizado",
+    "f_ult_5": "API de Integración",
+    "f_ult_6": "Gerente de Cuenta"
+  },
+  "features": {
+    "title_part1": "Tu Barbería en",
+    "title_highlight": "Piloto Automático.",
+    "subtitle": "Explora el ecosistema nativo más grande del mercado. NEXT consolida desde agendas y comandas hasta una universidad completa para el gerente.",
+    "explore": "Explorar",
+    "viewAll": "Ver Todas las Funciones"
+  },
+  "howItWorks": {
+    "eyebrow": "Experiencia del Cliente",
+    "title_part1": "Agendamiento en",
+    "title_highlight": "4 Pasos Simples.",
+    "subtitle": "Mira lo rápido e intuitivo que es para tu cliente hacer una reserva en tu vitrina digital.",
+    "s1_label": "Interfaz del Cliente",
+    "s1_title": "Elige al Profesional",
+    "s1_desc": "Tus clientes seleccionan su barbero preferido, viendo reseñas y portafolios reales en segundos.",
+    "s2_label": "Menú Personalizado",
+    "s2_title": "Menú de Servicios Online",
+    "s2_desc": "Un catálogo digital premium que muestra servicios, precios, duraciones y combos con total claridad.",
+    "s3_label": "Agenda Inteligente",
+    "s3_title": "Horarios en Tiempo Real",
+    "s3_desc": "Franjas de tiempo integradas a la agenda del barbero. Sin conflictos, sin llamadas, reserva directa.",
+    "s4_label": "Reduce Inasistencias",
+    "s4_title": "Disparos por WhatsApp",
+    "s4_desc": "Confirmación instantánea y alertas automáticas enviadas al celular para reducir faltas hasta un 95%."
+  },
+  "comparison": {
+    "eyebrow": "Comparación Eficiente",
+    "title_part1": "Más Organización.",
+    "title_highlight": "Cero Estrés.",
+    "subtitle": "Entiende por qué llevar tu barbería en papel o WhatsApp manual te está costando ingresos diarios.",
+    "recommended": "Recomendado",
+    "c1_title": "Agenda de Papel",
+    "c1_sub": "La barrera física",
+    "c1_p1": "Tachaduras frecuentes y agenda desordenada",
+    "c1_p2": "Cero control de caja o historial de clientes",
+    "c1_p3": "Riesgo constante de perder la agenda física",
+    "c1_p4": "El cliente solo agenda si estás disponible para responder",
+    "c2_title": "WhatsApp Manual",
+    "c2_sub": "Fuga de atención",
+    "c2_p1": "Dejar de cortar el pelo a cada rato para responder",
+    "c2_p2": "Mensajes acumulados y clientes sin respuesta fuera de horario",
+    "c2_p3": "Dificultad extrema para calcular comisiones e ingresos",
+    "c2_p4": "Olvido constante de citas informales",
+    "c3_title": "App Barbeiro (NEXT)",
+    "c3_sub": "El imperio en piloto automático",
+    "c3_p1": "Enlace de reserva online activo 24/7",
+    "c3_p2": "Recordatorios anti-falta automáticos por WhatsApp",
+    "c3_p3": "Ingresos brutos, ticket promedio y flujo de caja calculados al instante",
+    "c3_p4": "Cobro de anticipo por Pix para eliminar sillas vacías",
+    "t_col1": "Funcionalidad Clave",
+    "t_col2": "Agenda Física",
+    "t_col3": "WhatsApp",
+    "t_r1": "Agendamiento autónomo 24/7",
+    "t_r2": "Recordatorios anti-falta por WhatsApp",
+    "t_r3": "Historial completo y perfiles de clientes",
+    "t_r4": "Cálculo automático de comisiones",
+    "t_r5": "Cobro de anticipo Pix antes de reservar",
+    "t_r6": "Control financiero en la nube y flujo de caja",
+    "t_r7": "Panel exclusivo para el equipo",
+    "t_r8": "Soporte y actualizaciones constantes",
+    "t_limits": "Límites"
+  },
+  "footer": {
+    "cta_title_part1": "¿PREPARADO PARA EL",
+    "cta_title_highlight": "PRÓXIMO NIVEL?",
+    "cta_subtitle": "Únete a más de 1.200 barberías que ya han transformado su negocio con NEXT.",
+    "cta_button_main": "Empezar Ahora",
+    "cta_button_sec": "Ver Precios",
+    "desc": "La plataforma definitiva para reservas y gestión de barberías. Desde el barbero principiante hasta grandes cadenas.",
+    "col1_title": "Producto",
+    "col1_l1": "Agenda",
+    "col1_l2": "Financiero",
+    "col1_l3": "WhatsApp",
+    "col1_l4": "Punto",
+    "col2_title": "Empresa",
+    "col2_l1": "Sobre NEXT",
+    "col2_l2": "Planes",
+    "col2_l3": "Blog",
+    "col2_l4": "Contacto",
+    "col3_title": "Contacto",
+    "rights": "© 2025 NEXT SISTEMAS. TODOS LOS DERECHOS RESERVADOS.",
+    "privacy": "Políticas de Privacidad",
+    "terms": "Términos de Uso",
+    "status": "Estado: Operacional"
+  },
+  "featuresData": {
+    "agenda-inteligente": {
+      "title": "Agenda Anti-Faltas",
+      "oneLiner": "Recordatorios de WhatsApp y cobros anticipados para acabar de una vez con las sillas vacías."
+    },
+    "financeiro-avancado": {
+      "title": "Finanzas y División Automática",
+      "oneLiner": "Transfiere comisiones del equipo en el momento exacto de la transacción y cierra el mes sin hojas de cálculo confusas."
+    },
+    "garcom-digital": {
+      "title": "Recepcionista 24/7",
+      "oneLiner": "Un enlace que responde, vende servicios adicionales y cierra reservas por sí solo, incluso de madrugada."
+    },
+    "fidelizacao-magnetica": {
+      "title": "Motor de Retención",
+      "oneLiner": "Estimula el regreso semanas antes con nuestro Club de Puntos directamente en Apple Wallet."
+    },
+    "controle-equipe": {
+      "title": "Rayos X del Equipo",
+      "oneLiner": "Sigue quién genera más ganancias y crea metas gamificadas sin que se sientan vigilados."
+    },
+    "padrao-premium": {
+      "title": "Vitrina Ultra-Premium",
+      "oneLiner": "Proyecta lujo en el primer contacto con una aplicación hermosa, rápida y en estándar Dark Mode."
+    },
+    "gestao-estoque": {
+      "title": "Inventario Cero Fugas",
+      "oneLiner": "Controla mercancías preciosas estrictamente. Bajas en tiempo real en el momento del pedido."
+    },
+    "importacao-lote": {
+      "title": "Migración Mágica (1 Clic)",
+      "oneLiner": "Abandona mañana tu plataforma obsoleta y mueve mil nombres VIP a tu nuevo escenario ahora."
+    },
+    "avaliacoes-clientes": {
+      "title": "Encuesta NPS Secreta",
+      "oneLiner": "Recopila quejas antes de la indignación pública y amplifica solo las calificaciones de 5 estrellas en Google."
+    },
+    "universidade": {
+      "title": "Universidad Privada",
+      "oneLiner": "El software por sí solo no atrae gente. Presiona play en los cursos de marketing para barberos aquí adentro."
+    },
+    "relatorios-bi": {
+      "title": "B.I. (Inteligencia de Negocios)",
+      "oneLiner": "Aborrece las suposiciones. Informes contundentes que responden en segundos a las fallas de ganancias ocultas."
+    },
+    "multi-unidades": {
+      "title": "Franquicias (Súper Anfitrión)",
+      "oneLiner": "Realiza transacciones en la sede central de la zona norte frente a la sucursal costera perfectamente dentro de la misma sesión iniciada."
+    }
+  },
+  "group1": {
+    "faq1_q": "¿Necesito registrar una tarjeta de crédito para probar?",
+    "faq1_a": "¡No! La prueba es 100% gratuita y no requerimos ningún dato financiero. Solo pagas si decides continuar después del período de prueba.",
+    "faq2_q": "¿El sistema funciona en el celular?",
+    "faq2_a": "Sí, NEXT es totalmente responsivo y funciona perfectamente en teléfonos móviles, tabletas y computadoras.",
+    "faq3_q": "¿Cómo funciona la migración de datos?",
+    "faq3_a": "Contamos con una herramienta de importación fácil y, en los planes Pro y Empire, nuestro equipo ayuda en todo el proceso de migración.",
+    "faq4_q": "¿Puedo cancelar cuando quiera?",
+    "faq4_a": "Por supuesto. No hay fidelidad ni multas. Puedes cancelar tu suscripción en cualquier momento directamente desde el panel.",
+    "faq5_q": "¿Ofrecen soporte?",
+    "faq5_a": "¡Sí! Ofrecemos soporte a través de chat, correo electrónico y WhatsApp (para planes Pro y Empire) en horario comercial.",
+    "faq_title": "Preguntas Frecuentes",
+    "faq_subtitle": "Todo lo que necesitas saber antes de empezar.",
+    "t1_name": "João Pereira",
+    "t1_role": "Propietario - Barbería Don João, SP",
+    "t1_text": "Cambiamos la agenda física por NEXT y nuestras ausencias cayeron un 90% en solo 4 semanas. El cobro de anticipos por Pix salvó mis ingresos mensuales.",
+    "t2_name": "Mariana Nunes",
+    "t2_role": "Dueña - Barber Queen & Esmaltería, RS",
+    "t2_text": "La barrera de mensajes en WhatsApp se acabó. Ahora los clientes reservan solos en la madrugada y nuestra agenda amanece llena en piloto automático.",
+    "t3_name": "Pedro Henrique",
+    "t3_role": "Supervisor - Elite Barber Shop, GO",
+    "t3_text": "El control de comisiones era mi mayor pesadilla mensual. Hoy NEXT lo hace todo automáticamente en segundos. No lo cambio por nada.",
+    "t4_name": "Beatriz Carvalho",
+    "t4_role": "Gerente - Confeitaria & Barber Concept, SP",
+    "t4_text": "La función de múltiples profesionales compartiendo la agenda con paneles individuales cambió el juego para nuestra barbería. Visualización limpia y profesional.",
+    "t5_name": "Lucas Silveira",
+    "t5_role": "Dueño - Barbería Corleone, RJ",
+    "t5_text": "El enlace de reserva en línea es extremadamente rápido. Mis clientes elogian mucho la facilidad de reservar por celular en segundos.",
+    "t6_name": "Marcos Souza",
+    "t6_role": "Propietario - Club Men Salon, MG",
+    "t6_text": "Aumentamos el ticket promedio de la barbería ofreciendo combos a través del sistema. El cliente ve los combos al momento de reservar y termina eligiéndolos.",
+    "t7_name": "Camila Rocha",
+    "t7_role": "Gerente - Classic Barber Club, BA",
+    "t7_text": "Mis clientes elogian mucho la facilidad de reserva. Sin necesidad de descargar una aplicación, reservan en 3 clics a través del navegador de su propio teléfono.",
+    "t8_name": "Thiago Martins",
+    "t8_role": "Propietario - Barbería VIP, SC",
+    "t8_text": "Tener un sistema completo con nuestra marca y recordatorios automáticos en WhatsApp redujo el tiempo de soporte a cero. Inversión extremadamente justa.",
+    "t9_name": "Fernanda Lima",
+    "t9_role": "Dueña - Retro Barber Studio, PR",
+    "t9_text": "El flujo de caja y los informes de ganancias me dieron claridad sobre qué servicios tienen más margen. Aumentamos los ingresos reales en un 35%.",
+    "t10_name": "Rodrigo Melo",
+    "t10_role": "Socio - Barber & Co., DF",
+    "t10_text": "NEXT funciona sin problemas en el móvil, la tableta y la computadora. Gestiono mis dos unidades desde cualquier parte del mundo desde mi celular con total seguridad.",
+    "t11_name": "Amanda Costa",
+    "t11_role": "Dueña - Barber & Beauty, PE",
+    "t11_text": "Los recordatorios automáticos reducen drásticamente las ausencias. El cliente recibe un enlace de cancelación si lo necesita, liberando el horario.",
+    "t12_name": "Gustavo Santos",
+    "t12_role": "Propietario - Santo Bigode, CE",
+    "t12_text": "Excelente costo-beneficio. El sistema se paga solo el primer día con ahorro de tiempo y reducción de ausencias de clientes.",
+    "testimonials_label": "Testimonios Reales",
+    "testimonials_heading_1": "Barberías Reales.",
+    "testimonials_heading_2": "Resultados Reales.",
+    "testimonials_description": "Únase a miles de gerentes de élite que jubilaron la agenda de papel y escalaron sus ganancias.",
+    "stat1_label": "Barberías Conectadas",
+    "stat2_label": "Citas de Hoy",
+    "stat3_label": "Servicios Realizados",
+    "stat4_label": "Clientes Activos",
+    "video_title_prefix": "Caso de ",
+    "video_title_highlight": "Éxito",
+    "video_description": "Vea cómo las barberías de todo Brasil están transformando su gestión con nuestra plataforma.",
+    "video_overlay_title": "La Revolución en la Gestión",
+    "video_overlay_subtitle": "Mira el testimonio completo"
+  },
+  "group2": {
+    "ProblemSolution": {
+      "pain1": "Los clientes olvidan la cita y no avisan.",
+      "solution1": "Los recordatorios automáticos por WhatsApp reducen las faltas en un 80%.",
+      "pain2": "Agenda física desordenada o en el WhatsApp personal.",
+      "solution2": "Enlace de reservas 24h que organiza todo solo.",
+      "pain3": "Sin control real de lo que entra y sale en caja.",
+      "solution3": "Flujo de caja en tiempo real e informes de ganancias claros.",
+      "pain4": "Dificultad para fidelizar y hacer que el cliente vuelva.",
+      "solution4": "Sistema de puntos y promociones que recupera clientes.",
+      "titlePart1": "¿Cortas cabello o",
+      "titlePart2": "gestionas problemas?",
+      "subtitle": "Deja de perder tiempo con tareas manuales. Mira la diferencia entre quienes usan NEXT y quienes siguen a oscuras.",
+      "withoutNext": "Sin NEXT",
+      "commonResultLabel": "Resultado Común:",
+      "commonResultDesc1": "Noches sin dormir e ingresos",
+      "commonResultDesc2": "yendo por el desagüe.",
+      "withNext": "Con NEXT",
+      "eliteJumpLabel": "El Salto de Élite:",
+      "eliteJumpDesc1": "Agenda llena y gestión en",
+      "eliteJumpDesc2": "verdadero piloto automático."
+    },
+    "CheckoutShowcase": {
+      "step1Title": "Servicio",
+      "step1Desc": "Corte + Barba",
+      "step2Title": "Profesional",
+      "step2Desc": "Marcelo Maestro",
+      "step3Title": "Fecha/Hora",
+      "step3Desc": "Hoy, 15:00",
+      "step4Title": "Confirmación",
+      "step4Desc": "Pago Seguro",
+      "conversionMax": "Conversión Máxima",
+      "titlePart1": "Reservas Sin Fricción.",
+      "titlePart2": "Checkout de Élite.",
+      "subtitle": "Inspirado en los checkouts de e-commerce más rápidos del mundo. Tu cliente reserva y paga en menos de 30 segundos, directo desde el navegador.",
+      "clientExp": "Experiencia del Cliente",
+      "maestroSummary": "Resumen Maestro",
+      "waiting": "Esperando...",
+      "totalInvested": "Total Invertido",
+      "totalValue": "$ 85,00",
+      "confirmReservation": "Confirmar Reserva",
+      "encryptedTransaction": "Transacción Encriptada",
+      "maestroSuggestion": "Sugerencia Maestro",
+      "dryPomade": "Pomada Efecto Seco",
+      "bumpPrice": "+ $ 25"
+    },
+    "MainDashboardShowcase": {
+      "titlePart1": "El Panel de Control",
+      "titlePart2": "de Tu Imperio.",
+      "subtitle": "Una interfaz limpia y potente. Ten visión total de tus ingresos, agenda y rendimiento del equipo en tiempo real, sin hojas de cálculo confusas.",
+      "imgAlt": "Dashboard Central",
+      "revenue": "Ingresos",
+      "revenueValue": "$ 18.420",
+      "appointments": "Reservas",
+      "appointmentsValue": "42 Hoy",
+      "expectedProfit": "Ganancia Esperada",
+      "expectedProfitValue": "$ 18.420",
+      "teamRanking": "Ranking del Equipo",
+      "teamRankingValue": "Felipe M.",
+      "avgTicket": "Ticket Promedio",
+      "avgTicketValue": "$ 64,00",
+      "returnRate": "Tasa de Retorno",
+      "returnRateValue": "84%"
+    },
+    "PremiumExperience": {
+      "cat1": "SIMPLICIDAD",
+      "title1": "Acceso vía Código QR o Enlace",
+      "desc1": "Cero barreras. Tu cliente reserva en el momento de la impulsión.",
+      "cat2": "AGILIDAD",
+      "title2": "Reserva en 3 toques",
+      "desc2": "Interfaz ultrarrápida optimizada para conversión móvil.",
+      "cat3": "RETENCIÓN",
+      "title3": "Fidelización automática",
+      "desc3": "El sistema reconoce al cliente y fomenta su regreso.",
+      "titlePart1": "LA EXPERIENCIA",
+      "titlePart2": "PREMIUM",
+      "titlePart3": "DE RESERVAS.",
+      "subtitle": "NEXT fue diseñado para eliminar la fricción. Tu cliente no necesita apps pesadas ni registros complejos. Es reservar y listo."
+    }
+  },
+  "group3": {
+    "productShowcase": {
+      "sections": [
+        {
+          "title": "Agenda Maestro: Control Total",
+          "desc": "Visualiza toda tu operación en segundos. Arrastra y suelta citas, gestiona profesionales y elimina el papel definitivamente.",
+          "features": [
+            "Vista Diaria/Semanal Pro",
+            "Bloqueo de Horas Inteligente",
+            "Sincronización Cloud"
+          ]
+        },
+        {
+          "title": "Las métricas que importan",
+          "desc": "Decisiones basadas en datos, no en suposiciones. Rastrea tu ticket promedio, tasa de retención e ingresos brutos con gráficos intuitivos.",
+          "features": [
+            "Reportes de Facturación",
+            "Ranking de Profesionales",
+            "Previsión de Ingresos"
+          ]
+        },
+        {
+          "title": "El Sitio de Tu Barbería",
+          "desc": "Una vitrina digital profesional funcionando 24/7. Tu cliente elige el servicio, el barbero y el horario sin tener que llamarte.",
+          "features": [
+            "Agendamiento Online 24/7",
+            "Totalmente Responsivo",
+            "Enlace Personalizado"
+          ]
+        }
+      ],
+      "headingLine1": "Visión General de Tu ",
+      "headingLine2": "Imperio.",
+      "bodyText": "Cada detalle fue diseñado para facilitar tu gestión y encantar a tus clientes.",
+      "proFeature": "Función Pro",
+      "exploreDetails": "Explorar Detalles"
+    },
+    "rollingNotifications": {
+      "services": [
+        "João – Corte Degradado agendado ahora",
+        "Lucas – Corte Clásico agendado hace 2 minutos",
+        "Rafael – Barba completa agendada",
+        "Mateus – Low Fade agendado hace 5 minutos",
+        "Carlos – Mid Fade agendado ahora",
+        "Felipe – Ejecutivo agendado hace 1 minuto",
+        "André – Skin Fade agendado ahora",
+        "Pedro – Corte Social agendado hace 3 minutos"
+      ],
+      "appName": "NEXT APP"
+    },
+    "sideSocialProof": {
+      "messages": [
+        "Felipe entró en la plataforma",
+        "Lucas está explorando el sistema",
+        "Rafael inició una prueba gratis",
+        "Gabriel creó una cuenta"
+      ]
+    },
+    "toastActivity": {
+      "messages": [
+        "Lucas acaba de crear una cuenta",
+        "Pedro inició prueba gratuita",
+        "Barbería Kings acaba de registrarse",
+        "Marcos inició prueba gratuita",
+        "Studio VIP acaba de registrarse"
+      ],
+      "justNow": "Ahora mismo"
+    }
+  },
+  "group4": {
+    "vclSection": {
+      "titlePart1": "Mira ahora y descubre",
+      "titlePart2": "el poder de NEXT",
+      "subtitle": "Mira en menos de 2 minutos cómo barberías de alto rendimiento automatizan todo y se centran en lo importante.",
+      "altImage": "Múltiples barberos trabajando",
+      "tourTitle": "TOUR POR EL SISTEMA (01:54)",
+      "resolution": "Alta Resolución 4K"
+    },
+    "whatsappHighlight": {
+      "syncStatus": "Sincronizado",
+      "encryption": "Cifrado Maestro",
+      "message1": "¡Buenos días! Quiero cortarme el pelo a las 17h.",
+      "autoReserve": "Reserva Automática ✅",
+      "confirmedTime": "¡Horario de las 17:00 confirmado!",
+      "confirmationTitle": "Confirmación NEXT",
+      "confirmationDate": "Hoy a las 17:00",
+      "confirmationBarber": "Con Barbero Junior",
+      "paymentLink": "Te hemos enviado el enlace para el pago anticipado. 🚀",
+      "writeHere": "Escribe aquí...",
+      "automationBadge": "Automatización Nativa",
+      "titlePart1": "Donde está tu cliente,",
+      "titlePart2": "NEXT también está.",
+      "subtitle": "Acaba con las interrupciones para responder mensajes. NEXT automatiza tu agenda por WhatsApp, garantizando cero fricción y agenda llena.",
+      "feature1Title": "Recordatorios Anti-Falta",
+      "feature1Desc": "Alertas proactivas que reducen las inasistencias hasta en un 80%.",
+      "feature2Title": "Enlace de Reserva Élite",
+      "feature2Desc": "Tu cliente agenda en segundos, directo desde WhatsApp o Instagram.",
+      "feature3Title": "Confirmación vía Chatbot",
+      "feature3Desc": "El sistema valida la disponibilidad y reserva el horario al instante.",
+      "ctaButton": "Llenar Mi Agenda Ahora"
+    },
+    "fixedCta": {
+      "ctaButton": "Crear mi barbería ahora"
+    },
+    "liveActivity": {
+      "notif1": "Lucas agendó Corte Degradado",
+      "notif2": "Mateus agendó Corte + Barba",
+      "notif3": "Pedro agendó Corte Clásico",
+      "notif4": "João agendó Barba",
+      "notif5": "Rafael agendó Corte a Navaja",
+      "newAppointment": "Nueva reserva",
+      "timeAgoPart1": "hace ",
+      "timeAgoPart2": " minutos"
+    }
+  },
+  "perspectiveCta": {
+    "title1": "¿Listo para llenar",
+    "title2": "tus sillas?",
+    "subtitle": "Configura tu barbería en menos de 5 minutos. Pruébalo gratis por 15 días, sin compromiso.",
+    "feature1": "15 días gratis",
+    "feature2": "Sin costo de instalación",
+    "feature3": "Cancela en cualquier momento",
+    "btnStart": "Iniciar Prueba Gratis",
+    "btnAccess": "Acceder a Mi Cuenta",
+    "trust1": "Soporte Humano incluido",
+    "trust2": "Integración de pagos inmediatos"
+  }
+}

@@ -4,14 +4,18 @@ import { useState } from 'react';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const STEPS = [
-    { title: 'Serviço', icon: Scissors, desc: 'Corte + Barba' },
-    { title: 'Profissional', icon: User, desc: 'Marcelo Maestro' },
-    { title: 'Data/Hora', icon: Calendar, desc: 'Hoje, 15:00' },
-    { title: 'Confirmação', icon: CreditCard, desc: 'Pagamento Seguro' }
-];
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function CheckoutShowcase() {
+    const { t } = useTranslation();
+
+    const STEPS = [
+        { title: t('group2.CheckoutShowcase.step1Title'), icon: Scissors, desc: t('group2.CheckoutShowcase.step1Desc') },
+        { title: t('group2.CheckoutShowcase.step2Title'), icon: User, desc: t('group2.CheckoutShowcase.step2Desc') },
+        { title: t('group2.CheckoutShowcase.step3Title'), icon: Calendar, desc: t('group2.CheckoutShowcase.step3Desc') },
+        { title: t('group2.CheckoutShowcase.step4Title'), icon: CreditCard, desc: t('group2.CheckoutShowcase.step4Desc') }
+    ];
+
     const [activeStep, setActiveStep] = useState(2);
 
     return (
@@ -33,14 +37,14 @@ export default function CheckoutShowcase() {
                                 <span className="animate-ping absolute inset-0 rounded-full bg-primary opacity-75" />
                                 <span className="absolute inset-0 rounded-full bg-primary shadow-[0_0_10px_#4d72e4]" />
                             </span>
-                            <span>Conversão Máxima</span>
+                            <span>{t('group2.CheckoutShowcase.conversionMax')}</span>
                         </div>
                         <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
-                            Agendamento Sem Fricção. <br />
-                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Checkout de Elite.</span>
+                            {t('group2.CheckoutShowcase.titlePart1')} <br />
+                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group2.CheckoutShowcase.titlePart2')}</span>
                         </h2>
                         <p className="font-body secondary-text font-medium max-w-3xl mx-auto">
-                            Inspirado nos checkouts de e-commerce mais rápidos do mundo. Seu cliente agenda e paga em menos de 30 segundos, direto do navegador.
+                            {t('group2.CheckoutShowcase.subtitle')}
                         </p>
                     </motion.div>
                 </div>
@@ -117,8 +121,8 @@ export default function CheckoutShowcase() {
                         <div className="grid lg:grid-cols-2 gap-20 items-start mt-32 lg:mt-48">
                             <div className="space-y-12">
                                 <div className="space-y-5">
-                                    <p className="font-body text-primary font-black uppercase text-[10px] tracking-[0.4em]">Experiência do Cliente</p>
-                                    <h3 className="font-display text-4xl lg:text-5xl font-extrabold text-white tracking-[-0.04em]">Resumo Maestro</h3>
+                                    <p className="font-body text-primary font-black uppercase text-[10px] tracking-[0.4em]">{t('group2.CheckoutShowcase.clientExp')}</p>
+                                    <h3 className="font-display text-4xl lg:text-5xl font-extrabold text-white tracking-[-0.04em]">{t('group2.CheckoutShowcase.maestroSummary')}</h3>
                                 </div>
 
                                 <div className="bg-white/[0.02] border border-white/[0.08] rounded-[2rem] p-10 space-y-10 backdrop-blur-3xl shadow-inner relative overflow-hidden">
@@ -143,7 +147,7 @@ export default function CheckoutShowcase() {
                                             </div>
                                             <div className="flex-1">
                                                 <p className="font-body text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1.5">{step.title}</p>
-                                                <p className="font-body text-xl font-bold text-white tracking-tight leading-none">{idx <= activeStep ? step.desc : 'Aguardando...'}</p>
+                                                <p className="font-body text-xl font-bold text-white tracking-tight leading-none">{idx <= activeStep ? step.desc : t('group2.CheckoutShowcase.waiting')}</p>
                                             </div>
                                             {idx < activeStep && (
                                                 <motion.div
@@ -177,8 +181,8 @@ export default function CheckoutShowcase() {
                                                 <CreditCard className="w-8 h-8" />
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-3">Total Investido</p>
-                                                <p className="font-display text-5xl font-extrabold text-white tracking-[-0.05em] tabular-nums">R$ 85,00</p>
+                                                <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-3">{t('group2.CheckoutShowcase.totalInvested')}</p>
+                                                <p className="font-display text-5xl font-extrabold text-white tracking-[-0.05em] tabular-nums">{t('group2.CheckoutShowcase.totalValue')}</p>
                                             </div>
                                         </div>
 
@@ -188,10 +192,10 @@ export default function CheckoutShowcase() {
                                                 whileTap={{ scale: 0.98 }}
                                                 className="w-full py-6 bg-white text-black text-center font-body font-black uppercase text-[12px] tracking-[0.4em] rounded-2xl shadow-[0_20px_50px_rgba(255,255,255,0.1)] transition-all flex items-center justify-center gap-3"
                                             >
-                                                Confirmar Reserva <ArrowRight className="w-4 h-4" />
+                                                {t('group2.CheckoutShowcase.confirmReservation')} <ArrowRight className="w-4 h-4" />
                                             </motion.button>
                                             <p className="font-body text-[10px] text-center text-slate-500 font-black uppercase tracking-[0.25em] leading-none flex items-center justify-center gap-2">
-                                                <Lock className="w-3 h-3 text-emerald-500" /> Transação Criptografada
+                                                <Lock className="w-3 h-3 text-emerald-500" /> {t('group2.CheckoutShowcase.encryptedTransaction')}
                                             </p>
                                         </div>
 
@@ -205,10 +209,10 @@ export default function CheckoutShowcase() {
                                                     <ShoppingBag className="w-7 h-7" />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <p className="font-body text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-1.5">Sugestão Maestro</p>
-                                                    <p className="font-body text-base font-bold text-white tracking-tight">Pomada Efeito Seco</p>
+                                                    <p className="font-body text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-1.5">{t('group2.CheckoutShowcase.maestroSuggestion')}</p>
+                                                    <p className="font-body text-base font-bold text-white tracking-tight">{t('group2.CheckoutShowcase.dryPomade')}</p>
                                                 </div>
-                                                <div className="font-display text-lg font-black text-white group-hover/bump:text-primary transition-colors tabular-nums">+ R$ 25</div>
+                                                <div className="font-display text-lg font-black text-white group-hover/bump:text-primary transition-colors tabular-nums">{t('group2.CheckoutShowcase.bumpPrice')}</div>
                                             </motion.div>
                                         </div>
                                     </div>

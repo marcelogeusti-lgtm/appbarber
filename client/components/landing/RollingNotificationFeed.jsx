@@ -1,29 +1,21 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const SERVICES = [
-    "João – Corte Degradê agendado agora",
-    "Lucas – Corte Clássico agendado há 2 minutos",
-    "Rafael – Barba completa agendada",
-    "Mateus – Low Fade agendado há 5 minutos",
-    "Carlos – Mid Fade agendado agora",
-    "Felipe – Executivo agendado há 1 minuto",
-    "André – Skin Fade agendado agora",
-    "Pedro – Corte Social agendado há 3 minutos"
-];
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function RollingNotificationFeed() {
+    const { t } = useTranslation();
+
     const [notifications, setNotifications] = useState([
-        { id: 'initial-1', text: SERVICES[0] },
-        { id: 'initial-2', text: SERVICES[1] },
-        { id: 'initial-3', text: SERVICES[2] }
+        { id: 'initial-1', textIndex: 0 },
+        { id: 'initial-2', textIndex: 1 },
+        { id: 'initial-3', textIndex: 2 }
     ]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const nextText = SERVICES[Math.floor(Math.random() * SERVICES.length)];
-            const nextNotif = { id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36), text: nextText };
+            const nextIndex = Math.floor(Math.random() * 8);
+            const nextNotif = { id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36), textIndex: nextIndex };
             setNotifications(prev => {
                 return [nextNotif, ...prev].slice(0, 4);
             });
@@ -69,11 +61,11 @@ export default function RollingNotificationFeed() {
                                 className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-black/5 shadow-sm"
                             />
                             <div className="flex flex-col overflow-hidden text-left flex-1">
-                                <span className="text-xs font-medium text-zinc-900 not-italic">
-                                    NEXT APP
+                                <span className="text-xs font-medium text-zinc-900">
+                                    {t('group3.rollingNotifications.appName')}
                                 </span>
-                                <span className="text-xs text-zinc-600 not-italic truncate leading-relaxed">
-                                    {notif.text}
+                                <span className="text-xs text-zinc-600 truncate leading-relaxed">
+                                    {t(`group3.rollingNotifications.services.${notif.textIndex}`)}
                                 </span>
                             </div>
                         </motion.div>

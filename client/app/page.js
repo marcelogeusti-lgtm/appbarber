@@ -15,6 +15,7 @@ import Testimonials from '../components/landing/Testimonials';
 import Pricing from '../components/landing/Pricing';
 import MainDashboardShowcase from '../components/landing/MainDashboardShowcase';
 import CheckoutShowcase from '../components/landing/CheckoutShowcase';
+import FAQ from '../components/landing/FAQ';
 import Footer from '../components/landing/Footer';
 
 export default function Home() {
@@ -40,6 +41,7 @@ export default function Home() {
                 <Features />
                 <Testimonials />
                 <Pricing />
+                <FAQ />
                 <PerspectiveCTA />
                 <Footer />
             </div>

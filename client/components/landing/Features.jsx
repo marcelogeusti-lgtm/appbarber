@@ -4,8 +4,10 @@ import { ArrowRight, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { getFeaturesArray } from '../../lib/featuresData';
 import LEDCardWrapper from './LEDCardWrapper';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function Features() {
+    const { t } = useTranslation();
     const featureList = getFeaturesArray();
 
     const containerVariants = {
@@ -40,11 +42,11 @@ export default function Features() {
                     className="text-center max-w-4xl mx-auto mb-32"
                 >
                     <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
-                        Sua Barbearia no <br />
-                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Piloto Automático.</span>
+                        {t('features.title_part1')} <br />
+                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('features.title_highlight')}</span>
                     </h2>
                     <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
-                        Explore o maior ecossistema nativo do mercado. O NEXT consolida de agendas e comandas até uma universidade completa para o gestor.
+                        {t('features.subtitle')}
                     </p>
                 </motion.div>
 
@@ -74,13 +76,15 @@ export default function Features() {
                                         <feature.icon className="w-8 h-8" />
                                     </div>
 
-                                    <h4 className="font-display text-xl font-extrabold text-white mb-4 uppercase tracking-tight relative z-10">{feature.title}</h4>
-                                    <p className="font-body secondary-text flex-1 mb-10 relative z-10 group-hover:text-slate-300 transition-colors">
-                                        {feature.oneLiner}
+                                    <h3 className="text-white font-black font-display text-[15px] uppercase tracking-widest mb-3">
+                                        {t(`featuresData.${feature.slug}.title`)}
+                                    </h3>
+                                    <p className="font-body text-slate-400 text-sm font-medium leading-relaxed">
+                                        {t(`featuresData.${feature.slug}.oneLiner`)}
                                     </p>
 
                                     <Link href={`/features/${feature.slug}`} className={`relative z-10 mt-auto inline-flex items-center gap-2.5 text-[10px] font-black uppercase tracking-[0.2em] ${feature.color} group-hover:translate-x-2 transition-all w-fit font-body`}>
-                                        Explorar <ArrowRight className="w-4 h-4" />
+                                        {t('features.explore')} <ArrowRight className="w-4 h-4" />
                                     </Link>
                                 </motion.div>
                             </LEDCardWrapper>
@@ -97,7 +101,7 @@ export default function Features() {
                 >
                     <Link href="/register">
                         <button className="px-10 py-5 bg-white text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-xl hover:scale-105 transition-all shadow-2xl flex items-center gap-4 group font-body mx-auto">
-                            Ver Todas Funcionalidades <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                            {t('features.viewAll')} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                         </button>
                     </Link>
                 </motion.div>

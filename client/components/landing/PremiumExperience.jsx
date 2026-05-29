@@ -3,28 +3,32 @@ import { Zap, Smartphone, Heart, QrCode, MousePointer2, UserCheck } from 'lucide
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
 
+import { useTranslation } from '../../contexts/LanguageContext';
+
 export default function PremiumExperience() {
+    const { t } = useTranslation();
+
     const cards = [
         {
             icon: QrCode,
-            category: "SIMPLICIDADE",
-            title: "Acesso via QR Code ou Link",
+            category: t('group2.PremiumExperience.cat1'),
+            title: t('group2.PremiumExperience.title1'),
             gradient: "from-blue-500/20 to-transparent",
-            desc: "Zero barreiras. Seu cliente agenda no momento da impulsão."
+            desc: t('group2.PremiumExperience.desc1')
         },
         {
             icon: MousePointer2,
-            category: "AGILIDADE",
-            title: "Agendamento em 3 toques",
+            category: t('group2.PremiumExperience.cat2'),
+            title: t('group2.PremiumExperience.title2'),
             gradient: "from-indigo-500/20 to-transparent",
-            desc: "Interface ultra-rápida otimizada para conversão mobile."
+            desc: t('group2.PremiumExperience.desc2')
         },
         {
             icon: UserCheck,
-            category: "RETENÇÃO",
-            title: "Fidelização automática",
+            category: t('group2.PremiumExperience.cat3'),
+            title: t('group2.PremiumExperience.title3'),
             gradient: "from-primary/20 to-transparent",
-            desc: "O sistema reconhece o cliente e incentiva o retorno."
+            desc: t('group2.PremiumExperience.desc3')
         }
     ];
 
@@ -41,12 +45,12 @@ export default function PremiumExperience() {
                         viewport={{ once: true }}
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <h2 className="font-display hero-title font-extrabold text-white mb-8 uppercase italic text-balance">
-                            A EXPERIÊNCIA <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent not-italic">PREMIUM</span> <br />
-                            DE AGENDAMENTO.
+                        <h2 className="font-display hero-title font-extrabold text-white mb-8 uppercase text-balance">
+                            {t('group2.PremiumExperience.titlePart1')} <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group2.PremiumExperience.titlePart2')}</span> <br />
+                            {t('group2.PremiumExperience.titlePart3')}
                         </h2>
                         <p className="font-body secondary-text font-medium max-w-3xl">
-                            O NEXT foi desenhado para eliminar fricção. Seu cliente não precisa de apps pesados ou cadastros complexos. É agendar e pronto.
+                            {t('group2.PremiumExperience.subtitle')}
                         </p>
                     </motion.div>
                 </div>

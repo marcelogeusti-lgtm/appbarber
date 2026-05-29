@@ -1,9 +1,11 @@
 'use client';
 import { Play } from 'lucide-react';
+import { useTranslation } from '../../contexts/LanguageContext';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
 
 export default function VCLSection() {
+    const { t } = useTranslation();
     return (
         <section className="py-32 bg-[#050505] relative overflow-hidden border-y border-white/[0.06]">
             <div className="container mx-auto px-4 relative z-10">
@@ -15,11 +17,11 @@ export default function VCLSection() {
                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
                         <h2 className="font-display hero-title font-extrabold text-white tracking-[-0.05em] mb-8 text-balance">
-                            Assista agora e descubra <br className="hidden md:block" />
-                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">o poder do NEXT</span>
+                            {t('group4.vclSection.titlePart1')} <br className="hidden md:block" />
+                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group4.vclSection.titlePart2')}</span>
                         </h2>
                         <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
-                            Veja em menos de 2 minutos como barbearias de alta performance estão automatizando tudo e focando no que importa.
+                            {t('group4.vclSection.subtitle')}
                         </p>
                     </motion.div>
                 </div>
@@ -41,7 +43,7 @@ export default function VCLSection() {
                                 <div className="absolute inset-0 bg-gradient-to-tr from-black via-transparent to-black/20 opacity-80 transition-opacity duration-500 group-hover:opacity-40 z-10" />
                                 <img
                                     src="https://images.unsplash.com/photo-1543781525-2e1180b6a153?auto=format&fit=crop&w=1600&h=900"
-                                    alt="Múltiplos barbeiros trabalhando"
+                                    alt={t('group4.vclSection.altImage')}
                                     className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity grayscale group-hover:grayscale-0 group-hover:mix-blend-normal group-hover:scale-110 transition-all duration-[2s]"
                                 />
 
@@ -68,8 +70,8 @@ export default function VCLSection() {
                                         <img src="/logos/logo_icon.svg" alt="Icon" className="w-6 h-6 p-1" />
                                     </div>
                                     <div>
-                                        <p className="font-display font-black text-white text-sm tracking-tight">TOUR PELO SISTEMA (01:54)</p>
-                                        <p className="font-body text-[10px] text-white/50 uppercase tracking-[0.2em]">Alta Resolução 4K</p>
+                                        <p className="font-display font-black text-white text-sm tracking-tight">{t('group4.vclSection.tourTitle')}</p>
+                                        <p className="font-body text-[10px] text-white/50 uppercase tracking-[0.2em]">{t('group4.vclSection.resolution')}</p>
                                     </div>
                                 </div>
 

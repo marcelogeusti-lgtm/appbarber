@@ -1,107 +1,105 @@
 'use client';
 import { Star, Sparkles } from 'lucide-react';
-
-const row1 = [
-    {
-        name: "João Pereira",
-        role: "Proprietário - Barbearia Don João, SP",
-        initials: "JP",
-        bg: "from-blue-500 to-indigo-600",
-        text: "Trocamos a agenda física pelo NEXT e nossas faltas caíram 90% em apenas 4 semanas. A cobrança de sinal Pix antecipado salvou meu faturamento mensal."
-    },
-    {
-        name: "Mariana Nunes",
-        role: "Dona - Barber Queen & Esmalteria, RS",
-        initials: "MN",
-        bg: "from-purple-500 to-pink-600",
-        text: "A barreira de mensagens no WhatsApp acabou. Agora os clientes agendam sozinhos de madrugada e a nossa agenda amanhece lotada no piloto automático."
-    },
-    {
-        name: "Pedro Henrique",
-        role: "Supervisor - Barber Shop Elite, GO",
-        initials: "PH",
-        bg: "from-emerald-500 to-teal-600",
-        text: "O controle de comissão dos profissionais era o meu maior pesadelo mensal. Hoje o NEXT faz tudo automático em segundos. Não troco por nada."
-    },
-    {
-        name: "Beatriz Carvalho",
-        role: "Gestora - Confeitaria & Barber Concept, SP",
-        initials: "BC",
-        bg: "from-amber-500 to-orange-600",
-        text: "A função de múltiplos profissionais dividindo a agenda com painéis individuais mudou o jogo da nossa barbearia. Visualização limpa e profissional."
-    },
-    {
-        name: "Lucas Silveira",
-        role: "Dono - Barbearia Corleone, RJ",
-        initials: "LS",
-        bg: "from-cyan-500 to-blue-600",
-        text: "O link de agendamento online é extremamente rápido. Meus clientes elogiam muito a facilidade de agendar pelo celular em segundos."
-    },
-    {
-        name: "Marcos Souza",
-        role: "Proprietário - Club Men Salon, MG",
-        initials: "MS",
-        bg: "from-blue-600 to-indigo-700",
-        text: "Subimos o ticket médio da barbearia oferecendo combos pelo sistema. O cliente vê os combos na hora de agendar e acaba escolhendo."
-    }
-];
-
-const row2 = [
-    {
-        name: "Camila Rocha",
-        role: "Gerente - Classic Barber Club, BA",
-        initials: "CR",
-        bg: "from-teal-500 to-blue-600",
-        text: "Meus clientes elogiam muito a facilidade do agendamento. Sem precisar baixar aplicativo, eles agendam em 3 cliques pelo navegador do próprio celular."
-    },
-    {
-        name: "Thiago Martins",
-        role: "Proprietário - Barbearia VIP, SC",
-        initials: "TM",
-        bg: "from-indigo-500 to-purple-600",
-        text: "Ter um sistema completo com a nossa marca e lembretes automáticos no WhatsApp reduziu o tempo de suporte a zero. Investimento extremamente justo."
-    },
-    {
-        name: "Fernanda Lima",
-        role: "Dona - Retro Barber Studio, PR",
-        initials: "FL",
-        bg: "from-pink-500 to-rose-600",
-        text: "O fluxo de caixa e os relatórios de lucro me deram clareza sobre quais serviços dão mais margem. Subimos o faturamento real em 35%."
-    },
-    {
-        name: "Rodrigo Melo",
-        role: "Sócio - Barber & Co., DF",
-        initials: "RM",
-        bg: "from-cyan-500 to-blue-600",
-        text: "O NEXT roda liso no celular, tablet e computador. Gerencio minhas duas unidades de qualquer lugar do mundo pelo celular com total segurança."
-    },
-    {
-        name: "Amanda Costa",
-        role: "Dona - Barber & Beauty, PE",
-        initials: "AC",
-        bg: "from-emerald-600 to-green-700",
-        text: "Os lembretes automáticos reduzem o no-show de forma drástica. O cliente recebe o link de cancelamento se precisar, liberando o horário."
-    },
-    {
-        name: "Gustavo Santos",
-        role: "Proprietário - Santo Bigode, CE",
-        initials: "GS",
-        bg: "from-orange-500 to-red-600",
-        text: "Excelente custo-benefício. O sistema se paga no primeiro dia com a economia de tempo e a redução de faltas dos clientes."
-    }
-];
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function Testimonials() {
-    
-    // Duplicate arrays to double the items in the scrolling container, making it a 50% translation loop
-    const row1Double = [...row1, ...row1];
-    const row2Double = [...row2, ...row2];
+    const { t } = useTranslation();
 
-    // Render a single testimonial card with mr-6 for pixel-perfect spacing
+    const row1 = [
+        {
+            name: t('group1.t1_name'),
+            role: t('group1.t1_role'),
+            initials: "JP",
+            bg: "from-blue-500 to-indigo-600",
+            text: t('group1.t1_text')
+        },
+        {
+            name: t('group1.t2_name'),
+            role: t('group1.t2_role'),
+            initials: "MN",
+            bg: "from-purple-500 to-pink-600",
+            text: t('group1.t2_text')
+        },
+        {
+            name: t('group1.t3_name'),
+            role: t('group1.t3_role'),
+            initials: "PH",
+            bg: "from-emerald-500 to-teal-600",
+            text: t('group1.t3_text')
+        },
+        {
+            name: t('group1.t4_name'),
+            role: t('group1.t4_role'),
+            initials: "BC",
+            bg: "from-amber-500 to-orange-600",
+            text: t('group1.t4_text')
+        },
+        {
+            name: t('group1.t5_name'),
+            role: t('group1.t5_role'),
+            initials: "LS",
+            bg: "from-cyan-500 to-blue-600",
+            text: t('group1.t5_text')
+        },
+        {
+            name: t('group1.t6_name'),
+            role: t('group1.t6_role'),
+            initials: "MS",
+            bg: "from-blue-600 to-indigo-700",
+            text: t('group1.t6_text')
+        }
+    ];
+
+    const row2 = [
+        {
+            name: t('group1.t7_name'),
+            role: t('group1.t7_role'),
+            initials: "CR",
+            bg: "from-teal-500 to-blue-600",
+            text: t('group1.t7_text')
+        },
+        {
+            name: t('group1.t8_name'),
+            role: t('group1.t8_role'),
+            initials: "TM",
+            bg: "from-indigo-500 to-purple-600",
+            text: t('group1.t8_text')
+        },
+        {
+            name: t('group1.t9_name'),
+            role: t('group1.t9_role'),
+            initials: "FL",
+            bg: "from-pink-500 to-rose-600",
+            text: t('group1.t9_text')
+        },
+        {
+            name: t('group1.t10_name'),
+            role: t('group1.t10_role'),
+            initials: "RM",
+            bg: "from-cyan-500 to-blue-600",
+            text: t('group1.t10_text')
+        },
+        {
+            name: t('group1.t11_name'),
+            role: t('group1.t11_role'),
+            initials: "AC",
+            bg: "from-emerald-600 to-green-700",
+            text: t('group1.t11_text')
+        },
+        {
+            name: t('group1.t12_name'),
+            role: t('group1.t12_role'),
+            initials: "GS",
+            bg: "from-orange-500 to-red-600",
+            text: t('group1.t12_text')
+        }
+    ];
+    
+    // Render a single testimonial card with correct spacing and typography
     const renderCard = (t, i) => (
         <div 
             key={i} 
-            className="w-[310px] sm:w-[360px] shrink-0 p-6 rounded-[24px] bg-[#0A0A0C]/90 border border-white/[0.04] backdrop-blur-xl hover:border-primary/20 hover:bg-[#0E0E12]/80 transition-all duration-300 relative select-none mr-6"
+            className="w-[310px] sm:w-[360px] shrink-0 p-6 rounded-[24px] bg-[#0A0A0C]/90 border border-white/[0.04] backdrop-blur-xl hover:border-primary/20 hover:bg-[#0E0E12]/80 transition-all duration-300 relative select-none"
         >
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
@@ -109,8 +107,8 @@ export default function Testimonials() {
                         {t.initials}
                     </div>
                     <div>
-                        <h4 className="text-[12px] font-bold text-white font-display leading-tight">{t.name}</h4>
-                        <p className="text-[9px] text-slate-500 font-body leading-tight mt-0.5">{t.role}</p>
+                        <h4 className="text-[14px] sm:text-base font-bold text-white font-display leading-tight">{t.name}</h4>
+                        <p className="text-[11px] sm:text-xs text-slate-500 font-body leading-tight mt-0.5">{t.role}</p>
                     </div>
                 </div>
 
@@ -131,7 +129,7 @@ export default function Testimonials() {
             </div>
 
             {/* Testimonial Text */}
-            <p className="text-[13px] leading-relaxed text-slate-400 font-body">
+            <p className="text-[13px] sm:text-[14px] leading-relaxed text-slate-300 font-body">
                 "{t.text}"
             </p>
         </div>
@@ -145,16 +143,19 @@ export default function Testimonials() {
             <div className="container mx-auto px-4 relative z-10 mb-20">
                 {/* Section Title */}
                 <div className="text-center max-w-3xl mx-auto">
+                    {/* LABEL / EYEBROW */}
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold font-body bg-white/[0.03] border border-white/[0.08] text-primary tracking-[0.2em] uppercase mb-5">
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>Depoimentos Reais</span>
+                        <span>{t('group1.testimonials_label')}</span>
                     </div>
+                    {/* SUBHEADLINE / HEADING */}
                     <h2 className="font-display text-4xl lg:text-6xl font-extrabold text-white mb-6 tracking-[-0.04em] leading-[1.1]">
-                        Barbearias Reais. <br />
-                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Resultados Reais.</span>
+                        {t('group1.testimonials_heading_1')} <br />
+                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group1.testimonials_heading_2')}</span>
                     </h2>
+                    {/* BODY TEXT */}
                     <p className="font-body text-slate-400 text-lg max-w-xl mx-auto">
-                        Junte-se a milhares de gestores de elite que aposentaram a agenda de papel e escalaram seus lucros.
+                        {t('group1.testimonials_description')}
                     </p>
                 </div>
             </div>
@@ -164,40 +165,45 @@ export default function Testimonials() {
                 
                 {/* ROW 1: Moves Left */}
                 <div className="flex overflow-hidden w-full relative group">
-                    <div className="flex shrink-0 animate-marquee">
-                        {row1Double.map((t, idx) => renderCard(t, `r1-${idx}`))}
+                    <div className="flex shrink-0 animate-marquee gap-6 pr-6">
+                        {row1.map((t, idx) => renderCard(t, `r1-${idx}`))}
+                    </div>
+                    <div className="flex shrink-0 animate-marquee gap-6 pr-6" aria-hidden="true">
+                        {row1.map((t, idx) => renderCard(t, `r1-dup-${idx}`))}
                     </div>
                 </div>
 
                 {/* ROW 2: Moves Right */}
                 <div className="flex overflow-hidden w-full relative group">
-                    <div className="flex shrink-0 animate-marquee-reverse">
-                        {row2Double.map((t, idx) => renderCard(t, `r2-${idx}`))}
+                    <div className="flex shrink-0 animate-marquee-reverse gap-6 pr-6">
+                        {row2.map((t, idx) => renderCard(t, `r2-${idx}`))}
+                    </div>
+                    <div className="flex shrink-0 animate-marquee-reverse gap-6 pr-6" aria-hidden="true">
+                        {row2.map((t, idx) => renderCard(t, `r2-dup-${idx}`))}
                     </div>
                 </div>
 
             </div>
 
-            {/* Embedded Marquee keyframe styles with 20s duration and -50% translation loop */}
+            {/* Embedded Marquee keyframe styles with 12s duration and -100% translation loop */}
             <style>{`
                 @keyframes marquee {
                     0% { transform: translateX(0); }
-                    100% { transform: translateX(-50%); }
+                    100% { transform: translateX(-100%); }
                 }
                 @keyframes marquee-reverse {
-                    0% { transform: translateX(-50%); }
+                    0% { transform: translateX(-100%); }
                     100% { transform: translateX(0); }
                 }
                 .animate-marquee {
-                    animation: marquee 20s linear infinite;
+                    animation: marquee 12s linear infinite;
                 }
                 .animate-marquee-reverse {
-                    animation: marquee-reverse 20s linear infinite;
+                    animation: marquee-reverse 12s linear infinite;
                 }
-                .animate-marquee:hover, 
-                .animate-marquee-reverse:hover {
+                .group:hover .animate-marquee, 
+                .group:hover .animate-marquee-reverse {
                     animation-play-state: paused;
-                    cursor: grab;
                 }
             `}</style>
         </section>

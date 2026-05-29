@@ -55,6 +55,14 @@ module.exports = {
                     foreground: "hsl(var(--sidebar-foreground))",
                 },
             },
+            fontFamily: {
+                sans: ['Inter', 'var(--font-inter)', 'system-ui', 'sans-serif'],
+                display: ['var(--font-geist)', 'Inter', 'sans-serif'],
+                heading: ['var(--font-geist)', 'Inter', 'sans-serif'],
+                body: ['Inter', 'var(--font-inter)', 'sans-serif'],
+                label: ['var(--font-geist-mono)', 'monospace'],
+                mono: ['var(--font-geist-mono)', 'Menlo', 'monospace'],
+            },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",

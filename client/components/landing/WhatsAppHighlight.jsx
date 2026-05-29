@@ -1,10 +1,12 @@
 'use client';
 import { MessageSquare, Zap, Check, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '../../contexts/LanguageContext';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
 
 export default function WhatsAppHighlight() {
+    const { t } = useTranslation();
     return (
         <section className="py-32 bg-[#050505] overflow-hidden relative border-y border-white/[0.06]">
             {/* Background elements */}
@@ -51,7 +53,7 @@ export default function WhatsAppHighlight() {
                                                         <Check className="w-2.5 h-2.5 text-white stroke-[4]" />
                                                     </div>
                                                 </div>
-                                                <p className="font-body text-[#25D366] text-[8px] uppercase tracking-[0.2em] font-black">Sincronizado</p>
+                                                <p className="font-body text-[#25D366] text-[8px] uppercase tracking-[0.2em] font-black">{t('group4.whatsappHighlight.syncStatus')}</p>
                                             </div>
                                         </div>
                                         <Zap className="w-5 h-5 text-yellow-400 fill-current animate-pulse" />
@@ -63,7 +65,7 @@ export default function WhatsAppHighlight() {
 
                                         <div className="flex justify-center relative z-10">
                                             <div className="bg-[#182229]/80 backdrop-blur-sm px-4 py-1.5 rounded-xl text-[8px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-2 border border-white/5">
-                                                <Lock className="w-3 h-3" /> Criptografia Maestro
+                                                <Lock className="w-3 h-3" /> {t('group4.whatsappHighlight.encryption')}
                                             </div>
                                         </div>
 
@@ -73,7 +75,7 @@ export default function WhatsAppHighlight() {
                                             transition={{ delay: 0.5 }}
                                             className="bg-[#202C33] p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[85%] border border-white/5 flex flex-col relative z-10"
                                         >
-                                            <p className="font-body text-[12px] text-slate-200 font-medium">Bom dia! Quero cortar cabelo às 17h.</p>
+                                            <p className="font-body text-[12px] text-slate-200 font-medium">{t('group4.whatsappHighlight.message1')}</p>
                                             <span className="text-[9px] text-slate-500 self-end mt-1">10:45</span>
                                         </motion.div>
 
@@ -88,17 +90,17 @@ export default function WhatsAppHighlight() {
                                                 <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md">
                                                     <Zap className="w-3 h-3 fill-current" />
                                                 </div>
-                                                <p className="font-body text-[10px] font-black text-white uppercase tracking-tighter">Reserva Automática ✅</p>
+                                                <p className="font-body text-[10px] font-black text-white uppercase tracking-tighter">{t('group4.whatsappHighlight.autoReserve')}</p>
                                             </div>
-                                            <p className="font-body text-[12px] text-white font-bold mb-3">Horário das 17:00 confirmado!</p>
+                                            <p className="font-body text-[12px] text-white font-bold mb-3">{t('group4.whatsappHighlight.confirmedTime')}</p>
 
                                             <div className="bg-black/20 backdrop-blur-md p-3 rounded-xl border-l-4 border-primary shadow-inner space-y-1 mb-2">
-                                                <p className="font-body text-[9px] font-black text-primary uppercase tracking-[0.2em]">Confirmação NEXT</p>
-                                                <p className="font-body text-sm font-black text-white leading-tight">Hoje às 17:00</p>
-                                                <p className="font-body text-[9px] text-white/60 font-medium">Com Barbeiro Júnior</p>
+                                                <p className="font-body text-[9px] font-black text-primary uppercase tracking-[0.2em]">{t('group4.whatsappHighlight.confirmationTitle')}</p>
+                                                <p className="font-body text-sm font-black text-white leading-tight">{t('group4.whatsappHighlight.confirmationDate')}</p>
+                                                <p className="font-body text-[9px] text-white/60 font-medium">{t('group4.whatsappHighlight.confirmationBarber')}</p>
                                             </div>
 
-                                            <p className="font-body text-[11px] text-white/90">Te enviamos o link para pagamento antecipado. 🚀</p>
+                                            <p className="font-body text-[11px] text-white/90">{t('group4.whatsappHighlight.paymentLink')}</p>
                                             <span className="text-[9px] text-white/40 self-end mt-2">10:46</span>
                                         </motion.div>
                                     </div>
@@ -106,7 +108,7 @@ export default function WhatsAppHighlight() {
                                     {/* Dynamic Input Mock */}
                                     <div className="p-4 bg-[#202C33] border-t border-white/5 flex gap-2">
                                         <div className="flex-1 h-10 bg-[#2A3942] rounded-full border border-white/5 px-4 flex items-center">
-                                            <span className="text-slate-500 text-[12px]">Escreva aqui...</span>
+                                            <span className="text-slate-500 text-[12px]">{t('group4.whatsappHighlight.writeHere')}</span>
                                         </div>
                                         <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/20">
                                             <MessageSquare className="w-4.5 h-4.5 fill-current" />
@@ -127,23 +129,23 @@ export default function WhatsAppHighlight() {
                         >
                             <div className="text-[13px] leading-[1.3] px-1.5 py-[2px] rounded-md inline-flex items-center gap-1 font-medium bg-white/[0.04] border border-white/[0.08] mb-8 backdrop-blur-xl text-white/80">
                                 <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
-                                <span>Automação Nativa</span>
+                                <span>{t('group4.whatsappHighlight.automationBadge')}</span>
                             </div>
 
                             <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
-                                Onde seu cliente está, <br />
-                                <span className="bg-gradient-to-r from-primary via-[#25D366] to-[#25D366] bg-clip-text text-transparent italic">o NEXT também está.</span>
+                                {t('group4.whatsappHighlight.titlePart1')} <br />
+                                <span className="bg-gradient-to-r from-primary via-[#25D366] to-[#25D366] bg-clip-text text-transparent">{t('group4.whatsappHighlight.titlePart2')}</span>
                             </h2>
 
                             <p className="font-body secondary-text font-medium mb-12 max-w-xl">
-                                Acabe com as interrupções para responder mensagens. O NEXT automatiza seu agendamento via WhatsApp, garantindo zero atrito e agenda lotada.
+                                {t('group4.whatsappHighlight.subtitle')}
                             </p>
 
                             <div className="space-y-6 mb-16">
                                 {[
-                                    { title: 'Lembretes Anti-Falta', desc: 'Alertas proativos que reduzem o no-show em até 80%.' },
-                                    { title: 'Link de Agendamento Elite', desc: 'Seu cliente agenda em segundos, direto do WhatsApp ou Instagram.' },
-                                    { title: 'Confirmação via Chatbot', desc: 'O sistema valida a disponibilidade e reserva o horário instantaneamente.' }
+                                    { title: t('group4.whatsappHighlight.feature1Title'), desc: t('group4.whatsappHighlight.feature1Desc') },
+                                    { title: t('group4.whatsappHighlight.feature2Title'), desc: t('group4.whatsappHighlight.feature2Desc') },
+                                    { title: t('group4.whatsappHighlight.feature3Title'), desc: t('group4.whatsappHighlight.feature3Desc') }
                                 ].map((item, idx) => (
                                     <motion.div
                                         key={idx}
@@ -166,7 +168,7 @@ export default function WhatsAppHighlight() {
 
                             <Link href="/register">
                                 <button className="px-10 py-5 bg-white text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-xl hover:scale-105 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.05)] flex items-center gap-4 group font-body">
-                                    Lotar Minha Agenda Agora <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
+                                    {t('group4.whatsappHighlight.ctaButton')} <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>
                         </motion.div>

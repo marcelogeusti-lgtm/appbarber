@@ -1,59 +1,61 @@
 'use client';
 import { FileText, MessageSquare, Zap, Check, Minus, Sparkles, TrendingUp, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function ComparisonMatrix() {
+    const { t } = useTranslation();
     const cards = [
         {
-            title: "Agenda de Papel",
-            subtitle: "A barreira física",
+            title: t('comparison.c1_title'),
+            subtitle: t('comparison.c1_sub'),
             icon: <FileText className="w-5 h-5" />,
             accentClass: "border-red-500/10 hover:border-red-500/20 text-red-400 bg-red-950/5",
             pros: false,
             points: [
-                "Rasuras frequentes e agenda desorganizada",
-                "Zero controle de caixa ou histórico de clientes",
-                "Risco constante de perder a agenda física",
-                "O cliente só agenda se você estiver disponível para atender"
+                t('comparison.c1_p1'),
+                t('comparison.c1_p2'),
+                t('comparison.c1_p3'),
+                t('comparison.c1_p4')
             ]
         },
         {
-            title: "WhatsApp Manual",
-            subtitle: "O dreno de atenção",
+            title: t('comparison.c2_title'),
+            subtitle: t('comparison.c2_sub'),
             icon: <MessageSquare className="w-5 h-5" />,
             accentClass: "border-amber-500/10 hover:border-amber-500/20 text-amber-400 bg-amber-950/5",
             pros: false,
             points: [
-                "Parar de cortar cabelo a todo momento para responder",
-                "Mensagens acumuladas e clientes sem resposta fora do horário",
-                "Dificuldade extrema para calcular comissões e faturamento",
-                "Esquecimento constante de agendamentos informais"
+                t('comparison.c2_p1'),
+                t('comparison.c2_p2'),
+                t('comparison.c2_p3'),
+                t('comparison.c2_p4')
             ]
         },
         {
-            title: "App Barbeiro (NEXT)",
-            subtitle: "O império no piloto automático",
+            title: t('comparison.c3_title'),
+            subtitle: t('comparison.c3_sub'),
             icon: <Zap className="w-5 h-5" />,
             accentClass: "border-primary/30 hover:border-primary/50 text-primary bg-primary/10 shadow-[0_0_50px_rgba(77,114,228,0.15)] scale-[1.02]",
             pros: true,
             points: [
-                "Link de agendamento online ativo 24 horas, 7 dias por semana",
-                "Disparo automático de lembretes via WhatsApp anti-faltas",
-                "Faturamento bruto, ticket médio e fluxo de caixa calculados na hora",
-                "Cobrança de sinal Pix antecipado para eliminar cadeiras vazias"
+                t('comparison.c3_p1'),
+                t('comparison.c3_p2'),
+                t('comparison.c3_p3'),
+                t('comparison.c3_p4')
             ]
         }
     ];
 
     const tableRows = [
-        { feature: "Agendamento autônomo 24/7", paper: false, whatsapp: false, next: true },
-        { feature: "Lembretes anti-falta via WhatsApp", paper: false, whatsapp: false, next: true },
-        { feature: "Histórico completo e perfis de clientes", paper: false, whatsapp: "Limites", next: true },
-        { feature: "Cálculo automatizado de comissões", paper: false, whatsapp: false, next: true },
-        { feature: "Cobrança de sinal Pix pré-agendamento", paper: false, whatsapp: false, next: true },
-        { feature: "Controle financeiro e fluxo de caixa na nuvem", paper: false, whatsapp: false, next: true },
-        { feature: "Painel exclusivo para profissionais da equipe", paper: false, whatsapp: false, next: true },
-        { feature: "Suporte e atualizações constantes", paper: false, whatsapp: false, next: true }
+        { feature: t('comparison.t_r1'), paper: false, whatsapp: false, next: true },
+        { feature: t('comparison.t_r2'), paper: false, whatsapp: false, next: true },
+        { feature: t('comparison.t_r3'), paper: false, whatsapp: "Limites", next: true },
+        { feature: t('comparison.t_r4'), paper: false, whatsapp: false, next: true },
+        { feature: t('comparison.t_r5'), paper: false, whatsapp: false, next: true },
+        { feature: t('comparison.t_r6'), paper: false, whatsapp: false, next: true },
+        { feature: t('comparison.t_r7'), paper: false, whatsapp: false, next: true },
+        { feature: t('comparison.t_r8'), paper: false, whatsapp: false, next: true }
     ];
 
     return (
@@ -65,16 +67,19 @@ export default function ComparisonMatrix() {
                 
                 {/* Header */}
                 <div className="text-center max-w-3xl mx-auto mb-24">
+                    {/* LABEL / EYEBROW */}
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold font-body bg-white/[0.03] border border-white/[0.08] text-primary tracking-[0.2em] uppercase mb-5">
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>Comparação Eficiente</span>
+                        <span>{t('comparison.eyebrow')}</span>
                     </div>
+                    {/* SUBHEADLINE / HEADING → título secundário */}
                     <h2 className="font-display text-4xl lg:text-6xl font-extrabold text-white mb-6 tracking-[-0.04em] leading-[1.1]">
-                        Mais Organização. <br />
-                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">Zero Estresse.</span>
+                        {t('comparison.title_part1')} <br />
+                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('comparison.title_highlight')}</span>
                     </h2>
-                    <p className="font-body text-slate-400 text-lg max-w-xl mx-auto">
-                        Entenda por que manter sua barbearia no papel ou no WhatsApp manual está custando caro para o seu faturamento diário.
+                    {/* BODY TEXT */}
+                    <p className="font-body text-slate-400 text-[16px] max-w-xl mx-auto">
+                        {t('comparison.subtitle')}
                     </p>
                 </div>
 
@@ -97,7 +102,7 @@ export default function ComparisonMatrix() {
                                         </div>
                                     </div>
                                     {card.pros && (
-                                        <span className="text-[9px] font-black uppercase text-primary tracking-wider bg-primary/10 px-2 py-0.5 rounded-full">Recomendado</span>
+                                        <span className="text-[9px] font-black uppercase text-primary tracking-wider bg-primary/10 px-2 py-0.5 rounded-full">{t('comparison.recommended')}</span>
                                     )}
                                 </div>
 
@@ -123,9 +128,9 @@ export default function ComparisonMatrix() {
                     <table className="min-w-[640px] w-full border-separate" style={{ borderSpacing: '0 8px' }}>
                         <thead>
                             <tr className="text-slate-500 text-[11px] font-black uppercase tracking-[0.2em] font-body">
-                                <th className="px-6 py-4 text-left font-bold">Funcionalidade Chave</th>
-                                <th className="px-3 py-4 text-center font-bold">Agenda Física</th>
-                                <th className="px-3 py-4 text-center font-bold">WhatsApp</th>
+                                <th className="px-6 py-4 text-left font-bold">{t('comparison.t_col1')}</th>
+                                <th className="px-3 py-4 text-center font-bold">{t('comparison.t_col2')}</th>
+                                <th className="px-3 py-4 text-center font-bold">{t('comparison.t_col3')}</th>
                                 <th className="relative px-3 py-4 text-center font-bold text-primary">
                                     <div className="absolute inset-0 bg-primary/[0.03] rounded-t-2xl border-t border-l border-r border-primary/20" />
                                     <span className="relative z-10 flex items-center justify-center gap-1.5 drop-shadow-[0_0_12px_rgba(77,114,228,0.3)]">
@@ -151,7 +156,7 @@ export default function ComparisonMatrix() {
                                     {/* WhatsApp Status */}
                                     <td className="px-3 py-4 text-center border-y border-white/[0.02] bg-[#08080a]/30 font-body text-[11px] text-slate-500 font-bold">
                                         {row.whatsapp === "Limites" ? (
-                                            <span className="bg-white/[0.02] border border-white/[0.06] px-2 py-0.5 rounded-full">Limites</span>
+                                            <span className="bg-white/[0.02] border border-white/[0.06] px-2 py-0.5 rounded-full">{t('comparison.t_limits')}</span>
                                         ) : (
                                             <Minus className="mx-auto h-4 w-4 text-slate-700" />
                                         )}

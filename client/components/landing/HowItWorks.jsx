@@ -1,37 +1,39 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Check, Clock, Star, Wifi, Battery, Scissors, MessageSquare, ShieldCheck, Sparkles, Award } from 'lucide-react';
-
-const steps = [
-    {
-        num: "01",
-        title: "Escolha do Profissional",
-        desc: "Seus clientes selecionam o barbeiro de preferência, visualizando avaliações e portfólios reais em segundos.",
-        label: "Interface do Cliente"
-    },
-    {
-        num: "02",
-        title: "Menu de Serviços Online",
-        desc: "Um catálogo digital premium que exibe serviços, preços, durações e combos promocionais com total clareza.",
-        label: "Cardápio Personalizado"
-    },
-    {
-        num: "03",
-        title: "Horários em Tempo Real",
-        desc: "Janelas de tempo integradas à agenda do barbeiro. Sem conflitos, sem ligações, agendamento direto.",
-        label: "Agenda Inteligente"
-    },
-    {
-        num: "04",
-        title: "Disparo via WhatsApp",
-        desc: "Confirmação instantânea e alertas automáticos enviados no celular do cliente para reduzir faltas em até 95%.",
-        label: "Redução de Faltas"
-    }
-];
+import { Calendar, Check, Clock, Star, Wifi, Battery, Scissors, MessageSquare, ShieldCheck, Sparkles, Award, Phone, Search, MapPin, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function HowItWorks() {
+    const { t } = useTranslation();
     const [activeIndex, setActiveIndex] = useState(0);
+
+    const steps = [
+        {
+            num: "01",
+            title: t('howItWorks.s1_title'),
+            desc: t('howItWorks.s1_desc'),
+            label: t('howItWorks.s1_label')
+        },
+        {
+            num: "02",
+            title: t('howItWorks.s2_title'),
+            desc: t('howItWorks.s2_desc'),
+            label: t('howItWorks.s2_label')
+        },
+        {
+            num: "03",
+            title: t('howItWorks.s3_title'),
+            desc: t('howItWorks.s3_desc'),
+            label: t('howItWorks.s3_label')
+        },
+        {
+            num: "04",
+            title: t('howItWorks.s4_title'),
+            desc: t('howItWorks.s4_desc'),
+            label: t('howItWorks.s4_label')
+        }
+    ];
 
     // Auto-advance tabs every 5.5 seconds, resetting the interval automatically on activeIndex changes (manual click)
     useEffect(() => {
@@ -57,14 +59,14 @@ export default function HowItWorks() {
                 <div className="max-w-3xl mb-24">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold font-body bg-white/[0.03] border border-white/[0.08] text-primary tracking-[0.2em] uppercase mb-5">
                         <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                        <span>Experiência do Cliente</span>
+                        <span>{t('howItWorks.eyebrow')}</span>
                     </div>
                     <h2 className="font-display text-4xl lg:text-6xl font-extrabold text-white mb-6 tracking-[-0.04em] leading-[1.1]">
-                        Agendamento em <br />
-                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">4 Passos Simples.</span>
+                        {t('howItWorks.title_part1')} <br />
+                        <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('howItWorks.title_highlight')}</span>
                     </h2>
                     <p className="font-body text-gray-400 text-lg max-w-xl">
-                        Veja na prática como é rápido e intuitivo para o seu cliente realizar um agendamento na sua vitrine digital.
+                        {t('howItWorks.subtitle')}
                     </p>
                 </div>
 

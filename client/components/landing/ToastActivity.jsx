@@ -1,23 +1,25 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { UserPlus, Star } from 'lucide-react';
+import { useTranslation } from '../../contexts/LanguageContext';
 
-const MESSAGES = [
-    { text: "Lucas acabou de criar uma conta", icon: UserPlus, color: "text-blue-500", bg: "bg-blue-50" },
-    { text: "Pedro iniciou teste gratuito", icon: Star, color: "text-yellow-500", bg: "bg-yellow-50" },
-    { text: "Barbearia Kings acabou de se cadastrar", icon: UserPlus, color: "text-green-500", bg: "bg-green-50" },
-    { text: "Marcos iniciou teste gratuito", icon: Star, color: "text-yellow-500", bg: "bg-yellow-50" },
-    { text: "Studio VIP acabou de se cadastrar", icon: UserPlus, color: "text-green-500", bg: "bg-green-50" },
+const MESSAGE_CONFIGS = [
+    { icon: UserPlus, color: "text-blue-500", bg: "bg-blue-50" },
+    { icon: Star, color: "text-yellow-500", bg: "bg-yellow-50" },
+    { icon: UserPlus, color: "text-green-500", bg: "bg-green-50" },
+    { icon: Star, color: "text-yellow-500", bg: "bg-yellow-50" },
+    { icon: UserPlus, color: "text-green-500", bg: "bg-green-50" },
 ];
 
 export default function ToastActivity() {
+    const { t } = useTranslation();
     const [currentToast, setCurrentToast] = useState(null);
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         const showRandomToast = () => {
-            const randomMsg = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
-            setCurrentToast(randomMsg);
+            const index = Math.floor(Math.random() * MESSAGE_CONFIGS.length);
+            setCurrentToast({ index, ...MESSAGE_CONFIGS[index] });
             setIsVisible(true);
 
             // Hide after 4 seconds
@@ -51,8 +53,8 @@ export default function ToastActivity() {
                         <currentToast.icon className={`w-5 h-5 ${currentToast.color}`} />
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-gray-900">{currentToast.text}</p>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black mt-0.5">Agora mesmo</p>
+                        <p className="text-sm font-bold text-gray-900">{t(`group3.toastActivity.messages.${currentToast.index}`)}</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black mt-0.5">{t('group3.toastActivity.justNow')}</p>
                     </div>
                 </div>
             )}

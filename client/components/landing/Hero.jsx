@@ -2,8 +2,10 @@
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function Hero() {
+    const { t } = useTranslation();
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -73,37 +75,37 @@ export default function Hero() {
                         animate="visible"
                         variants={containerVariants}
                     >
-                        {/* Badge / beautifulMention Equivalent */}
+                        {/* Badge / Eyebrow */}
                         <motion.div variants={itemVariants} className="text-[13px] leading-[1.3] px-1.5 py-[2px] rounded-md inline-flex items-center gap-1 font-medium bg-white/[0.04] border border-white/[0.08] mb-8 backdrop-blur-xl group hover:border-primary/30 transition-colors duration-500 text-white/80">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_12px_#4d72e4]" />
                             </span>
-                            O Futuro é NEXT
+                            {t('hero.badge')}
                         </motion.div>
 
                         {/* Headline — High-Ticket Typography */}
                         <motion.h1 variants={itemVariants} className="font-display hero-title font-extrabold text-white mb-6 text-balance">
-                            Acabe com as{' '}
-                            <span className="bg-gradient-to-r from-[#4D72E4] via-[#6B8CFF] to-[#4D72E4] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">cadeiras vazias</span>
-                            {' '}da sua barbearia.
+                            {t('hero.title_part1')}
+                            <span className="bg-gradient-to-r from-[#4D72E4] via-[#6B8CFF] to-[#4D72E4] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">{t('hero.title_highlight')}</span>
+                            {t('hero.title_part2')}
                         </motion.h1>
 
-                        {/* Subheadline — secondary-text Equivalent */}
+                        {/* Subheadline */}
                         <motion.p variants={itemVariants} className="font-body text-base text-slate-400 mb-10 leading-[1.6] max-w-lg font-normal opacity-90">
-                            Zere a falta de clientes. O NEXT é o único sistema que agenda, cobra antecipado e traz seu client de volta no piloto automático enquanto você corta.
+                            {t('hero.subtitle')}
                         </motion.p>
 
                         {/* CTAs */}
                         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-10">
                             <Link href="/register">
                                 <button className="w-full sm:w-auto px-10 py-4 bg-white text-black text-sm font-bold uppercase tracking-[0.15em] rounded-xl hover:scale-[1.03] active:scale-[0.98] transition-all shadow-[0_0_50px_rgba(255,255,255,0.08)] flex items-center justify-center gap-3 group font-body">
-                                    Lotar Minha Agenda <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    {t('hero.cta_main')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>
                             <Link href="#pricing" scroll={true}>
                                 <button className="w-full sm:w-auto px-8 py-4 bg-transparent text-white/80 text-sm font-medium rounded-xl border border-white/[0.08] hover:border-white/20 hover:text-white hover:bg-white/[0.03] transition-all flex items-center justify-center gap-2 font-body">
-                                    Ver demonstração
+                                    {t('hero.cta_secondary')}
                                 </button>
                             </Link>
                         </motion.div>
@@ -111,9 +113,9 @@ export default function Hero() {
                         {/* Stats Row */}
                         <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-x-10 gap-y-4 mb-14 py-8 border-y border-white/[0.06]">
                             {[
-                                { val: '+182.000', label: 'Agendamentos' },
-                                { val: '+R$ 1.4M', label: 'Gerenciados' },
-                                { val: '+2.300', label: 'Barbeiros' }
+                                { val: t('hero.stat1_value'), label: t('hero.stat1_label') },
+                                { val: t('hero.stat2_value'), label: t('hero.stat2_label') },
+                                { val: t('hero.stat3_value'), label: t('hero.stat3_label') }
                             ].map((stat, i) => (
                                 <div key={i} className="flex flex-col">
                                     <span className="font-display text-2xl md:text-3xl font-extrabold text-white tracking-[-0.03em]">{stat.val}</span>
@@ -139,7 +141,7 @@ export default function Hero() {
                                     ))}
                                 </div>
                                 <p className="text-xs font-medium text-slate-500 mt-1 font-body">
-                                    Junte-se a <span className="text-white font-semibold">+2.000 barbeiros</span> vitoriosos
+                                    {t('hero.social_proof_start')} <span className="text-white font-semibold">{t('hero.social_proof_highlight')}</span> {t('hero.social_proof_end')}
                                 </p>
                             </div>
                         </motion.div>
@@ -147,8 +149,8 @@ export default function Hero() {
                         {/* Trust Badges */}
                         <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-8 border-t border-white/[0.06] pt-10">
                             {[
-                                { text: '15 Dias Grátis' },
-                                { text: 'Sem fidelidade' }
+                                { text: t('hero.trust1') },
+                                { text: t('hero.trust2') }
                             ].map((badge, i) => (
                                 <div key={i} className="flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-slate-500 hover:text-white/80 transition-colors cursor-default font-body">
                                     <CheckCircle2 className="w-4 h-4 text-primary/80" />

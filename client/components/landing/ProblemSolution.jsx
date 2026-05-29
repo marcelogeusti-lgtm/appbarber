@@ -3,30 +3,34 @@ import { XCircle, CheckCircle2, UserX, BookOpen, DollarSign, Heart, Zap, Calenda
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
 
+import { useTranslation } from '../../contexts/LanguageContext';
+
 export default function ProblemSolution() {
+    const { t } = useTranslation();
+
     const comparisons = [
         {
-            pain: "Clientes esquecem o horário e não avisam.",
+            pain: t('group2.ProblemSolution.pain1'),
             painIcon: UserX,
-            solution: "Lembretes automáticos via WhatsApp reduzem faltas em 80%.",
+            solution: t('group2.ProblemSolution.solution1'),
             solutionIcon: Zap
         },
         {
-            pain: "Agenda física bagunçada ou no WhatsApp pessoal.",
+            pain: t('group2.ProblemSolution.pain2'),
             painIcon: BookOpen,
-            solution: "Link de agendamento 24h que organiza tudo sozinho.",
+            solution: t('group2.ProblemSolution.solution2'),
             solutionIcon: Calendar
         },
         {
-            pain: "Sem controle real do que entra e sai no caixa.",
+            pain: t('group2.ProblemSolution.pain3'),
             painIcon: DollarSign,
-            solution: "Fluxo de caixa em tempo real e relatórios de lucro limpos.",
+            solution: t('group2.ProblemSolution.solution3'),
             solutionIcon: CheckCircle2
         },
         {
-            pain: "Dificuldade em fidelizar e trazer o cliente de volta.",
+            pain: t('group2.ProblemSolution.pain4'),
             painIcon: Heart,
-            solution: "Sistema de pontos e promoções que recupera clientes.",
+            solution: t('group2.ProblemSolution.solution4'),
             solutionIcon: Heart
         }
     ];
@@ -42,11 +46,11 @@ export default function ProblemSolution() {
                         transition={{ duration: 0.8 }}
                     >
                         <h2 className="font-display hero-title font-extrabold text-white mb-6 text-balance">
-                            Você corta cabelo ou <br />
-                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent italic">gerencia problemas?</span>
+                            {t('group2.ProblemSolution.titlePart1')} <br />
+                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group2.ProblemSolution.titlePart2')}</span>
                         </h2>
                         <p className="font-body secondary-text font-medium max-w-2xl mx-auto">
-                            Pare de perder tempo com tarefas manuais. Veja a diferença entre quem usa o NEXT e quem ainda está no escuro.
+                            {t('group2.ProblemSolution.subtitle')}
                         </p>
                     </motion.div>
                 </div>
@@ -67,7 +71,7 @@ export default function ProblemSolution() {
                                     <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 group-hover/pain:scale-110 transition-transform shadow-[0_0_20px_rgba(239,68,68,0.1)]">
                                         <XCircle className="w-7 h-7" />
                                     </div>
-                                    <h3 className="font-display text-2xl font-black text-slate-500 uppercase tracking-tighter transition-colors group-hover/pain:text-white">Sem o NEXT</h3>
+                                    <h3 className="font-display text-2xl font-black text-slate-500 uppercase tracking-tighter transition-colors group-hover/pain:text-white">{t('group2.ProblemSolution.withoutNext')}</h3>
                                 </div>
 
                                 <div className="space-y-12 flex-1 relative z-10">
@@ -82,10 +86,10 @@ export default function ProblemSolution() {
                                 </div>
 
                                 <div className="mt-16 pt-10 border-t border-white/[0.06] relative z-10">
-                                    <p className="font-body text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] mb-3">Resultado Comum:</p>
-                                    <p className="font-display text-xl md:text-2xl font-bold text-slate-400 italic transition-colors group-hover/pain:text-white">
-                                        Noites em claro e faturamento <br />
-                                        escorrendo pelo ralo.
+                                    <p className="font-body text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] mb-3">{t('group2.ProblemSolution.commonResultLabel')}</p>
+                                    <p className="font-display text-xl md:text-2xl font-bold text-slate-400 transition-colors group-hover/pain:text-white">
+                                        {t('group2.ProblemSolution.commonResultDesc1')} <br />
+                                        {t('group2.ProblemSolution.commonResultDesc2')}
                                     </p>
                                 </div>
                             </div>
@@ -108,7 +112,7 @@ export default function ProblemSolution() {
                                     <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-white shadow-[0_0_30px_#4d72e4] group-hover/solution:scale-110 transition-transform">
                                         <CheckCircle2 className="w-7 h-7" />
                                     </div>
-                                    <h3 className="font-display text-2xl font-black text-white uppercase tracking-tighter shadow-primary/20">Com o NEXT</h3>
+                                    <h3 className="font-display text-2xl font-black text-white uppercase tracking-tighter shadow-primary/20">{t('group2.ProblemSolution.withNext')}</h3>
                                 </div>
 
                                 <div className="space-y-12 flex-1 relative z-10">
@@ -123,10 +127,10 @@ export default function ProblemSolution() {
                                 </div>
 
                                 <div className="mt-16 pt-10 border-t border-white/10 relative z-10">
-                                    <p className="font-body text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-3">O Salto de Elite:</p>
-                                    <p className="font-display text-xl md:text-2xl font-bold text-white italic drop-shadow-[0_0_15px_rgba(77,114,228,0.5)]">
-                                        Agenda lotada e gestão em <br />
-                                        piloto automático de verdade.
+                                    <p className="font-body text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-3">{t('group2.ProblemSolution.eliteJumpLabel')}</p>
+                                    <p className="font-display text-xl md:text-2xl font-bold text-white drop-shadow-[0_0_15px_rgba(77,114,228,0.5)]">
+                                        {t('group2.ProblemSolution.eliteJumpDesc1')} <br />
+                                        {t('group2.ProblemSolution.eliteJumpDesc2')}
                                     </p>
                                 </div>
                             </div>

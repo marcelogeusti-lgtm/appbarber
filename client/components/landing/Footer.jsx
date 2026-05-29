@@ -2,9 +2,11 @@
 import { Instagram, Youtube, Facebook, Mail, Phone, MapPin, ArrowUpRight, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function Footer() {
-    const currentYear = 2025;
+    const { t } = useTranslation();
+    const currentYear = new Date().getFullYear();
 
     return (
         <footer className="bg-[#050505] pt-32 pb-12 relative overflow-hidden">
@@ -22,12 +24,12 @@ export default function Footer() {
 
                     <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
                         <div>
-                            <h2 className="font-display hero-title font-extrabold text-white mb-8 italic text-balance">
-                                PRONTO PARA O <br />
-                                <span className="not-italic">PRÓXIMO NÍVEL?</span>
+                            <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
+                                {t('footer.cta_title_part1')} <br />
+                                <span>{t('footer.cta_title_highlight')}</span>
                             </h2>
                             <p className="font-body secondary-text font-medium max-w-xl text-white/80">
-                                Junte-se a mais de 1.200 barbearias que já transformaram seu negócio com o NEXT.
+                                {t('footer.cta_subtitle')}
                             </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-6">
@@ -37,7 +39,7 @@ export default function Footer() {
                                     whileTap={{ scale: 0.95 }}
                                     className="w-full py-6 bg-white text-black font-body font-black uppercase text-[12px] tracking-[0.4em] rounded-[1.5rem] shadow-2xl transition-all flex items-center justify-center gap-4"
                                 >
-                                    Começar Agora <ArrowUpRight className="w-5 h-5" />
+                                    {t('footer.cta_button_main')} <ArrowUpRight className="w-5 h-5" />
                                 </motion.button>
                             </Link>
                             <Link href="#pricing" className="flex-1">
@@ -46,7 +48,7 @@ export default function Footer() {
                                     whileTap={{ scale: 0.95 }}
                                     className="w-full py-6 bg-transparent border-2 border-white/20 text-white hover:bg-white/5 font-body font-black uppercase text-[12px] tracking-[0.4em] rounded-[1.5rem] transition-all flex items-center justify-center gap-4"
                                 >
-                                    Ver Preços
+                                    {t('footer.cta_button_sec')}
                                 </motion.button>
                             </Link>
                         </div>
@@ -63,8 +65,7 @@ export default function Footer() {
                             <img src="/logos/logo_full.svg" alt="NEXT Logo" className="h-10 w-auto group-hover:scale-105 transition-transform" />
                         </Link>
                         <p className="font-body text-slate-500 text-lg font-medium leading-relaxed max-w-md mb-10">
-                            A plataforma definitiva para agendamento e gestão de barbearias. <br />
-                            Do barbeiro iniciante às grandes redes.
+                            {t('footer.desc')}
                         </p>
                         <div className="flex gap-4">
                             {[Instagram, Youtube, Facebook].map((Icon, i) => (
@@ -77,9 +78,9 @@ export default function Footer() {
 
                     {/* Links Columns */}
                     <div>
-                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">Produto</h4>
+                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">{t('footer.col1_title')}</h4>
                         <ul className="space-y-5">
-                            {['Agenda', 'Financeiro', 'WhatsApp', 'Ponto'].map((link, i) => (
+                            {[t('footer.col1_l1'), t('footer.col1_l2'), t('footer.col1_l3'), t('footer.col1_l4')].map((link, i) => (
                                 <li key={i}>
                                     <Link href="#" className="font-body text-slate-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest">{link}</Link>
                                 </li>
@@ -88,9 +89,9 @@ export default function Footer() {
                     </div>
 
                     <div>
-                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">Barbearia</h4>
+                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">{t('footer.col2_title')}</h4>
                         <ul className="space-y-5">
-                            {['Sobre o NEXT', 'Planos', 'Blog', 'Contato'].map((link, i) => (
+                            {[t('footer.col2_l1'), t('footer.col2_l2'), t('footer.col2_l3'), t('footer.col2_l4')].map((link, i) => (
                                 <li key={i}>
                                     <Link href="#" className="font-body text-slate-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest">{link}</Link>
                                 </li>
@@ -99,7 +100,7 @@ export default function Footer() {
                     </div>
 
                     <div>
-                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">Contato</h4>
+                        <h4 className="font-display font-black text-white text-[10px] uppercase tracking-[0.4em] mb-10 opacity-60">{t('footer.col3_title')}</h4>
                         <ul className="space-y-6">
                             <li className="flex items-start gap-4 group cursor-pointer">
                                 <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
@@ -119,15 +120,15 @@ export default function Footer() {
 
                 <div className="border-t border-white/[0.06] pt-12 flex flex-col md:flex-row justify-between items-center gap-10">
                     <p className="font-body text-slate-600 text-[10px] font-black uppercase tracking-[0.3em]">
-                        © {currentYear} NEXT SISTEMAS. TODOS OS DIREITOS RESERVADOS.
+                        {t('footer.rights')}
                     </p>
                     <div className="flex gap-12">
-                        <Link href="#" className="font-body text-slate-600 hover:text-white text-[9px] font-black uppercase tracking-[0.3em] transition-colors">Políticas de Privacidade</Link>
-                        <Link href="#" className="font-body text-slate-600 hover:text-white text-[9px] font-black uppercase tracking-[0.3em] transition-colors">Termos de Uso</Link>
+                        <Link href="#" className="font-body text-slate-600 hover:text-white text-[9px] font-black uppercase tracking-[0.3em] transition-colors">{t('footer.privacy')}</Link>
+                        <Link href="#" className="font-body text-slate-600 hover:text-white text-[9px] font-black uppercase tracking-[0.3em] transition-colors">{t('footer.terms')}</Link>
                     </div>
                     <div className="flex items-center gap-3 px-5 py-2 bg-white/[0.02] border border-white/[0.06] rounded-full">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="font-body text-[9px] font-black text-slate-500 uppercase tracking-[0.4em]">Status: Operacional</span>
+                        <span className="font-body text-[9px] font-black text-slate-500 uppercase tracking-[0.4em]">{t('footer.status')}</span>
                     </div>
                 </div>
             </div>

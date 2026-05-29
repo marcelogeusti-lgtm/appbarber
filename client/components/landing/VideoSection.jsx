@@ -1,7 +1,9 @@
 'use client';
 import { Play } from 'lucide-react';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function VideoSection() {
+    const { t } = useTranslation();
     return (
         <section className="py-24 bg-background relative overflow-hidden">
             {/* Background Glow */}
@@ -10,10 +12,10 @@ export default function VideoSection() {
             <div className="container px-4 md:px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4 text-glow">
-                        Case de <span className="text-primary">Sucesso</span>
+                        {t('group1.video_title_prefix')}<span className="text-primary">{t('group1.video_title_highlight')}</span>
                     </h2>
                     <p className="text-muted-foreground text-lg max-w-[800px] mx-auto">
-                        Veja como barbearias de todo o Brasil estão transformando sua gestão com nossa plataforma.
+                        {t('group1.video_description')}
                     </p>
                 </div>
 
@@ -36,8 +38,8 @@ export default function VideoSection() {
 
                         {/* Text Overlay */}
                         <div className="absolute bottom-8 left-8 z-10 text-left">
-                            <p className="text-white font-bold text-2xl mb-1">A Revolução na Gestão</p>
-                            <p className="text-white/60">Assista ao depoimento completo</p>
+                            <p className="text-white font-bold text-2xl mb-1">{t('group1.video_overlay_title')}</p>
+                            <p className="text-white/60">{t('group1.video_overlay_subtitle')}</p>
                         </div>
                     </div>
                 </div>

@@ -1,15 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react';
-
-const NOTIFICACOES = [
-    "Lucas agendou Corte Degradê",
-    "Mateus agendou Corte + Barba",
-    "Pedro agendou Corte Social",
-    "João agendou Barba",
-    "Rafael agendou Corte Navalhado"
-];
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function LiveActivity() {
+    const { t } = useTranslation();
+    
+    const NOTIFICACOES = [
+        t('group4.liveActivity.notif1'),
+        t('group4.liveActivity.notif2'),
+        t('group4.liveActivity.notif3'),
+        t('group4.liveActivity.notif4'),
+        t('group4.liveActivity.notif5')
+    ];
+
     const [status, setStatus] = useState('hidden'); // hidden, entering, visible, exiting
     const [currentIdx, setCurrentIdx] = useState(0);
     const [minutos, setMinutos] = useState(2);
@@ -111,9 +114,9 @@ export default function LiveActivity() {
             />
 
             <div style={{ lineHeight: '1.4' }}>
-                <strong style={{ display: 'block' }}>Novo agendamento</strong>
+                <strong style={{ display: 'block' }}>{t('group4.liveActivity.newAppointment')}</strong>
                 {NOTIFICACOES[currentIdx]}<br />
-                <span style={{ color: 'gray', fontSize: '11px' }}>há {minutos} minutos</span>
+                <span style={{ color: 'gray', fontSize: '11px' }}>{t('group4.liveActivity.timeAgoPart1')}{minutos}{t('group4.liveActivity.timeAgoPart2')}</span>
             </div>
         </div>
     );
