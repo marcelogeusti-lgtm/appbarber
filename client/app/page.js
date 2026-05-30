@@ -22,7 +22,7 @@ export default function Home() {
     // hasMounted logic removed to restore proper SSR hydration
 
     return (
-        <main className="min-h-screen bg-[#050505] text-white relative pb-20 md:pb-0 overflow-x-hidden selection:bg-primary/30">
+        <main className="min-h-screen bg-[#050505] text-white relative pb-20 md:pb-0 [overflow-x:clip] selection:bg-primary/30">
             {/* Ultra-Premium Cinematic Grain Texture */}
             <div className="fixed inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 

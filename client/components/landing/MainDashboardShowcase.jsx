@@ -1,126 +1,119 @@
 'use client';
-import { TrendingUp, Users, Calendar, DollarSign } from 'lucide-react';
-import LEDCardWrapper from './LEDCardWrapper';
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useScroll, useSpring, useMotionValueEvent, useTransform } from 'framer-motion';
 
-import { useTranslation } from '../../contexts/LanguageContext';
-
+/*
+  ABORDAGEM: VIDEO SCRUBBING NATIVO (APPLE STYLE)
+  Nenhuma movimentação falsa em CSS.
+  A linha do tempo do vídeo é mapeada diretamente para o scroll do mouse.
+  Rolar para baixo -> Avança o vídeo
+  Rolar para cima  -> Retrocede o vídeo
+*/
 export default function MainDashboardShowcase() {
-    const { t } = useTranslation();
+  const containerRef = useRef(null);
+  const videoRef = useRef(null);
 
-    return (
-        <section className="py-32 bg-[#050505] relative overflow-hidden border-y border-white/[0.06]">
-            {/* Background Grain & Glow */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+  /* 
+    Usamos 600vh de altura para que a seção "trave" (sticky).
+    Enquanto o usuário rola esses 600vh (invisíveis), a variável `scrollYProgress` 
+    vai de 0 até 1. 
+  */
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end end'],
+  });
 
-            <div className="container mx-auto px-4 text-center">
+  /* 
+    useSpring: Pega os trancos da rodinha do mouse e transforma numa curva fluida.
+    Isso é o que dá a "fluidez premium" sem engasgar o vídeo.
+  */
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 120, // Velocidade de resposta
+    damping: 30,    // Amortecimento para não ficar elástico
+    mass: 0.5,      // Peso do movimento
+    restDelta: 0.001
+  });
 
-                <div className="max-w-5xl mx-auto mb-24 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                        <h2 className="font-display hero-title font-extrabold text-white mb-8 text-balance">
-                            {t('group2.MainDashboardShowcase.titlePart1')} <br />
-                            <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('group2.MainDashboardShowcase.titlePart2')}</span>
-                        </h2>
-                        <p className="font-body secondary-text font-medium max-w-3xl mx-auto">
-                            {t('group2.MainDashboardShowcase.subtitle')}
-                        </p>
-                    </motion.div>
-                </div>
+  /* Sincroniza o `currentTime` do vídeo com a porcentagem do scroll */
+  useMotionValueEvent(smoothProgress, 'change', (latest) => {
+    if (videoRef.current && videoRef.current.duration) {
+      // Tempo do vídeo = Porcentagem do Scroll (0 a 1) x Duração do Vídeo
+      videoRef.current.currentTime = latest * videoRef.current.duration;
+    }
+  });
 
-                {/* Big Centered Mockup */}
-                <div className="relative max-w-6xl mx-auto group">
-                    {/* Shadow/Glow Background */}
-                    <div className="absolute inset-0 bg-primary/10 blur-[150px] rounded-full scale-90 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+  /* Os textos iniciais somem suavemente para não ficarem em cima da tela verde */
+  const textOpacity = useTransform(smoothProgress, [0, 0.15], [1, 0]);
+  const textY       = useTransform(smoothProgress, [0, 0.15], [0, -20]);
 
-                    {/* The Image Container */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                        <LEDCardWrapper className="rounded-[3rem]">
-                            <div className="card-premium relative z-10 rounded-[3rem] border border-white/[0.1] bg-[#0A0A0B]/80 backdrop-blur-3xl shadow-[0_60px_120px_rgba(0,0,0,0.7)] flex flex-col items-center group transition-all duration-1000 hover:border-primary/30">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-400 to-primary rounded-t-[3rem] shadow-[0_0_20px_rgba(77,114,228,0.5)]" />
+  return (
+    <section ref={containerRef} className="relative bg-[#050505]" style={{ height: '600vh' }}>
+      
+      {/* ── STICKY VIEWPORT ── 
+          Isso garante que a seção ocupe 100% da tela e fique fixa 
+          enquanto o usuário rola pelos 600vh da seção pai. 
+      */}
+      <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center justify-center bg-[#050505]">
+        
+        {/* ── VÍDEO EXPANDIDO EM TELA CHEIA ── */}
+        <div className="absolute inset-0 z-10">
+          <video
+            ref={videoRef}
+            src="/dashboard-video.mp4" /* O seu novo vídeo foi copiado pra cá */
+            muted
+            playsInline
+            preload="auto"
+            /* 
+               object-cover força o vídeo a preencher 100% do tamanho da tela
+               sem deixar bordas pretas nas laterais.
+            */
+            className="w-full h-full object-cover object-center pointer-events-none"
+          />
+        </div>
 
-                                {/* Realistic UI Header dots */}
-                                <div className="w-full flex justify-start gap-2.5 px-8 pt-6 pb-4 border-b border-white/[0.04] mb-3">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/40" />
-                                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/40" />
-                                </div>
+        {/* ── TÍTULO INICIAL ── */}
+        <motion.div 
+          style={{ opacity: textOpacity, y: textY }} 
+          className="absolute top-20 left-0 w-full text-center z-20 px-4 pointer-events-none"
+        >
+          <p className="text-xs text-white/30 uppercase mb-4 tracking-[0.35em] drop-shadow-md">
+            Visão 360 do seu negócio
+          </p>
+          <h2 className="text-4xl md:text-5xl font-light text-white tracking-tight drop-shadow-xl">
+            <span className="font-bold">O Painel de Controle</span><br />
+            <span className="text-white/65 italic">do Seu Império</span>
+          </h2>
+        </motion.div>
 
-                                <div className="rounded-2xl overflow-hidden border border-white/[0.04] bg-black relative shadow-inner aspect-[16/10] w-full">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent pointer-events-none z-10" />
-                                    <img
-                                        src="/screenshots/dashboard-overview.png"
-                                        alt={t('group2.MainDashboardShowcase.imgAlt')}
-                                        className="w-full h-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-1000" />
-                                </div>
-                            </div>
-                        </LEDCardWrapper>
-                    </motion.div>
+        {/* ── DICA DE SCROLL (Seta animada) ── */}
+        <motion.div 
+          style={{ opacity: textOpacity }} 
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-20"
+        >
+          <p className="text-white/25 text-[10px] uppercase drop-shadow-md" style={{ letterSpacing: '0.3em' }}>
+            Role para explorar
+          </p>
+          <div className="w-[18px] h-7 rounded-full border border-white/20 flex items-start justify-center pt-1 bg-black/20 backdrop-blur-sm">
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-[5px] h-[5px] rounded-full bg-white/40"
+            />
+          </div>
+        </motion.div>
 
-                    {/* Floating Badges with Enhanced Motion */}
-                    <motion.div
-                        animate={{ y: [0, -15, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -left-16 top-1/4 hidden xl:flex p-6 bg-[#0A0A0B]/90 backdrop-blur-3xl rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.6)] border border-white/[0.1] items-center gap-5 transition-all duration-1000 group-hover:border-primary/40 group-hover:scale-110"
-                    >
-                        <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                            <DollarSign className="w-7 h-7" />
-                        </div>
-                        <div className="text-left">
-                            <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none mb-2">{t('group2.MainDashboardShowcase.revenue')}</p>
-                            <p className="font-display text-2xl font-black text-white leading-none tracking-tighter tabular-nums">{t('group2.MainDashboardShowcase.revenueValue')}</p>
-                        </div>
-                    </motion.div>
+        {/* 
+          BARRA DE PROGRESSO DO SCROLL (Linha discreta no rodapé) 
+          Para que você saiba em qual ponto do scroll você está.
+        */}
+        <div className="absolute bottom-0 left-0 w-full h-[3px] bg-white/5 z-50">
+          <motion.div
+            style={{ scaleX: scrollYProgress, transformOrigin: 'left' }}
+            className="h-full bg-white/20"
+          />
+        </div>
 
-                    <motion.div
-                        animate={{ y: [0, 15, 0] }}
-                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                        className="absolute -right-16 bottom-1/4 hidden xl:flex p-6 bg-[#0A0A0B]/90 backdrop-blur-3xl rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.6)] border border-white/[0.1] items-center gap-5 transition-all duration-1000 group-hover:border-primary/40 group-hover:scale-110"
-                    >
-                        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_20px_rgba(77,114,228,0.2)]">
-                            <Calendar className="w-7 h-7" />
-                        </div>
-                        <div className="text-left">
-                            <p className="font-body text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none mb-2">{t('group2.MainDashboardShowcase.appointments')}</p>
-                            <p className="font-display text-2xl font-black text-white leading-none tracking-tighter tabular-nums">{t('group2.MainDashboardShowcase.appointmentsValue')}</p>
-                        </div>
-                    </motion.div>
-                </div>
-
-                {/* Stats Grid Under Image */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 max-w-5xl mx-auto mt-32">
-                    {[
-                        { label: t('group2.MainDashboardShowcase.expectedProfit'), val: t('group2.MainDashboardShowcase.expectedProfitValue'), color: 'emerald' },
-                        { label: t('group2.MainDashboardShowcase.teamRanking'), val: t('group2.MainDashboardShowcase.teamRankingValue'), color: 'blue' },
-                        { label: t('group2.MainDashboardShowcase.avgTicket'), val: t('group2.MainDashboardShowcase.avgTicketValue'), color: 'indigo' },
-                        { label: t('group2.MainDashboardShowcase.returnRate'), val: t('group2.MainDashboardShowcase.returnRateValue'), color: 'rose' }
-                    ].map((stat, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.8 + (i * 0.1) }}
-                            className="text-center group"
-                        >
-                            <p className="font-body text-[11px] font-black text-slate-500 uppercase tracking-[0.35em] mb-4 group-hover:text-primary transition-all duration-500 group-hover:translate-y-[-2px]">{stat.label}</p>
-                            <p className="font-display text-3xl font-extrabold text-white tracking-tighter tabular-nums group-hover:scale-105 transition-transform duration-700">{stat.val}</p>
-                        </motion.div>
-                    ))}
-                </div>
-
-            </div>
-        </section>
-    );
+      </div>
+    </section>
+  );
 }
