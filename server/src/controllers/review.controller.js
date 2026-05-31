@@ -43,6 +43,15 @@ exports.createReview = async (req, res) => {
             return res.status(400).json({ message: 'Appointment already reviewed' });
         }
 
+        // Enforce 1 review per user per barbershop
+        const existingReview = await prisma.review.findFirst({
+            where: { clientId: clientId, barbershopId: appointment.barbershopId }
+        });
+
+        if (existingReview) {
+            return res.status(400).json({ message: 'Você já avaliou esta barbearia. É permitida apenas uma avaliação por usuário.' });
+        }
+
         const review = await prisma.review.create({
             data: {
                 rating: parseInt(rating),

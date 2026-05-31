@@ -967,14 +967,28 @@ exports.getUnreviewedAppointments = async (req, res) => {
 
         const { barbershopId } = req.query;
 
+        // 1 Avaliação por usuário: Buscar todas as barbearias já avaliadas por este cliente
+        const existingReviews = await prisma.review.findMany({
+            where: { clientId: clientId },
+            select: { barbershopId: true }
+        });
+        const reviewedBarbershopIds = existingReviews.map(r => r.barbershopId);
+
         const whereClause = {
             clientId: clientId,
             status: 'COMPLETED',
-            review: null
+            review: null,
+            barbershopId: {
+                notIn: reviewedBarbershopIds
+            }
         };
 
         if (barbershopId) {
-            whereClause.barbershopId = barbershopId;
+            // Se já avaliou a barbearia requisitada, retorna vazio imediatamente
+            if (reviewedBarbershopIds.includes(barbershopId)) {
+                return res.json([]);
+            }
+            whereClause.barbershopId = barbershopId; // Sobrescreve o filtro específico
         }
 
         const unreviewed = await prisma.appointment.findMany({
