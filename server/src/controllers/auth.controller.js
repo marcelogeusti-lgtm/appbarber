@@ -11,6 +11,20 @@ const notificationService = require('../services/notificationService');
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 // Helper functions
+const resolveAuthUserId = async (req) => {
+    let authUserId = req.user.authUserId;
+    if (!authUserId) {
+        if (req.user.role === 'CLIENT') {
+            const c = await prisma.client.findUnique({ where: { id: req.user.id }, select: { authUserId: true } });
+            authUserId = c?.authUserId;
+        } else {
+            const u = await prisma.user.findUnique({ where: { id: req.user.id }, select: { authUserId: true } });
+            authUserId = u?.authUserId;
+        }
+    }
+    return authUserId;
+};
+
 const createSession = async (req, authUserId, token) => {
     try {
         const userAgent = req.headers['user-agent'] || 'Dispositivo Desconhecido';
@@ -764,7 +778,9 @@ exports.resetPassword = async (req, res) => {
 exports.changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
-        const authUserId = req.user.authUserId;
+        
+        const authUserId = await resolveAuthUserId(req);
+        if (!authUserId) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
         const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
         
@@ -829,10 +845,12 @@ exports.getMe = async (req, res) => {
 
 exports.setup2FA = async (req, res) => {
     try {
-        const authUserId = req.user.authUserId;
+        const authUserId = await resolveAuthUserId(req);
         const { method } = req.body;
 
         if (method !== 'EMAIL' && method !== 'SMS') return res.status(400).json({ message: 'Método inválido.' });
+
+        if (!authUserId) return res.status(404).json({ message: 'Vínculo de autenticação não encontrado.' });
 
         const authUser = await prisma.authUser.findUnique({
             where: { id: authUserId },
@@ -867,7 +885,8 @@ exports.setup2FA = async (req, res) => {
 exports.enable2FA = async (req, res) => {
     try {
         const { token } = req.body;
-        const authUserId = req.user.authUserId;
+        const authUserId = await resolveAuthUserId(req);
+        if (!authUserId) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
         const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
         if (!authUser || authUser.twoFactorCode !== token) return res.status(400).json({ message: 'Código incorreto.' });
@@ -886,8 +905,10 @@ exports.enable2FA = async (req, res) => {
 
 exports.disable2FA = async (req, res) => {
     try {
+        const authUserId = await resolveAuthUserId(req);
+        if (!authUserId) return res.status(404).json({ message: 'Usuário não encontrado.' });
         await prisma.authUser.update({
-            where: { id: req.user.authUserId },
+            where: { id: authUserId },
             data: { twoFactorEnabled: false, twoFactorMethod: null }
         });
         res.json({ message: '2FA desativado.' });
@@ -898,7 +919,13 @@ exports.disable2FA = async (req, res) => {
 
 exports.getAuthStatus = async (req, res) => {
     try {
-        const authUser = await prisma.authUser.findUnique({ where: { id: req.user.authUserId } });
+        const authUserId = await resolveAuthUserId(req);
+        if (!authUserId) return res.status(404).json({ message: 'Vínculo de autenticação não encontrado' });
+        
+        const authUser = await prisma.authUser.findUnique({
+            where: { id: authUserId },
+            select: { twoFactorEnabled: true, twoFactorMethod: true }
+        });
         res.json({
             twoFactorEnabled: authUser?.twoFactorEnabled || false,
             twoFactorMethod: authUser?.twoFactorMethod || null
@@ -910,7 +937,9 @@ exports.getAuthStatus = async (req, res) => {
 
 exports.getSessions = async (req, res) => {
     try {
-        const authUserId = req.user.authUserId;
+        const authUserId = await resolveAuthUserId(req);
+        if (!authUserId) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
         await prisma.session.deleteMany({
             where: { authUserId, lastActive: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }
         });
@@ -938,8 +967,11 @@ exports.getSessions = async (req, res) => {
 exports.revokeSession = async (req, res) => {
     try {
         const { sessionId } = req.params;
+        const authUserId = await resolveAuthUserId(req);
+        if (!authUserId) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
         const session = await prisma.session.findUnique({ where: { id: sessionId } });
-        if (!session || session.authUserId !== req.user.authUserId) return res.status(403).json({ message: 'Não autorizado.' });
+        if (!session || session.authUserId !== authUserId) return res.status(403).json({ message: 'Não autorizado.' });
 
         await prisma.session.delete({ where: { id: sessionId } });
         res.json({ message: 'Sessão encerrada.' });

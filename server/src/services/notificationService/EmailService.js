@@ -13,7 +13,32 @@ class EmailService {
      */
     async loadTemplate(templateName, data) {
         try {
-            const templatePath = path.join(this.templatesPath, `${templateName}.html`);
+            let templatePath;
+            switch (templateName) {
+                case 'auth-otp':
+                    templatePath = path.join(this.templatesPath, 'auth-otp.html');
+                    break;
+                case 'appointment-cancelled':
+                    templatePath = path.join(this.templatesPath, 'appointment-cancelled.html');
+                    break;
+                case 'appointment-confirmation':
+                    templatePath = path.join(this.templatesPath, 'appointment-confirmation.html');
+                    break;
+                case 'appointment-reminder':
+                    templatePath = path.join(this.templatesPath, 'appointment-reminder.html');
+                    break;
+                case 'invoice-created':
+                    templatePath = path.join(this.templatesPath, 'invoice-created.html');
+                    break;
+                case 'password-reset':
+                    templatePath = path.join(this.templatesPath, 'password-reset.html');
+                    break;
+                case 'payment-confirmed':
+                    templatePath = path.join(this.templatesPath, 'payment-confirmed.html');
+                    break;
+                default:
+                    throw new Error(`Template ${templateName} not found`);
+            }
             let htmlString = fs.readFileSync(templatePath, 'utf-8');
 
             // Substitui todas as ocorrências de {{chave}} pelo valor em data
