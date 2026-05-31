@@ -3,10 +3,18 @@ const prisma = require('../lib/prisma');
 exports.createReview = async (req, res) => {
     try {
         const { appointmentId, rating, comment } = req.body;
-        const clientId = req.user.id; // The auth middleware sets user id as id
+        let clientId = req.user.id; 
         
+        // If user is not CLIENT, we need to find their Client ID using authUserId
         if (req.user.role !== 'CLIENT') {
-            return res.status(403).json({ message: 'Apenas clientes podem fazer avaliações' });
+            const authUserId = req.user.authUserId || req.user.id;
+            const clientProfile = await prisma.client.findFirst({
+                where: { authUserId: authUserId }
+            });
+            if (!clientProfile) {
+                return res.status(403).json({ message: 'Você precisa de um perfil de cliente para avaliar.' });
+            }
+            clientId = clientProfile.id;
         }
 
         if (!clientId) {
@@ -20,11 +28,11 @@ exports.createReview = async (req, res) => {
         });
 
         if (!appointment) {
-            return res.status(404).json({ message: 'Appointment not found' });
+            return res.status(404).json({ message: 'Agendamento não encontrado' });
         }
 
         if (appointment.clientId !== clientId) {
-            return res.status(403).json({ message: 'Unauthorized' });
+            return res.status(403).json({ message: 'Você não tem permissão para avaliar este agendamento.' });
         }
 
         if (appointment.status !== 'COMPLETED' && appointment.status !== 'CONFIRMED') { // Allow reviewing confirmed? Maybe only completed.

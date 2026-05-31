@@ -39,7 +39,28 @@ class EmailService {
                 default:
                     throw new Error(`Template ${templateName} not found`);
             }
-            let htmlString = fs.readFileSync(templatePath, 'utf-8');
+            let htmlString;
+            try {
+                htmlString = fs.readFileSync(templatePath, 'utf-8');
+            } catch (fsError) {
+                console.warn(`[EmailService] Could not read template file for ${templateName}, using fallback. Error:`, fsError.message);
+                if (templateName === 'auth-otp') {
+                    htmlString = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h2>Seu Código de Verificação</h2>
+                        <p>O seu código de acesso ao Next App é: <strong>{{otp}}</strong></p>
+                        <p>Este código é válido por 10 minutos.</p>
+                        <img src="{{logoUrl}}" alt="Logo" style="max-height: 50px;" />
+                    </div>`;
+                } else {
+                    htmlString = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h2>Notificação - Next App</h2>
+                        <p>Houve uma atualização em sua conta.</p>
+                        <img src="{{logoUrl}}" alt="Logo" style="max-height: 50px;" />
+                    </div>`;
+                }
+            }
 
             // Substitui todas as ocorrências de {{chave}} pelo valor em data
             for (const key in data) {

@@ -463,6 +463,14 @@ exports.socialLogin = async (req, res) => {
             
             if (authUserRaw[0]) {
                 authUser = authUserRaw[0];
+                // If the existing user has a different provider (e.g. LOCAL), update it to the social provider so the frontend knows it's linked
+                if (authUser.provider !== provider.toUpperCase()) {
+                    await prisma.authUser.update({
+                        where: { id: authUser.id },
+                        data: { provider: provider.toUpperCase() }
+                    });
+                    authUser.provider = provider.toUpperCase();
+                }
             } else {
                 // Create if not exists (raw or simple create)
                 authUser = await prisma.authUser.create({
@@ -629,7 +637,8 @@ exports.socialLogin = async (req, res) => {
             responseData.user = { 
                 ...activeUser, 
                 email: authUser.email, 
-                role: responseData.role 
+                role: responseData.role,
+                provider: authUser.provider
             };
             responseData.barbershopId = activeUser.workedBarbershopId;
 
@@ -694,7 +703,7 @@ exports.socialLogin = async (req, res) => {
             await createSession(req, authUser.id, token);
 
             responseData.token = token;
-            responseData.user = { ...activeClient, role: 'CLIENT', email: authUser.email };
+            responseData.user = { ...activeClient, role: 'CLIENT', email: authUser.email, provider: authUser.provider };
 
             return res.json(responseData);
         }
@@ -856,6 +865,13 @@ exports.setup2FA = async (req, res) => {
             where: { id: authUserId },
             include: { client: true, user: true }
         });
+
+        if (method === 'SMS') {
+            const phone = authUser.client?.phone || authUser.user?.phone;
+            if (!phone) {
+                return res.status(400).json({ message: 'Você precisa ter um telefone cadastrado para usar 2FA por SMS/WhatsApp.' });
+            }
+        }
 
         const otp = generateOTP();
         const expires = new Date(Date.now() + 10 * 60 * 1000);

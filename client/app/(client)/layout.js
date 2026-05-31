@@ -188,8 +188,8 @@ function ClientLayoutContent({ children }) {
                         className={`flex-[1.2] flex flex-col items-center justify-center transition-all duration-300 relative h-full`}
                     >
                         {/* The floating logo */}
-                        <div className={`absolute -top-8 w-[72px] h-[72px] bg-primary rounded-full flex items-center justify-center shadow-[0_12px_40px_rgba(37,99,235,0.6)] transform transition-all active:scale-95 border-[6px] border-[#0A0A0A]`}>
-                            <img src="/logos/logo_icon.png" alt="Agenda" className="w-[60%] h-[60%] object-contain" />
+                        <div className={`absolute -top-11 w-[72px] h-[72px] bg-primary rounded-full flex items-center justify-center shadow-[0_12px_40px_rgba(37,99,235,0.6)] transform transition-all active:scale-95 border-[6px] border-[#0A0A0A] overflow-hidden`}>
+                            <img src="/logos/logo_icon.png" alt="Agenda" className="w-full h-full object-cover" />
                             {pathname === '/agenda' && (
                                 <div className="absolute -bottom-4 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(37,99,235,1)]"></div>
                             )}

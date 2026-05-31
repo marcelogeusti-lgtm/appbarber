@@ -951,11 +951,24 @@ exports.getPendingFees = async (req, res) => {
 
 exports.getUnreviewedAppointments = async (req, res) => {
     try {
-        const userId = req.user.id;
+        let clientId = req.user.id; 
+        
+        // Se for um usuário PRO usando a interface de cliente, precisamos resolver o clientId
+        if (req.user.role !== 'CLIENT') {
+            const authUserId = req.user.authUserId || req.user.id;
+            const clientProfile = await prisma.client.findFirst({
+                where: { authUserId: authUserId }
+            });
+            if (!clientProfile) {
+                return res.json([]); // Sem perfil de cliente, sem agendamentos pra avaliar
+            }
+            clientId = clientProfile.id;
+        }
+
         const { barbershopId } = req.query;
 
         const whereClause = {
-            clientId: userId,
+            clientId: clientId,
             status: 'COMPLETED',
             review: null
         };
