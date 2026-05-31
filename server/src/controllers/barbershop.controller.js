@@ -158,14 +158,20 @@ const searchBarbershops = async (req, res) => {
             };
         });
 
-        // 5. Restrict Distance (STRICTLY filter if lat/lng is present to avoid other cities)
-        if (userLat && userLng) {
-            // Keep ONLY shops within 15km
-            processedShops = processedShops.filter(shop => shop.distance !== null && shop.distance <= 15);
-        }
+        // 5. Restrict Distance
+        // Limite de 15km removido para permitir a visualização de opções mais distantes
 
         // 6. Sort unified
-        processedShops = sortBarbershopsByRatingAndAge(processedShops);
+        if (userLat && userLng && type === 'NEARBY') {
+            // Ordenar por distância quando a busca for específica de GPS
+            processedShops.sort((a, b) => {
+                const distA = a.distance !== null ? a.distance : 9999;
+                const distB = b.distance !== null ? b.distance : 9999;
+                return distA - distB;
+            });
+        } else {
+            processedShops = sortBarbershopsByRatingAndAge(processedShops);
+        }
 
         // 7. Format string ratings and Limit Data payload
         const results = processedShops.slice(0, 50).map(shop => ({
@@ -303,9 +309,7 @@ const getRecommendedBarbershops = async (req, res) => {
         });
 
         // 5. Strict Radius filtering (15km)
-        if (userLat && userLng) {
-            recommended = recommended.filter(shop => shop.distance !== null && shop.distance <= 15);
-        }
+        // Limite de 15km removido para permitir a visualização de opções mais distantes
 
         // 6. Sophisticated Sorting: Score DESC, then Distance ASC
         recommended.sort((a, b) => {

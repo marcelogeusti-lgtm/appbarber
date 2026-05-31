@@ -5,6 +5,7 @@ const { generateUniqueSlug } = require('../utils/slugGenerator');
 const emailProvider = require('../services/communication/providers/EmailProvider');
 const whatsappService = require('../services/communication/WhatsAppService');
 const eventBus = require('../services/events/eventBus');
+const notificationService = require('../services/notificationService');
 
 // Helper para gerar código de 6 dígitos
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -258,10 +259,10 @@ exports.login = async (req, res) => {
                 });
 
                 const method = authUser.twoFactorMethod || 'EMAIL';
-                console.log(`[AUTH] 2FA Method: ${method}. Emitting event...`);
+                console.log(`[AUTH] 2FA Method: ${method}. Sending code...`);
 
-                // Emit event for NotificationService
-                eventBus.emit('AUTH_2FA_CODE', {
+                // Await sending to ensure Vercel doesn't kill process
+                await notificationService.send2FACode({
                     email: authUser.email,
                     otp: otp,
                     method: method,
@@ -269,7 +270,7 @@ exports.login = async (req, res) => {
                     userId: authUser.id
                 });
 
-                console.log(`[AUTH] 2FA Event emitted successfully.`);
+                console.log(`[AUTH] 2FA Code sent successfully.`);
 
                 return res.status(202).json({
                     message: '2FA_REQUIRED',
@@ -800,7 +801,8 @@ exports.getMe = async (req, res) => {
                 role: 'CLIENT',
                 phone: client.phone,
                 avatarUrl: client.avatarUrl,
-                authUserId: client.authUserId
+                authUserId: client.authUserId,
+                provider: client.authUser?.provider
             });
         } else {
             const user = await prisma.user.findUnique({
@@ -811,11 +813,14 @@ exports.getMe = async (req, res) => {
                     professionalProfile: true, // Assuming this exists or using simple select
                     ownedBarbershops: { 
                         select: { id: true, name: true, slug: true, logoUrl: true } 
+                    },
+                    authUser: {
+                        select: { provider: true }
                     }
                 }
             });
             if (!user) return res.status(404).json({ message: 'User not found' });
-            res.json(user);
+            res.json({ ...user, provider: user.authUser?.provider });
         }
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
@@ -842,10 +847,9 @@ exports.setup2FA = async (req, res) => {
             data: { twoFactorCode: otp, twoFactorExpires: expires, twoFactorMethod: method }
         });
 
-        const listeners = eventBus.listenerCount('AUTH_2FA_CODE');
-        console.log(`[AUTH] setup2FA: Emitting AUTH_2FA_CODE for ${authUser.email}. Listeners: ${listeners}`);
+        console.log(`[AUTH] setup2FA: Sending AUTH_2FA_CODE for ${authUser.email}.`);
 
-        eventBus.emit('AUTH_2FA_CODE', {
+        await notificationService.send2FACode({
             email: authUser.email,
             otp: otp,
             method: method,
@@ -853,7 +857,7 @@ exports.setup2FA = async (req, res) => {
             userId: authUser.id
         });
 
-        console.log(`[AUTH] setup2FA: Event emitted. Returned response.`);
+        console.log(`[AUTH] setup2FA: Code sent. Returned response.`);
         res.json({ message: `Código enviado por ${method}.` });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao configurar 2FA.' });

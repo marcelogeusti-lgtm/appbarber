@@ -35,12 +35,13 @@ export default function SearchPage() {
     
     // Data State
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilters, setActiveFilters] = useState([]);
     const [results, setResults] = useState([]);
     const [recommended, setRecommended] = useState([]);
     const [favorites, setFavorites] = useState([]);
     const [recent, setRecent] = useState([]);
-    const [userLocation, setUserLocation] = useState(null);
+    const [userLocation, setUserLocation] = useState(null); // GPS Real
+    const [searchLocation, setSearchLocation] = useState(null); // Coordenadas usadas na busca
+    const [gpsError, setGpsError] = useState('');
     const [user, setUser] = useState(null);
 
     // Initial Load: User & Recommendations
@@ -62,12 +63,12 @@ export default function SearchPage() {
 
     // Effect: Search Trigger
     useEffect(() => {
-        if (searchTerm || activeFilters.length > 0) {
+        if (searchTerm || searchLocation) {
             doSearch();
         } else {
             setResults([]);
         }
-    }, [searchTerm, activeFilters, userLocation]);
+    }, [searchTerm, searchLocation]);
 
     const fetchRecommendations = async (lat, lng) => {
         try {
@@ -108,23 +109,12 @@ export default function SearchPage() {
         setLoading(true);
         try {
             let query = `/barbershops/search?term=${searchTerm}`;
-            if (userLocation) query += `&lat=${userLocation.lat}&lng=${userLocation.lng}&type=NEARBY`;
+            if (searchLocation) query += `&lat=${searchLocation.lat}&lng=${searchLocation.lng}&type=${searchTab}`;
             
             const res = await api.get(query);
             
-            // Client-side filtering for active chips
-            let filteredResults = res.data;
-            if (activeFilters.includes('aberto')) {
-                filteredResults = filteredResults.filter(s => s.isOpen);
-            }
-            if (activeFilters.includes('premium')) {
-                filteredResults = filteredResults.filter(s => parseFloat(s.averageRating) >= 4.5);
-            }
-            // Note: 'barba' and 'kids' are handled by backend text search via 'term' usually,
-            // but if we want them as strict chips, we can either re-fetch or filter here.
-            
-            setResults(filteredResults);
-            sessionStorage.setItem('last_search_results', JSON.stringify(filteredResults));
+            setResults(res.data);
+            sessionStorage.setItem('last_search_results', JSON.stringify(res.data));
         } catch (error) {
             console.error('Search error:', error);
         } finally {
@@ -134,34 +124,38 @@ export default function SearchPage() {
 
     const handleLocationSearch = () => {
         setIsLocating(true);
+        setGpsError('');
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const newLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     setUserLocation(newLoc);
+                    setSearchLocation(newLoc); // Update search to match GPS
+                    setSearchTab('NEARBY'); // Force GPS tab active
                     setIsLocating(false);
                     fetchRecommendations(newLoc.lat, newLoc.lng);
                 },
                 (err) => {
                     console.error(err);
                     setIsLocating(false);
-                    alert('Erro ao obter localização. Verifique as permissões.');
+                    setGpsError('Erro ao obter localização. Verifique as permissões de GPS.');
+                    setTimeout(() => setGpsError(''), 4000);
                 },
-                { timeout: 10000 }
+                { timeout: 10000, enableHighAccuracy: true }
             );
         } else {
             setIsLocating(false);
-            alert('Geolocalização não suportada.');
+            setGpsError('Geolocalização não suportada neste navegador.');
+            setTimeout(() => setGpsError(''), 4000);
         }
     };
 
-    const toggleFilter = (id) => {
-        setActiveFilters(prev => 
-            prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
-        );
+    const handleSearchArea = (newLoc) => {
+        setSearchLocation(newLoc);
+        setSearchTab('NEARBY');
     };
 
-    const isSearching = searchTerm.length > 0 || activeFilters.length > 0 || userLocation;
+    const isSearching = searchTerm.length > 0 || searchLocation;
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white pb-24 selection:bg-primary/30">
@@ -195,13 +189,18 @@ export default function SearchPage() {
                     </button>
                 </header>
 
+                {/* Error Banner */}
+                {gpsError && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold p-3 rounded-xl mb-4 text-center">
+                        {gpsError}
+                    </div>
+                )}
+
                 {/* Filters Section */}
                 <SearchFilters 
                     searchTerm={searchTerm} 
                     setSearchTerm={setSearchTerm}
                     onLocationSearch={handleLocationSearch}
-                    activeFilters={activeFilters}
-                    toggleFilter={toggleFilter}
                     isLocating={isLocating}
                 />
 
@@ -251,8 +250,9 @@ export default function SearchPage() {
                         <div className="h-[calc(100vh-280px)] w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative">
                             <MapResults 
                                 shops={isSearching ? results : recommended} 
-                                center={userLocation ? [userLocation.lat, userLocation.lng] : null}
+                                center={searchLocation ? [searchLocation.lat, searchLocation.lng] : null}
                                 userLocation={userLocation}
+                                onSearchArea={handleSearchArea}
                             />
                         </div>
                     ) : isSearching ? (
@@ -265,16 +265,16 @@ export default function SearchPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="flex flex-col items-center justify-center py-20 text-center px-4">
                                     <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10 text-white/20">
                                         <SearchX className="w-8 h-8" strokeWidth={1.5} />
                                     </div>
-                                    <h2 className="text-xl font-bold text-white mb-2">Nenhuma barbearia encontrada</h2>
+                                    <h2 className="text-xl font-bold text-white mb-2">Nenhuma barbearia correspondente</h2>
                                     <p className="text-white/40 text-sm max-w-xs mx-auto mb-8">
-                                        Tente buscar por outro nome ou cidade, ou remova os filtros ativos.
+                                        Como removemos os limites de distância, realmente não encontramos nada com o termo ou região buscada. Tente explorar outra área no mapa ou altere o termo de busca!
                                     </p>
                                     <button 
-                                        onClick={() => { setSearchTerm(''); setActiveFilters([]); setUserLocation(null); }}
+                                        onClick={() => { setSearchTerm(''); setSearchLocation(null); setUserLocation(null); }}
                                         className="px-6 py-3 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm"
                                     >
                                         Limpar Busca

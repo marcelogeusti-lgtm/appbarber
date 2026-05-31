@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Star, MapPin } from 'lucide-react';
@@ -38,13 +38,45 @@ function ChangeView({ center, zoom }) {
     return null;
 }
 
-export default function MapResults({ shops, center, userLocation }) {
+function MapInteractionHandler({ onMapMoved }) {
+    useMapEvents({
+        dragend: (e) => {
+            const center = e.target.getCenter();
+            onMapMoved({ lat: center.lat, lng: center.lng });
+        },
+        zoomend: (e) => {
+            const center = e.target.getCenter();
+            onMapMoved({ lat: center.lat, lng: center.lng });
+        }
+    });
+    return null;
+}
+
+export default function MapResults({ shops, center, userLocation, onSearchArea }) {
     const defaultCenter = center || [-23.5505, -46.6333]; // São Paulo fallback
     const [mapCenter, setMapCenter] = useState(defaultCenter);
+    const [showSearchHere, setShowSearchHere] = useState(false);
+    const [currentMapCenter, setCurrentMapCenter] = useState(null);
 
     useEffect(() => {
-        if (center) setMapCenter(center);
+        if (center) {
+            setMapCenter(center);
+            setShowSearchHere(false); // Reset when explicit center changes
+        }
     }, [center]);
+
+    const handleMapMoved = (newCenter) => {
+        // If we pan the map, we show the "Search here" button
+        setCurrentMapCenter(newCenter);
+        setShowSearchHere(true);
+    };
+
+    const handleSearchClick = () => {
+        if (currentMapCenter && onSearchArea) {
+            onSearchArea(currentMapCenter);
+            setShowSearchHere(false);
+        }
+    };
 
     return (
         <div className="h-full w-full relative z-10">
@@ -54,6 +86,7 @@ export default function MapResults({ shops, center, userLocation }) {
                 style={{ height: '100%', width: '100%', background: '#0A0A0A' }}
                 zoomControl={false}
             >
+                <MapInteractionHandler onMapMoved={handleMapMoved} />
                 <ChangeView center={mapCenter} zoom={13} />
                 <TileLayer
                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -100,6 +133,17 @@ export default function MapResults({ shops, center, userLocation }) {
                 ))}
             </MapContainer>
 
+            {/* Float Button: Buscar nesta área */}
+            {showSearchHere && (
+                <div className="absolute top-4 left-0 right-0 flex justify-center z-[1000] animate-in slide-in-from-top-4 fade-in duration-300">
+                    <button 
+                        onClick={handleSearchClick}
+                        className="px-5 py-2.5 bg-black/80 backdrop-blur-xl border border-white/10 text-white text-xs font-bold rounded-full shadow-2xl hover:bg-black hover:border-white/20 transition-all flex items-center gap-2"
+                    >
+                        Pesquisar nesta área
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

@@ -37,7 +37,7 @@ export default function Footer() {
                     <div>
                         <h4 className="text-[11px] font-bold text-white uppercase tracking-[0.15em] mb-6">{t('footer.col2_title') || "EMPRESA"}</h4>
                         <ul className="flex flex-col gap-4">
-                            <li><Link href="#" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">Sobre Nós</Link></li>
+                            <li><Link href="/sobre-nos" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">{t('about.title') || "Sobre Nós"}</Link></li>
                             <li><Link href="#" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">Contato</Link></li>
                             <li><Link href="#" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">Blog</Link></li>
                         </ul>
@@ -47,8 +47,8 @@ export default function Footer() {
                     <div>
                         <h4 className="text-[11px] font-bold text-white uppercase tracking-[0.15em] mb-6">JURÍDICO</h4>
                         <ul className="flex flex-col gap-4">
-                            <li><Link href="#" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">Termos de Uso</Link></li>
-                            <li><Link href="#" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">Política de Privacidade</Link></li>
+                            <li><Link href="/termos-de-uso" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">{t('terms.title') || "Termos de Uso"}</Link></li>
+                            <li><Link href="/politica-de-privacidade" className="text-[14px] text-white/50 hover:text-white transition-colors duration-200 font-light">{t('privacy.title') || "Política de Privacidade"}</Link></li>
                         </ul>
                     </div>
 
@@ -59,8 +59,8 @@ export default function Footer() {
                         © {currentYear} NEXT. Todos os direitos reservados.
                     </p>
                     <div className="flex gap-6">
-                        <Link href="#" className="text-[13px] text-white/40 hover:text-white transition-colors duration-200 font-light">Política de Privacidade</Link>
-                        <Link href="#" className="text-[13px] text-white/40 hover:text-white transition-colors duration-200 font-light">Termos de Serviço</Link>
+                        <Link href="/politica-de-privacidade" className="text-[13px] text-white/40 hover:text-white transition-colors duration-200 font-light">{t('privacy.title') || "Política de Privacidade"}</Link>
+                        <Link href="/termos-de-uso" className="text-[13px] text-white/40 hover:text-white transition-colors duration-200 font-light">{t('terms.title') || "Termos de Serviço"}</Link>
                     </div>
                 </div>
             </div>

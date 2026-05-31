@@ -4,17 +4,12 @@ import Navbar from '../components/landing/Navbar';
 import Hero from '../components/landing/Hero';
 import Marquee from '../components/landing/Marquee';
 import VCLSection from '../components/landing/VCLSection';
-import WhatsAppHighlight from '../components/landing/WhatsAppHighlight';
-import ProductShowcase from '../components/landing/ProductShowcase';
-import HowItWorks from '../components/landing/HowItWorks';
 import ComparisonMatrix from '../components/landing/ComparisonMatrix';
 import PerspectiveCTA from '../components/landing/PerspectiveCTA';
-import PremiumExperience from '../components/landing/PremiumExperience';
-import Features from '../components/landing/Features';
 import Testimonials from '../components/landing/Testimonials';
 import Pricing from '../components/landing/Pricing';
 import MainDashboardShowcase from '../components/landing/MainDashboardShowcase';
-import CheckoutShowcase from '../components/landing/CheckoutShowcase';
+import HowItWorks from '../components/landing/HowItWorks';
 import FAQ from '../components/landing/FAQ';
 import Footer from '../components/landing/Footer';
 
@@ -31,15 +26,10 @@ export default function Home() {
                 <Hero />
                 <Marquee />
                 <VCLSection />
-                <ProductShowcase />
-                <HowItWorks />
                 <MainDashboardShowcase />
-                <WhatsAppHighlight />
-                <ComparisonMatrix />
-                <PremiumExperience />
-                <CheckoutShowcase />
-                <Features />
+                <HowItWorks />
                 <Testimonials />
+                <ComparisonMatrix />
                 <Pricing />
                 <FAQ />
                 <PerspectiveCTA />

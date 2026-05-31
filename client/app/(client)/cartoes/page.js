@@ -71,22 +71,11 @@ export default function CardsPage() {
         <div className="min-h-screen bg-gradient-to-b from-[#0A0A0B] via-[#050505] to-black text-white font-sans px-5 pt-8 pb-32 max-w-7xl mx-auto overflow-x-hidden">
             
             {/* Header */}
-            <div className="flex items-center justify-between mb-10 px-1">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => router.back()} className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-slate-400 active:scale-95 transition-all">
-                        <ChevronLeft className="w-5 h-5 text-white" />
-                    </button>
-                    <div>
-                        <h1 className="text-xl font-black text-white uppercase italic tracking-tight">Carteira</h1>
-                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Meus cartões salvos</p>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-primary active:scale-95 transition-all shadow-lg shadow-primary/10"
-                >
-                    <Plus className="w-5 h-5" />
+            <div className="flex items-center gap-3 mb-12 px-1">
+                <button onClick={() => router.back()} className="text-white active:scale-90 transition-transform">
+                    <ChevronLeft className="w-6 h-6" />
                 </button>
+                <h1 className="text-xl font-medium text-white">Meus cartões</h1>
             </div>
 
             {loading ? (
@@ -98,20 +87,30 @@ export default function CardsPage() {
                     
                     {/* Empty State */}
                     {cards.length === 0 && !loading && (
-                        <div className="flex flex-col items-center justify-center py-24 text-center">
-                            <div className="w-20 h-20 glass-premium rounded-full flex items-center justify-center mb-6 relative">
-                                <CreditCard className="w-8 h-8 text-slate-700" strokeWidth={1} />
-                                <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-20"></div>
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="relative w-64 h-48 mb-16 mt-8 flex justify-center">
+                                {/* Back Card (Mastercard) */}
+                                <div className="absolute top-0 right-4 w-52 h-32 bg-[#E2E8F0] rounded-xl shadow-xl transform rotate-12 transition-transform duration-500 hover:rotate-6">
+                                    <div className="absolute top-4 left-4 flex gap-[-10px]">
+                                        <div className="w-8 h-8 rounded-full bg-[#EB001B] opacity-90 z-10"></div>
+                                        <div className="w-8 h-8 rounded-full bg-[#F79E1B] opacity-90 -ml-3 z-0"></div>
+                                    </div>
+                                </div>
+                                {/* Front Card (Visa) */}
+                                <div className="absolute bottom-0 left-4 w-52 h-32 bg-[#1877F2] rounded-xl shadow-2xl p-5 flex flex-col justify-between transform -rotate-6 transition-transform duration-500 hover:rotate-0 border border-white/10">
+                                    <h3 className="text-white font-black text-xl italic tracking-wider text-left">VISA</h3>
+                                    <div>
+                                        <p className="text-white/80 font-mono tracking-widest text-xs mb-2 text-left opacity-80">•••• •••• •••• ••••</p>
+                                        <div className="w-12 h-4 bg-white/20 rounded-md"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="text-lg font-black text-white uppercase italic tracking-tight mb-2">Nenhum Cartão</h3>
-                            <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] max-w-xs mx-auto mb-10 text-center">
-                                Adicione um cartão para agendamentos mais rápidos e seguros.
-                            </p>
+                            
                             <button 
                                 onClick={() => setIsAddModalOpen(true)}
-                                className="px-10 py-5 bg-primary text-black font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-xl shadow-primary/20 active:scale-95 transition-all"
+                                className="w-full max-w-[280px] py-4 rounded-xl border border-emerald-500 text-emerald-500 text-sm font-medium hover:bg-emerald-500/10 transition-colors active:scale-95"
                             >
-                                Adicionar Cartão
+                                Adicionar novo cartão
                             </button>
                         </div>
                     )}
@@ -181,24 +180,26 @@ export default function CardsPage() {
 
             {/* Add Card Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-5 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="w-full max-w-md relative animate-in zoom-in-95 duration-500">
-                        <div className="mb-6 flex justify-between items-center px-4">
-                            <h2 className="text-lg font-black text-white uppercase italic tracking-tight">Novo Cartão</h2>
-                            <button onClick={() => setIsAddModalOpen(false)} className="w-10 h-10 glass-premium rounded-xl flex items-center justify-center text-slate-400">
-                                <Plus className="w-5 h-5 rotate-45" />
+                <div className="fixed inset-0 z-[100] flex flex-col bg-[#0A0A0A] animate-in fade-in duration-300 overflow-y-auto pb-safe">
+                    <div className="px-5 pt-12 pb-6">
+                        <div className="flex items-center gap-3 mb-1">
+                            <button onClick={() => setIsAddModalOpen(false)} className="text-white active:scale-90 transition-transform">
+                                <ChevronLeft className="w-6 h-6" />
                             </button>
+                            <h2 className="text-lg font-medium text-white">Adicionar novo cartão</h2>
                         </div>
-                        <div className="glass-premium rounded-[2.5rem] p-4 border-white/10 shadow-2xl overflow-hidden">
-                            <CardForm
-                                amount={1}
-                                description="Verificação de Cartão"
-                                barbershopId={null} 
-                                onSubmit={handleAddCard}
-                                onCancel={() => setIsAddModalOpen(false)}
-                                forceSave={true} 
-                            />
-                        </div>
+                        <p className="text-slate-400 text-sm ml-9">Cadastre um novo cartão de crédito</p>
+                    </div>
+                    
+                    <div className="px-5 pb-10 flex-1">
+                        <CardForm
+                            amount={1}
+                            description="Verificação de Cartão"
+                            barbershopId={null} 
+                            onSubmit={handleAddCard}
+                            onCancel={() => setIsAddModalOpen(false)}
+                            forceSave={true} 
+                        />
                     </div>
                 </div>
             )}

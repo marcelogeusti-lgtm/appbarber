@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Home, Search, Calendar, User, ChevronDown, Bell, Plus } from 'lucide-react';
+import { Home, Search, Calendar, User, ChevronDown, Bell, Plus, Heart } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 import FooterCliente from '../../components/client-view/FooterCliente';
 import NotificationsModal from '../../components/client-view/NotificationsModal';
@@ -57,7 +57,8 @@ function ClientLayoutContent({ children }) {
             e.preventDefault();
             openLoginModal();
         } else {
-            router.push('/perfil');
+            e.preventDefault();
+            setIsProfileOpen(!isProfileOpen);
         }
     };
 
@@ -161,7 +162,7 @@ function ClientLayoutContent({ children }) {
                 </div>
 
                 {/* MOBILE BOTTOM NAVIGATION */}
-                <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-[20px] border-t border-white/5 pb-safe pt-2 px-4 z-50 md:hidden h-[74px] flex items-center justify-between">
+                <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-[20px] border-t border-white/5 pb-safe pt-2 px-2 z-50 md:hidden h-[74px] flex items-center justify-between">
                     {/* Início */}
                     <Link
                         href="/inicio"
@@ -180,33 +181,37 @@ function ClientLayoutContent({ children }) {
                         <span className="text-[9px] font-bold uppercase tracking-wider">Buscar</span>
                     </Link>
 
-                    {/* AGENDAR - CENTRAL CTA */}
-                    <div className="flex-1 flex flex-col items-center justify-center relative -top-7">
-                        <button
-                            onClick={handleQuickBookingClick}
-                            className="w-14 h-14 transition-transform active:scale-95 z-20 rounded-full overflow-hidden border-2 border-white/10 shadow-lg"
-                        >
-                            <img src="/logos/logo_icon.png" alt="Agendar" className="w-full h-full object-cover" />
-                        </button>
-                        <span className="text-[9px] font-bold uppercase tracking-wider mt-1.5 text-primary">Agendar</span>
-                    </div>
-
-                    {/* Agenda */}
+                    {/* CENTER LOGO - AGENDA */}
                     <Link
                         href="/agenda"
                         onClick={(e) => { if (!user) { e.preventDefault(); openLoginModal(); } }}
-                        className={`flex-1 flex flex-col items-center justify-center transition-all duration-300 ${pathname === '/agenda' ? 'text-primary' : 'text-slate-500'}`}
+                        className={`flex-[1.2] flex flex-col items-center justify-center transition-all duration-300 relative h-full`}
                     >
-                        <Calendar className={`w-5 h-5 mb-1 ${pathname === '/agenda' ? 'fill-current opacity-20' : ''}`} strokeWidth={2} />
-                        <span className="text-[9px] font-bold uppercase tracking-wider">Agenda</span>
+                        {/* The floating logo */}
+                        <div className={`absolute -top-8 w-[72px] h-[72px] bg-primary rounded-full flex items-center justify-center shadow-[0_12px_40px_rgba(37,99,235,0.6)] transform transition-all active:scale-95 border-[6px] border-[#0A0A0A]`}>
+                            <img src="/logos/logo_icon.png" alt="Agenda" className="w-[60%] h-[60%] object-contain" />
+                            {pathname === '/agenda' && (
+                                <div className="absolute -bottom-4 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(37,99,235,1)]"></div>
+                            )}
+                        </div>
+                    </Link>
+
+                    {/* Favoritos */}
+                    <Link
+                        href="/favoritos"
+                        onClick={(e) => { if (!user) { e.preventDefault(); openLoginModal(); } }}
+                        className={`flex-1 flex flex-col items-center justify-center transition-all duration-300 ${pathname === '/favoritos' ? 'text-primary' : 'text-slate-500'}`}
+                    >
+                        <Heart className={`w-5 h-5 mb-1 ${pathname === '/favoritos' ? 'fill-current opacity-20' : ''}`} strokeWidth={2} />
+                        <span className="text-[9px] font-bold uppercase tracking-wider">Favoritos</span>
                     </Link>
 
                     {/* Perfil */}
                     <button
                         onClick={handleMenuClick}
-                        className={`flex-1 flex flex-col items-center justify-center transition-all duration-300 ${pathname === '/perfil' ? 'text-primary' : 'text-slate-500'}`}
+                        className={`flex-1 flex flex-col items-center justify-center transition-all duration-300 ${isProfileOpen ? 'text-primary' : 'text-slate-500'}`}
                     >
-                        <div className={`w-5 h-5 mb-1 rounded-full border-2 transition-colors ${pathname === '/perfil' ? 'border-primary' : 'border-slate-500'} overflow-hidden bg-slate-800`}>
+                        <div className={`w-5 h-5 mb-1 rounded-full border-2 transition-colors ${isProfileOpen ? 'border-primary' : 'border-slate-500'} overflow-hidden bg-slate-800`}>
                             {user?.avatarUrl ? (
                                 <img src={user.avatarUrl} alt="U" className="w-full h-full object-cover" />
                             ) : (

@@ -7,7 +7,7 @@ const fcmTokenController = {
     saveToken: async (req, res) => {
         try {
             const { token, deviceType } = req.body;
-            const authUserId = req.user.id;
+            const authUserId = req.user.authUserId || req.user.id;
 
             if (!token) {
                 return res.status(400).json({ error: 'Token is required' });
@@ -41,7 +41,7 @@ const fcmTokenController = {
     deleteToken: async (req, res) => {
         try {
             const { token } = req.params;
-            const authUserId = req.user.id;
+            const authUserId = req.user.authUserId || req.user.id;
 
             await prisma.fcmToken.deleteMany({
                 where: {

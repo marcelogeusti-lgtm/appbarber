@@ -18,8 +18,8 @@ export default function AccessPage() {
         {
             icon: Globe,
             label: 'Google',
-            value: user?.avatarUrl?.includes('googleusercontent') ? 'Conectado' : 'Não vinculado',
-            connected: !!user?.avatarUrl?.includes('googleusercontent'),
+            value: (user?.provider === 'GOOGLE' || user?.avatarUrl?.includes('googleusercontent')) ? 'Conectado' : 'Não vinculado',
+            connected: user?.provider === 'GOOGLE' || !!user?.avatarUrl?.includes('googleusercontent'),
             desc: 'Acesse rapidamente usando sua conta Google.',
             onClick: async () => {
                 const toastId = toast.loading('Conectando ao Google...');

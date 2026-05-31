@@ -394,10 +394,9 @@ eventBus.on('PASSWORD_RESET_REQUEST', async (payload) => {
     }
 });
 
-// Event: AUTH_2FA_CODE
-eventBus.on('AUTH_2FA_CODE', async (payload) => {
+const send2FACode = async (payload) => {
     // payload: { email, otp, method, phone, userId }
-    console.log(`[NotificationService] Event Received: AUTH_2FA_CODE for ${payload.email}. Method: ${payload.method}`);
+    console.log(`[NotificationService] send2FACode for ${payload.email}. Method: ${payload.method}`);
 
     const method = (payload.method || 'EMAIL').toUpperCase().trim();
 
@@ -430,8 +429,12 @@ eventBus.on('AUTH_2FA_CODE', async (payload) => {
     } else {
         console.warn(`[NotificationService] Unknown or missing 2FA method: ${method}`);
     }
-});
+};
+
+// Event: AUTH_2FA_CODE
+eventBus.on('AUTH_2FA_CODE', send2FACode);
 
 module.exports = {
-    init: () => console.log('[NotificationService] Module active.')
+    init: () => console.log('[NotificationService] Module active.'),
+    send2FACode
 };

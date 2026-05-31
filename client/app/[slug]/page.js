@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
 import { safeSetItem } from '../../lib/storage';
 import CardForm from '../../components/payment/CardForm';
+import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 // Dynamic Sub-components (Lazy Loaded)
 const ServicesTab = dynamic(() => import('../../components/client-view/ServicesTab'), {
@@ -43,6 +44,7 @@ const formatCurrency = (value) => {
 };
 
 export default function BarbershopPage() {
+    const { user, openLoginModal } = useClientAuth();
     const params = useParams();
     const router = useRouter();
     const { slug } = params;
@@ -372,6 +374,10 @@ export default function BarbershopPage() {
     }, [formData.date, selectedProfessional, barbershop, selectedService]);
 
     const handleServiceSelect = (service) => {
+        if (!user) {
+            openLoginModal();
+            return;
+        }
         setSelectedService(service);
         setStep(1); // Reset step when new service selected
     };
@@ -382,6 +388,10 @@ export default function BarbershopPage() {
     };
 
     const handleProductToggle = (product) => {
+        if (!user) {
+            openLoginModal();
+            return;
+        }
         if (selectedProducts.find(p => p.id === product.id)) {
             setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
         } else {
