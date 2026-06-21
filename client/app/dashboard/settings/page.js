@@ -136,8 +136,8 @@ function SettingsContent() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
-
         { name: 'Alertas', icon: Bell },
+        { name: 'Assinatura', icon: CreditCard },
     ];
 
     if (loading) return (
@@ -186,8 +186,8 @@ function SettingsContent() {
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
-
                 {activeTab === 'Alertas' && <AlertsTab />}
+                {activeTab === 'Assinatura' && <SubscriptionTab barbershop={barbershop} refetchShop={refetchShop} />}
             </div>
         </div>
     );
@@ -621,3 +621,174 @@ function AlertsTab() {
         </div>
     );
 }
+
+function SubscriptionTab({ barbershop, refetchShop }) {
+    const [cancelling, setCancelling] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [confirmText, setConfirmText] = useState('');
+
+    const saasPlanDetails = {
+        SOLO: { name: 'Básico (Solo)', maxBarbers: 1, price: 'R$ 79,90' },
+        BASIC: { name: 'Médio (Basic)', maxBarbers: 5, price: 'R$ 109,90' },
+        PRO: { name: 'Pro', maxBarbers: 15, price: 'R$ 164,50' },
+        ENTERPRISE: { name: 'Empire (Enterprise)', maxBarbers: 100, price: 'R$ 219,90' }
+    };
+
+    const currentPlan = saasPlanDetails[barbershop?.saasPlan] || { name: 'Período de Testes', maxBarbers: 1, price: 'Grátis' };
+    const statusMap = {
+        ACTIVE: { label: 'Ativo', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' },
+        TRIAL: { label: 'Período de Testes (Trial)', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
+        OVERDUE: { label: 'Atrasado', color: 'text-orange-500 bg-orange-500/10 border-orange-500/20' },
+        CANCELLED: { label: 'Cancelado', color: 'text-red-500 bg-red-500/10 border-red-500/20' }
+    };
+
+    const currentStatus = statusMap[barbershop?.subscriptionStatus] || { label: barbershop?.subscriptionStatus || 'Inativo', color: 'text-muted-foreground bg-muted border-border' };
+
+    const handleCancel = async () => {
+        if (confirmText.toLowerCase() !== 'cancelar') {
+            alert('Por favor, digite "cancelar" para confirmar.');
+            return;
+        }
+
+        setCancelling(true);
+        try {
+            await api.post('/barbershops/cancel-saas');
+            alert('Sua assinatura foi cancelada com sucesso. Seu acesso será desativado.');
+            setShowCancelModal(false);
+            window.location.reload();
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Erro ao processar o cancelamento da assinatura.');
+        } finally {
+            setCancelling(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-6">
+                <div>
+                    <h2 className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
+                        <CreditCard className="w-5 h-5 text-primary" /> Detalhes da sua Assinatura SaaS
+                    </h2>
+                    <p className="text-muted-foreground text-xs font-medium">Visualização do seu plano de contratação e faturamento do sistema.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Plan Card */}
+                    <div className="bg-muted/40 p-5 rounded-lg border border-border flex flex-col justify-between space-y-4">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Plano Contratado</span>
+                        <div>
+                            <h3 className="text-xl font-bold text-foreground">{currentPlan.name}</h3>
+                            <p className="text-sm font-semibold text-primary mt-1">{currentPlan.price} <span className="text-xs text-muted-foreground font-normal">/ mês</span></p>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground font-medium">Limite de até {currentPlan.maxBarbers} profissionais ativos.</span>
+                    </div>
+
+                    {/* Status Card */}
+                    <div className="bg-muted/40 p-5 rounded-lg border border-border flex flex-col justify-between space-y-4">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Status do Acesso</span>
+                        <div>
+                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold border ${currentStatus.color}`}>
+                                {currentStatus.label}
+                            </span>
+                        </div>
+                        {barbershop?.trialEndsAt && barbershop?.subscriptionStatus === 'TRIAL' && (
+                            <span className="text-[10px] text-muted-foreground font-medium">
+                                Expira em: {new Date(barbershop.trialEndsAt).toLocaleDateString()}
+                            </span>
+                        )}
+                        <span className="text-[10px] text-muted-foreground font-medium">&nbsp;</span>
+                    </div>
+
+                    {/* Billing Info */}
+                    <div className="bg-muted/40 p-5 rounded-lg border border-border flex flex-col justify-between space-y-4">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Faturamento</span>
+                        <div className="space-y-1">
+                            <p className="text-xs text-foreground font-semibold flex items-center gap-1">
+                                Integrado via Gateway Externo
+                            </p>
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                Kirvano, Kiwify, Hotmart ou Kaktus.
+                            </p>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground font-medium">Verifique sua fatura no seu e-mail de compra.</span>
+                    </div>
+                </div>
+
+                {barbershop?.subscriptionStatus !== 'CANCELLED' && (
+                    <div className="pt-4 border-t border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="max-w-md space-y-1">
+                            <h4 className="text-sm font-bold text-foreground">Deseja cancelar sua assinatura?</h4>
+                            <p className="text-muted-foreground text-xs leading-relaxed">
+                                Ao cancelar, você desativa o acesso ao sistema. Lembre-se também de cancelar a recorrência no seu cartão diretamente na plataforma de pagamento (Kirvano, Kiwify, Hotmart ou Kaktus) para evitar cobranças futuras.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowCancelModal(true)}
+                            className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2"
+                        >
+                            <Trash2 className="w-4 h-4" /> Cancelar Assinatura
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Cancel Modal */}
+            {showCancelModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="w-full max-w-md bg-card border border-border rounded-xl overflow-hidden shadow-2xl space-y-6 p-6">
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-bold text-red-500 flex items-center gap-2">
+                                <Trash2 className="w-5 h-5" /> Cancelar Assinatura do SaaS
+                            </h3>
+                            <p className="text-muted-foreground text-xs leading-relaxed">
+                                Você está prestes a cancelar sua assinatura do **{barbershop.name || 'sistema'}**. 
+                                Isso bloqueará o seu acesso ao painel.
+                            </p>
+                        </div>
+
+                        <div className="bg-muted p-4 rounded-lg space-y-3 border border-border">
+                            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                <Info className="w-4 h-4 text-primary" /> Importante sobre a Cobrança:
+                            </h4>
+                            <p className="text-muted-foreground text-[11px] leading-relaxed">
+                                Como o seu pagamento foi feito por um link externo de checkout, para que novas parcelas **não sejam cobradas no seu cartão**, acesse a plataforma onde comprou (ex: **Kirvano, Kiwify, Hotmart ou Kaktus**) e cancele a assinatura lá.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest block">
+                                Digite <strong>cancelar</strong> abaixo para confirmar:
+                            </label>
+                            <input
+                                type="text"
+                                value={confirmText}
+                                onChange={(e) => setConfirmText(e.target.value)}
+                                placeholder='Digite "cancelar"'
+                                className="w-full bg-muted border border-border rounded-lg h-10 px-3 text-sm focus:outline-none focus:border-primary transition"
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-2">
+                            <button
+                                onClick={() => { setShowCancelModal(false); setConfirmText(''); }}
+                                className="px-5 h-10 border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg font-bold text-xs uppercase tracking-wider transition"
+                            >
+                                Voltar
+                            </button>
+                            <button
+                                onClick={handleCancel}
+                                disabled={cancelling || confirmText.toLowerCase() !== 'cancelar'}
+                                className="px-5 h-10 bg-red-500 text-white hover:bg-red-600 rounded-lg font-bold text-xs uppercase tracking-wider transition disabled:opacity-40 flex items-center gap-2"
+                            >
+                                {cancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar Cancelamento'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
