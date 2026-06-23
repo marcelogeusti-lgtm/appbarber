@@ -709,7 +709,7 @@ function SubscriptionTab({ barbershop, refetchShop }) {
                                 Integrado via Gateway Externo
                             </p>
                             <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                Kirvano, Kiwify, Hotmart ou Kaktus.
+                                Plataforma onde adquiriu o plano.
                             </p>
                         </div>
                         <span className="text-[10px] text-muted-foreground font-medium">Verifique sua fatura no seu e-mail de compra.</span>
@@ -721,7 +721,7 @@ function SubscriptionTab({ barbershop, refetchShop }) {
                         <div className="max-w-md space-y-1">
                             <h4 className="text-sm font-bold text-foreground">Deseja cancelar sua assinatura?</h4>
                             <p className="text-muted-foreground text-xs leading-relaxed">
-                                Ao cancelar, você desativa o acesso ao sistema. Lembre-se também de cancelar a recorrência no seu cartão diretamente na plataforma de pagamento (Kirvano, Kiwify, Hotmart ou Kaktus) para evitar cobranças futuras.
+                                Ao cancelar, você desativa o acesso ao sistema. Lembre-se também de cancelar a recorrência no seu cartão diretamente na plataforma de pagamento onde adquiriu a assinatura para evitar cobranças futuras.
                             </p>
                         </div>
                         <button
@@ -753,7 +753,7 @@ function SubscriptionTab({ barbershop, refetchShop }) {
                                 <Info className="w-4 h-4 text-primary" /> Importante sobre a Cobrança:
                             </h4>
                             <p className="text-muted-foreground text-[11px] leading-relaxed">
-                                Como o seu pagamento foi feito por um link externo de checkout, para que novas parcelas **não sejam cobradas no seu cartão**, acesse a plataforma onde comprou (ex: **Kirvano, Kiwify, Hotmart ou Kaktus**) e cancele a assinatura lá.
+                                Como o seu pagamento foi feito por um link externo de checkout, para que novas parcelas **não sejam cobradas no seu cartão**, acesse a plataforma onde comprou e cancele a assinatura por lá.
                             </p>
                         </div>
 
