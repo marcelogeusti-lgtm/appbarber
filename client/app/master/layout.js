@@ -3,7 +3,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LogOut, LayoutDashboard, Store, DollarSign, Settings } from 'lucide-react';
 import Link from 'next/link';
-import { safeGetItem, safeClear } from '../../../lib/storage';
+import { safeGetItem, safeClear } from '../../lib/storage';
 
 export default function MasterLayout({ children }) {
     const router = useRouter();

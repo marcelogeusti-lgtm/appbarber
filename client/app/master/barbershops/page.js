@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Store, MoreVertical, Search, ShieldAlert, CheckCircle2, AlertCircle } from 'lucide-react';
-import api from '../../../../lib/api';
+import api from '../../../lib/api';
 
 export default function MasterBarbershops() {
     const [shops, setShops] = useState([]);

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Store, Users, TrendingUp, AlertCircle, DollarSign, Activity } from 'lucide-react';
-import api from '../../../lib/api';
+import api from '../../lib/api';
 
 export default function MasterDashboard() {
     const [shops, setShops] = useState([]);

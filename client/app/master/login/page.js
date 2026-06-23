@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
-import api from '../../../../lib/api';
-import { safeSetItem } from '../../../../lib/storage';
+import api from '../../../lib/api';
+import { safeSetItem } from '../../../lib/storage';
 
 export default function MasterLogin() {
     const router = useRouter();
