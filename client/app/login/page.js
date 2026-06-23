@@ -85,6 +85,12 @@ export default function AuthPage() {
                 barbershopSlug: res.data.barbershopSlug
             };
 
+            if (userData.role === 'SUPER_ADMIN') {
+                setError('Conta Master identificada. Por favor, acesse pelo link exclusivo: /admin');
+                setLoading(false);
+                return;
+            }
+
             safeSetItem('token', res.data.token);
             safeSetItem('user', JSON.stringify(userData));
             router.push('/dashboard');
@@ -124,6 +130,12 @@ export default function AuthPage() {
                 barbershopId: res.data.barbershopId,
                 barbershopSlug: res.data.barbershopSlug
             };
+
+            if (userData.role === 'SUPER_ADMIN') {
+                setError('Conta Master identificada. Por favor, acesse pelo link exclusivo: /admin');
+                setLoading(false);
+                return;
+            }
 
             safeSetItem('token', res.data.token);
             safeSetItem('user', JSON.stringify(userData));
