@@ -59,6 +59,14 @@ exports.handleWebhook = async (req, res) => {
                     });
                 }
             }
+        } else if (gateway === 'kiwify' || gateway === 'kirvano') {
+            // It's a SaaS Webhook (Kiwify / Kirvano)
+            const SaaSWebhookService = require('../services/payment/SaaSWebhookService');
+            if (gateway === 'kiwify') {
+                result = await SaaSWebhookService.processKiwify(req);
+            } else {
+                result = await SaaSWebhookService.processKirvano(req);
+            }
         } else {
             // It's a Payment Gateway Webhook (Mercado Pago, Stripe, etc.)
             result = await PaymentService.processWebhook(gateway, req);
