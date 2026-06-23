@@ -438,8 +438,8 @@ model Barbershop {
   reviews               Review[]
   favorites             FavoriteBarbershop[]
   notificationTemplates NotificationTemplate[]
-
-
+  messageLogs           MessageLog[]
+  banners               Banner[]
 
   loyaltyBalances       ClientLoyaltyBalance[]
 }
@@ -1099,6 +1099,9 @@ model Banner {
 
   location String @default("DASHBOARD_TOP") // DASHBOARD_TOP, SIDEBAR, ETC
 
+  barbershopId String?
+  barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -1311,9 +1314,22 @@ model ProfessionalProfile {
   id        String   @id @default(uuid())
   user      User     @relation("UserProfessionalProfile", fields: [userId], references: [id], onDelete: Cascade)
   userId    String   @unique
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model MessageLog {
+  id           String   @id @default(uuid())
+  type         String   // "WHATSAPP", "EMAIL", "PUSH"
+  recipient    String   // Phone or email address
+  body         String   @db.Text
+  status       String   // "PENDING", "SENT", "FAILED"
+  error        String?  @db.Text
+  
+  barbershopId String?
+  barbershop   Barbershop? @relation(fields: [barbershopId], references: [id])
+  
+  createdAt    DateTime @default(now())
 }
 
 model FinancialEvent {

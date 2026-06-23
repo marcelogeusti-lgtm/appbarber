@@ -42,11 +42,13 @@ function MapInteractionHandler({ onMapMoved }) {
     useMapEvents({
         dragend: (e) => {
             const center = e.target.getCenter();
-            onMapMoved({ lat: center.lat, lng: center.lng });
+            const radius = center.distanceTo(e.target.getBounds().getNorthEast()) / 1000; // in km
+            onMapMoved({ lat: center.lat, lng: center.lng, radius });
         },
         zoomend: (e) => {
             const center = e.target.getCenter();
-            onMapMoved({ lat: center.lat, lng: center.lng });
+            const radius = center.distanceTo(e.target.getBounds().getNorthEast()) / 1000; // in km
+            onMapMoved({ lat: center.lat, lng: center.lng, radius });
         }
     });
     return null;

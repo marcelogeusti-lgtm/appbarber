@@ -1,5 +1,6 @@
 const express = require('express');
 const { getBarbershopBySlug, updateBarbershop, listBarbershops, searchBarbershops, getRecommendedBarbershops, updateSaasPlan, getMyBarbershop, toggleFavorite, checkFavoriteStatus, getMyFavorites, cancelMySaasSubscription } = require('../controllers/barbershop.controller');
+const bannerRoutes = require('./banner.routes');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 const { checkSubscription } = require('../middlewares/subscription.middleware');
 
@@ -17,5 +18,7 @@ router.get('/my/favorites', protect, getMyFavorites);
 router.post('/cancel-saas', protect, authorize('ADMIN'), cancelMySaasSubscription);
 router.put('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN'), checkSubscription, updateBarbershop);
 
+// Nested routes
+router.use('/:id/banners', bannerRoutes);
 
 module.exports = router;

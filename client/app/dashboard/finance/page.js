@@ -22,6 +22,26 @@ export default function FinancePage() {
         return userStr ? JSON.parse(userStr) : null;
     };
 
+    const handleExport = async (type) => {
+        try {
+            let startDate = new Date();
+            if (period === 'day') startDate.setHours(0, 0, 0, 0);
+            else if (period === 'week') startDate.setDate(startDate.getDate() - 7);
+            else startDate.setMonth(startDate.getMonth() - 1);
+
+            const res = await api.get(`/finance/export/csv?barbershopId=${bId}&type=${type}&startDate=${startDate.toISOString()}&endDate=${new Date().toISOString()}`, { responseType: 'blob' });
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `financeiro_${type}_${bId}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (e) {
+            toast.error("Erro ao exportar dados");
+        }
+    };
+
     const user = getUser();
     const bId = user?.barbershopId || user?.barbershop?.id || user?.ownedBarbershops?.[0]?.id;
 
@@ -75,25 +95,29 @@ export default function FinancePage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4">
-                        <button 
-                            onClick={async () => {
-                                try {
-                                    const res = await api.get(`/finance/export?barbershopId=${bId}`, { responseType: 'blob' });
-                                    const url = window.URL.createObjectURL(new Blob([res.data]));
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.setAttribute('download', `financeiro_${bId}.csv`);
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    link.remove();
-                                } catch (e) {
-                                    toast.error("Erro ao exportar dados");
-                                }
-                            }}
-                            className="p-4 bg-muted hover:bg-muted/80 text-foreground rounded-xl border border-border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest"
-                        >
-                            <Download className="w-4 h-4" /> Exportar CSV
-                        </button>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => handleExport('transactions')}
+                                className="p-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl border border-border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest"
+                                title="Exportar Movimentações do Período"
+                            >
+                                <Download className="w-4 h-4" /> Movimentações
+                            </button>
+                            <button 
+                                onClick={() => handleExport('caixa')}
+                                className="p-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl border border-border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest"
+                                title="Exportar Fechamentos de Caixa"
+                            >
+                                <Download className="w-4 h-4" /> Caixa
+                            </button>
+                            <button 
+                                onClick={() => handleExport('commissions')}
+                                className="p-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl border border-border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest"
+                                title="Exportar Comissões do Período"
+                            >
+                                <Download className="w-4 h-4" /> Comissões
+                            </button>
+                        </div>
 
                         <div className="flex bg-background/50 p-1.5 rounded-xl border border-border shadow-inner">
                             {['day', 'week', 'month'].map(p => (

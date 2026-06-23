@@ -643,10 +643,205 @@ exports.closeShift = async (req, res) => {
         res.status(500).json({ message: 'Erro ao fechar caixa.' });
     }
 };
+        const clientRanking = orders.reduce((acc, o) => {
+            const name = o.client?.name || 'Avulso';
+            if (!acc[name]) acc[name] = 0;
+            acc[name] += Number(o.total);
+            return acc;
+        }, {});
+        const topClients = Object.entries(clientRanking).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount).slice(0, 10);
 
-exports.exportTransactionsCSV = async (req, res) => {
+        // 7. Previsão de Faturamento (Próximos 30 dias de agendamentos confirmados)
+        const futureApts = await prisma.appointment.findMany({
+            where: {
+                ...where,
+                status: 'CONFIRMED',
+                date: { gte: new Date(), lte: new Date(new Date().setDate(new Date().getDate() + 30)) }
+            },
+            select: { service: { select: { price: true } } }
+        });
+        const forecast = futureApts.reduce((sum, a) => sum + Number(a.service?.price || 0), 0);
+
+        // 8. Inteligência: Alertas Automáticos
+        const alerts = [];
+
+        // Alerta 1: Queda de Movimento (Comparar última semana vs penúltima)
+        const last7Days = transactions.filter(t => t.type === 'INCOME' && t.date >= new Date(new Date().setDate(new Date().getDate() - 7)));
+        const prev7To14Days = await prisma.transaction.findMany({
+            where: {
+                ...where,
+                type: 'INCOME',
+                date: {
+                    gte: new Date(new Date().setDate(new Date().getDate() - 14)),
+                    lte: new Date(new Date().setDate(new Date().getDate() - 7))
+                }
+            }
+        });
+        const revLast7 = last7Days.reduce((s, t) => s + Number(t.amount), 0);
+        const revPrev7 = prev7To14Days.reduce((s, t) => s + Number(t.amount), 0);
+
+        if (revPrev7 > 0 && revLast7 < revPrev7 * 0.8) {
+            alerts.push({
+                type: 'WARNING',
+                title: 'Queda de faturamento',
+                message: `O movimento caiu ${((1 - revLast7 / revPrev7) * 100).toFixed(0)}% em relação à semana passada.`
+            });
+        }
+
+        // Alerta 2: Cancelamentos Frequentes
+        const recentCancellations = await prisma.appointment.findMany({
+            where: {
+                ...where,
+                status: 'CANCELLED',
+                updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 7)) }
+            },
+            select: { professional: { select: { name: true } } }
+        });
+
+        const cancelByPro = recentCancellations.reduce((acc, a) => {
+            const name = a.professional?.name || 'Pro';
+            acc[name] = (acc[name] || 0) + 1;
+            return acc;
+        }, {});
+
+        Object.entries(cancelByPro).forEach(([name, count]) => {
+            if (count >= 3) {
+                alerts.push({
+                    type: 'DANGER',
+                    title: 'Foco em Cancelamentos',
+                    message: `O profissional ${name} teve ${count} cancelamentos nos últimos 7 dias.`
+                });
+            }
+        });
+
+        // Alerta 3: Horários Ociosos (ex: 14h sempre vazio)
+        if (Object.keys(hourlyRevenue).length > 0 && !hourlyRevenue[14]) {
+            alerts.push({
+                type: 'INFO',
+                title: 'Horário Ocioso',
+                message: 'O horário das 14h está sem faturamento neste período. Que tal uma promoção?'
+            });
+        }
+
+        res.json({
+            kpis: {
+                monthlyRevenue,
+                estimatedProfit: netProfit,
+                ticketMedio,
+                retentionRate,
+                forecast,
+                visitCount: monthlyVisitRate
+            },
+            rankings: {
+                professionals: rankingPro,
+                services: topServices,
+                clients: topClients
+            },
+            charts: {
+                hourlyHeatmap: Object.entries(hourlyRevenue).map(([hour, value]) => ({ hour: parseInt(hour), value })),
+                revenueGrowth: []
+            },
+            alerts
+        });
+
+    } catch (error) {
+        console.error('Owner Dashboard Error:', error);
+        res.status(500).json({ message: 'Erro ao processar inteligência de negócio.' });
+    }
+};
+
+// --- Cash Shift (Caixa) Management ---
+
+exports.getCurrentShift = async (req, res) => {
     try {
-        let { barbershopId, start, end } = req.query;
+        const { barbershopId } = req.query;
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const currentShift = await prisma.cashShift.findFirst({
+            where: {
+                barbershopId,
+                status: 'OPEN'
+            },
+            include: {
+                openedBy: { select: { name: true } }
+            }
+        });
+
+        res.json(currentShift);
+    } catch (error) {
+        console.error('Get Current Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao buscar status do caixa.' });
+    }
+};
+
+exports.openShift = async (req, res) => {
+    try {
+        const { barbershopId, openingBalance = 0 } = req.body;
+        const userId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        // Check if there is already an open shift
+        const existing = await prisma.cashShift.findFirst({
+            where: { barbershopId, status: 'OPEN' }
+        });
+
+        if (existing) {
+            return res.status(400).json({ message: 'Já existe um caixa aberto para esta barbearia.' });
+        }
+
+        const newShift = await prisma.cashShift.create({
+            data: {
+                barbershopId,
+                openedById: userId,
+                openingBalance: parseFloat(openingBalance),
+                currentBalance: parseFloat(openingBalance),
+                status: 'OPEN'
+            }
+        });
+
+        res.status(201).json(newShift);
+    } catch (error) {
+        console.error('Open Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao abrir caixa.' });
+    }
+};
+
+exports.closeShift = async (req, res) => {
+    try {
+        const { barbershopId, closingBalance } = req.body;
+        const userId = req.user.id;
+
+        if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
+
+        const currentShift = await prisma.cashShift.findFirst({
+            where: { barbershopId, status: 'OPEN' }
+        });
+
+        if (!currentShift) {
+            return res.status(400).json({ message: 'Não há caixa aberto para fechar.' });
+        }
+
+        const updatedShift = await prisma.cashShift.update({
+            where: { id: currentShift.id },
+            data: {
+                status: 'CLOSED',
+                closedById: userId,
+                closedAt: new Date(),
+                closingBalance: closingBalance !== undefined ? parseFloat(closingBalance) : currentShift.currentBalance
+            }
+        });
+
+        res.json(updatedShift);
+    } catch (error) {
+        console.error('Close Shift Error:', error);
+        res.status(500).json({ message: 'Erro ao fechar caixa.' });
+    }
+};
+
+exports.exportCSV = async (req, res) => {
+    try {
+        let { barbershopId, start, end, type = 'transactions' } = req.query;
         if (!barbershopId && req.user) barbershopId = req.user.barbershopId;
         if (!barbershopId) return res.status(400).json({ message: 'Barbershop ID required' });
 
@@ -655,42 +850,76 @@ exports.exportTransactionsCSV = async (req, res) => {
         if (start && end) {
             const startDate = new Date(start);
             const endDate = new Date(end);
-                where.createdAt = {
+            where.createdAt = {
                 gte: startDate,
                 lte: endDate
             };
         }
 
-        const transactions = await prisma.transaction.findMany({
-            where,
-            include: {
-                professional: { select: { name: true } }
-            },
-        });
+        let headers = [];
+        let csvContent = '';
+        let filename = 'relatorio.csv';
 
-        const headers = ['Data', 'Tipo', 'Categoria', 'Metodo', 'Valor', 'Status', 'Descricao', 'Profissional'];
-        let csvContent = headers.join(';') + '\n';
-
-        transactions.forEach(t => {
-            const data = (t.createdAt.toLocaleDateString('pt-BR') + ' ' + t.createdAt.toLocaleTimeString('pt-BR')).replace(/;/g, ',');
-            const tipo = t.type === 'INCOME' ? 'Entrada' : 'Saída';
-            const cat = (t.category || '').replace(/;/g, ',');
-            const metodo = (t.paymentMethod || t.origin || '').replace(/;/g, ',');
-            const valor = t.amount ? Number(t.amount).toFixed(2).replace('.', ',') : '0,00';
-            const status = (t.status || 'FINALIZADO').replace(/;/g, ',');
-            const desc = (t.description || '').replace(/"/g, '""').replace(/;/g, ',');
-            const pro = (t.professional ? t.professional.name : '').replace(/;/g, ',');
-
-            csvContent += `"${data}";"${tipo}";"${cat}";"${metodo}";"${valor}";"${status}";"${desc}";"${pro}"\n`;
-        });
+        if (type === 'transactions') {
+            const transactions = await prisma.transaction.findMany({
+                where,
+                include: { professional: { select: { name: true } } },
+            });
+            headers = ['Data', 'Tipo', 'Categoria', 'Metodo', 'Valor', 'Status', 'Descricao', 'Profissional'];
+            csvContent = headers.join(';') + '\n';
+            transactions.forEach(t => {
+                const data = (t.createdAt.toLocaleDateString('pt-BR') + ' ' + t.createdAt.toLocaleTimeString('pt-BR')).replace(/;/g, ',');
+                const tipo = t.type === 'INCOME' ? 'Entrada' : 'Saída';
+                const cat = (t.category || '').replace(/;/g, ',');
+                const metodo = (t.paymentMethod || t.origin || '').replace(/;/g, ',');
+                const valor = t.amount ? Number(t.amount).toFixed(2).replace('.', ',') : '0,00';
+                const status = (t.status || 'FINALIZADO').replace(/;/g, ',');
+                const desc = (t.description || '').replace(/"/g, '""').replace(/;/g, ',');
+                const pro = (t.professional ? t.professional.name : '').replace(/;/g, ',');
+                csvContent += `"${data}";"${tipo}";"${cat}";"${metodo}";"${valor}";"${status}";"${desc}";"${pro}"\n`;
+            });
+            filename = 'transacoes_financeiras.csv';
+        } else if (type === 'caixa') {
+            const shifts = await prisma.cashShift.findMany({
+                where,
+                include: { openedBy: { select: { name: true } }, closedBy: { select: { name: true } } }
+            });
+            headers = ['Data Abertura', 'Aberto Por', 'Saldo Inicial', 'Data Fechamento', 'Fechado Por', 'Saldo Final', 'Status'];
+            csvContent = headers.join(';') + '\n';
+            shifts.forEach(s => {
+                const dataAbertura = (s.openedAt.toLocaleDateString('pt-BR') + ' ' + s.openedAt.toLocaleTimeString('pt-BR')).replace(/;/g, ',');
+                const abertoPor = (s.openedBy ? s.openedBy.name : '').replace(/;/g, ',');
+                const saldoInicial = s.openingBalance ? Number(s.openingBalance).toFixed(2).replace('.', ',') : '0,00';
+                const dataFechamento = s.closedAt ? (s.closedAt.toLocaleDateString('pt-BR') + ' ' + s.closedAt.toLocaleTimeString('pt-BR')).replace(/;/g, ',') : '';
+                const fechadoPor = (s.closedBy ? s.closedBy.name : '').replace(/;/g, ',');
+                const saldoFinal = s.closingBalance ? Number(s.closingBalance).toFixed(2).replace('.', ',') : s.currentBalance ? Number(s.currentBalance).toFixed(2).replace('.', ',') : '0,00';
+                const status = (s.status === 'OPEN' ? 'ABERTO' : 'FECHADO').replace(/;/g, ',');
+                csvContent += `"${dataAbertura}";"${abertoPor}";"${saldoInicial}";"${dataFechamento}";"${fechadoPor}";"${saldoFinal}";"${status}"\n`;
+            });
+            filename = 'historico_caixas.csv';
+        } else if (type === 'commissions') {
+            const commissions = await prisma.commission.findMany({
+                where,
+                include: { barber: { select: { name: true } } }
+            });
+            headers = ['Data', 'Profissional', 'Tipo', 'Valor', 'Status'];
+            csvContent = headers.join(';') + '\n';
+            commissions.forEach(c => {
+                const data = (c.createdAt.toLocaleDateString('pt-BR') + ' ' + c.createdAt.toLocaleTimeString('pt-BR')).replace(/;/g, ',');
+                const pro = (c.barber ? c.barber.name : '').replace(/;/g, ',');
+                const tipo = (c.type || 'SERVICE').replace(/;/g, ',');
+                const valor = c.amount ? Number(c.amount).toFixed(2).replace('.', ',') : '0,00';
+                const status = (c.status === 'PAID' ? 'PAGO' : 'PENDENTE').replace(/;/g, ',');
+                csvContent += `"${data}";"${pro}";"${tipo}";"${valor}";"${status}"\n`;
+            });
+            filename = 'comissoes.csv';
+        }
 
         res.header('Content-Type', 'text/csv; charset=utf-8');
-        res.attachment('transacoes_financeiras.csv');
-        return res.send(Buffer.from('\uFEFF' + csvContent, 'utf-8')); // Add BOM for Excel compatibility
+        res.attachment(filename);
+        return res.send(Buffer.from('\uFEFF' + csvContent, 'utf-8'));
     } catch (error) {
         console.error('Export erro:', error);
         res.status(500).json({ message: 'Erro ao exportar planilha CSV' });
     }
 };
-
-

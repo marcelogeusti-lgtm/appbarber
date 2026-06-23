@@ -107,6 +107,18 @@ class EmailService {
                 }
             });
 
+            // Tabela unificada MessageLog
+            await prisma.messageLog.create({
+                data: {
+                    type: 'EMAIL',
+                    recipient: to,
+                    body: `Subject: ${subject} | Template: ${template}`,
+                    status: success ? 'SENT' : 'FAILED',
+                    error: success ? null : 'emailProvider returns false or thrown.',
+                    barbershopId: data && data.barbershopId ? data.barbershopId : null
+                }
+            });
+
             if (!success) {
                 console.error(`[EmailService] Failed to send email to ${to}`);
             }
@@ -124,6 +136,18 @@ class EmailService {
                     provider: 'DEFAULT',
                     status: 'FAILED',
                     errorMessage: error.message
+                }
+            });
+
+            // Tabela unificada MessageLog
+            await prisma.messageLog.create({
+                data: {
+                    type: 'EMAIL',
+                    recipient: to,
+                    body: `Subject: ${subject} | Template: ${template}`,
+                    status: 'FAILED',
+                    error: error.message,
+                    barbershopId: data && data.barbershopId ? data.barbershopId : null
                 }
             });
 

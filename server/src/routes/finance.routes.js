@@ -3,7 +3,7 @@ const {
     getFinancialStats,
     getFinancialDashboard,
     getOwnerDashboard,
-    exportTransactionsCSV,
+    exportCSV,
     getCurrentShift,
     openShift,
     closeShift
@@ -20,7 +20,7 @@ router.get('/stats', authorize('ADMIN', 'SUPER_ADMIN'), getFinancialStats);
 router.get('/dashboard', authorize('ADMIN', 'SUPER_ADMIN'), getFinancialDashboard);
 // PROTECTED: Do not remove or modify owner-report route
 router.get('/owner-report', authorize('ADMIN', 'SUPER_ADMIN'), getOwnerDashboard);
-router.get('/export/csv', authorize('ADMIN', 'SUPER_ADMIN'), exportTransactionsCSV);
+router.get('/export/csv', authorize('ADMIN', 'SUPER_ADMIN'), exportCSV);
 
 // Cash Shift (Caixa)
 router.get('/shift/current', authorize('ADMIN', 'BARBER', 'SUPER_ADMIN'), getCurrentShift);

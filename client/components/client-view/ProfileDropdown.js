@@ -3,7 +3,7 @@ import {
     User, Heart, CreditCard, Sparkles, Box,
     History, LogOut, ChevronRight, Key,
     MapPin, ShieldCheck, Settings, MessageSquare,
-    FileText
+    FileText, Star
 } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 
@@ -23,6 +23,7 @@ export default function ProfileDropdown({ isOpen, onClose }) {
         {
             items: [
                 { icon: Heart, label: 'Favoritos', href: '/favoritos' },
+                { icon: Star, label: 'Fidelidade', href: '/fidelidade' },
                 { icon: CreditCard, label: 'Meus Cartões', href: '/cartoes' },
                 { icon: Sparkles, label: 'Assinaturas', href: '/assinaturas' },
                 { icon: Box, label: 'Pacotes', href: '/pacotes' },

@@ -53,6 +53,7 @@ export default function BarbershopPage() {
 
     const [barbershop, setBarbershop] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [banners, setBanners] = useState([]);
     const [activeTab, setActiveTab] = useState('servicos');
     // Cards State
     const [savedCards, setSavedCards] = useState([]);
@@ -285,6 +286,11 @@ export default function BarbershopPage() {
                 setBarbershop(res.data);
                 setLoading(false);
 
+                // Fetch dynamic banners
+                api.get(`/content/banners?slug=${effectiveSlug}`).then(bRes => {
+                    setBanners(bRes.data);
+                }).catch(err => console.error('Failed to load banners:', err));
+
                 // Initial Data Loads
                 if (localStorage.getItem('token')) {
                     checkFavoriteStatus(res.data.id);
@@ -417,6 +423,20 @@ export default function BarbershopPage() {
                 return alert(paymentType === 'online' ? 'Preencha Nome, Telefone e CPF para continuar' : 'Preencha Nome e Telefone para continuar');
             }
 
+            // [NO-SHOW GUARANTEE] Check if we need to vault a card first for local payments
+            if (paymentType === 'local' && barbershop?.noShowEnabled) {
+                // If they don't have any saved cards AND haven't just saved one in this session
+                if (savedCards.length === 0 && !cardSavedThisSession && checkoutData?.status !== 'pending_card_vault') {
+                    setCheckoutData({
+                        status: 'pending_card_vault',
+                        amount: 0 // they won't be charged now
+                    });
+                    setStep(6);
+                    return; // Stop here, wait for them to save a card, then they will call handleBook again
+                }
+            }
+
+
             const payload = {
                 ...(formData.clientId ? { cliente_id: formData.clientId } : {}),
                 cliente_nome: formData.name,
@@ -548,8 +568,8 @@ export default function BarbershopPage() {
         <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30 overflow-x-hidden">
             {/* Header / Cover */}
             <header className="relative h-64 w-full overflow-hidden group">
-                {barbershop.bannerUrls && barbershop.bannerUrls.length > 0 ? (
-                    <BannerCarousel images={barbershop.bannerUrls} />
+                {banners.length > 0 || (barbershop.bannerUrls && barbershop.bannerUrls.length > 0) ? (
+                    <BannerCarousel banners={banners} images={barbershop.bannerUrls} />
                 ) : (
                     <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-black z-0"></div>
                 )}
@@ -744,9 +764,16 @@ export default function BarbershopPage() {
                                             <h2 className="text-3xl font-black text-white uppercase">Pagamento Confirmado!</h2>
                                             <p className="text-slate-400 text-xs">Seu horário já está garantido e aguardamos você!</p>
                                         </div>
-                                    ) : checkoutData?.status === 'pending_card' ? (
+                                    ) : (checkoutData?.status === 'pending_card' || checkoutData?.status === 'pending_card_vault') ? (
                                         <div className="space-y-6">
-                                            <h2 className="text-xl font-black text-white uppercase text-center mb-6">Pagamento com Cartão</h2>
+                                            <h2 className="text-xl font-black text-white uppercase text-center mb-6">
+                                                {checkoutData?.status === 'pending_card_vault' ? 'Garantia de Agendamento' : 'Pagamento com Cartão'}
+                                            </h2>
+                                            {checkoutData?.status === 'pending_card_vault' && (
+                                                <p className="text-xs text-slate-400 text-center -mt-4">
+                                                    A barbearia exige um cartão como garantia (No-Show). Você não será cobrado agora.
+                                                </p>
+                                            )}
 
                                             {/* Saved Cards Selection */}
                                             {savedCards.length > 0 && (
@@ -795,8 +822,11 @@ export default function BarbershopPage() {
                                                     </div>
                                                     <button
                                                         onClick={() => {
-                                                            // For now, confirm manually as per business rule
-                                                            setCheckoutData(prev => ({ ...prev, status: 'paid' })); 
+                                                            if (checkoutData?.status === 'pending_card_vault') {
+                                                                handleBook();
+                                                            } else {
+                                                                setCheckoutData(prev => ({ ...prev, status: 'paid' })); 
+                                                            }
                                                         }}
                                                         className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-xs uppercase hover:bg-emerald-600 transition tracking-widest shadow-xl shadow-emerald-500/20"
                                                     >
@@ -819,43 +849,55 @@ export default function BarbershopPage() {
                                                 </div>
                                             ) : (
                                                 <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4 animate-in fade-in slide-in-from-top-4 relative overflow-hidden">
-                                                    {payingCard && (
-                                                        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center space-y-3 animate-in fade-in">
-                                                            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                                            <p className="text-[10px] font-black text-white uppercase tracking-widest">Processando Pagamento...</p>
-                                                        </div>
+                                                    {checkoutData?.status === 'pending_card_vault' ? (
+                                                        <button
+                                                            className="w-full bg-primary text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition flex items-center justify-center gap-2"
+                                                            onClick={() => handleBook()}
+                                                        >
+                                                            <Check className="w-4 h-4" />
+                                                            Continuar com Cartão Salvo
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            {payingCard && (
+                                                                <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center space-y-3 animate-in fade-in">
+                                                                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Processando Pagamento...</p>
+                                                                </div>
+                                                            )}
+                                                            
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Código de Segurança (CVV)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    maxLength={4}
+                                                                    disabled={payingCard}
+                                                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:ring-1 ring-primary outline-none transition disabled:opacity-50"
+                                                                    placeholder="•••"
+                                                                    value={cvv}
+                                                                    onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                disabled={cvv.length < 3 || payingCard}
+                                                                className="w-full bg-primary text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition disabled:opacity-50 flex items-center justify-center gap-2 group"
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        setPayingCard(true);
+                                                                        const card = savedCards.find(c => c.id === selectedCardId);
+                                                                        await processCardPayment(card.token, null, null, 1, false);
+                                                                    } catch (err) {
+                                                                        console.error("Payment failed", err);
+                                                                    } finally {
+                                                                        setPayingCard(false);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <CreditCard className={`w-4 h-4 transition-transform group-hover:scale-110 ${payingCard ? 'animate-pulse' : ''}`} />
+                                                                Confirmar com Cartão Salvo
+                                                            </button>
+                                                        </>
                                                     )}
-                                                    
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Código de Segurança (CVV)</label>
-                                                        <input
-                                                            type="text"
-                                                            maxLength={4}
-                                                            disabled={payingCard}
-                                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:ring-1 ring-primary outline-none transition disabled:opacity-50"
-                                                            placeholder="•••"
-                                                            value={cvv}
-                                                            onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
-                                                        />
-                                                    </div>
-                                                    <button
-                                                        disabled={cvv.length < 3 || payingCard}
-                                                        className="w-full bg-primary text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition disabled:opacity-50 flex items-center justify-center gap-2 group"
-                                                        onClick={async () => {
-                                                            try {
-                                                                setPayingCard(true);
-                                                                const card = savedCards.find(c => c.id === selectedCardId);
-                                                                await processCardPayment(card.token, null, null, 1, false);
-                                                            } catch (err) {
-                                                                console.error("Payment failed", err);
-                                                            } finally {
-                                                                setPayingCard(false);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <CreditCard className={`w-4 h-4 transition-transform group-hover:scale-110 ${payingCard ? 'animate-pulse' : ''}`} />
-                                                        Confirmar com Cartão Salvo
-                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -1324,19 +1366,20 @@ export default function BarbershopPage() {
     );
 }
 
-function BannerCarousel({ images }) {
+function BannerCarousel({ banners, images }) {
+    const items = banners && banners.length > 0 ? banners : (images || []).map(img => ({ imageUrl: img }));
     const [currentIndex, setCurrentIndex] = useState(0);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
 
     // Auto-slide
     useEffect(() => {
-        if (!images || images.length <= 1) return;
+        if (!items || items.length <= 1) return;
         const interval = setInterval(() => {
-            setCurrentIndex(prev => (prev + 1) % images.length);
+            setCurrentIndex(prev => (prev + 1) % items.length);
         }, 5000); // 5s slide
         return () => clearInterval(interval);
-    }, [images]);
+    }, [items]);
 
     const minSwipeDistance = 50;
 
@@ -1354,13 +1397,13 @@ function BannerCarousel({ images }) {
         const isRightSwipe = distance < -minSwipeDistance;
 
         if (isLeftSwipe) {
-            setCurrentIndex(prev => (prev + 1) % images.length);
+            setCurrentIndex(prev => (prev + 1) % items.length);
         } else if (isRightSwipe) {
-            setCurrentIndex(prev => (prev - 1 + images.length) % images.length);
+            setCurrentIndex(prev => (prev - 1 + items.length) % items.length);
         }
     };
 
-    if (!images || images.length === 0) return null;
+    if (!items || items.length === 0) return null;
 
     return (
         <div
@@ -1369,19 +1412,23 @@ function BannerCarousel({ images }) {
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
         >
-            {images.map((img, idx) => (
+            {items.map((item, idx) => (
                 <div
                     key={idx}
-                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-60' : 'opacity-0'}`}
+                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-60 z-10' : 'opacity-0 z-0'}`}
+                    onClick={() => {
+                        if (item.linkUrl) window.open(item.linkUrl, '_blank');
+                    }}
+                    style={{ cursor: item.linkUrl ? 'pointer' : 'default' }}
                 >
-                    <img src={img} alt={`Banner ${idx}`} className="w-full h-full object-cover" />
+                    <img src={item.imageUrl} alt={item.title || `Banner ${idx}`} className="w-full h-full object-cover" />
                 </div>
             ))}
 
             {/* Indicators */}
-            {images.length > 1 && (
+            {items.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                    {images.map((_, idx) => (
+                    {items.map((_, idx) => (
                         <div
                             key={idx}
                             className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/30'}`}

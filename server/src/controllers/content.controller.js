@@ -13,13 +13,26 @@ exports.getCourses = async (req, res) => {
     }
 };
 
-// Get active banners for Dashboard
+// Get active banners for Dashboard or Client App
 exports.getBanners = async (req, res) => {
     try {
+        const { slug, barbershopId } = req.query;
+        let queryWhere = { active: true };
+
+        if (slug) {
+            const barbershop = await prisma.barbershop.findUnique({ where: { slug } });
+            if (barbershop) queryWhere.barbershopId = barbershop.id;
+        } else if (barbershopId) {
+            queryWhere.barbershopId = barbershopId;
+        } else {
+            // Global banners
+            queryWhere.barbershopId = null;
+        }
+
         const now = new Date();
         const banners = await prisma.banner.findMany({
             where: {
-                active: true,
+                ...queryWhere,
                 OR: [
                     { startDate: null },
                     { startDate: { lte: now } }

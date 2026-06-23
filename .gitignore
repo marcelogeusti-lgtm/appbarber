@@ -82,3 +82,4 @@ server_deploy_attempt.log
 
 # Debug archives
 server/debug_archive/
+.env*

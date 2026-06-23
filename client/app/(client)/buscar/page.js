@@ -45,6 +45,34 @@ export default function SearchPage() {
     const [user, setUser] = useState(null);
 
     // Initial Load: User & Recommendations
+    const handleLocationSearch = () => {
+        setIsLocating(true);
+        setGpsError('');
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const newLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setUserLocation(newLoc);
+                    setSearchLocation(newLoc); // Update search to match GPS
+                    setSearchTab('NEARBY'); // Force GPS tab active
+                    setIsLocating(false);
+                    fetchRecommendations(newLoc.lat, newLoc.lng);
+                },
+                (err) => {
+                    console.error(err);
+                    setIsLocating(false);
+                    setGpsError('Erro ao obter localização. Verifique as permissões de GPS.');
+                    setTimeout(() => setGpsError(''), 4000);
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        } else {
+            setIsLocating(false);
+            setGpsError('Geolocalização não suportada neste navegador.');
+            setTimeout(() => setGpsError(''), 4000);
+        }
+    };
+
     useEffect(() => {
         const u = localStorage.getItem('user');
         if (u) {
@@ -58,6 +86,12 @@ export default function SearchPage() {
         const cached = sessionStorage.getItem('last_search_results');
         if (cached && !searchTerm) {
             setResults(JSON.parse(cached));
+        }
+
+        // Forçar carregamento do GPS imediato
+        if ('geolocation' in navigator) {
+            // Option to check permissions first, but task asks to force it
+            handleLocationSearch();
         }
     }, []);
 
@@ -109,7 +143,10 @@ export default function SearchPage() {
         setLoading(true);
         try {
             let query = `/barbershops/search?term=${searchTerm}`;
-            if (searchLocation) query += `&lat=${searchLocation.lat}&lng=${searchLocation.lng}&type=${searchTab}`;
+            if (searchLocation) {
+                query += `&lat=${searchLocation.lat}&lng=${searchLocation.lng}&type=${searchTab}`;
+                if (searchLocation.radius) query += `&radius=${searchLocation.radius}`;
+            }
             
             const res = await api.get(query);
             
@@ -122,33 +159,7 @@ export default function SearchPage() {
         }
     };
 
-    const handleLocationSearch = () => {
-        setIsLocating(true);
-        setGpsError('');
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const newLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    setUserLocation(newLoc);
-                    setSearchLocation(newLoc); // Update search to match GPS
-                    setSearchTab('NEARBY'); // Force GPS tab active
-                    setIsLocating(false);
-                    fetchRecommendations(newLoc.lat, newLoc.lng);
-                },
-                (err) => {
-                    console.error(err);
-                    setIsLocating(false);
-                    setGpsError('Erro ao obter localização. Verifique as permissões de GPS.');
-                    setTimeout(() => setGpsError(''), 4000);
-                },
-                { timeout: 10000, enableHighAccuracy: true }
-            );
-        } else {
-            setIsLocating(false);
-            setGpsError('Geolocalização não suportada neste navegador.');
-            setTimeout(() => setGpsError(''), 4000);
-        }
-    };
+
 
     const handleSearchArea = (newLoc) => {
         setSearchLocation(newLoc);

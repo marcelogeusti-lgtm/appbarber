@@ -1,4 +1,5 @@
 const axios = require('axios');
+const prisma = require('../../lib/prisma');
 
 exports.sendConfirmation = async (appointment) => {
     await processMessage(appointment, 'CONFIRMATION');
@@ -34,24 +35,43 @@ async function processMessage(appointment, type) {
 
         // Mocking the API call setup here. Assuming "Evolution API" style or "WPPConnect"
         // This is a placeholder for the actual request logic, which depends on the user's provider.
-        // For now, let's assume we log it effectively, or make a real call if env vars exist.
+        let status = 'PENDING';
+        let errorMsg = null;
 
-        if (process.env.WHATSAPP_API_URL) {
-            await axios.post(`${process.env.WHATSAPP_API_URL}/message/sendText/${process.env.WHATSAPP_INSTANCE_NAME}`, {
-                number: clientPhone,
-                text: msg
-            }, {
-                headers: {
-                    apikey: process.env.WHATSAPP_API_TOKEN
-                }
-            });
-        } else {
-            console.log('[WhatsappNotifier] Mock Send:', msg);
+        try {
+            if (process.env.WHATSAPP_API_URL) {
+                await axios.post(`${process.env.WHATSAPP_API_URL}/message/sendText/${process.env.WHATSAPP_INSTANCE_NAME}`, {
+                    number: clientPhone,
+                    text: msg
+                }, {
+                    headers: {
+                        apikey: process.env.WHATSAPP_API_TOKEN
+                    }
+                });
+            } else {
+                console.log('[WhatsappNotifier] Mock Send:', msg);
+            }
+            status = 'SENT';
+        } catch (error) {
+            status = 'FAILED';
+            errorMsg = error.message;
+            console.error(`[WhatsappNotifier] Failed to send API req for ${type}:`, error.message);
         }
+
+        await prisma.messageLog.create({
+            data: {
+                type: 'WHATSAPP',
+                recipient: clientPhone,
+                body: msg,
+                status: status,
+                error: errorMsg,
+                barbershopId: appointment.barbershopId
+            }
+        });
 
     } catch (error) {
         // Safe Catch: Should not propagate to main thread
-        console.error(`[WhatsappNotifier] Failed to send ${type}:`, error.message);
+        console.error(`[WhatsappNotifier] Error processing message ${type}:`, error.message);
     }
 }
 

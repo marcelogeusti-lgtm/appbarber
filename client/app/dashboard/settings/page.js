@@ -8,6 +8,8 @@ import {
     Globe, Smartphone, CreditCard, ExternalLink, CheckCircle, Info, Sparkles, Loader2, Camera, Palette, Bell, BellRing, Trash2, Plus, AlignLeft, ScrollText
 } from 'lucide-react';
 import IntegrationSettings from '../../../components/settings/IntegrationSettings';
+import BannersTab from '../../../components/settings/BannersTab';
+import MessageLogsModal from '../../../components/settings/MessageLogsModal';
 import Link from 'next/link';
 
 import { useQuery } from '@tanstack/react-query';
@@ -136,6 +138,7 @@ function SettingsContent() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
+        { name: 'Banners Promocionais', icon: ImageIcon },
         { name: 'Alertas', icon: Bell },
         { name: 'Assinatura', icon: CreditCard },
     ];
@@ -186,6 +189,7 @@ function SettingsContent() {
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
+                {activeTab === 'Banners Promocionais' && <BannersTab barbershop={barbershop} />}
                 {activeTab === 'Alertas' && <AlertsTab />}
                 {activeTab === 'Assinatura' && <SubscriptionTab barbershop={barbershop} refetchShop={refetchShop} />}
             </div>
@@ -460,6 +464,7 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
     const [waStatus, setWaStatus] = useState({ status: 'LOADING' });
     const [qrCode, setQrCode] = useState(null);
     const [connecting, setConnecting] = useState(false);
+    const [showLogs, setShowLogs] = useState(false);
 
     useEffect(() => {
         if (!barbershop?.id) return;
@@ -519,6 +524,7 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                     <div className="space-y-1">
                         <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><Smartphone className="w-5 h-5 text-[#25D366]" /> WhatsApp Smart Bot</h2>
                         <p className="text-muted-foreground text-xs font-medium">Automação inteligente de disparos e confirmações.</p>
+                        <button onClick={() => setShowLogs(true)} className="mt-2 text-[11px] font-bold text-primary hover:underline flex items-center gap-1">Ver Logs de Disparos Recentes</button>
                     </div>
                     <div className="flex items-center gap-4">
                         {waStatus.status === 'CONNECTED' ? (
@@ -598,6 +604,8 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                     );
                 })}
             </div>
+
+            {showLogs && <MessageLogsModal barbershopId={barbershop.id} onClose={() => setShowLogs(false)} />}
         </div>
     );
 }

@@ -159,7 +159,12 @@ const searchBarbershops = async (req, res) => {
         });
 
         // 5. Restrict Distance
-        // Limite de 15km removido para permitir a visualização de opções mais distantes
+        if (req.query.radius && userLat && userLng) {
+            const maxRadius = parseFloat(req.query.radius);
+            processedShops = processedShops.filter(shop => shop.distance !== null && shop.distance <= maxRadius);
+        } else {
+            // Limite de 15km removido para permitir a visualização de opções mais distantes
+        }
 
         // 6. Sort unified
         if (userLat && userLng && type === 'NEARBY') {
