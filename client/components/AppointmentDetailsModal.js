@@ -21,6 +21,7 @@ export default function AppointmentDetailsModal({
     const [showPaymentSelector, setShowPaymentSelector] = useState(false);
 
     const [isRedeeming, setIsRedeeming] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     const { data: loyaltyData } = useQuery({
         queryKey: ['loyalty', appointment?.clientId],
