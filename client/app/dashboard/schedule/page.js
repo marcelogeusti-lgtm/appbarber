@@ -557,7 +557,7 @@ function WaitlistView({ waitlist, professionals }) {
                 <div key={entry.id} className="p-8 hover:bg-primary/5 transition flex items-center justify-between group">
                     <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-background rounded-xl border border-border flex items-center justify-center text-muted-foreground font-black text-xl">
-                            {entry.clientName?.charAt(0)}
+                            {entry.clientName?.charAt?.(0)}
                         </div>
                         <div>
                             <h4 className="font-black text-lg text-foreground uppercase tracking-tight">{entry.clientName}</h4>
@@ -609,7 +609,7 @@ function DayView({ appointments, professionals, selectedPro, onEdit, barbershopN
                         <div className="flex-1 space-y-3 cursor-pointer" onClick={() => onEdit && onEdit(app)}>
                             <div className="flex items-center gap-3">
                                 <div className={`w-12 h-12 rounded-xl border border-border flex items-center justify-center font-black group-hover:scale-110 transition-transform ${isCancelled ? 'bg-red-500/10 text-red-500' : 'bg-background text-muted-foreground'}`}>
-                                    {app.client?.name.charAt(0)}
+                                    {app.client?.name?.charAt?.(0)}
                                 </div>
                                 <div>
                                     <h4 className={`font-black text-lg uppercase tracking-tight transition-colors ${isCancelled ? 'text-red-400' : 'text-foreground group-hover:text-primary'}`}>{app.client?.name}</h4>
