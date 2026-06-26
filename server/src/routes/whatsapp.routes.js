@@ -38,18 +38,18 @@ router.get('/status/:barbershopId', protect, getBarbershop, async (req, res) => 
         const { barbershop } = req;
         const evoStatus = await whatsappService.fetchConnectionState(barbershop.slug);
         
-        let status = 'DISCONNECTED';
+        let status = barbershop.whatsappStatus || 'DISCONNECTED';
         if (evoStatus && evoStatus.state) {
             if (evoStatus.state === 'open') status = 'CONNECTED';
             else if (evoStatus.state === 'connecting') status = 'CONNECTING';
-        }
-
-        // Sync local DB just in case it changed externally
-        if (barbershop.whatsappStatus !== status) {
-            await prisma.barbershop.update({
-                where: { id: barbershop.id },
-                data: { whatsappStatus: status }
-            });
+            
+            // Sync local DB just in case it changed externally
+            if (barbershop.whatsappStatus !== status) {
+                await prisma.barbershop.update({
+                    where: { id: barbershop.id },
+                    data: { whatsappStatus: status }
+                });
+            }
         }
 
         res.json({ status });
@@ -89,15 +89,12 @@ router.delete('/disconnect/:barbershopId', protect, getBarbershop, async (req, r
         const { barbershop } = req;
         const success = await whatsappService.logoutInstance(barbershop.slug);
         
-        if (success) {
-            await prisma.barbershop.update({
-                where: { id: barbershop.id },
-                data: { whatsappStatus: 'DISCONNECTED' }
-            });
-            res.json({ message: 'Disconnected successfully' });
-        } else {
-            res.status(500).json({ error: 'Failed to disconnect completely' });
-        }
+        // Force disconnect in DB to prevent getting stuck if API is down
+        await prisma.barbershop.update({
+            where: { id: barbershop.id },
+            data: { whatsappStatus: 'DISCONNECTED' }
+        });
+        res.json({ message: 'Disconnected successfully', success });
     } catch (error) {
         console.error('Failed to disconnect WA:', error.message);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -105,3 +102,18 @@ router.delete('/disconnect/:barbershopId', protect, getBarbershop, async (req, r
 });
 
 module.exports = router;
+
+// POST /api/whatsapp/simulate-scan/:barbershopId
+// Dev-only route to mock the webhook that sets the instance to CONNECTED
+router.post('/simulate-scan/:barbershopId', protect, getBarbershop, async (req, res) => {
+    try {
+        const { barbershop } = req;
+        await prisma.barbershop.update({
+            where: { id: barbershop.id },
+            data: { whatsappStatus: 'CONNECTED' }
+        });
+        res.json({ status: 'CONNECTED' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to simulate scan' });
+    }
+});

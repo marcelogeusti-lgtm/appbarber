@@ -10,6 +10,7 @@ class WhatsAppService {
         this.apiBaseUrl = process.env.WHATSAPP_API_URL; // e.g. https://evo.yourdomain.com
         this.apiKey = process.env.WHATSAPP_API_TOKEN; // Global API Key
         this.globalWebhookUrl = `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/webhooks/evolution`;
+        this.isMocked = !this.apiBaseUrl || !this.apiKey;
     }
 
     getHeaders() {
@@ -23,7 +24,7 @@ class WhatsAppService {
      * Helper to get instance status from Evolution API
      */
     async fetchConnectionState(instanceName) {
-        if (!this.apiBaseUrl || !this.apiKey) throw new Error("Evolution API credentials not configured in .env");
+        if (this.isMocked) return null; // Let the route rely on DB state or mock state
         try {
             const response = await axios.get(`${this.apiBaseUrl}/instance/connectionState/${instanceName}`, {
                 headers: this.getHeaders()
@@ -42,7 +43,10 @@ class WhatsAppService {
      * Create an instance and set the webhook
      */
     async createInstance(instanceName) {
-        if (!this.apiBaseUrl || !this.apiKey) throw new Error("Evolution API credentials not configured in .env");
+        if (this.isMocked) {
+            console.log(`[WhatsAppService] MOCK: Created instance ${instanceName}`);
+            return { instanceName };
+        }
 
         // First check if it exists
         const state = await this.fetchConnectionState(instanceName);
@@ -84,6 +88,11 @@ class WhatsAppService {
      * Get QR Code for an instance (creates it if it doesn't exist)
      */
     async getQRCode(instanceName) {
+        if (this.isMocked) {
+            // Return a simple 1x1 base64 transparent image or a generic placeholder QR
+            return { base64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=' };
+        }
+
         // Ensure instance exists
         await this.createInstance(instanceName);
 
@@ -99,6 +108,10 @@ class WhatsAppService {
      * Logout and delete the instance
      */
     async logoutInstance(instanceName) {
+        if (this.isMocked) {
+            console.log(`[WhatsAppService] MOCK: Logged out instance ${instanceName}`);
+            return true;
+        }
         try {
             await axios.delete(`${this.apiBaseUrl}/instance/logout/${instanceName}`, {
                 headers: this.getHeaders()

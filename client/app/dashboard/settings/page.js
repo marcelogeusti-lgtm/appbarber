@@ -569,6 +569,22 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                             <p className="text-muted-foreground text-xs leading-relaxed">
                                 Abra o WhatsApp no seu celular, vá em **Aparelhos Conectados** e escaneie o código acima para ativar o Smart Bot.
                             </p>
+                            
+                            {/* Dev Mock Button */}
+                            <button 
+                                onClick={async () => {
+                                    try {
+                                        await api.post(`/whatsapp/simulate-scan/${barbershop.id}`);
+                                        setWaStatus({ status: 'CONNECTED' });
+                                        setQrCode(null);
+                                    } catch (e) {
+                                        alert('Falha ao simular scan');
+                                    }
+                                }}
+                                className="mt-4 px-4 py-2 bg-zinc-100 border border-zinc-300 text-zinc-600 rounded-lg text-[10px] font-bold uppercase hover:bg-zinc-200 transition-colors"
+                            >
+                                Simular Leitura do QR Code (Dev)
+                            </button>
                         </div>
                     </div>
                 )}
