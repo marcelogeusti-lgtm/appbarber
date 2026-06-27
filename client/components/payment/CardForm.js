@@ -36,26 +36,21 @@ export default function CardForm({ publicKey: initialKey, amount, onSubmit, onCa
             style: {
                 theme: 'dark',
                 customVariables: {
-                    baseColor: '#007AFF', // Solid Blue like screenshot
+                    baseColor: '#007AFF',
                     formBackgroundColor: 'transparent', 
                     textColor: '#ffffff',
-                    inputBackgroundColor: '#1C1C1E', // Dark gray inputs
+                    inputBackgroundColor: '#1C1C1E',
                     inputTextColor: '#ffffff',
                     inputBorderColor: '#2C2C2E',
                     inputFocusedBorderColor: '#007AFF',
                     labelTextColor: '#A1A1AA',
                 }
-            },
-            texts: {
-                formSubmit: 'Cadastrar',
-                payButton: 'Cadastrar',
-                paymentButton: 'Cadastrar'
             }
         }
     }), [forceSave]);
 
     const initialization = useMemo(() => ({
-        amount: forceSave ? 0.01 : (Number(amount) || 100),
+        amount: forceSave ? 0.50 : (Number(amount) || 100),
     }), [amount, forceSave]);
 
     if (!publicKey) {
