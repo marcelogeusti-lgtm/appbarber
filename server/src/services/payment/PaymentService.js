@@ -214,6 +214,24 @@ class PaymentService {
                 data: { status: 'PAID', paidAt: new Date(), paymentStatus: 'PAID' }
             }).catch(err => console.error('[PaymentService] Order update failed:', err.message));
         }
+
+        // 3. Client Subscriptions (Barbershop Clubs)
+        if (p.clientSubscriptionId) {
+            const subscription = await prisma.clientSubscription.findUnique({
+                where: { id: p.clientSubscriptionId },
+                include: { client: true, plan: { include: { barbershop: true } } }
+            });
+            if (subscription) {
+                const eventBus = require('../events/eventBus');
+                eventBus.emit('SUBSCRIPTION_RENEWED_SUCCESS', {
+                    payment: p,
+                    subscription,
+                    client: subscription.client,
+                    barbershop: subscription.plan.barbershop,
+                    plan: subscription.plan
+                });
+            }
+        }
     }
 
     /**
@@ -259,6 +277,25 @@ class PaymentService {
                 where: { id: p.orderId },
                 data: { status: 'CANCELLED' }
             }).catch(err => console.error('[PaymentService] Failed to cancel order:', err.message));
+        }
+
+        // 4. Client Subscriptions (Barbershop Clubs)
+        if (p.clientSubscriptionId) {
+            const subscription = await prisma.clientSubscription.findUnique({
+                where: { id: p.clientSubscriptionId },
+                include: { client: true, plan: { include: { barbershop: true } } }
+            });
+            if (subscription) {
+                const eventBus = require('../events/eventBus');
+                eventBus.emit('SUBSCRIPTION_PAYMENT_FAILED', {
+                    payment: p,
+                    reason,
+                    subscription,
+                    client: subscription.client,
+                    barbershop: subscription.plan.barbershop,
+                    plan: subscription.plan
+                });
+            }
         }
     }
 

@@ -260,7 +260,6 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             <div className="h-px bg-primary/20 mx-2 my-2"></div>
                             <MenuGroup title="Gestão Master (Exclusivo)" id="master" icon={Shield}>
                                 <MenuItem href="/dashboard/super-admin" icon={LayoutDashboard} label="Controle SaaS Global" badge="Master" />
-                                <MenuItem href="/dashboard/super-admin/settings" icon={Settings} label="Configurações Globais" badge="Master" />
                                 <MenuItem href="/dashboard/super-admin/courses" icon={GraduationCap} label="Configurar Cursos" badge="Master" />
                                 <MenuItem href="/dashboard/super-admin/tutorials" icon={PlayCircle} label="Gerenciar Tutoriais" badge="Master" />
                             </MenuGroup>

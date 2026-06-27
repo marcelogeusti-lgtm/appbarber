@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const prisma = require('../../lib/prisma');
-const { subDays, startOfDay, endOfDay } = require('date-fns');
+const { subDays, startOfDay, endOfDay, addDays } = require('date-fns');
 const eventBus = require('../events/eventBus');
 
 const initFollowUpScheduler = () => {
@@ -101,8 +101,31 @@ const initFollowUpScheduler = () => {
                 });
             }
 
+            // --- 1.4 Subscription Renewal Warning (3 days before) ---
+            const threeDaysFromNowStart = startOfDay(addDays(new Date(), 3));
+            const threeDaysFromNowEnd = endOfDay(addDays(new Date(), 3));
+            
+            const upcomingSubscriptions = await prisma.clientSubscription.findMany({
+                where: {
+                    status: 'ACTIVE',
+                    nextBillingDate: { gte: threeDaysFromNowStart, lte: threeDaysFromNowEnd }
+                },
+                include: { client: true, plan: { include: { barbershop: true } } }
+            });
+
+            for (const sub of upcomingSubscriptions) {
+                if (!sub.client || !sub.plan || !sub.plan.barbershop) continue;
+                console.log(`[FollowUp] Emitting SUBSCRIPTION_RENEWAL_WARNING for client ${sub.client.name}`);
+                eventBus.emit('SUBSCRIPTION_RENEWAL_WARNING', {
+                    client: sub.client,
+                    barbershop: sub.plan.barbershop,
+                    subscription: sub,
+                    plan: sub.plan
+                });
+            }
+
         } catch (error) {
-            console.error('[FollowUp Scheduler] Error running daily jobs:', error);
+            console.error('[FollowUp Scheduler] Error in Daily Job:', error);
         }
     });
 

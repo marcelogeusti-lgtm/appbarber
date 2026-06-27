@@ -187,7 +187,7 @@ function SettingsContent() {
                 {activeTab === 'Geral' && <GeneralTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
-                {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
+                {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} isMaster={isMaster} />}
                 {activeTab === 'Alertas' && <AlertsTab />}
                 {activeTab === 'Assinatura' && <SubscriptionTab barbershop={barbershop} refetchShop={refetchShop} />}
             </div>
@@ -458,11 +458,16 @@ function RulesTab({ barbershop, setBarbershop }) {
     );
 }
 
-function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplateId, setEditingTemplateId, editContent, setEditContent, saving, fetchTemplates }) {
+function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplateId, setEditingTemplateId, editContent, setEditContent, saving, fetchTemplates, isMaster }) {
     const [waStatus, setWaStatus] = useState({ status: 'LOADING' });
     const [qrCode, setQrCode] = useState(null);
     const [connecting, setConnecting] = useState(false);
     const [showLogs, setShowLogs] = useState(false);
+    
+    // Master Config State
+    const [masterSettings, setMasterSettings] = useState({ WHATSAPP_API_URL: '', WHATSAPP_API_TOKEN: '' });
+    const [savingMaster, setSavingMaster] = useState(false);
+    const [loadingMaster, setLoadingMaster] = useState(false);
 
     useEffect(() => {
         if (!barbershop?.id) return;
@@ -483,8 +488,39 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
         };
         checkStatus();
         const interval = setInterval(checkStatus, 5000);
+        
         return () => clearInterval(interval);
     }, [barbershop?.id]);
+
+    useEffect(() => {
+        if (isMaster) {
+            const loadSettings = async () => {
+                try {
+                    setLoadingMaster(true);
+                    const res = await api.get('/master/settings');
+                    setMasterSettings(prev => ({ ...prev, ...res.data }));
+                } catch (error) {
+                    console.error('Failed to load global motor settings:', error);
+                } finally {
+                    setLoadingMaster(false);
+                }
+            };
+            loadSettings();
+        }
+    }, [isMaster]);
+
+    const handleSaveMasterSettings = async () => {
+        try {
+            setSavingMaster(true);
+            await api.post('/master/settings', masterSettings);
+            alert('Configurações do Motor salvas com sucesso!');
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            alert('Erro ao salvar configurações do motor.');
+        } finally {
+            setSavingMaster(false);
+        }
+    };
 
     const handleConnect = async () => {
         setConnecting(true);
@@ -619,11 +655,70 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                 })}
             </div>
 
+            {/* Configurações Globais do Motor (Apenas para Master) */}
+            {isMaster && (
+                <div className="mt-8 bg-zinc-900 border border-[#25D366]/20 rounded-xl p-6 shadow-soft relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#25D366] to-transparent opacity-30" />
+                    
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-lg bg-[#25D366]/10 flex items-center justify-center text-[#25D366]">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">Configuração do Servidor (Evolution API) <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded text-[9px] uppercase tracking-widest border border-red-500/20">Somente Admin</span></h2>
+                            <p className="text-xs text-zinc-400">Gerencie a conexão mestre do motor de disparo.</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">
+                                URL do Servidor
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="ex: https://api.seudominio.com.br"
+                                value={masterSettings.WHATSAPP_API_URL || ''}
+                                onChange={(e) => setMasterSettings({ ...masterSettings, WHATSAPP_API_URL: e.target.value })}
+                                className="w-full h-12 bg-black/50 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm"
+                            />
+                            <p className="text-[10px] text-zinc-500 mt-1">
+                                Deixe em branco para forçar o sistema a entrar em <strong className="text-zinc-300">Modo de Simulação</strong> (blindagem anti-crash).
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">
+                                Global API Token (GlobalApiKey)
+                            </label>
+                            <input
+                                type="password"
+                                placeholder="••••••••••••••••"
+                                value={masterSettings.WHATSAPP_API_TOKEN || ''}
+                                onChange={(e) => setMasterSettings({ ...masterSettings, WHATSAPP_API_TOKEN: e.target.value })}
+                                className="w-full h-12 bg-black/50 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono tracking-wider"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end">
+                        <button
+                            onClick={handleSaveMasterSettings}
+                            disabled={savingMaster}
+                            className="bg-[#25D366] text-white px-6 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#25D366]/90 transition-all disabled:opacity-50 shadow-lg shadow-[#25D366]/20 flex items-center gap-2"
+                        >
+                            {savingMaster ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Motor'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {showLogs && <MessageLogsModal barbershopId={barbershop.id} onClose={() => setShowLogs(false)} />}
         </div>
     );
 }
-
 
 function AlertsTab() {
     return (

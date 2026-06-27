@@ -40,6 +40,32 @@ function init() {
             console.error('[Event Error] Failed to process PACKAGE_EXPIRING:', error);
         }
     });
+    // 5. Subscription Renewal Warning
+    eventBus.on('SUBSCRIPTION_RENEWAL_WARNING', async (payload) => {
+        try {
+            await communicationService.sendSubscriptionRenewalWarning(payload);
+        } catch (error) {
+            console.error('[Event Error] Failed to process SUBSCRIPTION_RENEWAL_WARNING:', error);
+        }
+    });
+
+    // 6. Subscription Payment Failed
+    eventBus.on('SUBSCRIPTION_PAYMENT_FAILED', async (payload) => {
+        try {
+            await communicationService.sendSubscriptionPaymentFailed(payload);
+        } catch (error) {
+            console.error('[Event Error] Failed to process SUBSCRIPTION_PAYMENT_FAILED:', error);
+        }
+    });
+
+    // 7. Subscription Renewed Success
+    eventBus.on('SUBSCRIPTION_RENEWED_SUCCESS', async (payload) => {
+        try {
+            await communicationService.sendSubscriptionRenewed(payload);
+        } catch (error) {
+            console.error('[Event Error] Failed to process SUBSCRIPTION_RENEWED_SUCCESS:', error);
+        }
+    });
 }
 
 module.exports = { init };

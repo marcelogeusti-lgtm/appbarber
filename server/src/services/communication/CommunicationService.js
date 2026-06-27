@@ -557,6 +557,78 @@ class CommunicationService {
             });
         }
     }
+
+    // --- SUBSCRIPTIONS (BARBERSHOP CLUBS) ---
+
+    async sendSubscriptionRenewalWarning({ client, barbershop, plan, subscription }) {
+        if (!client.phone) return;
+        const phone = this.formatPhone(client.phone);
+        const amount = Number(plan.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        
+        const message = `Olá, *${client.name}*! 👋\n\nEste é um lembrete de que sua assinatura do *${plan.name}* na *${barbershop.name}* está programada para renovação em 3 dias.\n\nO valor de *${amount}* será debitado no seu cartão cadastrado automaticamente.\n\nVocê já tem os seus cortes garantidos, não se esqueça de agendar o próximo! ✂️`;
+
+        // We use the barbershop's instance
+        const instance = barbershop.whatsappInstanceName;
+        
+        await whatsappService.sendText(phone, message, instance);
+        
+        await prisma.communicationLog.create({
+            data: {
+                barbershopId: barbershop.id,
+                clientId: client.id,
+                channel: 'WHATSAPP',
+                direction: 'OUTBOUND',
+                type: 'SUBSCRIPTION_RENEWAL',
+                content: message,
+                status: 'SENT'
+            }
+        });
+    }
+
+    async sendSubscriptionPaymentFailed({ client, barbershop, plan, subscription, reason }) {
+        if (!client.phone) return;
+        const phone = this.formatPhone(client.phone);
+        
+        const clientAppUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard/cliente`;
+        const message = `⚠️ *Aviso Importante, ${client.name}*\n\nTivemos um problema ao processar o pagamento da sua assinatura do *${plan.name}* na *${barbershop.name}*.\nMotivo: ${reason || 'Cartão recusado / Falta de saldo'}.\n\nPara não perder seus benefícios e evitar o cancelamento, por favor acesse o seu painel e atualize sua forma de pagamento:\n🔗 ${clientAppUrl}`;
+
+        const instance = barbershop.whatsappInstanceName;
+        await whatsappService.sendText(phone, message, instance);
+        
+        await prisma.communicationLog.create({
+            data: {
+                barbershopId: barbershop.id,
+                clientId: client.id,
+                channel: 'WHATSAPP',
+                direction: 'OUTBOUND',
+                type: 'SUBSCRIPTION_FAILED',
+                content: message,
+                status: 'SENT'
+            }
+        });
+    }
+
+    async sendSubscriptionRenewed({ client, barbershop, plan, subscription }) {
+        if (!client.phone) return;
+        const phone = this.formatPhone(client.phone);
+        
+        const message = `🎉 *Renovação Confirmada, ${client.name}!*\n\nSua assinatura do *${plan.name}* na *${barbershop.name}* foi renovada com sucesso! Seus cortes já estão disponíveis para uso.\n\nAgende seu próximo horário conosco e continue no estilo! 💈`;
+
+        const instance = barbershop.whatsappInstanceName;
+        await whatsappService.sendText(phone, message, instance);
+        
+        await prisma.communicationLog.create({
+            data: {
+                barbershopId: barbershop.id,
+                clientId: client.id,
+                channel: 'WHATSAPP',
+                direction: 'OUTBOUND',
+                type: 'SUBSCRIPTION_RENEWED',
+                content: message,
+                status: 'SENT'
+            }
+        });
+    }
 }
 
 
