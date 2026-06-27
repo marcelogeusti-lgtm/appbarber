@@ -138,7 +138,6 @@ function SettingsContent() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
-        { name: 'Banners Promocionais', icon: ImageIcon },
         { name: 'Alertas', icon: Bell },
         { name: 'Assinatura', icon: CreditCard },
     ];
@@ -189,7 +188,6 @@ function SettingsContent() {
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} />}
-                {activeTab === 'Banners Promocionais' && <BannersTab barbershop={barbershop} />}
                 {activeTab === 'Alertas' && <AlertsTab />}
                 {activeTab === 'Assinatura' && <SubscriptionTab barbershop={barbershop} refetchShop={refetchShop} />}
             </div>
