@@ -68,9 +68,9 @@ export default function SuperAdminPage() {
                     <button className="bg-primary text-primary-foreground px-10 py-5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" /> Relatório de Tráfego
                     </button>
-                    <button className="bg-card border border-border text-muted-foreground px-8 py-5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
-                        Logs de Sistema
-                    </button>
+                    <a href="/dashboard/super-admin/settings" className="bg-card border border-border text-muted-foreground px-8 py-5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-primary/30 hover:text-primary transition-all shadow-sm flex items-center gap-2">
+                        <Settings className="w-4 h-4" /> Configurações Globais
+                    </a>
                 </div>
             </header>
 

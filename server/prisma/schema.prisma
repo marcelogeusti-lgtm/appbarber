@@ -1350,3 +1350,9 @@ model FinancialEvent {
 }
 
 
+
+model PlatformSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}

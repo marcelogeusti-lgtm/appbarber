@@ -11,6 +11,38 @@ class WhatsAppService {
         this.apiKey = process.env.WHATSAPP_API_TOKEN; // Global API Key
         this.globalWebhookUrl = `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/webhooks/evolution`;
         this.isMocked = !this.apiBaseUrl || !this.apiKey;
+        this.configLoaded = false;
+        
+        // Initial load
+        this.refreshConfig();
+    }
+
+    async refreshConfig() {
+        try {
+            const settings = await prisma.platformSetting.findMany();
+            let dbUrl, dbToken;
+            
+            for (const s of settings) {
+                if (s.key === 'WHATSAPP_API_URL') dbUrl = s.value;
+                if (s.key === 'WHATSAPP_API_TOKEN') dbToken = s.value;
+            }
+
+            // DB takes precedence over process.env
+            if (dbUrl) this.apiBaseUrl = dbUrl;
+            if (dbToken) this.apiKey = dbToken;
+
+            this.isMocked = !this.apiBaseUrl || !this.apiKey;
+            this.configLoaded = true;
+            console.log('[WhatsAppService] Config refreshed from DB. Mocked:', this.isMocked);
+        } catch (error) {
+            console.error('[WhatsAppService] Failed to load config from DB:', error.message);
+        }
+    }
+
+    async ensureConfig() {
+        if (!this.configLoaded) {
+            await this.refreshConfig();
+        }
     }
 
     getHeaders() {
@@ -24,6 +56,7 @@ class WhatsAppService {
      * Helper to get instance status from Evolution API
      */
     async fetchConnectionState(instanceName) {
+        await this.ensureConfig();
         if (this.isMocked) return null; // Let the route rely on DB state or mock state
         try {
             const response = await axios.get(`${this.apiBaseUrl}/instance/connectionState/${instanceName}`, {
@@ -43,6 +76,7 @@ class WhatsAppService {
      * Create an instance and set the webhook
      */
     async createInstance(instanceName) {
+        await this.ensureConfig();
         if (this.isMocked) {
             console.log(`[WhatsAppService] MOCK: Created instance ${instanceName}`);
             return { instanceName };
@@ -88,6 +122,7 @@ class WhatsAppService {
      * Get QR Code for an instance (creates it if it doesn't exist)
      */
     async getQRCode(instanceName) {
+        await this.ensureConfig();
         if (this.isMocked) {
             // Return a simple 1x1 base64 transparent image or a generic placeholder QR
             return { base64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=' };
@@ -108,6 +143,7 @@ class WhatsAppService {
      * Logout and delete the instance
      */
     async logoutInstance(instanceName) {
+        await this.ensureConfig();
         if (this.isMocked) {
             console.log(`[WhatsAppService] MOCK: Logged out instance ${instanceName}`);
             return true;
@@ -130,11 +166,12 @@ class WhatsAppService {
      * Sends a text message using the specific Barbershop Instance
      */
     async sendText(to, text, instanceName) {
+        await this.ensureConfig();
         const cleanNumber = this.formatPhone(to);
 
-        if (!this.apiBaseUrl || !this.apiKey) {
+        if (this.isMocked) {
             console.warn(`[WhatsAppService] Evolution API not configured. Mocking send to ${cleanNumber}`);
-            return { success: false, error: 'Not configured' };
+            return { success: true, method: 'mock' };
         }
 
         // Use 'default' if instanceName is missing (fallback to old centralized behavior if needed)

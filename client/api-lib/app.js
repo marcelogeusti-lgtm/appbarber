@@ -102,6 +102,7 @@ if (!process.env.VERCEL) {
 
 // Master / Educational Platform
 app.use('/api', require('./routes/master.routes'));
+app.use('/api/master/settings', require('./routes/masterSettings.routes'));
 app.use('/api', require('./routes/integration.routes'));
 
 // Error Handling Middleware
