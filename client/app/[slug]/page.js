@@ -63,7 +63,7 @@ export default function BarbershopPage() {
 
     useEffect(() => {
         if (barbershop?.id) {
-            const userStr = localStorage.getItem('user');
+            const userStr = localStorage.getItem('user') || localStorage.getItem('clientUser');
             if (userStr) {
                 api.get(`/payments/cards?barbershopId=${barbershop.id}`)
                     .then(res => {
