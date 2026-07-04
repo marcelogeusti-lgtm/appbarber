@@ -19,6 +19,7 @@ scripts/
 *.bak
 *.json
 !package.json
+!api-lib/data/ai_knowledge.json
 !components.json
 !tsconfig.json
 !jsconfig.json
