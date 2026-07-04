@@ -729,6 +729,8 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                             </label>
                             <input
                                 type="text"
+                                name="evolution-api-url"
+                                autoComplete="off"
                                 placeholder="ex: https://api.seudominio.com.br"
                                 value={masterSettings.WHATSAPP_API_URL || ''}
                                 onChange={(e) => setMasterSettings({ ...masterSettings, WHATSAPP_API_URL: e.target.value })}
@@ -745,6 +747,8 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                             </label>
                             <input
                                 type="password"
+                                name="evolution-api-token"
+                                autoComplete="new-password"
                                 placeholder="••••••••••••••••"
                                 value={masterSettings.WHATSAPP_API_TOKEN || ''}
                                 onChange={(e) => setMasterSettings({ ...masterSettings, WHATSAPP_API_TOKEN: e.target.value })}
