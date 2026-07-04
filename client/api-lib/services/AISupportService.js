@@ -1,7 +1,7 @@
 const axios = require('axios');
 const prisma = require('../lib/prisma');
-// require() em vez de fs.readFileSync: garante que o JSON entre no bundle da Vercel
-const knowledgeBase = require('../data/ai_knowledge.json');
+// módulo .js (não .json): o .vercelignore do projeto descarta *.json do deploy
+const knowledgeBase = require('../data/ai_knowledge');
 
 const PROVIDERS = {
     gemini: {

@@ -1,4 +1,5 @@
-{
+// Base de conhecimento do chat de suporte (módulo .js: o .vercelignore descarta *.json)
+module.exports = {
   "system_info": {
     "name": "AppBarber Cloud",
     "role": "Sistema de Gestão para Barbearias e Salões",
@@ -109,4 +110,4 @@
     "unknown": "Desculpe, ainda não aprendi sobre esse assunto específico. Gostaria que eu te conectasse com um consultor humano para te ajudar agora?",
     "error": "Tive um pequeno problema ao processar sua dúvida. Pode tentar perguntar de outra forma ou falar com nosso suporte?"
   }
-}
+};
