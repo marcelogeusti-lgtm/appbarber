@@ -21,10 +21,9 @@ class FeatureFlagService {
             }
 
             // 2. Fallback to global flag (where barbershopId is null)
-            const globalFlag = await prisma.featureFlag.findUnique({
-                where: {
-                    key_barbershopId: { key, barbershopId: null }
-                }
+            // findFirst: compound unique input rejects null barbershopId
+            const globalFlag = await prisma.featureFlag.findFirst({
+                where: { key, barbershopId: null }
             });
 
             return globalFlag ? globalFlag.enabled : false;
@@ -38,12 +37,20 @@ class FeatureFlagService {
      * Set a feature flag value
      */
     static async setFlag(key, enabled, barbershopId = null, description = null) {
-        return prisma.featureFlag.upsert({
-            where: {
-                key_barbershopId: { key, barbershopId }
-            },
-            update: { enabled, description },
-            create: { key, enabled, barbershopId, description }
+        // upsert via compound unique rejects null barbershopId (global flags)
+        const existing = await prisma.featureFlag.findFirst({
+            where: { key, barbershopId }
+        });
+
+        if (existing) {
+            return prisma.featureFlag.update({
+                where: { id: existing.id },
+                data: { enabled, description }
+            });
+        }
+
+        return prisma.featureFlag.create({
+            data: { key, enabled, barbershopId, description }
         });
     }
 

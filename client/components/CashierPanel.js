@@ -27,7 +27,7 @@ export default function CashierPanel({ isOpen, onClose, user, onOpenNewOrder, on
         try {
             const today = new Date().toISOString().split('T')[0];
             const [statsRes, transRes] = await Promise.all([
-                api.get(`/dashboard/finance/dashboard?barbershopId=${shopId}&startDate=${today}&endDate=${today}`),
+                api.get(`/finance/dashboard?barbershopId=${shopId}&startDate=${today}&endDate=${today}`),
                 api.get(`/transactions?barbershopId=${shopId}&startDate=${today}&endDate=${today}`)
             ]);
             setStats(statsRes.data);

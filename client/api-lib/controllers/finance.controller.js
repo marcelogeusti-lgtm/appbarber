@@ -238,7 +238,7 @@ exports.getFinancialStats = async (req, res) => {
                             product: true
                         }
                     },
-                    professional: { select: { id: true, name: true, commissionPercent: true } },
+                    professional: { select: { id: true, name: true } },
                     client: true
                 }
             }),

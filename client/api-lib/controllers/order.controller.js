@@ -129,7 +129,6 @@ exports.getOrder = async (req, res) => {
                 },
                 client: true,
                 professional: true,
-                nfe: true,
                 payments: {
                     orderBy: { createdAt: 'desc' }
                 }

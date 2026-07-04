@@ -293,12 +293,6 @@ exports.getClientDetails = async (req, res) => {
             where: { clientId: id, barbershopId }
         });
 
-        // NFE History
-        const nfes = await prisma.nfe.findMany({
-            where: { clientId: id, barbershopId },
-            orderBy: { createdAt: 'desc' }
-        });
-
         res.json({
             client: {
                 ...client,
@@ -307,7 +301,6 @@ exports.getClientDetails = async (req, res) => {
             appointments,
             orders,
             subscriptions: subscriptions.map(s => ({ ...s, subscriptionPlan: s.plan })), // Compatibility with frontend
-            nfes,
             stats: {
                 totalSpent,
                 totalVisits: appointments.filter(a => a.status === 'COMPLETED').length,

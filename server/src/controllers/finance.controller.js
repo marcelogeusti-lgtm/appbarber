@@ -231,7 +231,7 @@ exports.getFinancialStats = async (req, res) => {
                         lte: endOfDay(end)
                     }
                 },
-                select: { total: true, professionalId: true, professional: { select: { id: true, name: true, commissionPercent: true } }, items: { select: { type: true, total: true } } }
+                select: { total: true, professionalId: true, professional: { select: { id: true, name: true } }, items: { select: { type: true, total: true } } }
             }),
             prisma.transaction.findMany({
                 where: {
