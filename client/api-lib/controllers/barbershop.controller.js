@@ -744,3 +744,59 @@ exports.getMyFavorites = async (req, res) => {
         res.status(500).json({ message: 'Erro ao buscar favoritos.' });
     }
 };
+
+// Owner: Cancel own SaaS subscription (blocks dashboard access)
+exports.cancelMySaasSubscription = async (req, res) => {
+    try {
+        let barbershopId = req.user.barbershopId;
+
+        // Fallback to lookup owned barbershop
+        if (!barbershopId) {
+            const user = await prisma.user.findUnique({
+                where: { id: req.user.id },
+                select: {
+                    id: true,
+                    ownedBarbershops: { select: { id: true } }
+                }
+            });
+            barbershopId = user?.ownedBarbershops?.[0]?.id;
+        }
+
+        if (!barbershopId) {
+            return res.status(404).json({ message: 'Nenhuma barbearia associada a este usuário.' });
+        }
+
+        const barbershop = await prisma.barbershop.findUnique({
+            where: { id: barbershopId }
+        });
+
+        if (!barbershop) {
+            return res.status(404).json({ message: 'Barbearia não encontrada.' });
+        }
+
+        if (barbershop.ownerId !== req.user.id && req.user.role !== 'SUPER_ADMIN') {
+            return res.status(403).json({ message: 'Acesso negado. Apenas o proprietário pode cancelar a assinatura.' });
+        }
+
+        const updatedBarbershop = await prisma.barbershop.update({
+            where: { id: barbershopId },
+            data: {
+                subscriptionStatus: 'CANCELLED'
+            }
+        });
+
+        console.log(`[BARBERSHOP] SaaS Subscription cancelled for shop ID: ${barbershopId} (Owner ID: ${req.user.id})`);
+
+        res.json({
+            message: 'Assinatura cancelada com sucesso.',
+            barbershop: {
+                id: updatedBarbershop.id,
+                name: updatedBarbershop.name,
+                subscriptionStatus: updatedBarbershop.subscriptionStatus
+            }
+        });
+    } catch (error) {
+        console.error('Cancel SaaS Subscription Error:', error);
+        res.status(500).json({ message: 'Erro ao cancelar a assinatura do SaaS.', error: error.message });
+    }
+};

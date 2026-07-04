@@ -26,7 +26,8 @@ export default function SettingsPage() {
 function SettingsContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const initialTab = searchParams.get('tab') || 'Geral';
+    const validTabs = ['Geral', 'Identidade Visual', 'Regras e Políticas', 'Comunicação', 'Assinatura', 'Minhas Unidades'];
+    const initialTab = validTabs.includes(searchParams.get('tab')) ? searchParams.get('tab') : 'Geral';
 
     const { data: barbershopData, refetch: refetchShop } = useQuery({
         queryKey: ['barbershop-me'],
@@ -139,7 +140,6 @@ function SettingsContent() {
         { name: 'Identidade Visual', icon: Palette },
         { name: 'Regras e Políticas', icon: Shield },
         { name: 'Comunicação', icon: MessageSquare },
-        { name: 'Alertas', icon: Bell },
         { name: 'Assinatura', icon: CreditCard },
         { name: 'Minhas Unidades', icon: Building2 },
     ];
@@ -190,7 +190,6 @@ function SettingsContent() {
                 {activeTab === 'Identidade Visual' && <VisualTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Regras e Políticas' && <RulesTab barbershop={barbershop} setBarbershop={setBarbershop} />}
                 {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} isMaster={isMaster} />}
-                {activeTab === 'Alertas' && <AlertsTab />}
                 {activeTab === 'Assinatura' && <SubscriptionTab barbershop={barbershop} refetchShop={refetchShop} />}
                 {activeTab === 'Minhas Unidades' && <UnitsTab />}
             </div>
@@ -282,11 +281,26 @@ function VisualTab({ barbershop, setBarbershop }) {
     const [uploadingLogo, setUploadingLogo] = useState(false);
     const [uploadingBannerIdx, setUploadingBannerIdx] = useState(null);
 
-    const compressImage = async (file) => {
+    // Redimensiona e comprime no navegador antes de salvar — as imagens vão
+    // em base64 no corpo da requisição, e a Vercel rejeita corpos > 4,5MB
+    const compressImage = (file, maxDim = 1600, quality = 0.8) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new window.Image();
+                img.onload = () => {
+                    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(img.width * scale);
+                    canvas.height = Math.round(img.height * scale);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const isPng = file.type === 'image/png';
+                    resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality));
+                };
+                img.onerror = () => resolve(event.target.result);
+                img.src = event.target.result;
+            };
             reader.readAsDataURL(file);
-            reader.onload = (event) => resolve(event.target.result);
         });
     };
 
@@ -327,7 +341,7 @@ function VisualTab({ barbershop, setBarbershop }) {
                             const file = e.target.files[0];
                             if (file) {
                                 setUploadingLogo(true);
-                                const dataUri = await compressImage(file);
+                                const dataUri = await compressImage(file, 512, 0.85);
                                 setBarbershop({ ...barbershop, logoUrl: dataUri });
                                 setUploadingLogo(false);
                             }
@@ -456,6 +470,12 @@ function RulesTab({ barbershop, setBarbershop }) {
                         <input type="number" value={barbershop.noShowPercent || 0} onChange={e => setBarbershop({ ...barbershop, noShowPercent: parseInt(e.target.value) })} className="w-full h-10 px-4 bg-card border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition font-bold" />
                     </div>
                 )}
+                {barbershop.noShowEnabled && (
+                    <div className="bg-muted p-6 rounded-xl border border-border space-y-3 animate-in fade-in slide-in-from-left-4 md:col-span-2">
+                        <label className="text-xs font-semibold text-muted-foreground">Mensagem exibida ao cliente sobre a política de faltas</label>
+                        <textarea value={barbershop.noShowText || ''} onChange={e => setBarbershop({ ...barbershop, noShowText: e.target.value })} placeholder="Ex: Em caso de falta sem aviso com 2h de antecedência, será cobrada uma taxa sobre o valor do serviço." className="w-full h-24 p-4 bg-card border border-border rounded-lg focus:ring-1 focus:ring-primary outline-none transition text-sm resize-none" />
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -552,7 +572,27 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
         }
     };
 
-    const templateTypes = { 'CONFIRMATION_REQUEST': 'Solicitação de Confirmação', 'REMINDER': 'Lembrete de Agendamento', 'CANCELLATION': 'Aviso de Cancelamento' };
+    const templateTypes = { 'CONFIRMATION_REQUEST': 'Solicitação de Confirmação', 'REMINDER': 'Lembrete de Agendamento', 'CANCELLATION': 'Aviso de Cancelamento', 'COMPLETED_THANKS': 'Agradecimento Pós-Atendimento' };
+
+    const [savingTemplate, setSavingTemplate] = useState(false);
+
+    const handleSaveTemplate = async (tmpl) => {
+        setSavingTemplate(true);
+        try {
+            await api.post('/notifications/templates', {
+                type: tmpl.type,
+                content: editContent,
+                active: tmpl.active
+            });
+            setEditingTemplateId(null);
+            await fetchTemplates();
+        } catch (err) {
+            console.error('Erro ao salvar template:', err);
+            alert('Erro ao salvar o template. Tente novamente.');
+        } finally {
+            setSavingTemplate(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -607,21 +647,23 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                                 Abra o WhatsApp no seu celular, vá em **Aparelhos Conectados** e escaneie o código acima para ativar o Smart Bot.
                             </p>
                             
-                            {/* Dev Mock Button */}
-                            <button 
-                                onClick={async () => {
-                                    try {
-                                        await api.post(`/whatsapp/simulate-scan/${barbershop.id}`);
-                                        setWaStatus({ status: 'CONNECTED' });
-                                        setQrCode(null);
-                                    } catch (e) {
-                                        alert('Falha ao simular scan');
-                                    }
-                                }}
-                                className="mt-4 px-4 py-2 bg-zinc-100 border border-zinc-300 text-zinc-600 rounded-lg text-[10px] font-bold uppercase hover:bg-zinc-200 transition-colors"
-                            >
-                                Simular Leitura do QR Code (Dev)
-                            </button>
+                            {/* Dev Mock Button — visível apenas para o Master */}
+                            {isMaster && (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await api.post(`/whatsapp/simulate-scan/${barbershop.id}`);
+                                            setWaStatus({ status: 'CONNECTED' });
+                                            setQrCode(null);
+                                        } catch (e) {
+                                            alert('Falha ao simular scan');
+                                        }
+                                    }}
+                                    className="mt-4 px-4 py-2 bg-zinc-100 border border-zinc-300 text-zinc-600 rounded-lg text-[10px] font-bold uppercase hover:bg-zinc-200 transition-colors"
+                                >
+                                    Simular Leitura do QR Code (Dev)
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -642,9 +684,14 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                             {isEditing ? (
                                 <div className="space-y-4 animate-in fade-in duration-300">
                                     <textarea value={editContent} onChange={e => setEditContent(e.target.value)} className="w-full h-28 bg-muted border border-border rounded-lg p-4 text-sm text-foreground focus:ring-1 focus:ring-primary outline-none" />
+                                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                        Variáveis disponíveis: <code className="text-primary">{'{{clientName}}'}</code> <code className="text-primary">{'{{barbershopName}}'}</code> <code className="text-primary">{'{{date}}'}</code> <code className="text-primary">{'{{time}}'}</code> <code className="text-primary">{'{{serviceName}}'}</code> <code className="text-primary">{'{{professionalName}}'}</code> <code className="text-primary">{'{{link}}'}</code>
+                                    </p>
                                     <div className="flex justify-end gap-3 text-[10px] font-bold uppercase">
                                         <button onClick={() => setEditingTemplateId(null)} className="text-muted-foreground hover:text-foreground">Cancelar</button>
-                                        <button onClick={() => setEditingTemplateId(null)} className="bg-primary text-white px-4 py-2 rounded-lg">Confirmar Alteração</button>
+                                        <button onClick={() => handleSaveTemplate(tmpl)} disabled={savingTemplate} className="bg-primary text-white px-4 py-2 rounded-lg disabled:opacity-50 flex items-center gap-2">
+                                            {savingTemplate && <Loader2 className="w-3 h-3 animate-spin" />} Confirmar Alteração
+                                        </button>
                                     </div>
                                 </div>
                             ) : (
@@ -719,25 +766,6 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
             )}
 
             {showLogs && <MessageLogsModal barbershopId={barbershop.id} onClose={() => setShowLogs(false)} />}
-        </div>
-    );
-}
-
-function AlertsTab() {
-    return (
-        <div className="bg-card p-16 rounded-xl border border-border shadow-soft text-center space-y-5">
-            <div className="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto border border-primary/10">
-                <BellRing className="w-10 h-10 text-primary animate-pulse" />
-            </div>
-            <div className="max-w-xs mx-auto space-y-2">
-                <h3 className="text-lg font-bold text-foreground">Motor de Alertas Ativo</h3>
-                <p className="text-muted-foreground text-xs font-medium leading-relaxed">
-                    Seu sistema está monitorando agendamentos e enviando notificações em tempo real.
-                </p>
-            </div>
-            <div className="pt-4">
-                <span className="text-[9px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full border border-primary/20">Protocolo de Alta Fidelidade</span>
-            </div>
         </div>
     );
 }

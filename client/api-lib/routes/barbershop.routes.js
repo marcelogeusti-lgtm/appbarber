@@ -1,5 +1,5 @@
 const express = require('express');
-const { getBarbershopBySlug, updateBarbershop, listBarbershops, searchBarbershops, getRecommendedBarbershops, updateSaasPlan, getMyBarbershop, getMyBarbershops, createAdditionalBarbershop, toggleFavorite, checkFavoriteStatus, getMyFavorites } = require('../controllers/barbershop.controller');
+const { getBarbershopBySlug, updateBarbershop, listBarbershops, searchBarbershops, getRecommendedBarbershops, updateSaasPlan, getMyBarbershop, getMyBarbershops, createAdditionalBarbershop, toggleFavorite, checkFavoriteStatus, getMyFavorites, cancelMySaasSubscription } = require('../controllers/barbershop.controller');
 const { protect, authorize } = require('../middlewares/auth.middleware');
 const { checkSubscription } = require('../middlewares/subscription.middleware');
 
@@ -11,6 +11,7 @@ router.get('/recommended', getRecommendedBarbershops);
 router.get('/me', protect, getMyBarbershop);
 router.get('/mine', protect, getMyBarbershops);
 router.post('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), createAdditionalBarbershop);
+router.post('/cancel-saas', protect, authorize('ADMIN'), cancelMySaasSubscription);
 router.get('/:slug', getBarbershopBySlug);
 router.put('/:id/plan', protect, authorize('SUPER_ADMIN'), updateSaasPlan);
 router.get('/:id/favorite-status', protect, checkFavoriteStatus);
