@@ -137,7 +137,7 @@ export default function UpdateRolloutManager() {
                                 <input
                                     value={newFlagAllowedPlans}
                                     onChange={e => setNewFlagAllowedPlans(e.target.value)}
-                                    placeholder="SOLO, BASIC, PRO, ENTERPRISE"
+                                    placeholder="SOLO, PRO, ENTERPRISE"
                                     className="w-full p-4 bg-background border border-border rounded-xl font-bold text-foreground outline-none focus:ring-2 ring-primary uppercase"
                                 />
                             </div>

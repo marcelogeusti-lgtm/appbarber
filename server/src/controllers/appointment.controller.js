@@ -737,6 +737,44 @@ exports.getAppointmentById = async (req, res) => {
     }
 };
 
+// Staff-only: edit an appointment's date/service/professional/notes (not just status)
+exports.updateAppointment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { date, status, serviceId, professionalId, notes } = req.body;
+
+        const curApp = await prisma.appointment.findUnique({ where: { id } });
+        if (!curApp) return res.status(404).json({ message: 'Agendamento não encontrado' });
+
+        if (curApp.status === 'COMPLETED' || curApp.paymentStatus === 'PAID') {
+            return res.status(403).json({
+                message: 'Este agendamento já foi concluído ou pago e está bloqueado para alterações. Contate o administrador para estornos.'
+            });
+        }
+
+        const appointment = await prisma.appointment.update({
+            where: { id },
+            data: {
+                date: date ? new Date(date) : undefined,
+                status: status || undefined,
+                serviceId: serviceId || undefined,
+                professionalId: professionalId || undefined,
+                notes: notes !== undefined ? notes : undefined
+            },
+            include: {
+                client: true,
+                service: true,
+                professional: true
+            }
+        });
+
+        res.json(appointment);
+    } catch (error) {
+        console.error('Error updating appointment:', error);
+        res.status(500).json({ message: 'Erro interno ao atualizar agendamento' });
+    }
+};
+
 exports.updateAppointmentStatus = async (req, res) => {
     try {
         const { id } = req.params;

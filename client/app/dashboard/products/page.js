@@ -48,7 +48,7 @@ export default function ProductsPage() {
             await api.post('/products', { ...newProduct, barbershopId });
             setNewProduct({ name: '', price: '', costPrice: '', stock: '' });
             setIsAdding(false);
-            queryClient.invalidateQueries(['products', barbershopId]);
+            queryClient.invalidateQueries({ queryKey: ['products', barbershopId] });
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao criar produto');
         }
@@ -61,7 +61,7 @@ export default function ProductsPage() {
             await api.put(`/products/${isEditing}`, newProduct);
             setIsEditing(null);
             setNewProduct({ name: '', price: '', costPrice: '', stock: '' });
-            queryClient.invalidateQueries(['products', barbershopId]);
+            queryClient.invalidateQueries({ queryKey: ['products', barbershopId] });
         } catch (err) {
             setError(err.response?.data?.message || 'Erro ao atualizar produto');
         }
@@ -82,7 +82,7 @@ export default function ProductsPage() {
         if (!confirm('Deseja excluir este produto?')) return;
         try {
             await api.delete(`/products/${id}`);
-            queryClient.invalidateQueries(['products', barbershopId]);
+            queryClient.invalidateQueries({ queryKey: ['products', barbershopId] });
         } catch (err) {
             alert('Erro ao excluir');
         }

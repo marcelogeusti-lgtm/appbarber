@@ -63,7 +63,7 @@ export default function ClientsPage() {
 
         try {
             await api.delete(`/clients/${clientId}?barbershopId=${barbershopId}`);
-            queryClient.invalidateQueries(['clients', barbershopId]);
+            queryClient.invalidateQueries({ queryKey: ['clients', barbershopId] });
         } catch (error) {
             console.error('Error deleting client:', error);
             alert('Erro ao remover cliente.');
@@ -230,7 +230,7 @@ export default function ClientsPage() {
                 isOpen={isNewClientModalOpen}
                 onClose={() => setIsNewClientModalOpen(false)}
                 onSuccess={() => {
-                    queryClient.invalidateQueries(['clients', barbershopId]);
+                    queryClient.invalidateQueries({ queryKey: ['clients', barbershopId] });
                 }}
                 barbershopId={barbershopId}
             />

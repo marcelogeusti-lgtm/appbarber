@@ -93,9 +93,9 @@ exports.checkFeature = (feature) => {
             // Bypass for Clients (usually features are for admin usage, but if a client accesses a feature, assume allowed? No, features are SaaS features)
             // Actually clients don't use SaaS features directly, they use the service.
 
-            const userPlan = req.user.saasPlan || 'BASIC'; // Default to BASIC if missing (should be set by checkSubscription)
+            const userPlan = req.user.saasPlan || 'SOLO'; // Default to SOLO if missing (should be set by checkSubscription)
 
-            const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+            const planConfig = saasPlans[userPlan] || saasPlans.SOLO;
 
             if (planConfig.features.includes('all') || planConfig.features.includes(feature)) {
                 return next();

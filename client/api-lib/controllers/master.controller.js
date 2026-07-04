@@ -173,7 +173,6 @@ exports.handleKiwiWebhook = async (req, res) => {
 const getPlanPrice = (planName) => {
     const plans = {
         'SOLO': 79.90,
-        'BASIC': 109.90,
         'PRO': 164.50,
         'ENTERPRISE': 219.90
     };

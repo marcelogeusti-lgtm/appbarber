@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import UpdateRolloutManager from './UpdateRolloutManager';
-import { Shield, BarChart3, Activity, Zap, TrendingUp, Globe, ExternalLink, Trash2, Settings } from 'lucide-react';
+import { Shield, BarChart3, Activity, Zap, TrendingUp, Globe, ExternalLink, Trash2, Settings, Clock } from 'lucide-react';
 
 // ... imports remain the same
 

@@ -80,7 +80,7 @@ export default function ServicesPage() {
             setEditingId(null);
 
             // Invalidate to refetch
-            queryClient.invalidateQueries(['services', barbershopId]);
+            queryClient.invalidateQueries({ queryKey: ['services', barbershopId] });
         } catch (err) {
             console.error('Submit Service Error:', err);
             alert('Erro ao salvar serviço: ' + (err.response?.data?.message || err.message));
@@ -131,7 +131,7 @@ export default function ServicesPage() {
         if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
         try {
             await api.delete(`/services/${id}`);
-            queryClient.invalidateQueries(['services', barbershopId]);
+            queryClient.invalidateQueries({ queryKey: ['services', barbershopId] });
         } catch (err) {
             alert('Erro ao excluir serviço');
         }

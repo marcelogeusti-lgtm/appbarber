@@ -100,8 +100,8 @@ exports.createProfessional = async (req, res) => {
         if (!barbershop) return res.status(404).json({ message: 'Barbearia não encontrada' });
 
         const isTrial = barbershop.subscriptionStatus === 'TRIAL';
-        const userPlan = barbershop.saasPlan || 'BASIC';
-        const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+        const userPlan = barbershop.saasPlan || 'SOLO';
+        const planConfig = saasPlans[userPlan] || saasPlans.SOLO;
 
         const activeBarbersCount = await prisma.user.count({
             where: {

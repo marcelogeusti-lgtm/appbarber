@@ -35,5 +35,6 @@ router.get('/pro', protect, authorize('BARBER', 'ADMIN'), getProAppointments); /
 router.get('/:id', optionalProtect, require('../controllers/appointment.controller').getAppointmentById);
 router.get('/', protect, authorize('ADMIN', 'SUPER_ADMIN'), require('../controllers/appointment.controller').getAllAppointments); // Admin View
 router.patch('/:id/status', protect, authorize('BARBER', 'ADMIN', 'CLIENT'), require('../controllers/appointment.controller').updateAppointmentStatus);
+router.patch('/:id', protect, authorize('BARBER', 'ADMIN'), require('../controllers/appointment.controller').updateAppointment);
 
 module.exports = router;
