@@ -1,6 +1,61 @@
-import { Menu, Search, Wallet, Scissors } from 'lucide-react';
+'use client';
+import { useState } from 'react';
+import { Menu, Search, Wallet, Scissors, ChevronDown, Check, Plus } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import ThemeToggle from './ThemeToggle';
+import { useBarbershops } from '../contexts/BarbershopContext';
+
+function UnitSwitcher({ currentBarbershopName }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const { ownedBarbershops, currentBarbershopId, switchBarbershop } = useBarbershops();
+
+    // Only show the switcher once there's more than one unit, or the owner
+    // is on the Empire plan (so "Adicionar Unidade" stays reachable even with 1 shop).
+    const isEmpireOwner = ownedBarbershops.some(b => b.saasPlan === 'ENTERPRISE');
+    if (ownedBarbershops.length <= 1 && !isEmpireOwner) return null;
+
+    return (
+        <div className="relative hidden sm:block">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors max-w-[160px]"
+                title="Trocar de unidade"
+            >
+                <span className="truncate">{currentBarbershopName || 'Unidade'}</span>
+                <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full right-0 mt-2 w-64 rounded-xl bg-card border border-border shadow-2xl overflow-hidden py-1.5 z-50">
+                    <p className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Suas Unidades</p>
+                    {ownedBarbershops.map((shop) => (
+                        <button
+                            key={shop.id}
+                            onClick={() => switchBarbershop(shop.id)}
+                            className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors flex items-center gap-3 ${
+                                shop.id === currentBarbershopId
+                                    ? 'text-primary bg-primary/5'
+                                    : 'text-foreground hover:bg-muted'
+                            }`}
+                        >
+                            <span className="truncate flex-1">{shop.name}</span>
+                            {shop.id === currentBarbershopId && <Check className="w-3.5 h-3.5 shrink-0" />}
+                        </button>
+                    ))}
+                    {isEmpireOwner && (
+                        <a
+                            href="/dashboard/settings?tab=Minhas%20Unidades"
+                            className="mt-1 border-t border-border w-full text-left px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors flex items-center gap-2"
+                        >
+                            <Plus className="w-3.5 h-3.5" /> Adicionar Unidade
+                        </a>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, onOpenCashier }) {
     return (
@@ -50,6 +105,8 @@ export default function TopBar({ user, barbershop, isLocked, onMobileMenuClick, 
                     <ThemeToggle />
                     <NotificationCenter user={user} />
                 </div>
+
+                <UnitSwitcher currentBarbershopName={barbershop?.commercialName || barbershop?.name} />
 
                 {isLocked && (
                     <div className="hidden sm:flex bg-destructive/10 border border-destructive/20 px-4 py-1.5 rounded-full items-center gap-2">

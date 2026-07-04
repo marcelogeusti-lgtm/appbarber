@@ -67,6 +67,38 @@ const generateClientToken = (client, authUser) => {
     );
 };
 
+// Re-issues a JWT scoped to a different barbershop owned by the same user,
+// so the ~20 controllers that read barbershopId from the token keep working unchanged.
+exports.switchBarbershop = async (req, res) => {
+    try {
+        const { barbershopId } = req.body;
+        if (!barbershopId) {
+            return res.status(400).json({ message: 'barbershopId é obrigatório' });
+        }
+
+        const barbershop = await prisma.barbershop.findUnique({
+            where: { id: barbershopId },
+            select: { id: true, name: true, slug: true, logoUrl: true, ownerId: true, saasPlan: true, subscriptionStatus: true }
+        });
+
+        if (!barbershop || (barbershop.ownerId !== req.user.id && req.user.role !== 'SUPER_ADMIN')) {
+            return res.status(403).json({ message: 'Você não tem acesso a esta unidade.' });
+        }
+
+        const authUserId = await resolveAuthUserId(req);
+        const token = generateToken(
+            { id: req.user.id, role: req.user.role, workedBarbershopId: barbershop.id },
+            { id: authUserId }
+        );
+        await createSession(req, authUserId, token);
+
+        res.json({ token, barbershop });
+    } catch (error) {
+        console.error('[AUTH] switchBarbershop Error:', error.message);
+        res.status(500).json({ message: 'Erro ao trocar de unidade', error: error.message });
+    }
+};
+
 exports.register = async (req, res) => {
     try {
         const { name, email, password, role, barbershopName, phone } = req.body;
@@ -391,7 +423,7 @@ exports.login = async (req, res) => {
                     ...barbershop,
                     logo_url: barbershop.logo_url || barbershop.logoUrl,
                     subscriptionStatus: barbershop.subscriptionStatus || 'TRIAL',
-                    saasPlan: barbershop.saasPlan || 'BASIC'
+                    saasPlan: barbershop.saasPlan || 'SOLO'
                 };
             } else {
                  responseData.barbershop = null;
@@ -665,7 +697,7 @@ exports.socialLogin = async (req, res) => {
                 ...barbershop,
                 logo_url: barbershop.logo_url || barbershop.logoUrl,
                 subscriptionStatus: barbershop.subscriptionStatus || 'TRIAL',
-                saasPlan: barbershop.saasPlan || 'BASIC'
+                saasPlan: barbershop.saasPlan || 'SOLO'
             } : null;
 
             return res.json(responseData);

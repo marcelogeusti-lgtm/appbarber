@@ -10,6 +10,7 @@ import NewTransactionModal from '../../components/NewTransactionModal';
 import SupportChat from '../../components/SupportChat';
 
 import { SocketProvider } from '../../contexts/SocketContext';
+import { BarbershopProvider } from '../../contexts/BarbershopContext';
 import { safeGetItem, safeRemoveItem, safeClear } from '../../lib/storage';
 
 import { useQuery } from '@tanstack/react-query';
@@ -149,6 +150,7 @@ export default function DashboardLayout({ children }) {
     const isOverdue = currentBarbershop?.subscriptionStatus === 'OVERDUE';
 
     return (
+        <BarbershopProvider>
         <SocketProvider>
             <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20">
                 <Sidebar
@@ -285,5 +287,6 @@ export default function DashboardLayout({ children }) {
                 <SupportChat />
             </div>
         </SocketProvider>
+        </BarbershopProvider>
     );
 }

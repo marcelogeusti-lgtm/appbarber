@@ -4,6 +4,7 @@ import Navbar from '../components/landing/Navbar';
 import Hero from '../components/landing/Hero';
 import Marquee from '../components/landing/Marquee';
 import VCLSection from '../components/landing/VCLSection';
+import Features from '../components/landing/Features';
 import ComparisonMatrix from '../components/landing/ComparisonMatrix';
 import PerspectiveCTA from '../components/landing/PerspectiveCTA';
 import Testimonials from '../components/landing/Testimonials';
@@ -30,6 +31,7 @@ export default function Home() {
                 <HowItWorks />
                 <Testimonials />
                 <ComparisonMatrix />
+                <Features />
                 <Pricing />
                 <FAQ />
                 <PerspectiveCTA />

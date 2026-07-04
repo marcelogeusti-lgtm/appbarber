@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Menu, X, ArrowRight, Globe, ChevronDown } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 import { useTranslation } from '../../contexts/LanguageContext';
+import { trackEvent } from '../../lib/analytics';
 
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -118,7 +119,7 @@ export default function Navbar() {
                     </Link>
 
                     {/* Teste Grátis CTA */}
-                    <Link href="/register">
+                    <Link href="/register" onClick={() => trackEvent('cta_click', { location: 'navbar', label: 'freeTrial' })}>
                         <button className="group inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[13px] font-bold text-white shadow-[0_0_20px_-8px_rgba(77,114,228,0.8)] transition-all duration-200 hover:scale-105 hover:shadow-[0_0_28px_-4px_rgba(77,114,228,0.9)] font-body">
                             {t('navbar.freeTrial')}
                             <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -186,7 +187,7 @@ export default function Navbar() {
                                 {t('navbar.login')}
                             </Link>
                         </div>
-                        <Link href="/register" onClick={() => setIsOpen(false)}>
+                        <Link href="/register" onClick={() => { setIsOpen(false); trackEvent('cta_click', { location: 'navbar_mobile', label: 'freeTrial' }); }}>
                             <button className="mt-2 w-full inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-primary px-4 text-[14px] font-bold text-white transition-all hover:bg-primary/90 font-body">
                                 {t('navbar.freeTrial')}
                                 <ArrowRight className="w-4 h-4" />

@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import Providers from './providers';
 import { Toaster } from 'sonner';
 import FcmManager from '../components/FcmManager';
+import Analytics from '../components/Analytics';
 import LoginModal from '../components/client-view/LoginModal';
 import RegisterModal from '../components/client-view/RegisterModal';
 import ForgotPasswordModal from '../components/client-view/ForgotPasswordModal';
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="en" className={inter.variable}>
             <body className="min-h-screen bg-background font-body antialiased">
+                <Analytics />
                 <main className="relative flex min-h-screen flex-col">
                     <LanguageProvider>
                         <Providers>

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { ChevronDown, MessageCircle } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
+import { trackEvent } from '../../lib/analytics';
 
 export default function FAQ() {
     const { t } = useTranslation();
@@ -41,9 +42,10 @@ export default function FAQ() {
 
                             {/* Support CTA */}
                             <a
-                                href="https://wa.me/5511999999999"
+                                href="https://wa.me/5521991164174"
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => trackEvent('whatsapp_click', { location: 'faq' })}
                                 className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 text-[13px] font-medium text-white/60 transition-all duration-200 hover:border-white/20 hover:text-white hover:bg-white/[0.06] font-body"
                             >
                                 <MessageCircle className="w-4 h-4 text-primary" />

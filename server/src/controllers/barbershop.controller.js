@@ -418,6 +418,73 @@ exports.getMyBarbershop = async (req, res) => {
     }
 };
 
+// Private: List all barbershops owned by the logged-in user (for the unit switcher)
+exports.getMyBarbershops = async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: {
+                ownedBarbershops: {
+                    select: {
+                        id: true, name: true, slug: true, logoUrl: true,
+                        subscriptionStatus: true, saasPlan: true
+                    },
+                    orderBy: { createdAt: 'asc' }
+                }
+            }
+        });
+
+        res.json(user?.ownedBarbershops || []);
+    } catch (error) {
+        console.error('[BARBERSHOP] getMyBarbershops Error:', error.message);
+        res.status(500).json({ message: 'Erro ao carregar suas unidades', error: error.message });
+    }
+};
+
+// Private: Create an additional unit under the same owner (Empire/ENTERPRISE plan only)
+exports.createAdditionalBarbershop = async (req, res) => {
+    try {
+        const { name, address, phone } = req.body;
+        if (!name) {
+            return res.status(400).json({ message: 'Nome da unidade é obrigatório' });
+        }
+
+        // Find an existing owned barbershop on the ENTERPRISE (Empire) plan to gate this action
+        // and to inherit the plan/status from, so no separate billing is required per unit.
+        const primaryShop = await prisma.barbershop.findFirst({
+            where: {
+                ownerId: req.user.id,
+                saasPlan: 'ENTERPRISE',
+                subscriptionStatus: { in: ['ACTIVE', 'TRIAL'] }
+            }
+        });
+
+        if (!primaryShop && req.user.role !== 'SUPER_ADMIN') {
+            return res.status(403).json({ message: 'Criar novas unidades requer o plano Empire ativo.' });
+        }
+
+        const slug = await generateUniqueSlug(prisma, name);
+        const barbershop = await prisma.barbershop.create({
+            data: {
+                name,
+                commercialName: name,
+                address,
+                phone,
+                slug,
+                ownerId: req.user.id,
+                saasPlan: primaryShop?.saasPlan || 'ENTERPRISE',
+                subscriptionStatus: primaryShop?.subscriptionStatus || 'ACTIVE',
+                nextBillingDate: primaryShop?.nextBillingDate || null
+            }
+        });
+
+        res.status(201).json(barbershop);
+    } catch (error) {
+        console.error('[BARBERSHOP] createAdditionalBarbershop Error:', error.message);
+        res.status(500).json({ message: 'Erro ao criar unidade', error: error.message });
+    }
+};
+
 // Start of public slug
 
 exports.getBarbershopBySlug = async (req, res) => {
@@ -599,7 +666,7 @@ exports.listBarbershops = async (req, res) => {
 exports.updateSaasPlan = async (req, res) => {
     try {
         const { id } = req.params;
-        const { plan, status } = req.body; // e.g. plan='BASIC', status='ACTIVE'
+        const { plan, status } = req.body; // e.g. plan='PRO', status='ACTIVE'
 
         const barbershop = await prisma.barbershop.findUnique({ where: { id } });
         if (!barbershop) return res.status(404).json({ message: 'Barbershop not found' });

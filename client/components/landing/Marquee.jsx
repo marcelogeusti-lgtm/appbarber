@@ -20,16 +20,16 @@ export default function Marquee() {
 
     // Niches row (moves right, white dot)
     const niches = [
-        "Barbearias",
-        "Salões de Beleza",
-        "Estúdios de Tatuagem",
-        "Clínicas de Estética",
-        "Design de Sobrancelha",
-        "Esmalterias",
-        "Spas",
+        "Barbearias de Bairro",
         "Barbearias Premium",
+        "Barber Shops",
+        "Studios de Corte",
         "Redes e Franquias",
-        "Maquiadores"
+        "Barbearias com Comissão",
+        "Barbearias Boutique",
+        "Espaços Masculinos",
+        "Barbearias 24h",
+        "Barbeiros Autônomos"
     ];
 
     return (

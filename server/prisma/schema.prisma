@@ -390,7 +390,7 @@ model Barbershop {
   trialStartedAt        DateTime?              @default(now())
   trialEndsAt           DateTime?
   nextBillingDate       DateTime?
-  saasPlan              String                 @default("BASIC")
+  saasPlan              String                 @default("SOLO")
   isTestAccount         Boolean                @default(false)
   enabledPaymentMethods PaymentMethod[] @default([CASH, PIX, CREDIT_CARD, DEBIT_CARD])
 

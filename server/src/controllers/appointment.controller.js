@@ -880,8 +880,8 @@ exports.updateAppointmentStatus = async (req, res) => {
             const barbershop = await prisma.barbershop.findUnique({ where: { id: appointment.barbershopId } });
             const webhookUrl = barbershop?.webhookUrl;
 
-            const userPlan = barbershop?.saasPlan || 'BASIC';
-            const planConfig = saasPlans[userPlan] || saasPlans.BASIC;
+            const userPlan = barbershop?.saasPlan || 'SOLO';
+            const planConfig = saasPlans[userPlan] || saasPlans.SOLO;
             const hasWebhookFeature = planConfig.features.includes('all') || planConfig.features.includes('webhook');
 
             if (webhookUrl && hasWebhookFeature) {

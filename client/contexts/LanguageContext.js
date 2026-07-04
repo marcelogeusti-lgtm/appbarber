@@ -31,7 +31,7 @@ const translations = {
     "stat1_label": "Agendamentos",
     "stat2_value": "+R$ 1.4M",
     "stat2_label": "Gerenciados",
-    "stat3_value": "+2.300",
+    "stat3_value": "+2.000",
     "stat3_label": "Barbeiros",
     "social_proof_start": "Junte-se a",
     "social_proof_highlight": "+2.000 barbeiros",
@@ -48,26 +48,24 @@ const translations = {
     "recommended": "Recomendado",
     "perMonth": "/mês",
     "subscribe": "Assinar",
-    "plan_start_desc": "O essencial para quem está começando e quer profissionalismo.",
+    "plan_solo_desc": "O essencial para quem está começando sozinho e quer profissionalismo.",
     "plan_pro_desc": "O equilíbrio perfeito para barbearias em crescimento.",
-    "plan_ultimate_desc": "Poder total para impérios e grandes barbearias.",
-    "f_start_1": "Agenda Maestro Ilimitada",
-    "f_start_2": "Gestão de 1 Profissional",
-    "f_start_3": "Comandas Básicas",
-    "f_start_4": "Relatórios Mensais",
-    "f_start_5": "Suporte via Email",
+    "plan_empire_desc": "Poder total para redes, franquias e grandes barbearias.",
+    "f_solo_1": "Gestão de 1 Profissional",
+    "f_solo_2": "Agenda Inteligente Ilimitada",
+    "f_solo_3": "Comandas de Consumo",
+    "f_solo_4": "Financeiro Básico",
+    "f_solo_5": "Suporte via E-mail",
     "f_pro_1": "Tudo do plano Start",
-    "f_pro_2": "Até 3 Profissionais",
+    "f_pro_2": "Até 5 Profissionais",
     "f_pro_3": "WhatsApp Automation",
-    "f_pro_4": "Comandas de Consumo",
-    "f_pro_5": "Fidelidade & Promoções",
-    "f_pro_6": "Suporte Prioritário",
-    "f_ult_1": "Tudo do plano PRO",
-    "f_ult_2": "Profissionais Ilimitados",
-    "f_ult_3": "Relatórios em Tempo Real",
-    "f_ult_4": "Checkout Customizado",
-    "f_ult_5": "API de Integração",
-    "f_ult_6": "Gerente de Conta"
+    "f_pro_4": "Fidelidade & Promoções",
+    "f_pro_5": "Integrações via Webhook",
+    "f_empire_1": "Tudo do plano Pro",
+    "f_empire_2": "Até 100 Profissionais",
+    "f_empire_3": "Multi-Unidades / Franquias",
+    "f_empire_4": "B.I. e Relatórios em Tempo Real",
+    "f_empire_5": "Gerente de Conta Dedicado"
   },
   "features": {
     "title_part1": "Sua Barbearia no",
@@ -165,43 +163,43 @@ const translations = {
     },
     "garcom-digital": {
       "title": "Recepcionista 24/7",
-      "oneLiner": "Um link que atende, vende serviços adicionais e fecha reservas sozinho — até de madrugada."
+      "oneLiner": "Um link que atende e fecha reservas sozinho — até de madrugada."
     },
     "fidelizacao-magnetica": {
       "title": "Motor de Retenção",
-      "oneLiner": "Estimule o retorno semanas antes com nosso Clube de Pontos direto na Apple Wallet."
+      "oneLiner": "Um clube de pontos que estimula o cliente a voltar, com cartão de fidelidade direto na Apple Wallet."
     },
     "controle-equipe": {
       "title": "Raio-X da Equipe",
-      "oneLiner": "Acompanhe quem capta mais lucro e crie metas gamificadas sem que sintam que estão vigiados."
+      "oneLiner": "Veja o desempenho de cada profissional e controle exatamente o que cada um pode acessar no sistema."
     },
     "padrao-premium": {
       "title": "Vitrine Ultra-Premium",
-      "oneLiner": "Projete muito luxo no primeiro contato com uma aplicação bela, rápida e no padrão Dark Mode."
+      "oneLiner": "Uma página de agendamento bonita, rápida e com a sua marca, não um formulário genérico."
     },
     "gestao-estoque": {
       "title": "Vazamento Zero (Estoque)",
-      "oneLiner": "Controle mercadorias preciosas rigorosamente. Baixas em tempo real na hora da comanda."
+      "oneLiner": "Controle o estoque de produtos com baixa automática toda vez que algo é vendido na comanda."
     },
     "importacao-lote": {
       "title": "Migração Mágica (1-Click)",
-      "oneLiner": "Largue amanhã sua plataforma ultrapassada e mova mil nomes VIP ao seu novo palco agora."
+      "oneLiner": "Traga sua lista de clientes de qualquer planilha ou sistema antigo em poucos minutos."
     },
     "avaliacoes-clientes": {
-      "title": "Pesquisa NPS Sigilosa",
-      "oneLiner": "Colha reclamações antes da indignação pública e potencialize apenas as notas 5 lá no Google."
+      "title": "Avaliações de Clientes",
+      "oneLiner": "O cliente avalia o atendimento direto pelo app, vinculado ao agendamento que ele realmente fez."
     },
     "universidade": {
       "title": "Universidade Privada",
-      "oneLiner": "Software sozinho não atrai gente. Aperte o play nos cursos de marketing pra barbeiros aqui dentro."
+      "oneLiner": "Cursos de gestão e marketing pra barbearia, direto dentro do próprio sistema."
     },
     "relatorios-bi": {
       "title": "B.I. (Business Intelligence)",
-      "oneLiner": "Abomine achismos. Relatórios contundentes que respondem em segundos as falhas ocultas no lucro."
+      "oneLiner": "Chega de achismo. Relatórios diretos que mostram, em segundos, onde seu lucro está vazando."
     },
     "multi-unidades": {
       "title": "Franquias (Super Host)",
-      "oneLiner": "Transacione a matriz da zona norte contra o polo litorâneo perfeitamente dentro da mesma sessão logada."
+      "oneLiner": "Gerencie todas as unidades da sua rede, em qualquer bairro ou cidade, com um único login."
     }
   },
   "group1": {
@@ -558,7 +556,7 @@ c) O NEXT implementa medidas técnicas de segurança, mas a responsabilidade pel
     "stat1_label": "Appointments",
     "stat2_value": "+$ 280K",
     "stat2_label": "Managed",
-    "stat3_value": "+2,300",
+    "stat3_value": "+2,000",
     "stat3_label": "Barbers",
     "social_proof_start": "Join",
     "social_proof_highlight": "+2,000 winning",
@@ -575,26 +573,24 @@ c) O NEXT implementa medidas técnicas de segurança, mas a responsabilidade pel
     "recommended": "Recommended",
     "perMonth": "/month",
     "subscribe": "Subscribe to",
-    "plan_start_desc": "The essentials for those starting out and wanting professionalism.",
+    "plan_solo_desc": "The essentials for those starting out solo and wanting professionalism.",
     "plan_pro_desc": "The perfect balance for growing barbershops.",
-    "plan_ultimate_desc": "Total power for empires and large barbershops.",
-    "f_start_1": "Unlimited Maestro Schedule",
-    "f_start_2": "Manage 1 Professional",
-    "f_start_3": "Basic Orders",
-    "f_start_4": "Monthly Reports",
-    "f_start_5": "Email Support",
+    "plan_empire_desc": "Total power for chains, franchises, and large barbershops.",
+    "f_solo_1": "Manage 1 Professional",
+    "f_solo_2": "Unlimited Smart Schedule",
+    "f_solo_3": "Consumption Orders",
+    "f_solo_4": "Basic Finance",
+    "f_solo_5": "Email Support",
     "f_pro_1": "Everything in Start",
-    "f_pro_2": "Up to 3 Professionals",
+    "f_pro_2": "Up to 5 Professionals",
     "f_pro_3": "WhatsApp Automation",
-    "f_pro_4": "Consumption Orders",
-    "f_pro_5": "Loyalty & Promotions",
-    "f_pro_6": "Priority Support",
-    "f_ult_1": "Everything in PRO",
-    "f_ult_2": "Unlimited Professionals",
-    "f_ult_3": "Real-Time Reports",
-    "f_ult_4": "Custom Checkout",
-    "f_ult_5": "Integration API",
-    "f_ult_6": "Account Manager"
+    "f_pro_4": "Loyalty & Promotions",
+    "f_pro_5": "Webhook Integrations",
+    "f_empire_1": "Everything in Pro",
+    "f_empire_2": "Up to 100 Professionals",
+    "f_empire_3": "Multi-Unit / Franchise Management",
+    "f_empire_4": "Real-Time B.I. & Reports",
+    "f_empire_5": "Dedicated Account Manager"
   },
   "features": {
     "title_part1": "Your Barbershop on",
@@ -692,43 +688,43 @@ c) O NEXT implementa medidas técnicas de segurança, mas a responsabilidade pel
     },
     "garcom-digital": {
       "title": "24/7 Digital Receptionist",
-      "oneLiner": "A link that answers, upsells services, and books reservations on its own — even at dawn."
+      "oneLiner": "A link that answers and books reservations on its own — even at dawn."
     },
     "fidelizacao-magnetica": {
       "title": "Retention Engine",
-      "oneLiner": "Stimulate returns weeks in advance with our Points Club right in Apple Wallet."
+      "oneLiner": "A points club that encourages clients to come back, with a loyalty card right in Apple Wallet."
     },
     "controle-equipe": {
       "title": "Staff X-Ray",
-      "oneLiner": "Track who generates the most profit and set gamified goals without them feeling watched."
+      "oneLiner": "See each professional's performance and control exactly what they can access in the system."
     },
     "padrao-premium": {
       "title": "Ultra-Premium Storefront",
-      "oneLiner": "Project luxury at first contact with a beautiful, fast, Dark Mode-standard app."
+      "oneLiner": "A beautiful, fast booking page with your brand on it, not a generic form."
     },
     "gestao-estoque": {
       "title": "Zero Leakage Inventory",
-      "oneLiner": "Strictly control precious goods. Real-time stock drops at the moment of the order."
+      "oneLiner": "Control your product stock with automatic deductions every time something is sold at checkout."
     },
     "importacao-lote": {
       "title": "Magic 1-Click Migration",
-      "oneLiner": "Drop your outdated platform tomorrow and move a thousand VIP names to your new stage right now."
+      "oneLiner": "Bring your client list over from any spreadsheet or old system in a few minutes."
     },
     "avaliacoes-clientes": {
-      "title": "Secret NPS Survey",
-      "oneLiner": "Gather complaints before public outrage and amplify only the 5-star ratings on Google."
+      "title": "Customer Reviews",
+      "oneLiner": "Clients review the service directly in the app, linked to the appointment they actually had."
     },
     "universidade": {
       "title": "Private University",
-      "oneLiner": "Software alone doesn't attract people. Hit play on the marketing courses for barbers inside here."
+      "oneLiner": "Management and marketing courses for barbershops, right inside the system."
     },
     "relatorios-bi": {
       "title": "Business Intelligence",
-      "oneLiner": "Abhor guesswork. Hard-hitting reports that answer hidden profit flaws in seconds."
+      "oneLiner": "No more guesswork. Straight-to-the-point reports that show you, in seconds, where your profit is leaking."
     },
     "multi-unidades": {
       "title": "Franchises (Super Host)",
-      "oneLiner": "Transact the north zone headquarters against the coastal branch perfectly within the same logged-in session."
+      "oneLiner": "Manage every unit in your network, in any neighborhood or city, from a single login."
     }
   },
   "group1": {
@@ -1085,7 +1081,7 @@ c) NEXT implements technical security measures, but the responsibility for lawfu
     "stat1_label": "Citas",
     "stat2_value": "+$ 280K",
     "stat2_label": "Gestionados",
-    "stat3_value": "+2.300",
+    "stat3_value": "+2.000",
     "stat3_label": "Barberos",
     "social_proof_start": "Únete a",
     "social_proof_highlight": "+2.000 barberos",
@@ -1102,26 +1098,24 @@ c) NEXT implements technical security measures, but the responsibility for lawfu
     "recommended": "Recomendado",
     "perMonth": "/mes",
     "subscribe": "Suscribirse a",
-    "plan_start_desc": "Lo esencial para quienes empiezan y buscan profesionalismo.",
+    "plan_solo_desc": "Lo esencial para quienes empiezan solos y buscan profesionalismo.",
     "plan_pro_desc": "El equilibrio perfecto para barberías en crecimiento.",
-    "plan_ultimate_desc": "Poder total para imperios y grandes barberías.",
-    "f_start_1": "Agenda Maestro Ilimitada",
-    "f_start_2": "Gestión de 1 Profesional",
-    "f_start_3": "Comandas Básicas",
-    "f_start_4": "Reportes Mensuales",
-    "f_start_5": "Soporte por Correo",
+    "plan_empire_desc": "Poder total para redes, franquicias y grandes barberías.",
+    "f_solo_1": "Gestión de 1 Profesional",
+    "f_solo_2": "Agenda Inteligente Ilimitada",
+    "f_solo_3": "Comandas de Consumo",
+    "f_solo_4": "Finanzas Básicas",
+    "f_solo_5": "Soporte por Correo",
     "f_pro_1": "Todo lo de Start",
-    "f_pro_2": "Hasta 3 Profesionales",
+    "f_pro_2": "Hasta 5 Profesionales",
     "f_pro_3": "Automatización WhatsApp",
-    "f_pro_4": "Comandas de Consumo",
-    "f_pro_5": "Fidelidad y Promociones",
-    "f_pro_6": "Soporte Prioritario",
-    "f_ult_1": "Todo lo de PRO",
-    "f_ult_2": "Profesionales Ilimitados",
-    "f_ult_3": "Reportes en Tiempo Real",
-    "f_ult_4": "Checkout Personalizado",
-    "f_ult_5": "API de Integración",
-    "f_ult_6": "Gerente de Cuenta"
+    "f_pro_4": "Fidelidad y Promociones",
+    "f_pro_5": "Integraciones por Webhook",
+    "f_empire_1": "Todo lo de Pro",
+    "f_empire_2": "Hasta 100 Profesionales",
+    "f_empire_3": "Gestión Multi-Unidad / Franquicias",
+    "f_empire_4": "B.I. y Reportes en Tiempo Real",
+    "f_empire_5": "Gerente de Cuenta Dedicado"
   },
   "features": {
     "title_part1": "Tu Barbería en",
@@ -1219,43 +1213,43 @@ c) NEXT implements technical security measures, but the responsibility for lawfu
     },
     "garcom-digital": {
       "title": "Recepcionista 24/7",
-      "oneLiner": "Un enlace que responde, vende servicios adicionales y cierra reservas por sí solo, incluso de madrugada."
+      "oneLiner": "Un enlace que responde y cierra reservas por sí solo, incluso de madrugada."
     },
     "fidelizacao-magnetica": {
       "title": "Motor de Retención",
-      "oneLiner": "Estimula el regreso semanas antes con nuestro Club de Puntos directamente en Apple Wallet."
+      "oneLiner": "Un club de puntos que anima al cliente a volver, con tarjeta de fidelidad directo en Apple Wallet."
     },
     "controle-equipe": {
       "title": "Rayos X del Equipo",
-      "oneLiner": "Sigue quién genera más ganancias y crea metas gamificadas sin que se sientan vigilados."
+      "oneLiner": "Mira el desempeño de cada profesional y controla exactamente lo que cada uno puede acceder en el sistema."
     },
     "padrao-premium": {
       "title": "Vitrina Ultra-Premium",
-      "oneLiner": "Proyecta lujo en el primer contacto con una aplicación hermosa, rápida y en estándar Dark Mode."
+      "oneLiner": "Una página de reservas hermosa, rápida y con tu marca, no un formulario genérico."
     },
     "gestao-estoque": {
       "title": "Inventario Cero Fugas",
-      "oneLiner": "Controla mercancías preciosas estrictamente. Bajas en tiempo real en el momento del pedido."
+      "oneLiner": "Controla el stock de productos con descuento automático cada vez que algo se vende en la comanda."
     },
     "importacao-lote": {
       "title": "Migración Mágica (1 Clic)",
-      "oneLiner": "Abandona mañana tu plataforma obsoleta y mueve mil nombres VIP a tu nuevo escenario ahora."
+      "oneLiner": "Trae tu lista de clientes de cualquier hoja de cálculo o sistema antiguo en pocos minutos."
     },
     "avaliacoes-clientes": {
-      "title": "Encuesta NPS Secreta",
-      "oneLiner": "Recopila quejas antes de la indignación pública y amplifica solo las calificaciones de 5 estrellas en Google."
+      "title": "Evaluaciones de Clientes",
+      "oneLiner": "El cliente evalúa el servicio directo en la app, vinculado a la cita que realmente tuvo."
     },
     "universidade": {
       "title": "Universidad Privada",
-      "oneLiner": "El software por sí solo no atrae gente. Presiona play en los cursos de marketing para barberos aquí adentro."
+      "oneLiner": "Cursos de gestión y marketing para barberías, directo dentro del sistema."
     },
     "relatorios-bi": {
       "title": "B.I. (Inteligencia de Negocios)",
-      "oneLiner": "Aborrece las suposiciones. Informes contundentes que responden en segundos a las fallas de ganancias ocultas."
+      "oneLiner": "Basta de suposiciones. Informes directos que muestran, en segundos, dónde se está filtrando tu ganancia."
     },
     "multi-unidades": {
       "title": "Franquicias (Súper Anfitrión)",
-      "oneLiner": "Realiza transacciones en la sede central de la zona norte frente a la sucursal costera perfectamente dentro de la misma sesión iniciada."
+      "oneLiner": "Gestiona todas las unidades de tu red, en cualquier barrio o ciudad, con un solo inicio de sesión."
     }
   },
   "group1": {

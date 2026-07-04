@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from '../../contexts/LanguageContext';
+import { trackEvent } from '../../lib/analytics';
 
 export default function Hero() {
     const { t } = useTranslation();
@@ -98,7 +99,7 @@ export default function Hero() {
 
                         {/* CTAs */}
                         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-10">
-                            <Link href="/register">
+                            <Link href="/register" onClick={() => trackEvent('cta_click', { location: 'hero', label: 'main' })}>
                                 <button className="w-full sm:w-auto px-10 py-4 bg-white text-black text-sm font-bold uppercase tracking-[0.15em] rounded-xl hover:scale-[1.03] active:scale-[0.98] transition-all shadow-[0_0_50px_rgba(255,255,255,0.08)] flex items-center justify-center gap-3 group font-body">
                                     {t('hero.cta_main')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </button>

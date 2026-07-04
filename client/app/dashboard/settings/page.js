@@ -5,12 +5,13 @@ import api from '../../../lib/api';
 import {
     Settings, Save, MapPin, Phone, ChevronDown,
     Image as ImageIcon, Shield, MessageSquare, Zap,
-    Globe, Smartphone, CreditCard, ExternalLink, CheckCircle, Info, Sparkles, Loader2, Camera, Palette, Bell, BellRing, Trash2, Plus, AlignLeft, ScrollText
+    Globe, Smartphone, CreditCard, ExternalLink, CheckCircle, Info, Sparkles, Loader2, Camera, Palette, Bell, BellRing, Trash2, Plus, AlignLeft, ScrollText, Building2, Lock
 } from 'lucide-react';
 import IntegrationSettings from '../../../components/settings/IntegrationSettings';
 import BannersTab from '../../../components/settings/BannersTab';
 import MessageLogsModal from '../../../components/settings/MessageLogsModal';
 import Link from 'next/link';
+import { useBarbershops } from '../../../contexts/BarbershopContext';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -140,6 +141,7 @@ function SettingsContent() {
         { name: 'Comunicação', icon: MessageSquare },
         { name: 'Alertas', icon: Bell },
         { name: 'Assinatura', icon: CreditCard },
+        { name: 'Minhas Unidades', icon: Building2 },
     ];
 
     if (loading) return (
@@ -190,6 +192,7 @@ function SettingsContent() {
                 {activeTab === 'Comunicação' && <CommunicationTab barbershop={barbershop} setBarbershop={setBarbershop} templates={templates} editingTemplateId={editingTemplateId} setEditingTemplateId={setEditingTemplateId} editContent={editContent} setEditContent={setEditContent} saving={saving} fetchTemplates={fetchInitialData} isMaster={isMaster} />}
                 {activeTab === 'Alertas' && <AlertsTab />}
                 {activeTab === 'Assinatura' && <SubscriptionTab barbershop={barbershop} refetchShop={refetchShop} />}
+                {activeTab === 'Minhas Unidades' && <UnitsTab />}
             </div>
         </div>
     );
@@ -745,9 +748,8 @@ function SubscriptionTab({ barbershop, refetchShop }) {
     const [confirmText, setConfirmText] = useState('');
 
     const saasPlanDetails = {
-        SOLO: { name: 'Básico (Solo)', maxBarbers: 1, price: 'R$ 79,90' },
-        BASIC: { name: 'Médio (Basic)', maxBarbers: 5, price: 'R$ 109,90' },
-        PRO: { name: 'Pro', maxBarbers: 15, price: 'R$ 164,50' },
+        SOLO: { name: 'Start (Solo)', maxBarbers: 1, price: 'R$ 79,90' },
+        PRO: { name: 'Pro', maxBarbers: 5, price: 'R$ 164,50' },
         ENTERPRISE: { name: 'Empire (Enterprise)', maxBarbers: 100, price: 'R$ 219,90' }
     };
 
@@ -905,6 +907,134 @@ function SubscriptionTab({ barbershop, refetchShop }) {
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+function UnitsTab() {
+    const { ownedBarbershops, currentBarbershopId, switchBarbershop, createBarbershop, loading } = useBarbershops();
+    const [showForm, setShowForm] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [form, setForm] = useState({ name: '', address: '', phone: '' });
+    const [error, setError] = useState(null);
+
+    const isEmpireOwner = ownedBarbershops.some(b => b.saasPlan === 'ENTERPRISE');
+
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        if (!form.name.trim()) return;
+        setCreating(true);
+        setError(null);
+        try {
+            await createBarbershop(form);
+            setForm({ name: '', address: '', phone: '' });
+            setShowForm(false);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Erro ao criar unidade.');
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="bg-card p-6 md:p-8 rounded-xl border border-border shadow-soft space-y-6">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                        <h2 className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
+                            <Building2 className="w-5 h-5 text-primary" /> Minhas Unidades
+                        </h2>
+                        <p className="text-muted-foreground text-xs font-medium">Gerencie as barbearias que você é dono e troque entre elas.</p>
+                    </div>
+                    {isEmpireOwner && (
+                        <button
+                            onClick={() => setShowForm(!showForm)}
+                            className="flex items-center gap-2 bg-primary text-white h-10 px-5 rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:bg-primary/90 transition-all"
+                        >
+                            <Plus className="w-4 h-4" /> Adicionar Unidade
+                        </button>
+                    )}
+                </div>
+
+                {!isEmpireOwner && (
+                    <div className="bg-muted/40 border border-border rounded-lg p-5 flex items-center gap-4">
+                        <div className="p-2.5 bg-primary/10 text-primary rounded-lg border border-primary/20 shrink-0">
+                            <Lock className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-medium text-muted-foreground">
+                            Gerenciar múltiplas unidades é exclusivo do plano <b className="text-foreground">Empire</b>. Faça upgrade em Configurações &gt; Assinatura para adicionar novas unidades.
+                        </p>
+                    </div>
+                )}
+
+                {showForm && (
+                    <form onSubmit={handleCreate} className="bg-muted/40 p-5 rounded-lg border border-border space-y-4">
+                        {error && <p className="text-xs font-semibold text-red-500">{error}</p>}
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Nome da Unidade</label>
+                                <input
+                                    value={form.name}
+                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                    placeholder="Ex: Barbearia Centro"
+                                    className="w-full bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Telefone</label>
+                                <input
+                                    value={form.phone}
+                                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                                    placeholder="(00) 00000-0000"
+                                    className="w-full bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                                />
+                            </div>
+                            <div className="space-y-1.5 md:col-span-2">
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Endereço</label>
+                                <input
+                                    value={form.address}
+                                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                                    placeholder="Rua, número, bairro"
+                                    className="w-full bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                                />
+                            </div>
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={creating}
+                            className="flex items-center gap-2 bg-primary text-white h-10 px-6 rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm hover:bg-primary/90 transition-all disabled:opacity-50"
+                        >
+                            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Criar Unidade'}
+                        </button>
+                    </form>
+                )}
+
+                <div className="space-y-3">
+                    {loading && <p className="text-xs text-muted-foreground">Carregando unidades...</p>}
+                    {!loading && ownedBarbershops.map((shop) => (
+                        <div
+                            key={shop.id}
+                            className="bg-muted/40 p-4 rounded-lg border border-border flex items-center justify-between gap-4 flex-wrap"
+                        >
+                            <div>
+                                <p className="font-bold text-foreground text-sm">{shop.name}</p>
+                                <p className="text-xs text-muted-foreground">{shop.slug}</p>
+                            </div>
+                            {shop.id === currentBarbershopId ? (
+                                <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full">Unidade Atual</span>
+                            ) : (
+                                <button
+                                    onClick={() => switchBarbershop(shop.id)}
+                                    className="text-xs font-bold uppercase tracking-wider text-primary hover:underline"
+                                >
+                                    Trocar para esta unidade
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

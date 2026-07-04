@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { Check, ArrowRight, Zap, Star } from 'lucide-react';
-import Link from 'next/link';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
 import { useTranslation } from '../../contexts/LanguageContext';
+import { trackEvent } from '../../lib/analytics';
 
 export default function Pricing() {
     const [isYearly, setIsYearly] = useState(false);
@@ -13,50 +13,60 @@ export default function Pricing() {
     const plans = [
         {
             name: "START",
-            price: isYearly ? "R$ 47" : "R$ 57",
-            desc: t('pricing.plan_start_desc'),
+            monthlyPrice: 79.90,
+            yearlyPrice: 55.90,
+            checkoutUrl: "https://pay.cakto.com.br/hstst7v_800505",
+            desc: t('pricing.plan_solo_desc'),
             features: [
-                t('pricing.f_start_1'),
-                t('pricing.f_start_2'),
-                t('pricing.f_start_3'),
-                t('pricing.f_start_4'),
-                t('pricing.f_start_5')
+                t('pricing.f_solo_1'),
+                t('pricing.f_solo_2'),
+                t('pricing.f_solo_3'),
+                t('pricing.f_solo_4'),
+                t('pricing.f_solo_5')
             ],
             color: "slate",
             bg: "bg-white/[0.02]"
         },
         {
             name: "PRO",
-            price: isYearly ? "R$ 87" : "R$ 97",
+            monthlyPrice: 164.50,
+            yearlyPrice: 115.15,
+            checkoutUrl: "https://pay.cakto.com.br/3x6vwzh",
             desc: t('pricing.plan_pro_desc'),
             features: [
                 t('pricing.f_pro_1'),
                 t('pricing.f_pro_2'),
                 t('pricing.f_pro_3'),
                 t('pricing.f_pro_4'),
-                t('pricing.f_pro_5'),
-                t('pricing.f_pro_6')
+                t('pricing.f_pro_5')
             ],
             recommended: true,
             color: "primary",
             bg: "bg-[#0A0A0B]/40"
         },
         {
-            name: "ULTIMATE",
-            price: isYearly ? "R$ 147" : "R$ 157",
-            desc: t('pricing.plan_ultimate_desc'),
+            name: "EMPIRE",
+            monthlyPrice: 219.90,
+            yearlyPrice: 153.90,
+            checkoutUrl: "https://pay.cakto.com.br/nxmn3ai",
+            desc: t('pricing.plan_empire_desc'),
             features: [
-                t('pricing.f_ult_1'),
-                t('pricing.f_ult_2'),
-                t('pricing.f_ult_3'),
-                t('pricing.f_ult_4'),
-                t('pricing.f_ult_5'),
-                t('pricing.f_ult_6')
+                t('pricing.f_empire_1'),
+                t('pricing.f_empire_2'),
+                t('pricing.f_empire_3'),
+                t('pricing.f_empire_4'),
+                t('pricing.f_empire_5')
             ],
             color: "slate",
             bg: "bg-white/[0.02]"
         }
-    ];
+    ].map(plan => ({
+        ...plan,
+        price: `R$ ${(isYearly ? plan.yearlyPrice : plan.monthlyPrice).toFixed(2).replace('.', ',')}`,
+        discountPct: Math.round((1 - plan.yearlyPrice / plan.monthlyPrice) * 100)
+    }));
+
+    const maxDiscountPct = Math.max(...plans.map(p => p.discountPct));
 
     return (
         <section className="py-32 bg-[#050505] relative overflow-hidden" id="pricing">
@@ -90,7 +100,7 @@ export default function Pricing() {
                             </button>
                             <span className={`text-[12px] font-black uppercase tracking-[0.2em] transition-colors flex items-center gap-2 ${isYearly ? 'text-white' : 'text-slate-500'}`}>
                                 {t('pricing.yearly')}
-                                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 rounded text-[9px] border border-emerald-500/20">-20%</span>
+                                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 rounded text-[9px] border border-emerald-500/20">-{maxDiscountPct}%</span>
                             </span>
                         </div>
                     </motion.div>
@@ -118,9 +128,12 @@ export default function Pricing() {
 
                                     <div className="mb-14">
                                         <span className="font-body text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4 block">{plan.name}</span>
-                                        <div className="flex items-baseline gap-2 mb-6">
+                                        <div className="flex items-baseline gap-2 mb-6 flex-wrap">
                                             <span className="font-display text-4xl lg:text-7xl font-extrabold text-white tracking-tighter">{plan.price}</span>
                                             <span className="font-body text-slate-500 text-[11px] font-black uppercase tracking-[0.25em]">{t('pricing.perMonth')}</span>
+                                            {isYearly && (
+                                                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 rounded text-[10px] font-black border border-emerald-500/20">-{plan.discountPct}%</span>
+                                            )}
                                         </div>
                                         <p className="font-body secondary-text">{plan.desc}</p>
                                     </div>
@@ -136,11 +149,17 @@ export default function Pricing() {
                                         ))}
                                     </div>
 
-                                    <Link href="/register" className="relative z-10">
+                                    <a
+                                        href={plan.checkoutUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="relative z-10"
+                                        onClick={() => trackEvent('cta_click', { location: 'pricing', label: plan.name, billing: isYearly ? 'yearly' : 'monthly' })}
+                                    >
                                         <button className={`w-full py-6 rounded-2xl font-body font-black uppercase text-[11px] tracking-[0.4em] transition-all duration-500 flex items-center justify-center gap-4 ${plan.recommended ? 'bg-white text-black shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:scale-[1.03]' : 'bg-white/[0.04] text-white border border-white/10 hover:bg-white hover:text-black'}`}>
                                             {t('pricing.subscribe')} {plan.name} <ArrowRight className="w-4 h-4" />
                                         </button>
-                                    </Link>
+                                    </a>
                                 </div>
                             </LEDCardWrapper>
                         </motion.div>
