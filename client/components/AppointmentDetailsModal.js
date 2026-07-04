@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
-import { useClientAuth } from '../contexts/ClientAuthContext';
 import api from '../lib/api';
 import { XCircle, Loader2 } from 'lucide-react';
 
@@ -17,10 +16,10 @@ export default function AppointmentDetailsModal({
     onComplete,
     onRefresh // Callback to refresh parent data if needed
 }) {
-    const { user } = useClientAuth();
     const [showPaymentSelector, setShowPaymentSelector] = useState(false);
 
     const [isRedeeming, setIsRedeeming] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     const { data: loyaltyData } = useQuery({
@@ -41,7 +40,9 @@ export default function AppointmentDetailsModal({
         enabled: !!appointment?.barbershopId && !!isOpen,
     });
 
-    const isProfessional = user?.role !== 'CLIENT';
+    // This modal only renders inside the dashboard (server/professional side), which already
+    // blocks CLIENT-role users at the layout level — so whoever opens it is always staff.
+    const isProfessional = true;
 
     useEffect(() => {
         setMounted(true);
