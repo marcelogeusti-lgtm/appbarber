@@ -778,6 +778,21 @@ exports.cancelMySaasSubscription = async (req, res) => {
             return res.status(403).json({ message: 'Acesso negado. Apenas o proprietário pode cancelar a assinatura.' });
         }
 
+        // Cancela a recorrência na Cakto também, para o cartão parar de ser cobrado
+        let caktoCancelled = false;
+        if (barbershop.caktoSubscriptionId) {
+            try {
+                const caktoService = require('../services/CaktoService');
+                if (await caktoService.isConfigured()) {
+                    await caktoService.cancelSubscription(barbershop.caktoSubscriptionId);
+                    caktoCancelled = true;
+                    console.log(`[BARBERSHOP] Cakto subscription ${barbershop.caktoSubscriptionId} cancelled`);
+                }
+            } catch (caktoErr) {
+                console.error('[BARBERSHOP] Cakto cancel failed:', caktoErr.response?.data || caktoErr.message);
+            }
+        }
+
         const updatedBarbershop = await prisma.barbershop.update({
             where: { id: barbershopId },
             data: {
@@ -788,7 +803,10 @@ exports.cancelMySaasSubscription = async (req, res) => {
         console.log(`[BARBERSHOP] SaaS Subscription cancelled for shop ID: ${barbershopId} (Owner ID: ${req.user.id})`);
 
         res.json({
-            message: 'Assinatura cancelada com sucesso.',
+            message: caktoCancelled
+                ? 'Assinatura cancelada com sucesso. A cobrança recorrente também foi cancelada na plataforma de pagamento.'
+                : 'Assinatura cancelada com sucesso.',
+            caktoCancelled,
             barbershop: {
                 id: updatedBarbershop.id,
                 name: updatedBarbershop.name,
@@ -798,5 +816,119 @@ exports.cancelMySaasSubscription = async (req, res) => {
     } catch (error) {
         console.error('Cancel SaaS Subscription Error:', error);
         res.status(500).json({ message: 'Erro ao cancelar a assinatura do SaaS.', error: error.message });
+    }
+};
+
+// --- Retention flow (discount offer before cancelling the SaaS subscription) ---
+
+const RETENTION_MAX_OFFERS = 3;
+const RETENTION_DISCOUNT_PCT = 10;
+
+async function findOwnedBarbershop(reqUser) {
+    let barbershopId = reqUser.barbershopId;
+    if (!barbershopId) {
+        const user = await prisma.user.findUnique({
+            where: { id: reqUser.id },
+            select: { ownedBarbershops: { select: { id: true } } }
+        });
+        barbershopId = user?.ownedBarbershops?.[0]?.id;
+    }
+    if (!barbershopId) return null;
+    const shop = await prisma.barbershop.findUnique({ where: { id: barbershopId } });
+    if (!shop) return null;
+    if (shop.ownerId !== reqUser.id && reqUser.role !== 'SUPER_ADMIN') return 'FORBIDDEN';
+    return shop;
+}
+
+exports.getRetentionStatus = async (req, res) => {
+    try {
+        const caktoService = require('../services/CaktoService');
+        const shop = await findOwnedBarbershop(req.user);
+        if (!shop) return res.status(404).json({ message: 'Barbearia não encontrada.' });
+        if (shop === 'FORBIDDEN') return res.status(403).json({ message: 'Acesso negado.' });
+
+        const configured = await caktoService.isConfigured();
+        const eligible = configured &&
+            Boolean(shop.caktoSubscriptionId) &&
+            (shop.retentionOffersUsed || 0) < RETENTION_MAX_OFFERS &&
+            !shop.retentionDiscountActive;
+
+        res.json({
+            eligible,
+            offersUsed: shop.retentionOffersUsed || 0,
+            maxOffers: RETENTION_MAX_OFFERS,
+            discountPct: RETENTION_DISCOUNT_PCT,
+            discountActive: shop.retentionDiscountActive || false
+        });
+    } catch (error) {
+        console.error('[Retention] Status error:', error);
+        res.status(500).json({ message: 'Erro ao consultar oferta de retenção.' });
+    }
+};
+
+exports.acceptRetentionOffer = async (req, res) => {
+    try {
+        const caktoService = require('../services/CaktoService');
+        const shop = await findOwnedBarbershop(req.user);
+        if (!shop) return res.status(404).json({ message: 'Barbearia não encontrada.' });
+        if (shop === 'FORBIDDEN') return res.status(403).json({ message: 'Acesso negado.' });
+
+        if ((shop.retentionOffersUsed || 0) >= RETENTION_MAX_OFFERS) {
+            return res.status(400).json({ message: 'Limite de ofertas de desconto atingido.' });
+        }
+        if (shop.retentionDiscountActive) {
+            return res.status(400).json({ message: 'Você já tem um desconto ativo para a próxima cobrança.' });
+        }
+        if (!shop.caktoSubscriptionId || !(await caktoService.isConfigured())) {
+            return res.status(400).json({ message: 'Assinatura não localizada para aplicar o desconto.' });
+        }
+
+        const subscription = await caktoService.getSubscription(shop.caktoSubscriptionId);
+        const currentAmount = parseFloat(subscription?.amount);
+        if (!currentAmount || Number.isNaN(currentAmount)) {
+            return res.status(502).json({ message: 'Não foi possível ler o valor atual da assinatura.' });
+        }
+
+        const newAmount = currentAmount * (1 - RETENTION_DISCOUNT_PCT / 100);
+        await caktoService.updateSubscriptionAmount(shop.caktoSubscriptionId, newAmount);
+
+        await prisma.barbershop.update({
+            where: { id: shop.id },
+            data: {
+                retentionOffersUsed: (shop.retentionOffersUsed || 0) + 1,
+                retentionLastOfferAt: new Date(),
+                retentionDiscountActive: true,
+                retentionOriginalAmount: currentAmount
+            }
+        });
+
+        // Aviso ao Master para acompanhamento
+        try {
+            const master = await prisma.user.findFirst({ where: { role: 'SUPER_ADMIN' } });
+            if (master) {
+                await prisma.notification.create({
+                    data: {
+                        userId: master.id,
+                        title: 'Desconto de retenção aplicado',
+                        message: `${shop.name} aceitou ${RETENTION_DISCOUNT_PCT}% na próxima cobrança (uso ${(shop.retentionOffersUsed || 0) + 1}/${RETENTION_MAX_OFFERS}). Valor: R$ ${currentAmount.toFixed(2)} → R$ ${newAmount.toFixed(2)}.`,
+                        type: 'system'
+                    }
+                });
+            }
+        } catch (notifyErr) {
+            console.error('[Retention] Master notify failed:', notifyErr.message);
+        }
+
+        console.log(`[Retention] Discount applied for shop ${shop.id}: ${currentAmount} -> ${newAmount}`);
+        res.json({
+            message: 'Desconto aplicado com sucesso na sua próxima cobrança!',
+            previousAmount: currentAmount,
+            newAmount: Number(newAmount.toFixed(2)),
+            offersUsed: (shop.retentionOffersUsed || 0) + 1,
+            maxOffers: RETENTION_MAX_OFFERS
+        });
+    } catch (error) {
+        console.error('[Retention] Accept error:', error.response?.data || error);
+        res.status(500).json({ message: 'Erro ao aplicar o desconto. Tente novamente.' });
     }
 };

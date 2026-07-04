@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect, authorize } = require('../middlewares/auth.middleware');
 const prisma = require('../lib/prisma');
 const whatsappService = require('../services/communication/WhatsAppService');
+const whatsAppQuota = require('../services/communication/WhatsAppQuota');
 
 // Middleware to ensure Barbershop context
 const getBarbershop = async (req, res, next) => {
@@ -109,6 +110,17 @@ router.delete('/disconnect/:barbershopId', protect, getBarbershop, async (req, r
     } catch (error) {
         console.error('Failed to disconnect WA:', error.message);
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// GET /api/whatsapp/usage/:barbershopId — consumo mensal vs limite do plano
+router.get('/usage/:barbershopId', protect, getBarbershop, async (req, res) => {
+    try {
+        const usage = await whatsAppQuota.getUsage(req.params.barbershopId);
+        res.json(usage);
+    } catch (error) {
+        console.error('[WhatsApp Usage] Error:', error);
+        res.status(500).json({ error: 'Erro ao consultar uso de mensagens.' });
     }
 });
 

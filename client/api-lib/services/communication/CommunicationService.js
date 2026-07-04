@@ -1,5 +1,6 @@
 const prisma = require('../../lib/prisma');
 const whatsappService = require('./WhatsAppService');
+const whatsAppQuota = require('./WhatsAppQuota');
 const emailProvider = require('./providers/EmailProvider');
 
 class CommunicationService {
@@ -21,6 +22,8 @@ class CommunicationService {
     // Send Confirmation Request
     async sendConfirmationRequest(appointment) {
         const { client, service, date, barbershop, professional } = appointment;
+
+        if (!(await this.passesQuota(appointment, 'CONFIRMATION_REQUEST'))) return;
         const formattedDate = new Date(date).toLocaleString('pt-BR');
 
         // Fetch Template
@@ -66,6 +69,8 @@ class CommunicationService {
     // Send Appointment Reminder
     async sendAppointmentReminder(appointment) {
         const { client, service, date, barbershop, professional } = appointment;
+
+        if (!(await this.passesQuota(appointment, 'REMINDER'))) return;
         const formattedDate = new Date(date).toLocaleString('pt-BR');
 
         // Fetch Template
@@ -105,6 +110,8 @@ class CommunicationService {
     // Send Cancellation Notice
     async sendCancellationNotice(appointment) {
         const { client, service, date, barbershop } = appointment;
+
+        if (!(await this.passesQuota(appointment, 'CANCELLATION'))) return;
         const formattedDate = new Date(date).toLocaleDateString('pt-BR');
         const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
 
@@ -183,6 +190,8 @@ class CommunicationService {
     // Send Thank You Message (Completion)
     async sendThankYouMessage(appointment) {
         const { client, service, barbershop } = appointment;
+
+        if (!(await this.passesQuota(appointment, 'COMPLETED_THANKS'))) return;
         const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
 
         // Fetch Template
@@ -219,6 +228,8 @@ class CommunicationService {
     // Send Abandoned Cart Reminder
     async sendAbandonedCartReminder(appointment) {
         const { client, service, barbershop } = appointment;
+
+        if (!(await this.passesQuota(appointment, 'ABANDONED_CART'))) return;
         const bookingLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/agendamento/${barbershop.slug}`;
 
         let messageContent = `⚠️ *Horário Quase Expirando*\n\nOlá, ${client?.name || 'Cliente'}!\nNotamos que você selecionou o serviço *${service?.name || 'na barbearia'}* na *${barbershop?.name || 'Barbearia'}*, mas fechou a página antes do pagamento.\n\nA vaga ficará reservada por apenas mais alguns minutinhos.\n\nClique no link abaixo para concluir e garantir seu horário:\n🔗 ${bookingLink}`;
@@ -290,6 +301,24 @@ class CommunicationService {
             } catch (error) {
                 console.error('Failed to send WA Payment Timeout:', error);
             }
+        }
+    }
+
+    // Bloqueia envios ao estourar o limite mensal do plano; registra BLOCKED_QUOTA
+    async passesQuota(appointment, type) {
+        const barbershopId = appointment?.barbershop?.id || appointment?.barbershopId;
+        if (!barbershopId) return true;
+        try {
+            const quota = await whatsAppQuota.getUsage(barbershopId);
+            if (!quota.allowed) {
+                console.warn(`[WhatsApp Quota] Shop ${barbershopId} over limit (${quota.used}/${quota.limit}) — blocking ${type}`);
+                await this.log(appointment, 'WHATSAPP', 'OUTBOUND', type, `[COTA] Limite mensal do plano atingido (${quota.used}/${quota.limit}). Mensagem não enviada.`, 'BLOCKED_QUOTA');
+                return false;
+            }
+            return true;
+        } catch (err) {
+            console.error('[WhatsApp Quota] Check failed, allowing send:', err.message);
+            return true;
         }
     }
 

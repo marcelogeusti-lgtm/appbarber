@@ -492,6 +492,16 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
     const [savingMaster, setSavingMaster] = useState(false);
     const [loadingMaster, setLoadingMaster] = useState(false);
 
+    // Uso mensal de mensagens vs limite do plano
+    const [waUsage, setWaUsage] = useState(null);
+
+    useEffect(() => {
+        if (!barbershop?.id) return;
+        api.get(`/whatsapp/usage/${barbershop.id}`)
+            .then(res => setWaUsage(res.data))
+            .catch(() => setWaUsage(null));
+    }, [barbershop?.id]);
+
     useEffect(() => {
         if (!barbershop?.id) return;
 
@@ -601,6 +611,11 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                     <div className="space-y-1">
                         <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><Smartphone className="w-5 h-5 text-[#25D366]" /> WhatsApp Smart Bot</h2>
                         <p className="text-muted-foreground text-xs font-medium">Automação inteligente de disparos e confirmações.</p>
+                        {waUsage && (
+                            <p className="text-[11px] font-semibold text-muted-foreground">
+                                <span className={waUsage.used >= waUsage.limit ? 'text-red-500' : 'text-[#25D366]'}>{waUsage.used}</span> de {waUsage.limit} mensagens usadas este mês
+                            </p>
+                        )}
                         <button onClick={() => setShowLogs(true)} className="mt-2 text-[11px] font-bold text-primary hover:underline flex items-center gap-1">Ver Logs de Disparos Recentes</button>
                     </div>
                     <div className="flex items-center gap-4">
@@ -755,6 +770,121 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                                 className="w-full h-12 bg-black/50 border border-zinc-800 rounded-lg px-4 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono tracking-wider"
                             />
                         </div>
+
+                        {/* Limites de WhatsApp por plano */}
+                        <div className="pt-4 border-t border-zinc-800">
+                            <h3 className="text-sm font-bold text-white mb-1">Limites de Mensagens por Plano (mensal)</h3>
+                            <p className="text-[10px] text-zinc-500 mb-3">Ao atingir o limite, os disparos da barbearia são pausados até o próximo mês.</p>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[['WA_LIMIT_SOLO', 'Start', '300'], ['WA_LIMIT_PRO', 'Pro', '1000'], ['WA_LIMIT_ENTERPRISE', 'Empire', '3000']].map(([key, label, def]) => (
+                                    <div key={key}>
+                                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">{label}</label>
+                                        <input
+                                            type="number"
+                                            placeholder={def}
+                                            value={masterSettings[key] || ''}
+                                            onChange={(e) => setMasterSettings({ ...masterSettings, [key]: e.target.value })}
+                                            className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* IA do Suporte */}
+                        <div className="pt-4 border-t border-zinc-800">
+                            <h3 className="text-sm font-bold text-white mb-1">IA do Chat de Suporte</h3>
+                            <p className="text-[10px] text-zinc-500 mb-3">Escolha o provedor e cole a chave de API. Sem chave, o chat responde com a base de conhecimento local.</p>
+                            <div className="grid md:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Provedor</label>
+                                    <select
+                                        value={masterSettings.AI_PROVIDER || ''}
+                                        onChange={(e) => setMasterSettings({ ...masterSettings, AI_PROVIDER: e.target.value })}
+                                        className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm"
+                                    >
+                                        <option value="">Desativado (respostas locais)</option>
+                                        <option value="gemini">Google Gemini</option>
+                                        <option value="openai">OpenAI (GPT)</option>
+                                        <option value="grok">xAI Grok</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Chave de API</label>
+                                    <input
+                                        type="password"
+                                        name="ai-api-key"
+                                        autoComplete="new-password"
+                                        placeholder="••••••••••••••••"
+                                        value={masterSettings.AI_API_KEY || ''}
+                                        onChange={(e) => setMasterSettings({ ...masterSettings, AI_API_KEY: e.target.value })}
+                                        className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Cakto (cobrança SaaS) */}
+                        <div className="pt-4 border-t border-zinc-800">
+                            <h3 className="text-sm font-bold text-white mb-1">Cakto — Cobrança das Assinaturas</h3>
+                            <p className="text-[10px] text-zinc-500 mb-3">
+                                Credenciais da API (para o desconto de retenção e cancelamento automático) e mapeamento produto → plano.
+                                Cadastre o webhook na Cakto apontando para:{' '}
+                                <code className="text-[#25D366] break-all">https://www.corteconexao.com.br/api/webhooks/cakto?secret=SEU_SEGREDO</code>
+                            </p>
+                            <div className="grid md:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Client ID</label>
+                                    <input
+                                        type="text"
+                                        name="cakto-client-id"
+                                        autoComplete="off"
+                                        value={masterSettings.CAKTO_CLIENT_ID || ''}
+                                        onChange={(e) => setMasterSettings({ ...masterSettings, CAKTO_CLIENT_ID: e.target.value })}
+                                        className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Client Secret</label>
+                                    <input
+                                        type="password"
+                                        name="cakto-client-secret"
+                                        autoComplete="new-password"
+                                        placeholder="••••••••••••••••"
+                                        value={masterSettings.CAKTO_CLIENT_SECRET || ''}
+                                        onChange={(e) => setMasterSettings({ ...masterSettings, CAKTO_CLIENT_SECRET: e.target.value })}
+                                        className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Segredo do Webhook</label>
+                                    <input
+                                        type="password"
+                                        name="cakto-webhook-secret"
+                                        autoComplete="new-password"
+                                        placeholder="mesmo valor usado na URL do webhook"
+                                        value={masterSettings.CAKTO_WEBHOOK_SECRET || ''}
+                                        onChange={(e) => setMasterSettings({ ...masterSettings, CAKTO_WEBHOOK_SECRET: e.target.value })}
+                                        className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3 mt-3">
+                                {[['CAKTO_PRODUCT_SOLO', 'Produto Start'], ['CAKTO_PRODUCT_PRO', 'Produto Pro'], ['CAKTO_PRODUCT_ENTERPRISE', 'Produto Empire']].map(([key, label]) => (
+                                    <div key={key}>
+                                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">{label}</label>
+                                        <input
+                                            type="text"
+                                            autoComplete="off"
+                                            placeholder="ID do produto na Cakto"
+                                            value={masterSettings[key] || ''}
+                                            onChange={(e) => setMasterSettings({ ...masterSettings, [key]: e.target.value })}
+                                            className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="mt-6 flex justify-end">
@@ -778,6 +908,42 @@ function SubscriptionTab({ barbershop, refetchShop }) {
     const [cancelling, setCancelling] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [confirmText, setConfirmText] = useState('');
+    const [showRetentionModal, setShowRetentionModal] = useState(false);
+    const [retentionInfo, setRetentionInfo] = useState(null);
+    const [checkingRetention, setCheckingRetention] = useState(false);
+    const [acceptingOffer, setAcceptingOffer] = useState(false);
+    const [retentionResult, setRetentionResult] = useState(null);
+
+    // Antes de abrir o cancelamento, verifica se há oferta de retenção disponível
+    const handleCancelClick = async () => {
+        setCheckingRetention(true);
+        try {
+            const res = await api.get('/barbershops/retention-status');
+            setRetentionInfo(res.data);
+            if (res.data.eligible) {
+                setShowRetentionModal(true);
+            } else {
+                setShowCancelModal(true);
+            }
+        } catch (err) {
+            // Falhou a consulta? Não trava o usuário: segue pro fluxo normal
+            setShowCancelModal(true);
+        } finally {
+            setCheckingRetention(false);
+        }
+    };
+
+    const handleAcceptOffer = async () => {
+        setAcceptingOffer(true);
+        try {
+            const res = await api.post('/barbershops/retention-accept');
+            setRetentionResult(res.data);
+        } catch (err) {
+            alert(err.response?.data?.message || 'Erro ao aplicar o desconto. Tente novamente.');
+        } finally {
+            setAcceptingOffer(false);
+        }
+    };
 
     const saasPlanDetails = {
         SOLO: { name: 'Start (Solo)', maxBarbers: 1, price: 'R$ 79,90' },
@@ -876,14 +1042,73 @@ function SubscriptionTab({ barbershop, refetchShop }) {
                             </p>
                         </div>
                         <button
-                            onClick={() => setShowCancelModal(true)}
-                            className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2"
+                            onClick={handleCancelClick}
+                            disabled={checkingRetention}
+                            className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2 disabled:opacity-50"
                         >
-                            <Trash2 className="w-4 h-4" /> Cancelar Assinatura
+                            {checkingRetention ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Cancelar Assinatura
                         </button>
                     </div>
                 )}
             </div>
+
+            {/* Retention Offer Modal */}
+            {showRetentionModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="w-full max-w-md bg-card border border-border rounded-xl overflow-hidden shadow-2xl space-y-6 p-6">
+                        {retentionResult ? (
+                            <>
+                                <div className="space-y-2 text-center">
+                                    <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+                                        <CheckCircle className="w-8 h-8 text-emerald-500" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground">Desconto aplicado! 🎉</h3>
+                                    <p className="text-muted-foreground text-xs leading-relaxed">
+                                        Sua próxima cobrança sai de <s>R$ {retentionResult.previousAmount?.toFixed(2)}</s> por{' '}
+                                        <b className="text-emerald-500">R$ {retentionResult.newAmount?.toFixed(2)}</b>. Bom te ter com a gente!
+                                    </p>
+                                </div>
+                                <div className="flex justify-center">
+                                    <button
+                                        onClick={() => { setShowRetentionModal(false); setRetentionResult(null); }}
+                                        className="px-6 h-10 bg-primary text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition"
+                                    >
+                                        Continuar usando
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                        <Sparkles className="w-5 h-5 text-primary" /> Antes de ir... uma oferta pra você
+                                    </h3>
+                                    <p className="text-muted-foreground text-xs leading-relaxed">
+                                        Que tal <b className="text-primary">{retentionInfo?.discountPct || 10}% de desconto na sua próxima mensalidade</b> para
+                                        continuar com a gente? O desconto é aplicado automaticamente, sem burocracia.
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-3 pt-2">
+                                    <button
+                                        onClick={handleAcceptOffer}
+                                        disabled={acceptingOffer}
+                                        className="w-full h-11 bg-primary text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {acceptingOffer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                        Aceitar desconto de {retentionInfo?.discountPct || 10}%
+                                    </button>
+                                    <button
+                                        onClick={() => { setShowRetentionModal(false); setShowCancelModal(true); }}
+                                        className="w-full h-10 text-muted-foreground hover:text-red-500 rounded-lg font-semibold text-xs transition"
+                                    >
+                                        Não, quero cancelar mesmo assim
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Cancel Modal */}
             {showCancelModal && (

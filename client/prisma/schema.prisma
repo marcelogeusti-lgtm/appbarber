@@ -390,8 +390,15 @@ model Barbershop {
   trialStartedAt        DateTime?              @default(now())
   trialEndsAt           DateTime?
   nextBillingDate       DateTime?
-  saasPlan              String                 @default("BASIC")
+  saasPlan              String                 @default("SOLO")
   isTestAccount         Boolean                @default(false)
+
+  // Cakto billing + retention flow (discount offered on cancel attempts)
+  caktoSubscriptionId     String?
+  retentionOffersUsed     Int       @default(0)
+  retentionLastOfferAt    DateTime?
+  retentionDiscountActive Boolean   @default(false)
+  retentionOriginalAmount Float?
   enabledPaymentMethods PaymentMethod[] @default([CASH, PIX, CREDIT_CARD, DEBIT_CARD])
 
   // WhatsApp Automation Settings
@@ -934,6 +941,8 @@ model CommunicationLog {
   status       String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([barbershopId, createdAt])
 }
 
 // --- Payment Orchestrator Models ---
@@ -1355,4 +1364,21 @@ model PlatformSetting {
   key       String   @id
   value     String   @db.Text
   updatedAt DateTime @updatedAt
+}
+
+// Audit trail of SaaS billing webhooks (Cakto etc.) — kept even when the
+// event can't be matched to a barbershop, for manual reconciliation
+model SaasWebhookEvent {
+  id        String   @id @default(uuid())
+  gateway   String
+  event     String?
+  email     String?
+  productId String?
+  raw       Json
+  processed Boolean  @default(false)
+  error     String?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([processed])
 }

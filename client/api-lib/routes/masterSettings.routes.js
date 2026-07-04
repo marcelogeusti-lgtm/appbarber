@@ -3,12 +3,13 @@ const router = express.Router();
 const { protect, authorize } = require('../middlewares/auth.middleware');
 const prisma = require('../lib/prisma');
 const whatsappService = require('../services/communication/WhatsAppService');
+const aiSupportService = require('../services/AISupportService');
+const caktoService = require('../services/CaktoService');
 
 // Middleware to ensure Master/Super Admin only
 const ensureMaster = (req, res, next) => {
-    if (req.user.role !== 'MASTER' && req.user.role !== 'OWNER' && req.user.role !== 'SUPERADMIN') {
-        // Use standard roles that signify full platform access in this system.
-        // Assuming OWNER/MASTER have super admin privileges.
+    const allowed = ['SUPER_ADMIN', 'MASTER', 'OWNER', 'SUPERADMIN'];
+    if (!allowed.includes(req.user.role)) {
         return res.status(403).json({ error: 'Access Denied. Super Admin only.' });
     }
     next();
@@ -55,8 +56,11 @@ router.post('/', protect, ensureMaster, async (req, res) => {
             }
         }
 
-        // Inform WhatsAppService to refresh its config immediately
+        // Inform dependent services to refresh their config immediately
         whatsappService.refreshConfig();
+        aiSupportService.refreshConfig();
+        caktoService.refreshConfig();
+        require('../services/communication/WhatsAppQuota').refreshConfig();
 
         res.json({ message: 'Settings updated successfully' });
     } catch (error) {
