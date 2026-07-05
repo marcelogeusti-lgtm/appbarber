@@ -73,12 +73,13 @@ export default function Pricing() {
     ].map(plan => {
         const current = plan.periods[billing];
         const monthlyRef = plan.periods.monthly.price;
+        const brl = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         return {
             ...plan,
             checkoutUrl: current.url,
-            price: `R$ ${current.price.toFixed(2).replace('.', ',')}`,
+            price: `R$ ${brl(current.price)}`,
             total: current.total,
-            totalLabel: current.total ? `R$ ${current.total.toFixed(2).replace('.', ',')}` : null,
+            totalLabel: current.total ? `R$ ${brl(current.total)}` : null,
             discountPct: Math.round((1 - current.price / monthlyRef) * 100)
         };
     });
