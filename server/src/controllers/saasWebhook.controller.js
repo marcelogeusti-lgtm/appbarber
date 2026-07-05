@@ -12,10 +12,15 @@ function extractFields(body) {
     const data = body?.data || body || {};
     const event = body?.event || body?.event_type || data?.event || null;
     const email = data?.customer?.email || data?.subscriber?.email || body?.customer?.email || null;
-    const productId = data?.product?.id || data?.product?.short_id || data?.offer?.id || data?.product_id || null;
-    const subscriptionId = data?.subscription?.id || data?.subscription_id || (event?.startsWith('subscription') ? data?.id : null) || null;
+    // Na Cakto há UM produto ("Next") com várias ofertas (Start/Pro/Empire × período),
+    // então o plano é identificado pela OFERTA. Capturamos os dois.
+    const offerId = data?.offer?.id || data?.offer?.short_id || null;
+    const productId = data?.product?.id || data?.product?.short_id || data?.product_id || null;
+    const subscriptionId = data?.subscription?.id || data?.subscription_id ||
+        (typeof data?.subscription === 'string' ? data.subscription : null) ||
+        (event?.startsWith('subscription') ? data?.id : null) || null;
     const nextPaymentDate = data?.subscription?.next_payment_date || data?.next_payment_date || null;
-    return { event, email, productId, subscriptionId, nextPaymentDate };
+    return { event, email, offerId, productId, subscriptionId, nextPaymentDate };
 }
 
 async function getPlanMapping() {
@@ -50,15 +55,16 @@ async function notifyMaster(title, message) {
 exports.handleCaktoWebhook = async (req, res) => {
     let eventRecord = null;
     try {
-        // 1. Validação do segredo (configurado no painel Master e na URL do webhook na Cakto)
+        // 1. Validação do segredo — a Cakto pode mandar na querystring (?secret=) OU no corpo
         const secretSetting = await prisma.platformSetting.findUnique({ where: { key: 'CAKTO_WEBHOOK_SECRET' } });
-        if (!secretSetting?.value || req.query.secret !== secretSetting.value) {
+        const providedSecret = req.query.secret || req.body?.secret;
+        if (!secretSetting?.value || providedSecret !== secretSetting.value) {
             console.warn('[Cakto Webhook] Rejected: invalid or missing secret');
             return res.status(401).json({ message: 'Invalid secret' });
         }
 
-        const { event, email, productId, subscriptionId, nextPaymentDate } = extractFields(req.body);
-        console.log(`[Cakto Webhook] event=${event} email=${email} product=${productId} sub=${subscriptionId}`);
+        const { event, email, offerId, productId, subscriptionId, nextPaymentDate } = extractFields(req.body);
+        console.log(`[Cakto Webhook] event=${event} email=${email} offer=${offerId} product=${productId} sub=${subscriptionId}`);
 
         // 2. Auditoria: guarda o evento bruto antes de qualquer processamento
         eventRecord = await prisma.saasWebhookEvent.create({
@@ -107,13 +113,14 @@ exports.handleCaktoWebhook = async (req, res) => {
             if (nextPaymentDate) dataToUpdate.nextBillingDate = new Date(nextPaymentDate);
 
             const planMap = await getPlanMapping();
-            const plan = productId ? planMap[String(productId)] : null;
+            // Casa primeiro pela oferta (é ela que distingue o plano), depois pelo produto
+            const plan = (offerId && planMap[String(offerId)]) || (productId && planMap[String(productId)]) || null;
             if (plan) {
                 dataToUpdate.saasPlan = plan;
-            } else if (productId) {
+            } else if (offerId || productId) {
                 await notifyMaster(
-                    'Produto Cakto não mapeado',
-                    `Evento "${event}" de ${email} com produto "${productId}" sem plano configurado no painel Master.`
+                    'Oferta Cakto não mapeada',
+                    `Evento "${event}" de ${email} — oferta "${offerId}" / produto "${productId}" sem plano configurado no painel Master.`
                 );
             }
 

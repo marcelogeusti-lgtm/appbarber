@@ -828,9 +828,10 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                         <div className="pt-4 border-t border-zinc-800">
                             <h3 className="text-sm font-bold text-white mb-1">Cakto — Cobrança das Assinaturas</h3>
                             <p className="text-[10px] text-zinc-500 mb-3">
-                                Credenciais da API (para o desconto de retenção e cancelamento automático) e mapeamento produto → plano.
+                                Credenciais da API (só para o desconto de retenção e cancelamento automático — a cobrança normal funciona só com o webhook).
                                 Cadastre o webhook na Cakto apontando para:{' '}
                                 <code className="text-[#25D366] break-all">https://www.corteconexao.com.br/api/webhooks/cakto?secret=SEU_SEGREDO</code>
+                                {' '}— use o mesmo segredo no campo abaixo. Nos campos de plano, cole os <b className="text-zinc-300">IDs das ofertas</b> da Cakto (mensal, semestral e anual), separados por vírgula.
                             </p>
                             <div className="grid md:grid-cols-2 gap-3">
                                 <div>
@@ -870,13 +871,13 @@ function CommunicationTab({ barbershop, setBarbershop, templates, editingTemplat
                                 </div>
                             </div>
                             <div className="grid grid-cols-3 gap-3 mt-3">
-                                {[['CAKTO_PRODUCT_SOLO', 'Produto Start'], ['CAKTO_PRODUCT_PRO', 'Produto Pro'], ['CAKTO_PRODUCT_ENTERPRISE', 'Produto Empire']].map(([key, label]) => (
+                                {[['CAKTO_PRODUCT_SOLO', 'Ofertas Start'], ['CAKTO_PRODUCT_PRO', 'Ofertas Pro'], ['CAKTO_PRODUCT_ENTERPRISE', 'Ofertas Empire']].map(([key, label]) => (
                                     <div key={key}>
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">{label}</label>
                                         <input
                                             type="text"
                                             autoComplete="off"
-                                            placeholder="ID do produto na Cakto"
+                                            placeholder="id1, id2, id3 (mensal, semestral, anual)"
                                             value={masterSettings[key] || ''}
                                             onChange={(e) => setMasterSettings({ ...masterSettings, [key]: e.target.value })}
                                             className="w-full h-10 bg-black/50 border border-zinc-800 rounded-lg px-3 text-white focus:outline-none focus:border-[#25D366]/50 transition-all text-sm font-mono"
