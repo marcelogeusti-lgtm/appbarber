@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -55,6 +55,14 @@ export default function ProfileMenuPage() {
     const [twoFactorRequired, setTwoFactorRequired] = useState(false);
     const [twoFactorMethod, setTwoFactorMethod] = useState('');
     const [mfaToken, setMfaToken] = useState('');
+
+    // No desktop, o hub de perfil redireciona direto para a edição.
+    // Precisa ficar ANTES de qualquer return condicional (regras de hooks).
+    useEffect(() => {
+        if (user && typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            router.replace('/perfil/editar');
+        }
+    }, [user, router]);
 
     if (loading) {
         return (
@@ -340,13 +348,6 @@ export default function ProfileMenuPage() {
             </div>
         );
     }
-
-    // If logged in, potentially redirect or show mobile menu
-    useEffect(() => {
-        if (user && window.innerWidth >= 1024) {
-            router.replace('/perfil/editar');
-        }
-    }, [user, router]);
 
     const menuSections = [
         {

@@ -16,14 +16,12 @@ const getBaseUrl = () => {
         if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
             // Unified Deployment: Site and API on the same domain
             url = '/api';
-            console.log('[DEBUG] getBaseUrl Unified:', url);
             return url;
         }
     }
 
     // Priority 3: Default Local
     url = 'http://localhost:3001/api';
-    console.log('[DEBUG] getBaseUrl Priority 3:', url);
     return url;
 };
 

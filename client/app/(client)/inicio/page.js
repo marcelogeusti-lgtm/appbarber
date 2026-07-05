@@ -59,7 +59,6 @@ export default function ClientHome() {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    console.log("[GEOLOCATION SUCCESS]", position.coords);
                     fetchData(position.coords.latitude, position.coords.longitude);
                 },
                 (error) => {
@@ -98,14 +97,6 @@ export default function ClientHome() {
             const searchDataRaw = getValue(0) || [];
             const favoritesData = getValue(1) || [];
             const appointmentsData = getValue(2) || [];
-
-            console.log("[HOME DATA DEBUG]", {
-                recommendations: searchDataRaw.length,
-                favorites: favoritesData.length,
-                appointments: appointmentsData.length,
-                user: user?.id,
-                userId: user?.authUserId || user?.id
-            });
 
             // Process recommendations
             setBarbershops(searchDataRaw);

@@ -122,7 +122,7 @@ export default function AccessPage() {
             <motion.div variants={itemVariants} className="pt-8 flex justify-center">
                 <p className="text-[9px] text-slate-700 font-black uppercase tracking-[0.3em] flex items-center gap-3">
                     <span className="w-8 h-[1px] bg-white/5" />
-                    AppBarber Segurança Centralizada
+                    NEXT Segurança Centralizada
                     <span className="w-8 h-[1px] bg-white/5" />
                 </p>
             </motion.div>

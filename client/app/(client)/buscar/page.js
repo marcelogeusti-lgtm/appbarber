@@ -171,7 +171,7 @@ export default function SearchPage() {
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white pb-24 selection:bg-primary/30">
             {/* Meta Tags simulation for client side */}
-            <title>Buscar Barbearias | AppBarber</title>
+            <title>Buscar Barbearias | NEXT</title>
 
             <div className="max-w-2xl mx-auto px-5">
                 {/* Header */}

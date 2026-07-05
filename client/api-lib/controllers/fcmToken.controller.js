@@ -7,10 +7,16 @@ const fcmTokenController = {
     saveToken: async (req, res) => {
         try {
             const { token, deviceType } = req.body;
-            const authUserId = req.user.id;
+            // FcmToken.authUserId referencia AuthUser; no JWT isso é authUserId (não id, que é o Client/User)
+            const authUserId = req.user.authUserId;
 
             if (!token) {
                 return res.status(400).json({ error: 'Token is required' });
+            }
+
+            // Sem AuthUser no token não há como vincular o dispositivo — ignora silenciosamente
+            if (!authUserId) {
+                return res.json({ success: true, skipped: true });
             }
 
             // upsert token
@@ -41,7 +47,7 @@ const fcmTokenController = {
     deleteToken: async (req, res) => {
         try {
             const { token } = req.params;
-            const authUserId = req.user.id;
+            const authUserId = req.user.authUserId;
 
             await prisma.fcmToken.deleteMany({
                 where: {

@@ -156,7 +156,7 @@ export default function CardsPage() {
                                 <div className="flex justify-between items-end relative z-10 px-1 pt-4 border-t border-white/5">
                                     <div>
                                         <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">Expira em</p>
-                                        <p className="text-sm font-black text-white italic">{card.expiryMonth}/{card.expiryYear}</p>
+                                        <p className="text-sm font-black text-white italic">{card.expiry || card.expiryMonth ? (card.expiry || `${card.expiryMonth}/${card.expiryYear}`) : '••/••'}</p>
                                     </div>
                                     <div className="text-right">
                                         <div className="w-12 h-8 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden">

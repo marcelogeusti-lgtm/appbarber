@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, MapPin, ShieldCheck, Key, LogOut } from 'lucide-react';
+import { User, MapPin, ShieldCheck, Key, CreditCard, SlidersHorizontal, LogOut } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 import { motion } from 'framer-motion';
 
@@ -12,8 +12,10 @@ export default function ProfileSidebar() {
     const menuItems = [
         { icon: User, label: 'Meus Dados', href: '/perfil/editar' },
         { icon: MapPin, label: 'Endereço', href: '/perfil/endereco' },
+        { icon: CreditCard, label: 'Meus Cartões', href: '/cartoes' },
         { icon: ShieldCheck, label: 'Segurança', href: '/perfil/seguranca' },
         { icon: Key, label: 'Meus Acessos', href: '/perfil/acesso' },
+        { icon: SlidersHorizontal, label: 'Preferências', href: '/perfil/preferencias' },
     ];
 
     return (

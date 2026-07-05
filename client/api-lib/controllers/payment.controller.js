@@ -408,7 +408,7 @@ exports.listCards = async (req, res) => {
             id: c.id,
             brand: c.brand,
             last4: c.last4,
-            expiry: `${c.expiryMonth}/${c.expiryYear}`,
+            expiry: (c.expiryMonth && c.expiryYear) ? `${String(c.expiryMonth).padStart(2, '0')}/${c.expiryYear}` : null,
             barbershopName: c.barbershop?.name || 'Carteira Global',
             isGlobal: !c.barbershopId,
             barbershopId: c.barbershopId,

@@ -16,7 +16,7 @@ export default function TermsPage() {
                         1. Aceitação dos Termos
                     </h2>
                     <p className="text-slate-400 text-sm leading-relaxed">
-                        Ao acessar e utilizar o aplicativo **AppBarber**, você concorda em cumprir e vincular-se aos seguintes termos e condições de uso. Este serviço é destinado a facilitar o agendamento de serviços de barbearia entre clientes e profissionais independentes.
+                        Ao acessar e utilizar o aplicativo **NEXT**, você concorda em cumprir e vincular-se aos seguintes termos e condições de uso. Este serviço é destinado a facilitar o agendamento de serviços de barbearia entre clientes e profissionais independentes.
                     </p>
                 </div>
 
