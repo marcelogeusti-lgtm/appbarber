@@ -154,54 +154,247 @@ const translations = {
     "terms": "Termos de Uso",
     "status": "Status: Operacional"
   },
+  "featureDetail": {"back":"Voltar para visão geral","ctaTitle":"Pronto para dominar essa funcionalidade?","ctaDesc":"Pare de usar sistemas que limitam seu crescimento. O NEXT tem tudo o que você precisa habilitado agora.","ctaButton":"Começar Meus 15 Dias Grátis"},
   "featuresData": {
     "agenda-inteligente": {
       "title": "Agendadora Anti-Falta",
-      "oneLiner": "Lembretes no WhatsApp e cobrança de garantias para acabar de vez com os horários furados."
+      "oneLiner": "Lembretes no WhatsApp e cobrança de garantias para acabar de vez com os horários furados.",
+      "heroTitle": "Cadeira vazia custa muito caro.",
+      "heroDesc": "Garanta que seus clientes compareçam. Nosso sistema inteligente reduz as faltas na sua barbearia em até 85%.",
+      "benefits": [
+        {
+          "title": "Lembretes Automáticos",
+          "desc": "O sistema envia mensagens 2h e 24h antes do horário. O cliente não esquece e você não perde dinheiro."
+        },
+        {
+          "title": "Sinal de Garantia",
+          "desc": "Exija o pagamento de um sinal (via PIX ou cartão) de clientes com o costume de marcar e não aparecer."
+        },
+        {
+          "title": "Mapeamento Visual",
+          "desc": "Bata o olho na agenda e saiba imediatamente pelas cores quem confirmou, quem pagou e quem atrasou."
+        }
+      ]
     },
     "financeiro-avancado": {
       "title": "Financeiro & Split Automático",
-      "oneLiner": "Repasse comissões do time na exata hora da transação e feche o mês sem planilhas confusas."
+      "oneLiner": "Repasse comissões do time na exata hora da transação e feche o mês sem planilhas confusas.",
+      "heroTitle": "Fim da confusão no fechamento.",
+      "heroDesc": "Livre-se das contas de papel e planilhas instáveis. Automatize o acerto com sua equipe e tenha o controle na mão.",
+      "benefits": [
+        {
+          "title": "Fechamento Imediato",
+          "desc": "Com 1 clique, visualize lucros reais já deduzindo custos, saídas e até as taxas invisíveis da maquininha."
+        },
+        {
+          "title": "Split de Recebimento",
+          "desc": "Pagamentos online são divididos instantaneamente: a sua fatia vai pro salão e a do barbeiro cai na conta dele."
+        },
+        {
+          "title": "Previsibilidade Diária",
+          "desc": "Pare de adivinhar. O sistema mostra quanto faturamento futuro já está travado na sua agenda de amanhã."
+        }
+      ]
     },
     "garcom-digital": {
       "title": "Recepcionista 24/7",
-      "oneLiner": "Um link que atende e fecha reservas sozinho — até de madrugada."
+      "oneLiner": "Um link que atende e fecha reservas sozinho — até de madrugada.",
+      "heroTitle": "Agende clientes até de madrugada.",
+      "heroDesc": "Um link de agendamento sempre aberto, que atende seus clientes mesmo fora do horário comercial, sem precisar de ninguém na recepção.",
+      "benefits": [
+        {
+          "title": "Link Direto pro Instagram/WhatsApp",
+          "desc": "Um link leve e rápido pra colocar na bio ou mandar no WhatsApp — o cliente abre e agenda em segundos, sem precisar instalar nada."
+        },
+        {
+          "title": "Funciona no Navegador",
+          "desc": "Não exige que o cliente baixe nenhum aplicativo. Basta abrir o link em qualquer celular e agendar."
+        },
+        {
+          "title": "Remarcação com Aprovação",
+          "desc": "O cliente pode pedir para mudar o horário, mas a remarcação só é confirmada depois que você aprova."
+        }
+      ]
     },
     "fidelizacao-magnetica": {
       "title": "Motor de Retenção",
-      "oneLiner": "Um clube de pontos que estimula o cliente a voltar, com cartão de fidelidade direto na Apple Wallet."
+      "oneLiner": "Um clube de pontos que estimula o cliente a voltar, com cartão de fidelidade direto na Apple Wallet.",
+      "heroTitle": "Transforme clientes de uma vez em clientes fiéis.",
+      "heroDesc": "Um programa de pontos simples de configurar, que incentiva o cliente a voltar e a gastar mais a cada visita.",
+      "benefits": [
+        {
+          "title": "Clube de Pontos Customizável",
+          "desc": "Defina quantos reais equivalem a um ponto e crie recompensas que incentivam o cliente a gastar mais pra resgatar."
+        },
+        {
+          "title": "Lembrete de Retorno",
+          "desc": "O sistema avisa automaticamente o cliente no WhatsApp quando já passou da época recomendada para ele voltar a cortar."
+        },
+        {
+          "title": "Cartão de Fidelidade na Apple Wallet",
+          "desc": "O cliente guarda o cartão de pontos direto na carteira digital do iPhone, sem precisar de nenhum aplicativo extra."
+        }
+      ]
     },
     "controle-equipe": {
       "title": "Raio-X da Equipe",
-      "oneLiner": "Veja o desempenho de cada profissional e controle exatamente o que cada um pode acessar no sistema."
+      "oneLiner": "Veja o desempenho de cada profissional e controle exatamente o que cada um pode acessar no sistema.",
+      "heroTitle": "Chega de gerenciar o salão por intuição.",
+      "heroDesc": "Acompanhe a agenda e o faturamento de cada profissional, com permissões de acesso claras para cada função da equipe.",
+      "benefits": [
+        {
+          "title": "Painel Individual do Profissional",
+          "desc": "Cada barbeiro acessa sua própria agenda e seus próprios ganhos, sem precisar te perguntar."
+        },
+        {
+          "title": "Permissões por Função",
+          "desc": "Defina o que cada papel pode fazer: Recepcionista, Barbeiro Padrão ou Gerente têm acessos diferentes dentro do mesmo sistema."
+        },
+        {
+          "title": "Ranking de Performance",
+          "desc": "Veja quem mais fatura e quem mais atende, direto no painel do gestor, sem precisar cruzar planilhas."
+        }
+      ]
     },
     "padrao-premium": {
       "title": "Vitrine Ultra-Premium",
-      "oneLiner": "Uma página de agendamento bonita, rápida e com a sua marca, não um formulário genérico."
+      "oneLiner": "Uma página de agendamento bonita, rápida e com a sua marca, não um formulário genérico.",
+      "heroTitle": "Primeira impressão de alto padrão.",
+      "heroDesc": "Sua página de agendamento leva o logo e as fotos da sua barbearia, com uma interface rápida e no estilo Dark Mode.",
+      "benefits": [
+        {
+          "title": "Sua Marca na Página",
+          "desc": "Coloque o logo e as fotos da sua barbearia na página de agendamento que o cliente vê e usa."
+        },
+        {
+          "title": "Galeria de Trabalhos",
+          "desc": "Mostre fotos dos cortes e serviços realizados direto na vitrine, pra atrair quem ainda não te conhece."
+        },
+        {
+          "title": "Interface Rápida e Moderna",
+          "desc": "Uma experiência de agendamento fluida, pensada pro celular, sem telas lentas ou poluídas."
+        }
+      ]
     },
     "gestao-estoque": {
       "title": "Vazamento Zero (Estoque)",
-      "oneLiner": "Controle o estoque de produtos com baixa automática toda vez que algo é vendido na comanda."
+      "oneLiner": "Controle o estoque de produtos com baixa automática toda vez que algo é vendido na comanda.",
+      "heroTitle": "Saiba exatamente o que está no seu estoque.",
+      "heroDesc": "Pare de perder dinheiro com produtos vencendo ou sumindo sem explicação. Tenha controle real do que entra e sai.",
+      "benefits": [
+        {
+          "title": "Baixa Automática na Venda",
+          "desc": "Quando um produto é vendido numa comanda, ele já é descontado do seu estoque na hora, sem precisar lançar de novo."
+        },
+        {
+          "title": "Alerta de Estoque Baixo",
+          "desc": "O painel avisa quando um produto está acabando, pra você repor antes de faltar."
+        },
+        {
+          "title": "Comparativo de Custo e Venda",
+          "desc": "Veja lado a lado quanto você paga no produto e quanto está cobrando do cliente, pra saber se a margem está saudável."
+        }
+      ]
     },
     "importacao-lote": {
       "title": "Migração Mágica (1-Click)",
-      "oneLiner": "Traga sua lista de clientes de qualquer planilha ou sistema antigo em poucos minutos."
+      "oneLiner": "Traga sua lista de clientes de qualquer planilha ou sistema antigo em poucos minutos.",
+      "heroTitle": "Trocar de sistema sem perder nada.",
+      "heroDesc": "Suba um arquivo de planilha (CSV) com sua base de clientes atual e o NEXT organiza tudo pra você começar já com sua carteira completa.",
+      "benefits": [
+        {
+          "title": "Importação por Planilha",
+          "desc": "Aceita arquivos CSV ou exportados do Google Sheets, sem precisar formatar nada manualmente."
+        },
+        {
+          "title": "Detecção de Duplicados",
+          "desc": "O sistema identifica clientes cadastrados mais de uma vez e ajuda a evitar cadastros repetidos."
+        },
+        {
+          "title": "Histórico Preservado",
+          "desc": "As informações de contato e cadastro dos seus clientes são mantidas exatamente como estavam antes da migração."
+        }
+      ]
     },
     "avaliacoes-clientes": {
       "title": "Avaliações de Clientes",
-      "oneLiner": "O cliente avalia o atendimento direto pelo app, vinculado ao agendamento que ele realmente fez."
+      "oneLiner": "O cliente avalia o atendimento direto pelo app, vinculado ao agendamento que ele realmente fez.",
+      "heroTitle": "Saiba o que seus clientes realmente acham.",
+      "heroDesc": "Depois de cada atendimento, o cliente pode dar uma nota e deixar um comentário — só quem realmente foi atendido pode avaliar.",
+      "benefits": [
+        {
+          "title": "Avaliação Vinculada ao Agendamento",
+          "desc": "Só quem teve um horário confirmado ou concluído pode avaliar, evitando notas falsas."
+        },
+        {
+          "title": "Nota e Comentário por Atendimento",
+          "desc": "O cliente dá uma nota de 1 a 5 estrelas e pode deixar um comentário sobre o serviço."
+        },
+        {
+          "title": "Visão por Profissional",
+          "desc": "Acompanhe a média de avaliações de cada barbeiro e identifique quem precisa de atenção no atendimento."
+        }
+      ]
     },
     "universidade": {
       "title": "Universidade Privada",
-      "oneLiner": "Cursos de gestão e marketing pra barbearia, direto dentro do próprio sistema."
+      "oneLiner": "Cursos de gestão e marketing pra barbearia, direto dentro do próprio sistema.",
+      "heroTitle": "Cresça como gestor, não só na tesoura.",
+      "heroDesc": "Acesse cursos práticos sobre gestão, marketing e atendimento pensados especificamente pra quem administra uma barbearia.",
+      "benefits": [
+        {
+          "title": "Conteúdo Prático e Direto",
+          "desc": "Aulas focadas em aplicar no dia a dia da barbearia, sem enrolação teórica."
+        },
+        {
+          "title": "Acesso Dentro do Painel",
+          "desc": "Assista aos cursos direto no sistema que você já usa, sem precisar entrar em outra plataforma."
+        },
+        {
+          "title": "Conteúdo Atualizado Periodicamente",
+          "desc": "Novos cursos são adicionados conforme a plataforma evolui, mantendo você e sua equipe atualizados."
+        }
+      ]
     },
     "relatorios-bi": {
       "title": "B.I. (Business Intelligence)",
-      "oneLiner": "Chega de achismo. Relatórios diretos que mostram, em segundos, onde seu lucro está vazando."
+      "oneLiner": "Chega de achismo. Relatórios diretos que mostram, em segundos, onde seu lucro está vazando.",
+      "heroTitle": "Decisões com dados, não com feeling.",
+      "heroDesc": "Veja exatamente quanto entra, quanto sai e onde seu lucro está escapando — sem precisar abrir uma planilha.",
+      "benefits": [
+        {
+          "title": "Horários de Pico e Vazios",
+          "desc": "Gráficos simples mostram quais dias e horários lotam e quais ficam vazios, pra você ajustar preços e escalas com precisão."
+        },
+        {
+          "title": "Exportação para o Contador",
+          "desc": "Gere relatórios em .csv e PDF prontos para enviar direto pro seu contador, sem retrabalho no fim do mês."
+        },
+        {
+          "title": "Lucro por Serviço",
+          "desc": "Descubra quais serviços realmente dão lucro e quais só ocupam a cadeira sem valer o tempo do profissional."
+        }
+      ]
     },
     "multi-unidades": {
       "title": "Franquias (Super Host)",
-      "oneLiner": "Gerencie todas as unidades da sua rede, em qualquer bairro ou cidade, com um único login."
+      "oneLiner": "Gerencie todas as unidades da sua rede, em qualquer bairro ou cidade, com um único login.",
+      "heroTitle": "Feito para quem tem mais de uma unidade.",
+      "heroDesc": "Troque entre suas unidades com um clique no painel e adicione novas barbearias sempre que sua rede crescer.",
+      "benefits": [
+        {
+          "title": "Troca de Unidade em 1 Clique",
+          "desc": "Um seletor no topo do painel mostra todas as suas unidades. Escolha uma e o painel inteiro muda para os dados dela na hora."
+        },
+        {
+          "title": "Adicione Unidades Quando Quiser",
+          "desc": "Crie novas barbearias direto em Configurações > Minhas Unidades, sem precisar criar um novo login."
+        },
+        {
+          "title": "Uma Assinatura Só",
+          "desc": "Toda unidade nova entra automaticamente no seu plano Empire — sem cobrança separada por loja."
+        }
+      ]
     }
   },
   "group1": {
@@ -681,54 +874,247 @@ c) O NEXT implementa medidas técnicas de segurança, mas a responsabilidade pel
     "terms": "Terms of Use",
     "status": "Status: Operational"
   },
+  "featureDetail": {"back":"Back to overview","ctaTitle":"Ready to master this feature?","ctaDesc":"Stop using systems that limit your growth. NEXT has everything you need enabled right now.","ctaButton":"Start My 15 Free Days"},
   "featuresData": {
     "agenda-inteligente": {
       "title": "Anti-No-Show Scheduler",
-      "oneLiner": "WhatsApp reminders and upfront payments to end empty chairs for good."
+      "oneLiner": "WhatsApp reminders and upfront payments to end empty chairs for good.",
+      "heroTitle": "An empty chair costs you dearly.",
+      "heroDesc": "Make sure your clients show up. Our smart system cuts no-shows at your barbershop by up to 85%.",
+      "benefits": [
+        {
+          "title": "Automatic Reminders",
+          "desc": "The system sends messages 2h and 24h before the appointment. The client doesn't forget and you don't lose money."
+        },
+        {
+          "title": "Booking Deposit",
+          "desc": "Require a deposit (via PIX or card) from clients who tend to book and not show up."
+        },
+        {
+          "title": "Visual Mapping",
+          "desc": "Glance at the calendar and instantly know by color who confirmed, who paid and who is late."
+        }
+      ]
     },
     "financeiro-avancado": {
       "title": "Advanced Finance & Auto-Split",
-      "oneLiner": "Transfer staff commissions at the exact moment of the transaction and close the month without messy spreadsheets."
+      "oneLiner": "Transfer staff commissions at the exact moment of the transaction and close the month without messy spreadsheets.",
+      "heroTitle": "The end of messy month-end.",
+      "heroDesc": "Ditch paper accounts and shaky spreadsheets. Automate settlements with your team and keep control in your hands.",
+      "benefits": [
+        {
+          "title": "Instant Close-Out",
+          "desc": "In 1 click, see real profits already minus costs, outflows and even the invisible card-machine fees."
+        },
+        {
+          "title": "Payment Split",
+          "desc": "Online payments are split instantly: your share goes to the shop and the barber's share lands in their account."
+        },
+        {
+          "title": "Daily Predictability",
+          "desc": "Stop guessing. The system shows how much future revenue is already locked into tomorrow's schedule."
+        }
+      ]
     },
     "garcom-digital": {
       "title": "24/7 Digital Receptionist",
-      "oneLiner": "A link that answers and books reservations on its own — even at dawn."
+      "oneLiner": "A link that answers and books reservations on its own — even at dawn.",
+      "heroTitle": "Book clients even at 3 AM.",
+      "heroDesc": "A booking link that's always open, serving your clients even outside business hours, with no one needed at the front desk.",
+      "benefits": [
+        {
+          "title": "Direct Link for Instagram/WhatsApp",
+          "desc": "A light, fast link to put in your bio or send on WhatsApp — the client opens it and books in seconds, nothing to install."
+        },
+        {
+          "title": "Works in the Browser",
+          "desc": "No app download required. The client just opens the link on any phone and books."
+        },
+        {
+          "title": "Reschedule with Approval",
+          "desc": "The client can request a time change, but the reschedule is only confirmed after you approve it."
+        }
+      ]
     },
     "fidelizacao-magnetica": {
       "title": "Retention Engine",
-      "oneLiner": "A points club that encourages clients to come back, with a loyalty card right in Apple Wallet."
+      "oneLiner": "A points club that encourages clients to come back, with a loyalty card right in Apple Wallet.",
+      "heroTitle": "Turn one-time clients into loyal ones.",
+      "heroDesc": "A points program that's simple to set up, encouraging clients to come back and spend more with each visit.",
+      "benefits": [
+        {
+          "title": "Customizable Points Club",
+          "desc": "Set how much money equals one point and create rewards that push clients to spend more to redeem."
+        },
+        {
+          "title": "Return Reminder",
+          "desc": "The system automatically messages the client on WhatsApp when they're overdue for their next cut."
+        },
+        {
+          "title": "Loyalty Card in Apple Wallet",
+          "desc": "The client keeps their points card right in the iPhone's digital wallet, no extra app needed."
+        }
+      ]
     },
     "controle-equipe": {
       "title": "Staff X-Ray",
-      "oneLiner": "See each professional's performance and control exactly what they can access in the system."
+      "oneLiner": "See each professional's performance and control exactly what they can access in the system.",
+      "heroTitle": "Stop running the shop on gut feeling.",
+      "heroDesc": "Track each professional's schedule and revenue, with clear access permissions for every team role.",
+      "benefits": [
+        {
+          "title": "Individual Professional Dashboard",
+          "desc": "Each barber accesses their own schedule and earnings, without having to ask you."
+        },
+        {
+          "title": "Role-Based Permissions",
+          "desc": "Define what each role can do: Receptionist, Standard Barber or Manager get different access within the same system."
+        },
+        {
+          "title": "Performance Ranking",
+          "desc": "See who bills the most and who serves the most, right in the manager's dashboard, no spreadsheet cross-checking."
+        }
+      ]
     },
     "padrao-premium": {
       "title": "Ultra-Premium Storefront",
-      "oneLiner": "A beautiful, fast booking page with your brand on it, not a generic form."
+      "oneLiner": "A beautiful, fast booking page with your brand on it, not a generic form.",
+      "heroTitle": "A high-end first impression.",
+      "heroDesc": "Your booking page carries your barbershop's logo and photos, with a fast, dark-mode-style interface.",
+      "benefits": [
+        {
+          "title": "Your Brand on the Page",
+          "desc": "Put your barbershop's logo and photos on the booking page the client sees and uses."
+        },
+        {
+          "title": "Work Gallery",
+          "desc": "Show photos of your cuts and services right on the storefront, to attract those who don't know you yet."
+        },
+        {
+          "title": "Fast, Modern Interface",
+          "desc": "A smooth booking experience, built for mobile, with no slow or cluttered screens."
+        }
+      ]
     },
     "gestao-estoque": {
       "title": "Zero Leakage Inventory",
-      "oneLiner": "Control your product stock with automatic deductions every time something is sold at checkout."
+      "oneLiner": "Control your product stock with automatic deductions every time something is sold at checkout.",
+      "heroTitle": "Know exactly what's in your stock.",
+      "heroDesc": "Stop losing money to products expiring or vanishing without explanation. Get real control of what comes in and goes out.",
+      "benefits": [
+        {
+          "title": "Automatic Deduction on Sale",
+          "desc": "When a product is sold on a ticket, it's deducted from your stock right away, no need to log it again."
+        },
+        {
+          "title": "Low Stock Alert",
+          "desc": "The dashboard warns you when a product is running out, so you restock before it's gone."
+        },
+        {
+          "title": "Cost vs. Sale Comparison",
+          "desc": "See side by side what you pay for a product and what you charge the client, to know if the margin is healthy."
+        }
+      ]
     },
     "importacao-lote": {
       "title": "Magic 1-Click Migration",
-      "oneLiner": "Bring your client list over from any spreadsheet or old system in a few minutes."
+      "oneLiner": "Bring your client list over from any spreadsheet or old system in a few minutes.",
+      "heroTitle": "Switch systems without losing a thing.",
+      "heroDesc": "Upload a spreadsheet file (CSV) with your current client base and NEXT organizes everything so you start with your full client list.",
+      "benefits": [
+        {
+          "title": "Spreadsheet Import",
+          "desc": "Accepts CSV files or exports from Google Sheets, with no manual formatting needed."
+        },
+        {
+          "title": "Duplicate Detection",
+          "desc": "The system spots clients registered more than once and helps avoid repeated entries."
+        },
+        {
+          "title": "History Preserved",
+          "desc": "Your clients' contact and profile info is kept exactly as it was before the migration."
+        }
+      ]
     },
     "avaliacoes-clientes": {
       "title": "Customer Reviews",
-      "oneLiner": "Clients review the service directly in the app, linked to the appointment they actually had."
+      "oneLiner": "Clients review the service directly in the app, linked to the appointment they actually had.",
+      "heroTitle": "Know what your clients really think.",
+      "heroDesc": "After each service, the client can leave a rating and a comment — only those who were actually served can review.",
+      "benefits": [
+        {
+          "title": "Review Tied to the Booking",
+          "desc": "Only clients with a confirmed or completed appointment can review, preventing fake ratings."
+        },
+        {
+          "title": "Rating and Comment per Service",
+          "desc": "The client gives a 1-to-5 star rating and can leave a comment about the service."
+        },
+        {
+          "title": "View by Professional",
+          "desc": "Track each barber's average rating and spot who needs attention in their service."
+        }
+      ]
     },
     "universidade": {
       "title": "Private University",
-      "oneLiner": "Management and marketing courses for barbershops, right inside the system."
+      "oneLiner": "Management and marketing courses for barbershops, right inside the system.",
+      "heroTitle": "Grow as a manager, not just with scissors.",
+      "heroDesc": "Access practical courses on management, marketing and service designed specifically for people who run a barbershop.",
+      "benefits": [
+        {
+          "title": "Practical, To-the-Point Content",
+          "desc": "Lessons focused on applying to the barbershop's day-to-day, with no theoretical fluff."
+        },
+        {
+          "title": "Access Inside the Dashboard",
+          "desc": "Watch the courses right in the system you already use, no need to log into another platform."
+        },
+        {
+          "title": "Content Updated Regularly",
+          "desc": "New courses are added as the platform evolves, keeping you and your team up to date."
+        }
+      ]
     },
     "relatorios-bi": {
       "title": "Business Intelligence",
-      "oneLiner": "No more guesswork. Straight-to-the-point reports that show you, in seconds, where your profit is leaking."
+      "oneLiner": "No more guesswork. Straight-to-the-point reports that show you, in seconds, where your profit is leaking.",
+      "heroTitle": "Decisions from data, not from a hunch.",
+      "heroDesc": "See exactly how much comes in, how much goes out and where your profit is leaking — without opening a spreadsheet.",
+      "benefits": [
+        {
+          "title": "Peak and Empty Hours",
+          "desc": "Simple charts show which days and times fill up and which stay empty, so you fine-tune prices and shifts."
+        },
+        {
+          "title": "Export for Your Accountant",
+          "desc": "Generate .csv and PDF reports ready to send straight to your accountant, no rework at month-end."
+        },
+        {
+          "title": "Profit per Service",
+          "desc": "Find out which services really turn a profit and which just take up the chair without being worth the time."
+        }
+      ]
     },
     "multi-unidades": {
       "title": "Franchises (Super Host)",
-      "oneLiner": "Manage every unit in your network, in any neighborhood or city, from a single login."
+      "oneLiner": "Manage every unit in your network, in any neighborhood or city, from a single login.",
+      "heroTitle": "Built for owners with more than one location.",
+      "heroDesc": "Switch between your locations with one click in the dashboard and add new barbershops whenever your network grows.",
+      "benefits": [
+        {
+          "title": "Switch Location in 1 Click",
+          "desc": "A selector at the top of the dashboard shows all your locations. Pick one and the whole dashboard switches to its data instantly."
+        },
+        {
+          "title": "Add Locations Anytime",
+          "desc": "Create new barbershops right in Settings > My Locations, with no need for a new login."
+        },
+        {
+          "title": "One Single Subscription",
+          "desc": "Every new location automatically joins your Empire plan — no separate charge per shop."
+        }
+      ]
     }
   },
   "group1": {
@@ -1208,54 +1594,247 @@ c) NEXT implements technical security measures, but the responsibility for lawfu
     "terms": "Términos de Uso",
     "status": "Estado: Operacional"
   },
+  "featureDetail": {"back":"Volver a la vista general","ctaTitle":"¿Listo para dominar esta función?","ctaDesc":"Deja de usar sistemas que limitan tu crecimiento. NEXT tiene todo lo que necesitas habilitado ahora.","ctaButton":"Empezar Mis 15 Días Gratis"},
   "featuresData": {
     "agenda-inteligente": {
       "title": "Agenda Anti-Faltas",
-      "oneLiner": "Recordatorios de WhatsApp y cobros anticipados para acabar de una vez con las sillas vacías."
+      "oneLiner": "Recordatorios de WhatsApp y cobros anticipados para acabar de una vez con las sillas vacías.",
+      "heroTitle": "Una silla vacía te cuesta muy caro.",
+      "heroDesc": "Asegura que tus clientes asistan. Nuestro sistema inteligente reduce las ausencias en tu barbería hasta un 85%.",
+      "benefits": [
+        {
+          "title": "Recordatorios Automáticos",
+          "desc": "El sistema envía mensajes 2h y 24h antes del turno. El cliente no olvida y tú no pierdes dinero."
+        },
+        {
+          "title": "Seña de Garantía",
+          "desc": "Exige el pago de una seña (vía PIX o tarjeta) a clientes que suelen reservar y no aparecer."
+        },
+        {
+          "title": "Mapeo Visual",
+          "desc": "Mira la agenda y sabe al instante por los colores quién confirmó, quién pagó y quién se atrasó."
+        }
+      ]
     },
     "financeiro-avancado": {
       "title": "Finanzas y División Automática",
-      "oneLiner": "Transfiere comisiones del equipo en el momento exacto de la transacción y cierra el mes sin hojas de cálculo confusas."
+      "oneLiner": "Transfiere comisiones del equipo en el momento exacto de la transacción y cierra el mes sin hojas de cálculo confusas.",
+      "heroTitle": "El fin del caos en el cierre.",
+      "heroDesc": "Olvídate de las cuentas en papel y las planillas inestables. Automatiza la liquidación con tu equipo y ten el control en la mano.",
+      "benefits": [
+        {
+          "title": "Cierre Inmediato",
+          "desc": "Con 1 clic, ve las ganancias reales ya descontando costos, salidas y hasta las tasas invisibles de la máquina."
+        },
+        {
+          "title": "División de Cobros",
+          "desc": "Los pagos online se dividen al instante: tu parte va al salón y la del barbero cae en su cuenta."
+        },
+        {
+          "title": "Previsibilidad Diaria",
+          "desc": "Deja de adivinar. El sistema muestra cuánta facturación futura ya está asegurada en tu agenda de mañana."
+        }
+      ]
     },
     "garcom-digital": {
       "title": "Recepcionista 24/7",
-      "oneLiner": "Un enlace que responde y cierra reservas por sí solo, incluso de madrugada."
+      "oneLiner": "Un enlace que responde y cierra reservas por sí solo, incluso de madrugada.",
+      "heroTitle": "Agenda clientes hasta de madrugada.",
+      "heroDesc": "Un enlace de reservas siempre abierto, que atiende a tus clientes incluso fuera del horario comercial, sin necesidad de nadie en recepción.",
+      "benefits": [
+        {
+          "title": "Enlace Directo para Instagram/WhatsApp",
+          "desc": "Un enlace ligero y rápido para poner en la bio o enviar por WhatsApp — el cliente lo abre y agenda en segundos, sin instalar nada."
+        },
+        {
+          "title": "Funciona en el Navegador",
+          "desc": "No exige que el cliente descargue ninguna app. Basta abrir el enlace en cualquier celular y agendar."
+        },
+        {
+          "title": "Reprogramación con Aprobación",
+          "desc": "El cliente puede pedir cambiar el horario, pero la reprogramación solo se confirma después de que la apruebas."
+        }
+      ]
     },
     "fidelizacao-magnetica": {
       "title": "Motor de Retención",
-      "oneLiner": "Un club de puntos que anima al cliente a volver, con tarjeta de fidelidad directo en Apple Wallet."
+      "oneLiner": "Un club de puntos que anima al cliente a volver, con tarjeta de fidelidad directo en Apple Wallet.",
+      "heroTitle": "Convierte clientes de una vez en clientes fieles.",
+      "heroDesc": "Un programa de puntos fácil de configurar, que incentiva al cliente a volver y a gastar más en cada visita.",
+      "benefits": [
+        {
+          "title": "Club de Puntos Personalizable",
+          "desc": "Define cuánto dinero equivale a un punto y crea recompensas que animan al cliente a gastar más para canjear."
+        },
+        {
+          "title": "Recordatorio de Regreso",
+          "desc": "El sistema avisa automáticamente al cliente por WhatsApp cuando ya pasó la época recomendada para volver a cortarse."
+        },
+        {
+          "title": "Tarjeta de Fidelidad en Apple Wallet",
+          "desc": "El cliente guarda la tarjeta de puntos directo en la billetera digital del iPhone, sin ninguna app extra."
+        }
+      ]
     },
     "controle-equipe": {
       "title": "Rayos X del Equipo",
-      "oneLiner": "Mira el desempeño de cada profesional y controla exactamente lo que cada uno puede acceder en el sistema."
+      "oneLiner": "Mira el desempeño de cada profesional y controla exactamente lo que cada uno puede acceder en el sistema.",
+      "heroTitle": "Deja de gestionar el salón por intuición.",
+      "heroDesc": "Sigue la agenda y la facturación de cada profesional, con permisos de acceso claros para cada función del equipo.",
+      "benefits": [
+        {
+          "title": "Panel Individual del Profesional",
+          "desc": "Cada barbero accede a su propia agenda y sus propias ganancias, sin tener que preguntarte."
+        },
+        {
+          "title": "Permisos por Función",
+          "desc": "Define qué puede hacer cada rol: Recepcionista, Barbero Estándar o Gerente tienen accesos distintos dentro del mismo sistema."
+        },
+        {
+          "title": "Ranking de Rendimiento",
+          "desc": "Ve quién factura más y quién atiende más, directo en el panel del gestor, sin cruzar planillas."
+        }
+      ]
     },
     "padrao-premium": {
       "title": "Vitrina Ultra-Premium",
-      "oneLiner": "Una página de reservas hermosa, rápida y con tu marca, no un formulario genérico."
+      "oneLiner": "Una página de reservas hermosa, rápida y con tu marca, no un formulario genérico.",
+      "heroTitle": "Una primera impresión de alto nivel.",
+      "heroDesc": "Tu página de reservas lleva el logo y las fotos de tu barbería, con una interfaz rápida y estilo Modo Oscuro.",
+      "benefits": [
+        {
+          "title": "Tu Marca en la Página",
+          "desc": "Pon el logo y las fotos de tu barbería en la página de reservas que el cliente ve y usa."
+        },
+        {
+          "title": "Galería de Trabajos",
+          "desc": "Muestra fotos de los cortes y servicios realizados directo en la vitrina, para atraer a quien aún no te conoce."
+        },
+        {
+          "title": "Interfaz Rápida y Moderna",
+          "desc": "Una experiencia de reserva fluida, pensada para el celular, sin pantallas lentas ni recargadas."
+        }
+      ]
     },
     "gestao-estoque": {
       "title": "Inventario Cero Fugas",
-      "oneLiner": "Controla el stock de productos con descuento automático cada vez que algo se vende en la comanda."
+      "oneLiner": "Controla el stock de productos con descuento automático cada vez que algo se vende en la comanda.",
+      "heroTitle": "Sabe exactamente qué hay en tu stock.",
+      "heroDesc": "Deja de perder dinero con productos venciendo o desapareciendo sin explicación. Ten control real de lo que entra y sale.",
+      "benefits": [
+        {
+          "title": "Descuento Automático en la Venta",
+          "desc": "Cuando un producto se vende en una comanda, se descuenta de tu stock al instante, sin registrarlo de nuevo."
+        },
+        {
+          "title": "Alerta de Stock Bajo",
+          "desc": "El panel avisa cuando un producto se está agotando, para que repongas antes de que falte."
+        },
+        {
+          "title": "Comparación de Costo y Venta",
+          "desc": "Ve lado a lado cuánto pagas por el producto y cuánto le cobras al cliente, para saber si el margen es saludable."
+        }
+      ]
     },
     "importacao-lote": {
       "title": "Migración Mágica (1 Clic)",
-      "oneLiner": "Trae tu lista de clientes de cualquier hoja de cálculo o sistema antiguo en pocos minutos."
+      "oneLiner": "Trae tu lista de clientes de cualquier hoja de cálculo o sistema antiguo en pocos minutos.",
+      "heroTitle": "Cambia de sistema sin perder nada.",
+      "heroDesc": "Sube un archivo de planilla (CSV) con tu base de clientes actual y NEXT organiza todo para que empieces ya con tu cartera completa.",
+      "benefits": [
+        {
+          "title": "Importación por Planilla",
+          "desc": "Acepta archivos CSV o exportados de Google Sheets, sin formatear nada manualmente."
+        },
+        {
+          "title": "Detección de Duplicados",
+          "desc": "El sistema identifica clientes registrados más de una vez y ayuda a evitar registros repetidos."
+        },
+        {
+          "title": "Historial Preservado",
+          "desc": "La información de contacto y registro de tus clientes se mantiene exactamente como estaba antes de la migración."
+        }
+      ]
     },
     "avaliacoes-clientes": {
       "title": "Evaluaciones de Clientes",
-      "oneLiner": "El cliente evalúa el servicio directo en la app, vinculado a la cita que realmente tuvo."
+      "oneLiner": "El cliente evalúa el servicio directo en la app, vinculado a la cita que realmente tuvo.",
+      "heroTitle": "Sabe lo que tus clientes realmente piensan.",
+      "heroDesc": "Después de cada atención, el cliente puede dar una nota y dejar un comentario — solo quien realmente fue atendido puede evaluar.",
+      "benefits": [
+        {
+          "title": "Evaluación Vinculada a la Reserva",
+          "desc": "Solo quien tuvo un turno confirmado o concluido puede evaluar, evitando notas falsas."
+        },
+        {
+          "title": "Nota y Comentario por Atención",
+          "desc": "El cliente da una nota de 1 a 5 estrellas y puede dejar un comentario sobre el servicio."
+        },
+        {
+          "title": "Vista por Profesional",
+          "desc": "Sigue el promedio de evaluaciones de cada barbero e identifica quién necesita atención en el servicio."
+        }
+      ]
     },
     "universidade": {
       "title": "Universidad Privada",
-      "oneLiner": "Cursos de gestión y marketing para barberías, directo dentro del sistema."
+      "oneLiner": "Cursos de gestión y marketing para barberías, directo dentro del sistema.",
+      "heroTitle": "Crece como gestor, no solo con la tijera.",
+      "heroDesc": "Accede a cursos prácticos sobre gestión, marketing y atención pensados específicamente para quien administra una barbería.",
+      "benefits": [
+        {
+          "title": "Contenido Práctico y Directo",
+          "desc": "Clases enfocadas en aplicar en el día a día de la barbería, sin relleno teórico."
+        },
+        {
+          "title": "Acceso Dentro del Panel",
+          "desc": "Mira los cursos directo en el sistema que ya usas, sin entrar a otra plataforma."
+        },
+        {
+          "title": "Contenido Actualizado Periódicamente",
+          "desc": "Se agregan nuevos cursos a medida que la plataforma evoluciona, manteniéndote a ti y a tu equipo al día."
+        }
+      ]
     },
     "relatorios-bi": {
       "title": "B.I. (Inteligencia de Negocios)",
-      "oneLiner": "Basta de suposiciones. Informes directos que muestran, en segundos, dónde se está filtrando tu ganancia."
+      "oneLiner": "Basta de suposiciones. Informes directos que muestran, en segundos, dónde se está filtrando tu ganancia.",
+      "heroTitle": "Decisiones con datos, no con corazonadas.",
+      "heroDesc": "Ve exactamente cuánto entra, cuánto sale y dónde se escapa tu ganancia — sin abrir una planilla.",
+      "benefits": [
+        {
+          "title": "Horarios Pico y Vacíos",
+          "desc": "Gráficos simples muestran qué días y horarios se llenan y cuáles quedan vacíos, para ajustar precios y turnos con precisión."
+        },
+        {
+          "title": "Exportación para el Contador",
+          "desc": "Genera reportes en .csv y PDF listos para enviar directo a tu contador, sin retrabajo a fin de mes."
+        },
+        {
+          "title": "Ganancia por Servicio",
+          "desc": "Descubre qué servicios realmente dan ganancia y cuáles solo ocupan la silla sin valer el tiempo del profesional."
+        }
+      ]
     },
     "multi-unidades": {
       "title": "Franquicias (Súper Anfitrión)",
-      "oneLiner": "Gestiona todas las unidades de tu red, en cualquier barrio o ciudad, con un solo inicio de sesión."
+      "oneLiner": "Gestiona todas las unidades de tu red, en cualquier barrio o ciudad, con un solo inicio de sesión.",
+      "heroTitle": "Hecho para quien tiene más de una unidad.",
+      "heroDesc": "Cambia entre tus unidades con un clic en el panel y agrega nuevas barberías siempre que tu red crezca.",
+      "benefits": [
+        {
+          "title": "Cambio de Unidad en 1 Clic",
+          "desc": "Un selector en la parte superior del panel muestra todas tus unidades. Elige una y todo el panel cambia a sus datos al instante."
+        },
+        {
+          "title": "Agrega Unidades Cuando Quieras",
+          "desc": "Crea nuevas barberías directo en Configuración > Mis Unidades, sin crear un nuevo login."
+        },
+        {
+          "title": "Una Sola Suscripción",
+          "desc": "Cada unidad nueva entra automáticamente en tu plan Empire — sin cobro separado por local."
+        }
+      ]
     }
   },
   "group1": {

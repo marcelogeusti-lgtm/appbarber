@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2, ArrowRight } from 'lucide-react';
 import { getFeatureBySlug } from '../../../lib/featuresData';
+import { useTranslation } from '../../../contexts/LanguageContext';
 
 export default function FeaturePage({ params }) {
     const router = useRouter();
+    const { t } = useTranslation();
     const [feature, setFeature] = useState(null);
 
     useEffect(() => {
@@ -23,9 +25,18 @@ export default function FeaturePage({ params }) {
         }
     }, [params, router]);
 
-    if (!feature) return <div className="min-h-screen bg-white flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+    if (!feature) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
     const Icon = feature.icon;
+
+    // Traduz o conteúdo por idioma; se faltar a chave, cai no texto PT do featuresData.js
+    const tf = (field) => {
+        const key = `featuresData.${feature.slug}.${field}`;
+        const val = t(key);
+        return val === key ? feature[field] : val;
+    };
+    const benefitsRaw = tf('benefits');
+    const benefits = Array.isArray(benefitsRaw) ? benefitsRaw : feature.benefits;
 
     return (
         <div className="bg-[#050505] min-h-screen">
@@ -35,7 +46,7 @@ export default function FeaturePage({ params }) {
             {/* Nav Back */}
             <div className="container mx-auto px-4 py-8 relative z-20">
                 <Link href="/#features" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-white transition-colors">
-                    <ArrowLeft className="w-4 h-4" /> Voltar para visão geral
+                    <ArrowLeft className="w-4 h-4" /> {t('featureDetail.back')}
                 </Link>
             </div>
 
@@ -62,13 +73,13 @@ export default function FeaturePage({ params }) {
                             transition={{ delay: 0.1, duration: 0.5 }}
                         >
                             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#0A0A0B]/50 backdrop-blur-md rounded-full mb-8 border border-white/10 shadow-2xl">
-                                <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${feature.color}`}>{feature.title}</span>
+                                <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${feature.color}`}>{tf('title')}</span>
                             </div>
                             <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-8 tracking-tighter">
-                                {feature.heroTitle}
+                                {tf('heroTitle')}
                             </h1>
                             <p className="text-xl md:text-2xl text-slate-400 leading-relaxed font-medium">
-                                {feature.heroDesc}
+                                {tf('heroDesc')}
                             </p>
                         </motion.div>
                     </div>
@@ -83,7 +94,7 @@ export default function FeaturePage({ params }) {
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="max-w-6xl mx-auto">
                         <div className="grid md:grid-cols-3 gap-8">
-                            {feature.benefits.map((benefit, idx) => (
+                            {benefits.map((benefit, idx) => (
                                 <motion.div 
                                     key={idx}
                                     initial={{ opacity: 0, y: 30 }}
@@ -121,15 +132,15 @@ export default function FeaturePage({ params }) {
                         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-600/10 blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
                         
                         <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6 tracking-tight relative z-10">
-                            Pronto para dominar essa funcionalidade?
+                            {t('featureDetail.ctaTitle')}
                         </h2>
                         <p className="text-slate-400 mb-12 font-medium text-lg max-w-xl mx-auto relative z-10">
-                            Pare de usar sistemas que limitam seu crescimento. O NEXT tem tudo o que você precisa habilitado agora.
+                            {t('featureDetail.ctaDesc')}
                         </p>
                         <div className="relative z-10">
                             <Link href="/register">
                                 <button className="px-10 py-5 bg-white text-black text-sm font-black uppercase tracking-widest rounded-2xl hover:scale-105 hover:bg-gray-100 transition-all shadow-xl flex items-center justify-center gap-3 mx-auto group">
-                                    Começar Meus 15 Dias Grátis 
+                                    {t('featureDetail.ctaButton')}
                                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>
