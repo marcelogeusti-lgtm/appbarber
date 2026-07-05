@@ -1,25 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useSpring, useMotionValueEvent, useTransform, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '../../contexts/LanguageContext';
+import { MockAnalytics, MockAgenda, MockBooking } from './DashboardMockups';
 
-const slides = [
-  {
-    id: 0,
-    title: "Métricas de Performance",
-    description: "Acompanhe seu faturamento, lucros e o desempenho diário da sua barbearia com gráficos simples de entender.",
-    image: "/screenshots/analytics-performance.png",
-  },
-  {
-    id: 1,
-    title: "Agenda Inteligente",
-    description: "Controle todos os horários da equipe em uma única tela. Arraste agendamentos, confirme presenças e otimize o seu tempo.",
-    image: "/screenshots/agenda-schedule.png",
-  },
-  {
-    id: 2,
-    title: "Agendamento Online",
-    description: "Seus clientes marcam horários direto pelo celular a qualquer momento, sem precisar esperar o seu atendimento no WhatsApp.",
-    image: "/screenshots/online-booking-mobile.png",
-  }
+// Mockups HTML (texto traduzível) no lugar dos prints .png
+const slideMeta = [
+  { id: 0, Mock: MockAnalytics },
+  { id: 1, Mock: MockAgenda },
+  { id: 2, Mock: MockBooking },
 ];
 
 const variants = {
@@ -53,6 +41,15 @@ const variants = {
 export default function MainDashboardShowcase() {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
+  const { t } = useTranslation();
+
+  const slideCaptions = t('mockups.slides');
+  const captions = Array.isArray(slideCaptions) ? slideCaptions : [];
+  const slides = slideMeta.map((m, i) => ({
+    ...m,
+    title: captions[i]?.title || '',
+    description: captions[i]?.description || '',
+  }));
 
   /* Estado do Carrossel */
   const [[page, direction], setPage] = useState([0, 0]);
@@ -150,10 +147,10 @@ export default function MainDashboardShowcase() {
           className="absolute top-20 left-0 w-full text-center z-20 px-4 pointer-events-none"
         >
           <h2 className="text-4xl md:text-5xl font-extrabold font-display text-white tracking-tight drop-shadow-xl mb-4">
-            Visão do seu <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">Império</span>
+            {t('mockups.intro.title1')} <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('mockups.intro.highlight')}</span>
           </h2>
           <p className="font-body text-slate-400 text-lg max-w-xl mx-auto mb-8 font-medium">
-            Cada detalhe foi desenhado para facilitar a sua gestão e encantar seus clientes.
+            {t('mockups.intro.subtitle')}
           </p>
         </motion.div>
 
@@ -163,7 +160,7 @@ export default function MainDashboardShowcase() {
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-20"
         >
           <p className="text-white/25 text-[10px] uppercase drop-shadow-md font-body font-medium" style={{ letterSpacing: '0.3em' }}>
-            Role para explorar
+            {t('mockups.intro.scroll')}
           </p>
           <div className="w-[18px] h-7 rounded-full border border-white/20 flex items-start justify-center pt-1 bg-black/20 backdrop-blur-sm">
             <motion.div
@@ -206,16 +203,21 @@ export default function MainDashboardShowcase() {
                   transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.3 }, scale: { duration: 0.4 } }}
                   className="w-full flex flex-col lg:flex-row items-center gap-8 md:gap-12 absolute"
                 >
-                  {/* Coluna da Imagem */}
+                  {/* Coluna do Mockup (HTML traduzível) */}
                   <div className="flex-1 w-full flex justify-center lg:justify-end">
-                    <div className={`relative w-full max-w-2xl rounded-xl md:rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex justify-center ${slides[page].id === 2 ? 'bg-[#050505]' : 'border border-white/10 ring-1 ring-white/5'}`}>
-                      <img 
-                        src={slides[page].image} 
-                        alt={slides[page].title} 
-                        className={slides[page].id === 2 ? "w-auto h-[60vh] md:h-[65vh] object-cover rounded-3xl border-4 border-black" : "w-full h-auto object-cover"} 
-                      />
-                      {slides[page].id !== 2 && <div className="absolute inset-0 rounded-xl md:rounded-2xl ring-1 ring-inset ring-white/10 pointer-events-none" />}
-                    </div>
+                    {(() => {
+                      const SlideMock = slides[page].Mock;
+                      return slides[page].id === 2 ? (
+                        <div className="relative h-[60vh] md:h-[65vh] rounded-[1.75rem] overflow-hidden border-4 border-black shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                          <SlideMock />
+                        </div>
+                      ) : (
+                        <div className="relative w-full max-w-2xl rounded-xl md:rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5">
+                          <SlideMock />
+                          <div className="absolute inset-0 rounded-xl md:rounded-2xl ring-1 ring-inset ring-white/10 pointer-events-none" />
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Coluna de Texto (Direita) */}
