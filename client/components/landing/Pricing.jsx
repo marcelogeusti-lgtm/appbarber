@@ -1,22 +1,28 @@
 'use client';
 import { useState } from 'react';
-import { Check, ArrowRight, Zap, Star } from 'lucide-react';
+import { Check, ArrowRight, Star } from 'lucide-react';
 import LEDCardWrapper from './LEDCardWrapper';
 import { motion } from 'framer-motion';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { trackEvent } from '../../lib/analytics';
 
+// Períodos de cobrança. Cada plano tem seu próprio link de checkout da Cakto
+// por período — o botão sempre leva ao checkout do período selecionado.
+const BILLING_PERIODS = ['monthly', 'semiannual', 'annual'];
+
 export default function Pricing() {
-    const [isYearly, setIsYearly] = useState(false);
+    const [billing, setBilling] = useState('monthly');
     const { t } = useTranslation();
 
     const plans = [
         {
             name: "START",
-            monthlyPrice: 79.90,
-            yearlyPrice: 55.90,
-            checkoutUrl: "https://pay.cakto.com.br/hstst7v_800505",
             desc: t('pricing.plan_solo_desc'),
+            periods: {
+                monthly: { price: 79.90, url: "https://pay.cakto.com.br/hstst7v_800505" },
+                semiannual: { price: 67.80, total: 406.80, url: "https://pay.cakto.com.br/pe7f2v8" },
+                annual: { price: 55.90, total: 670.80, url: "https://pay.cakto.com.br/igatcuk" }
+            },
             features: [
                 t('pricing.f_solo_1'),
                 t('pricing.f_solo_2'),
@@ -29,10 +35,12 @@ export default function Pricing() {
         },
         {
             name: "PRO",
-            monthlyPrice: 164.50,
-            yearlyPrice: 115.15,
-            checkoutUrl: "https://pay.cakto.com.br/3x6vwzh",
             desc: t('pricing.plan_pro_desc'),
+            periods: {
+                monthly: { price: 164.50, url: "https://pay.cakto.com.br/3x6vwzh" },
+                semiannual: { price: 139.80, total: 838.80, url: "https://pay.cakto.com.br/69yucxv" },
+                annual: { price: 115.15, total: 1381.80, url: "https://pay.cakto.com.br/3ervp3n" }
+            },
             features: [
                 t('pricing.f_pro_1'),
                 t('pricing.f_pro_2'),
@@ -46,10 +54,12 @@ export default function Pricing() {
         },
         {
             name: "EMPIRE",
-            monthlyPrice: 219.90,
-            yearlyPrice: 153.90,
-            checkoutUrl: "https://pay.cakto.com.br/nxmn3ai",
             desc: t('pricing.plan_empire_desc'),
+            periods: {
+                monthly: { price: 219.90, url: "https://pay.cakto.com.br/nxmn3ai" },
+                semiannual: { price: 186.80, total: 1120.80, url: "https://pay.cakto.com.br/xhq6fhh" },
+                annual: { price: 153.90, total: 1846.80, url: "https://pay.cakto.com.br/wodbhcf" }
+            },
             features: [
                 t('pricing.f_empire_1'),
                 t('pricing.f_empire_2'),
@@ -60,13 +70,30 @@ export default function Pricing() {
             color: "slate",
             bg: "bg-white/[0.02]"
         }
-    ].map(plan => ({
-        ...plan,
-        price: `R$ ${(isYearly ? plan.yearlyPrice : plan.monthlyPrice).toFixed(2).replace('.', ',')}`,
-        discountPct: Math.round((1 - plan.yearlyPrice / plan.monthlyPrice) * 100)
-    }));
+    ].map(plan => {
+        const current = plan.periods[billing];
+        const monthlyRef = plan.periods.monthly.price;
+        return {
+            ...plan,
+            checkoutUrl: current.url,
+            price: `R$ ${current.price.toFixed(2).replace('.', ',')}`,
+            total: current.total,
+            totalLabel: current.total ? `R$ ${current.total.toFixed(2).replace('.', ',')}` : null,
+            discountPct: Math.round((1 - current.price / monthlyRef) * 100)
+        };
+    });
 
-    const maxDiscountPct = Math.max(...plans.map(p => p.discountPct));
+    const periodLabels = {
+        monthly: t('pricing.monthly'),
+        semiannual: t('pricing.semiannual'),
+        annual: t('pricing.yearly')
+    };
+
+    // Desconto máximo de cada período (para o badge no seletor)
+    const discountByPeriod = {
+        semiannual: Math.round((1 - plans[0].periods.semiannual.price / plans[0].periods.monthly.price) * 100),
+        annual: Math.round((1 - plans[0].periods.annual.price / plans[0].periods.monthly.price) * 100)
+    };
 
     return (
         <section className="py-32 bg-[#050505] relative overflow-hidden" id="pricing">
@@ -85,23 +112,24 @@ export default function Pricing() {
                             <span className="bg-gradient-to-r from-primary via-blue-400 to-blue-500 bg-clip-text text-transparent">{t('pricing.title_highlight')}</span>
                         </h2>
 
-                        {/* Toggle Switch */}
-                        <div className="flex items-center justify-center gap-6 mt-16 font-body">
-                            <span className={`text-[12px] font-black uppercase tracking-[0.2em] transition-colors ${!isYearly ? 'text-white' : 'text-slate-500'}`}>{t('pricing.monthly')}</span>
-                            <button
-                                onClick={() => setIsYearly(!isYearly)}
-                                className="w-16 h-8 bg-white/[0.05] border border-white/10 rounded-full relative p-1.5 transition-all duration-500 hover:border-primary/40 group"
-                            >
-                                <div className="absolute inset-0 bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <motion.div
-                                    animate={{ x: isYearly ? 32 : 0 }}
-                                    className="w-5 h-5 bg-primary rounded-full shadow-[0_0_15px_#4d72e4] relative z-10"
-                                />
-                            </button>
-                            <span className={`text-[12px] font-black uppercase tracking-[0.2em] transition-colors flex items-center gap-2 ${isYearly ? 'text-white' : 'text-slate-500'}`}>
-                                {t('pricing.yearly')}
-                                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 rounded text-[9px] border border-emerald-500/20">-{maxDiscountPct}%</span>
-                            </span>
+                        {/* Seletor de período (Mensal / Semestral / Anual) */}
+                        <div className="inline-flex items-center gap-1 mt-16 p-1.5 bg-white/[0.04] border border-white/10 rounded-full font-body">
+                            {BILLING_PERIODS.map((period) => {
+                                const active = billing === period;
+                                const badge = discountByPeriod[period];
+                                return (
+                                    <button
+                                        key={period}
+                                        onClick={() => setBilling(period)}
+                                        className={`relative px-5 sm:px-7 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.18em] transition-all duration-300 flex items-center gap-2 ${active ? 'bg-primary text-white shadow-[0_0_20px_rgba(77,114,228,0.4)]' : 'text-slate-400 hover:text-white'}`}
+                                    >
+                                        {periodLabels[period]}
+                                        {badge > 0 && (
+                                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${active ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/20'}`}>-{badge}%</span>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </motion.div>
                 </div>
@@ -128,11 +156,19 @@ export default function Pricing() {
 
                                     <div className="mb-14">
                                         <span className="font-body text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4 block">{plan.name}</span>
-                                        <div className="flex items-baseline gap-2 mb-6 flex-wrap">
+                                        <div className="flex items-baseline gap-2 mb-3 flex-wrap">
                                             <span className="font-display text-4xl lg:text-7xl font-extrabold text-white tracking-tighter">{plan.price}</span>
                                             <span className="font-body text-slate-500 text-[11px] font-black uppercase tracking-[0.25em]">{t('pricing.perMonth')}</span>
-                                            {isYearly && (
+                                            {plan.discountPct > 0 && (
                                                 <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 rounded text-[10px] font-black border border-emerald-500/20">-{plan.discountPct}%</span>
+                                            )}
+                                        </div>
+                                        {/* Valor total cobrado no período (transparência) */}
+                                        <div className="h-5 mb-6">
+                                            {plan.totalLabel && (
+                                                <span className="font-body text-[11px] font-bold text-slate-500">
+                                                    {plan.totalLabel} {t('pricing.billedOnceLabel')} {billing === 'annual' ? `(${periodLabels.annual.toLowerCase()})` : `(${periodLabels.semiannual.toLowerCase()})`}
+                                                </span>
                                             )}
                                         </div>
                                         <p className="font-body secondary-text">{plan.desc}</p>
@@ -154,7 +190,7 @@ export default function Pricing() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="relative z-10"
-                                        onClick={() => trackEvent('cta_click', { location: 'pricing', label: plan.name, billing: isYearly ? 'yearly' : 'monthly' })}
+                                        onClick={() => trackEvent('cta_click', { location: 'pricing', label: plan.name, billing })}
                                     >
                                         <button className={`w-full py-6 rounded-2xl font-body font-black uppercase text-[11px] tracking-[0.4em] transition-all duration-500 flex items-center justify-center gap-4 ${plan.recommended ? 'bg-white text-black shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:scale-[1.03]' : 'bg-white/[0.04] text-white border border-white/10 hover:bg-white hover:text-black'}`}>
                                             {t('pricing.subscribe')} {plan.name} <ArrowRight className="w-4 h-4" />
