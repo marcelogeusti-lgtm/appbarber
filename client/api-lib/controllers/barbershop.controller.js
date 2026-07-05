@@ -425,7 +425,12 @@ exports.getBarbershopBySlug = async (req, res) => {
                     where: { role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN'] }, active: true },
                     select: {
                         id: true, name: true, avatarUrl: true, role: true,
-                        professionalProfile: { select: { position: true, bio: true } }
+                        professionalProfile: {
+                            select: {
+                                position: true, bio: true,
+                                schedules: { select: { dayOfWeek: true, startTime: true, endTime: true, breakStart: true, breakEnd: true, isOff: true } }
+                            }
+                        }
                     }
                 }
             }
@@ -435,6 +440,33 @@ exports.getBarbershopBySlug = async (req, res) => {
         if (!barbershop) {
             return res.status(404).json({ message: 'Barbershop not found' });
         }
+
+        // Aggregated real rating (não inventamos 5.0 — se não houver avaliações, fica null)
+        const ratingAgg = await prisma.review.aggregate({
+            where: { barbershopId: barbershop.id },
+            _avg: { rating: true },
+            _count: { rating: true }
+        });
+        const totalReviews = ratingAgg._count.rating || 0;
+        const averageRating = totalReviews > 0 ? Number(ratingAgg._avg.rating).toFixed(1) : null;
+
+        // Horário de funcionamento real, agregado a partir dos schedules dos profissionais.
+        // Para cada dia: a loja abre se algum profissional trabalha; usamos a janela mais ampla
+        // (menor início / maior fim) e a pausa do profissional representativo, se houver.
+        const allSchedules = (barbershop.staff || [])
+            .flatMap(s => s.professionalProfile?.schedules || []);
+        const businessHours = Array.from({ length: 7 }, (_, day) => {
+            const daySchedules = allSchedules.filter(s => s.dayOfWeek === day && !s.isOff && s.startTime && s.endTime);
+            if (daySchedules.length === 0) return { dayOfWeek: day, closed: true, ranges: [] };
+            const open = daySchedules.reduce((min, s) => (s.startTime < min ? s.startTime : min), daySchedules[0].startTime);
+            const close = daySchedules.reduce((max, s) => (s.endTime > max ? s.endTime : max), daySchedules[0].endTime);
+            const withBreak = daySchedules.find(s => s.breakStart && s.breakEnd);
+            const ranges = withBreak
+                ? [`${open} - ${withBreak.breakStart}`, `${withBreak.breakEnd} - ${close}`]
+                : [`${open} - ${close}`];
+            return { dayOfWeek: day, closed: false, ranges };
+        });
+        const hasBusinessHours = businessHours.some(d => !d.closed);
 
         // Compute accepted methods based on active gateways
         const maskedConfigs = barbershop.gatewayConfigs?.map(g => {
@@ -481,7 +513,10 @@ exports.getBarbershopBySlug = async (req, res) => {
             ...safeBarbershop,
             gatewayConfigs: maskedConfigs,
             online_payment_enabled,
-            acceptedPaymentMethods
+            acceptedPaymentMethods,
+            averageRating,
+            totalReviews,
+            businessHours: hasBusinessHours ? businessHours : null
         });
     } catch (error) {
         console.error('getBarbershopBySlug Error:', error);

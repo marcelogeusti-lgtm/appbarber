@@ -504,7 +504,12 @@ exports.getBarbershopBySlug = async (req, res) => {
                     where: { role: { in: ['BARBER', 'ADMIN', 'SUPER_ADMIN'] }, active: true },
                     select: {
                         id: true, name: true, avatarUrl: true, role: true,
-                        professionalProfile: { select: { position: true, bio: true } }
+                        professionalProfile: {
+                            select: {
+                                position: true, bio: true,
+                                schedules: { select: { dayOfWeek: true, startTime: true, endTime: true, breakStart: true, breakEnd: true, isOff: true } }
+                            }
+                        }
                     }
                 }
             }
@@ -514,6 +519,31 @@ exports.getBarbershopBySlug = async (req, res) => {
             console.warn(`[SLUG] Barbershop NOT FOUND for slug: "${cleanSlug}"`);
             return res.status(404).json({ message: 'Barbearia não encontrada.' });
         }
+
+        // Rating real agregado (sem inventar 5.0)
+        const ratingAgg = await prisma.review.aggregate({
+            where: { barbershopId: barbershop.id },
+            _avg: { rating: true },
+            _count: { rating: true }
+        });
+        const totalReviews = ratingAgg._count.rating || 0;
+        const averageRating = totalReviews > 0 ? Number(ratingAgg._avg.rating).toFixed(1) : null;
+
+        // Horário real, agregado dos schedules dos profissionais
+        const allSchedules = (barbershop.staff || [])
+            .flatMap(s => s.professionalProfile?.schedules || []);
+        const businessHours = Array.from({ length: 7 }, (_, day) => {
+            const daySchedules = allSchedules.filter(s => s.dayOfWeek === day && !s.isOff && s.startTime && s.endTime);
+            if (daySchedules.length === 0) return { dayOfWeek: day, closed: true, ranges: [] };
+            const open = daySchedules.reduce((min, s) => (s.startTime < min ? s.startTime : min), daySchedules[0].startTime);
+            const close = daySchedules.reduce((max, s) => (s.endTime > max ? s.endTime : max), daySchedules[0].endTime);
+            const withBreak = daySchedules.find(s => s.breakStart && s.breakEnd);
+            const ranges = withBreak
+                ? [`${open} - ${withBreak.breakStart}`, `${withBreak.breakEnd} - ${close}`]
+                : [`${open} - ${close}`];
+            return { dayOfWeek: day, closed: false, ranges };
+        });
+        const hasBusinessHours = businessHours.some(d => !d.closed);
 
         console.log(`[SLUG] Found: "${barbershop.name}" (ID: ${barbershop.id})`);
 
@@ -538,7 +568,10 @@ exports.getBarbershopBySlug = async (req, res) => {
         res.json({
             ...safeBarbershop,
             online_payment_enabled,
-            acceptedPaymentMethods
+            acceptedPaymentMethods,
+            averageRating,
+            totalReviews,
+            businessHours: hasBusinessHours ? businessHours : null
         });
 
     } catch (error) {

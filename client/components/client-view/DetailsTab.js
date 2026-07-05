@@ -1,7 +1,19 @@
 'use client';
 import { MapPin, Phone, Clock, Wifi, Car, Accessibility, Baby, Instagram, Facebook, Youtube } from 'lucide-react';
 
+// dayOfWeek segue o padrão do schema: 0=Domingo ... 6=Sábado
+const WEEKDAYS = [
+    { index: 1, label: 'Segunda-feira' },
+    { index: 2, label: 'Terça-feira' },
+    { index: 3, label: 'Quarta-feira' },
+    { index: 4, label: 'Quinta-feira' },
+    { index: 5, label: 'Sexta-feira' },
+    { index: 6, label: 'Sábado' },
+    { index: 0, label: 'Domingo' }
+];
+
 export default function DetailsTab({ barbershop }) {
+    const businessHours = barbershop.businessHours;
     return (
         <div className="space-y-8 text-slate-300 pb-24">
             {/* Address & Map Block */}
@@ -47,16 +59,16 @@ export default function DetailsTab({ barbershop }) {
 
             <div className="space-y-4">
                 <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Comodidades</h3>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                         { icon: Wifi, label: 'Wi-Fi' },
                         { icon: Car, label: 'Estacionamento' },
                         { icon: Accessibility, label: 'Acessível' },
                         { icon: Baby, label: 'Kids' }
                     ].map((item, idx) => (
-                        <div key={idx} className="bg-[#111] aspect-square rounded-xl flex flex-col items-center justify-center gap-2 border border-white/5 text-slate-500 hover:text-primary hover:border-primary/30 transition">
+                        <div key={idx} className="bg-[#111] py-5 px-3 rounded-xl flex flex-col items-center justify-center gap-2 border border-white/5 text-slate-500 hover:text-primary hover:border-primary/30 transition">
                             <item.icon className="w-6 h-6" />
-                            {/* <span className="text-[10px] uppercase font-bold">{item.label}</span> */}
+                            <span className="text-[10px] uppercase font-bold text-center leading-tight">{item.label}</span>
                         </div>
                     ))}
                 </div>
@@ -64,17 +76,30 @@ export default function DetailsTab({ barbershop }) {
 
             <div className="space-y-4">
                 <h3 className="text-white font-bold uppercase tracking-widest text-xs border-b border-white/10 pb-2">Horário de Atendimento</h3>
-                <div className="space-y-3">
-                    {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((day, i) => (
-                        <div key={day} className="flex justify-between text-sm">
-                            <span className="font-medium text-slate-400">{day}-feira</span>
-                            <div className="text-right">
-                                <span className="block font-bold text-white">09:00 - 12:00</span>
-                                <span className="block font-bold text-white">13:00 - 19:00</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                {businessHours ? (
+                    <div className="space-y-3">
+                        {WEEKDAYS.map(({ index, label }) => {
+                            const day = businessHours.find(d => d.dayOfWeek === index);
+                            const closed = !day || day.closed;
+                            return (
+                                <div key={index} className="flex justify-between text-sm">
+                                    <span className="font-medium text-slate-400">{label}</span>
+                                    <div className="text-right">
+                                        {closed ? (
+                                            <span className="block font-bold text-slate-600 uppercase text-xs tracking-wider">Fechado</span>
+                                        ) : (
+                                            day.ranges.map((r, ri) => (
+                                                <span key={ri} className="block font-bold text-white">{r}</span>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <p className="text-sm text-slate-500">Horário de atendimento não informado.</p>
+                )}
             </div>
 
             <div className="space-y-4">

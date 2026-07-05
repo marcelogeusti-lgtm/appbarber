@@ -51,10 +51,19 @@ export default function BookingHeader({ barbershop, isFavorite, onToggleFavorite
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold mb-1">
-                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-3 h-3 fill-yellow-500" />)}
-                        <span className="text-white ml-2">5.0</span>
-                    </div>
+                    {barbershop.totalReviews > 0 ? (
+                        <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold mb-1">
+                            {[1, 2, 3, 4, 5].map(i => (
+                                <Star key={i} className={`w-3 h-3 ${i <= Math.round(barbershop.averageRating) ? 'fill-yellow-500' : 'text-slate-600'}`} />
+                            ))}
+                            <span className="text-white ml-2">{barbershop.averageRating}</span>
+                            <span className="text-slate-400 ml-1 font-medium">({barbershop.totalReviews})</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1 mb-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">Novo na plataforma</span>
+                        </div>
+                    )}
                     <h1 className="text-2xl font-black uppercase tracking-tight text-white mb-1 leading-none drop-shadow-lg">{barbershop.name}</h1>
                     <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold uppercase tracking-widest max-w-[80%] drop-shadow-md pointer-events-auto cursor-pointer hover:text-primary transition" onClick={onOpenMap}>
                         <MapPin className="w-3 h-3 text-primary flex-shrink-0" />

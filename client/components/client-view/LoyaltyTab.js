@@ -152,7 +152,7 @@ export default function LoyaltyTab({ points = 0, barbershopId }) {
                     <div className="mt-6 flex flex-wrap gap-3">
                         <div className="px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
                             <p className="text-[10px] text-primary font-black uppercase tracking-tighter">
-                                R$ 1.00 = {effectiveProgram.pointsPerReal} PONTOS
+                                R$ 1,00 = {effectiveProgram.pointsPerReal} {effectiveProgram.pointsPerReal === 1 ? 'PONTO' : 'PONTOS'}
                             </p>
                         </div>
                         <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10">

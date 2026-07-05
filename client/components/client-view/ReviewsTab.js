@@ -79,11 +79,13 @@ export default function ReviewsTab({ barbershopId }) {
             {/* Summary */}
             <div className="bg-[#111] p-6 rounded-xl border border-white/5 flex items-center justify-between">
                 <div>
-                    <h3 className="text-5xl font-black text-white tracking-tighter">{average}</h3>
+                    <h3 className="text-5xl font-black text-white tracking-tighter">{reviews.length > 0 ? average : '—'}</h3>
                     <div className="flex text-yellow-500 gap-1 my-2">
-                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className={`w-4 h-4 ${i <= Math.round(average) ? 'fill-yellow-500' : 'text-slate-800'}`} />)}
+                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className={`w-4 h-4 ${reviews.length > 0 && i <= Math.round(average) ? 'fill-yellow-500' : 'text-slate-800'}`} />)}
                     </div>
-                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Baseado em {reviews.length} avaliações</p>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                        {reviews.length > 0 ? `Baseado em ${reviews.length} ${reviews.length === 1 ? 'avaliação' : 'avaliações'}` : 'Ainda sem avaliações'}
+                    </p>
                 </div>
 
                 {unreviewed.length > 0 && !isWriting && (

@@ -1,5 +1,4 @@
 'use client';
-import { Star } from 'lucide-react';
 
 export default function ProfessionalsTab({ professionals }) {
     if (!professionals || professionals.length === 0) {
@@ -21,13 +20,12 @@ export default function ProfessionalsTab({ professionals }) {
                             pro.name.charAt(0)
                         )}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                         <h3 className="font-bold text-white text-base uppercase tracking-tight">{pro.name}</h3>
                         <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">{pro.professionalProfile?.position || 'Barbeiro'}</p>
-                        <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                            <span className="text-[10px] text-slate-400 font-bold">5.0 (28 avaliações)</span>
-                        </div>
+                        {pro.professionalProfile?.bio && (
+                            <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">{pro.professionalProfile.bio}</p>
+                        )}
                     </div>
                 </div>
             ))}
