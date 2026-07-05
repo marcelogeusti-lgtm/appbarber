@@ -88,9 +88,19 @@ exports.handleCaktoWebhook = async (req, res) => {
         // 3. Casa o e-mail do comprador com o dono de barbearia
         const authUser = await prisma.authUser.findUnique({
             where: { email: email.toLowerCase() },
-            include: { user: { include: { ownedBarbershops: { select: { id: true, name: true } } } } }
+            include: { user: { select: { role: true, ownedBarbershops: { select: { id: true, name: true } } } } }
         });
         const barbershop = authUser?.user?.ownedBarbershops?.[0];
+
+        // Blindagem: a conta do dono (SUPER_ADMIN) nunca é alterada pela cobrança.
+        // Protege inclusive os testes de compra feitos com o e-mail do dono.
+        if (authUser?.user?.role === 'SUPER_ADMIN') {
+            await prisma.saasWebhookEvent.update({
+                where: { id: eventRecord.id },
+                data: { processed: true, error: 'Conta do dono (SUPER_ADMIN) — ignorada de propósito' }
+            });
+            return res.status(200).json({ received: true, processed: false, reason: 'owner_account_protected' });
+        }
 
         if (!barbershop) {
             await prisma.saasWebhookEvent.update({
