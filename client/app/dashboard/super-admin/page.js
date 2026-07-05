@@ -41,6 +41,20 @@ export default function SuperAdminPage() {
         }
     };
 
+    // Trocar o plano de uma barbearia (ex.: liberar parceiro/influencer no plano escolhido).
+    // Já ativa a assinatura, pra o parceiro usar de imediato sem pagar na Cakto.
+    const planLabels = { SOLO: 'Start', PRO: 'Pro', ENTERPRISE: 'Empire' };
+    const handleChangePlan = async (id, plan, current) => {
+        if (plan === current) return;
+        if (!confirm(`Colocar esta barbearia no plano ${planLabels[plan] || plan} e ativar?`)) return;
+        try {
+            await api.put(`/barbershops/${id}/plan`, { plan, status: 'ACTIVE' });
+            fetchData();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Erro ao alterar plano');
+        }
+    };
+
     if (loading) return <div className="p-10 text-center text-muted-foreground animate-pulse font-black uppercase text-xs tracking-widest">Acessando Camada de Governança...</div>;
 
     if (error) return (
@@ -167,7 +181,16 @@ export default function SuperAdminPage() {
                                     </td>
                                     <td className="px-8 py-8">
                                         <div className="flex flex-col gap-1">
-                                            <span className="bg-primary/10 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner w-fit">{shop.saasPlan}</span>
+                                            <select
+                                                value={shop.saasPlan}
+                                                onChange={(e) => handleChangePlan(shop.id, e.target.value, shop.saasPlan)}
+                                                title="Trocar plano (ativa a barbearia)"
+                                                className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-inner w-fit cursor-pointer outline-none focus:ring-1 focus:ring-primary"
+                                            >
+                                                <option value="SOLO">Start</option>
+                                                <option value="PRO">Pro</option>
+                                                <option value="ENTERPRISE">Empire</option>
+                                            </select>
                                             {shop.nextBillingDate && (
                                                 <span className="text-[9px] text-muted-foreground font-bold flex items-center gap-1">
                                                     <Clock className="w-2.5 h-2.5" /> {new Date(shop.nextBillingDate).toLocaleDateString()}
