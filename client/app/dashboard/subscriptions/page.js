@@ -1,34 +1,32 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import { CreditCard, Plus, Trash2, Calendar, Target, ShoppingBag } from 'lucide-react';
 
+const getShopId = () => {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        return user?.barbershopId || user?.barbershop?.id || user?.ownedBarbershops?.[0]?.id || null;
+    } catch { return null; }
+};
+
 export default function SubscriptionPlansPage() {
-    const [plans, setPlans] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [newPlan, setNewPlan] = useState({ name: '', price: '', quantityOfCuts: '', validityDays: '' });
     const [isAdding, setIsAdding] = useState(false);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        fetchPlans();
-    }, []);
-
-    const fetchPlans = async () => {
-        try {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) return;
-            const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
-            const res = await api.get(`/subscriptions?barbershopId=${bId}`);
-            setPlans(res.data);
-            setLoading(false);
-        } catch (err) {
-            console.error(err);
-            setLoading(false);
+    const { data: plans = [], isLoading: loading } = useQuery({
+        queryKey: ['subscription-plans'],
+        queryFn: async () => {
+            const bId = getShopId();
+            if (!bId) return [];
+            return (await api.get(`/subscriptions?barbershopId=${bId}`)).data;
         }
-    };
+    });
+
+    const fetchPlans = () => queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
 
     const handleCreatePlan = async (e) => {
         e.preventDefault();

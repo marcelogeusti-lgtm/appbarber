@@ -1,35 +1,31 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import UpdateRolloutManager from './UpdateRolloutManager';
 import { Shield, BarChart3, Activity, Zap, TrendingUp, Globe, ExternalLink, Trash2, Settings, Clock } from 'lucide-react';
 
-// ... imports remain the same
-
 export default function SuperAdminPage() {
-    const [barbershops, setBarbershops] = useState([]);
-    const [stats, setStats] = useState({ activeUnits: 0, mrr: 0, provisioning: 0, churn: 0 });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        try {
+    const { data, isLoading: loading, isError } = useQuery({
+        queryKey: ['super-admin'],
+        queryFn: async () => {
             const [shopsRes, statsRes] = await Promise.all([
                 api.get('/barbershops'),
                 api.get('/admin/stats')
             ]);
-            setBarbershops(Array.isArray(shopsRes.data) ? shopsRes.data : []);
-            setStats(statsRes.data);
-            setLoading(false);
-        } catch (err) {
-            setError('Erro ao carregar dados. Verifique se você é um Super Admin.');
-            setLoading(false);
+            return {
+                barbershops: Array.isArray(shopsRes.data) ? shopsRes.data : [],
+                stats: statsRes.data
+            };
         }
-    };
+    });
+
+    const barbershops = data?.barbershops || [];
+    const stats = data?.stats || { activeUnits: 0, mrr: 0, provisioning: 0, churn: 0 };
+    const error = isError ? 'Erro ao carregar dados. Verifique se você é um Super Admin.' : '';
+
+    const fetchData = () => queryClient.invalidateQueries({ queryKey: ['super-admin'] });
 
     const handleToggleStatus = async (id) => {
         if (!confirm('Tem certeza que deseja alterar o status desta unidade?')) return;

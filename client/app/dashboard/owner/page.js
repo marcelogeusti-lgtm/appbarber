@@ -1,50 +1,35 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import {
     Calendar, ArrowUpRight, Target, UserPlus, Zap, BarChart3,
     Star, Clock, Trophy, Award
 } from 'lucide-react';
 
+const getShopId = () => {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        return user?.barbershopId || user?.barbershop?.id || user?.ownedBarbershops?.[0]?.id || null;
+    } catch { return null; }
+};
+
 export default function OwnerDashboardPage() {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [startDate, setStartDate] = useState(new Date(new Date().setDate(1)).toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-    useEffect(() => {
-        fetchOwnerData();
-    }, []);
-
-    const fetchOwnerData = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const userStr = localStorage.getItem('user');
-            if (!userStr) {
-                setError('Usuário não autenticado.');
-                setLoading(false);
-                return;
-            }
-            const user = JSON.parse(userStr);
-            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
-
-            if (!bId) {
-                setError('Nenhuma barbearia encontrada para este usuário.');
-                setLoading(false);
-                return;
-            }
-
+    const { data = null, isLoading: loading, error: queryError, refetch: fetchOwnerData } = useQuery({
+        queryKey: ['owner-report', startDate, endDate],
+        queryFn: async () => {
+            const bId = getShopId();
+            if (!bId) throw new Error('Nenhuma barbearia encontrada para este usuário.');
             const res = await api.get(`/finance/owner-report?barbershopId=${bId}&startDate=${startDate}&endDate=${endDate}`);
-            setData(res.data || null);
-        } catch (err) {
-            console.error('Fetch Owner Data Error:', err);
-            setError(err.response?.data?.message || 'Erro ao carregar dados de análise.');
-        } finally {
-            setLoading(false);
-        }
-    };
+            return res.data || null;
+        },
+        placeholderData: (prev) => prev
+    });
+
+    const error = queryError ? (queryError.response?.data?.message || queryError.message || 'Erro ao carregar dados de análise.') : null;
 
     if (loading) {
         return <div className="p-8 text-center text-muted-foreground animate-pulse uppercase font-bold tracking-widest text-xs">Acessando inteligência de negócio...</div>;

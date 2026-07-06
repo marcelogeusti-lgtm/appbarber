@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import {
     Users, UserCheck, UserX, UserMinus, Search,
@@ -7,44 +8,32 @@ import {
 } from 'lucide-react';
 
 export default function SubscribersPage() {
-    const [subscribers, setSubscribers] = useState([]);
-    const [stats, setStats] = useState({ active: 0, expired: 0, cancelled: 0, total: 0 });
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
 
-    useEffect(() => {
-        fetchSubscribers();
-    }, []);
+    const { data: rawSubs = [], isLoading: loading } = useQuery({
+        queryKey: ['subscribers'],
+        queryFn: async () => (await api.get('/subscriptions/list')).data
+    });
 
-    const fetchSubscribers = async () => {
-        try {
-            const { data } = await api.get('/subscriptions/list');
+    const subscribers = useMemo(() => rawSubs.map(sub => ({
+        ...sub,
+        // A API retorna client/plan como objetos — extrai os campos exibíveis
+        name: sub.client?.name || sub.name || 'Cliente',
+        plan: sub.plan?.name || (typeof sub.plan === 'string' ? sub.plan : '—'),
+        remainingCuts: sub.remainingCuts,
+        joined: new Date(sub.joined || sub.createdAt).toLocaleDateString('pt-BR'),
+        expiry: (sub.endDate || sub.expiry) ? new Date(sub.endDate || sub.expiry).toLocaleDateString('pt-BR') : 'N/A',
+        ltv: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.ltv || Number(sub.plan?.price) || 0)
+    })), [rawSubs]);
 
-            const formatted = data.map(sub => ({
-                ...sub,
-                // A API retorna client/plan como objetos — extrai os campos exibíveis
-                name: sub.client?.name || sub.name || 'Cliente',
-                plan: sub.plan?.name || (typeof sub.plan === 'string' ? sub.plan : '—'),
-                remainingCuts: sub.remainingCuts,
-                joined: new Date(sub.joined || sub.createdAt).toLocaleDateString('pt-BR'),
-                expiry: (sub.endDate || sub.expiry) ? new Date(sub.endDate || sub.expiry).toLocaleDateString('pt-BR') : 'N/A',
-                ltv: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.ltv || Number(sub.plan?.price) || 0)
-            }));
-
-            setSubscribers(formatted);
-
-            const active = formatted.filter(s => s.status === 'ACTIVE').length;
-            const expired = formatted.filter(s => s.status === 'EXPIRED').length;
-            const cancelled = formatted.filter(s => s.status === 'CANCELLED').length;
-
-            setStats({ active, expired, cancelled, total: formatted.length });
-            setLoading(false);
-        } catch (err) {
-            console.error(err);
-            setLoading(false);
-        }
-    };
+    const stats = useMemo(() => ({
+        active: subscribers.filter(s => s.status === 'ACTIVE').length,
+        expired: subscribers.filter(s => s.status === 'EXPIRED').length,
+        cancelled: subscribers.filter(s => s.status === 'CANCELLED').length,
+        total: subscribers.length
+    }), [subscribers]);
 
     const handleCancelSubscription = async (sub) => {
         const ok = window.confirm(
@@ -53,7 +42,7 @@ export default function SubscribersPage() {
         if (!ok) return;
         try {
             await api.post(`/subscriptions/${sub.id}/cancel`);
-            fetchSubscribers();
+            queryClient.invalidateQueries({ queryKey: ['subscribers'] });
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.message || 'Erro ao cancelar assinatura.');

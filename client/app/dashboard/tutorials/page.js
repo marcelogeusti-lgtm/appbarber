@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { PlayCircle, Video, BookOpen, Star, Clock, ChevronRight, Search } from 'lucide-react';
 import api from '../../../lib/api';
 
@@ -32,32 +33,17 @@ const TUTORIAL_CATEGORIES = [
 ];
 
 export default function TutorialsPage() {
-    const [videos, setVideos] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [playingVideo, setPlayingVideo] = useState(null);
 
-    useEffect(() => {
-        const fetchVideos = async () => {
-            try {
-                setLoading(true);
-                const response = await api.get('/tutorials', {
-                    params: {
-                        category: activeCategory,
-                        search: searchQuery
-                    }
-                });
-                setVideos(response.data);
-            } catch (error) {
-                console.error('Error fetching tutorials:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchVideos();
-    }, [activeCategory, searchQuery]);
+    const { data: videos = [], isLoading: loading } = useQuery({
+        queryKey: ['tutorials', activeCategory, searchQuery],
+        queryFn: async () => (await api.get('/tutorials', {
+            params: { category: activeCategory, search: searchQuery }
+        })).data,
+        placeholderData: (prev) => prev
+    });
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
