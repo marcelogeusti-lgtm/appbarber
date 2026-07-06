@@ -4,6 +4,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, Calendar, User, ChevronDown, Bell, Plus, Heart } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
+import { ClientThemeProvider, useClientTheme } from '../../contexts/ClientThemeContext';
+import { useTranslation } from '../../contexts/LanguageContext';
 import FooterCliente from '../../components/client-view/FooterCliente';
 import NotificationsModal from '../../components/client-view/NotificationsModal';
 import ProfileDropdown from '../../components/client-view/ProfileDropdown';
@@ -14,6 +16,8 @@ function ClientLayoutContent({ children }) {
     const pathname = usePathname();
     const router = useRouter();
     const { user, loading, openLoginModal } = useClientAuth();
+    const { theme } = useClientTheme();
+    const { t } = useTranslation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
@@ -35,9 +39,9 @@ function ClientLayoutContent({ children }) {
     };
 
     const tabs = [
-        { name: 'Início', href: '/inicio', icon: Home },
-        { name: 'Buscar', href: '/buscar', icon: Search },
-        { name: 'Agenda', href: '/agenda', icon: Calendar },
+        { name: t('clientApp.nav.home'), href: '/inicio', icon: Home },
+        { name: t('clientApp.nav.search'), href: '/buscar', icon: Search },
+        { name: t('clientApp.nav.agenda'), href: '/agenda', icon: Calendar },
     ];
 
     const handleQuickBookingClick = () => {
@@ -63,7 +67,7 @@ function ClientLayoutContent({ children }) {
     };
 
     return (
-        <div className="flex h-screen bg-[#050505] text-white overflow-hidden">
+        <div className={`flex h-screen bg-[#050505] text-white overflow-hidden ${theme === 'light' ? 'client-light' : ''}`}>
             <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
             <QuickBookingModal 
                 isOpen={isQuickBookingOpen} 
@@ -228,8 +232,10 @@ function ClientLayoutContent({ children }) {
 
 export default function ClientLayout({ children }) {
     return (
-        <ClientLayoutContent>
-            {children}
-        </ClientLayoutContent>
+        <ClientThemeProvider>
+            <ClientLayoutContent>
+                {children}
+            </ClientLayoutContent>
+        </ClientThemeProvider>
     );
 }

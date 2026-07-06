@@ -318,7 +318,7 @@ exports.getClientDetails = async (req, res) => {
 exports.updateClientProfile = async (req, res) => {
     try {
         const clientId = req.user.id; // From Client Token
-        let { name, phone, birthDate, gender, avatarUrl, cpf, cnpj } = req.body;
+        let { name, phone, birthDate, gender, avatarUrl, cpf, cnpj, theme } = req.body;
 
         // Validations
         if (!clientId) return res.status(401).json({ message: 'Unauthorized' });
@@ -328,28 +328,31 @@ exports.updateClientProfile = async (req, res) => {
             phone = phone.replace(/\D/g, '');
         }
 
-        // Parse birthDate if string
-        let formattedBirthDate = null;
-        if (birthDate) {
+        // Update PARCIAL: só toca nos campos que vieram no body.
+        // (Antes, um PUT sem birthDate/gender APAGAVA esses dados no banco.)
+        const data = {};
+        if (name !== undefined) data.name = name;
+        if (phone !== undefined) data.phone = phone;
+        if (gender !== undefined) data.gender = gender || null;
+        if (avatarUrl !== undefined) data.avatarUrl = avatarUrl;
+        if (cpf !== undefined) data.cpf = cpf || null;
+        if (cnpj !== undefined) data.cnpj = cnpj || null;
+        if (theme === 'light' || theme === 'dark') data.theme = theme;
+
+        if (birthDate !== undefined) {
             // Append T12:00:00Z to avoid timezone day shift when converting from YYYY-MM-DD
-            const normalizeDate = birthDate.includes('T') ? birthDate : `${birthDate}T12:00:00Z`;
-            formattedBirthDate = new Date(normalizeDate);
-            if (isNaN(formattedBirthDate.getTime())) {
-                formattedBirthDate = null;
+            let formattedBirthDate = null;
+            if (birthDate) {
+                const normalizeDate = birthDate.includes('T') ? birthDate : `${birthDate}T12:00:00Z`;
+                formattedBirthDate = new Date(normalizeDate);
+                if (isNaN(formattedBirthDate.getTime())) formattedBirthDate = null;
             }
+            data.birthDate = formattedBirthDate;
         }
 
         const updatedClient = await prisma.client.update({
             where: { id: clientId },
-            data: {
-                name,
-                phone,
-                gender: gender || null,
-                birthDate: formattedBirthDate,
-                avatarUrl, // Optional update
-                cpf: cpf || null,
-                cnpj: cnpj || null
-            }
+            data
         });
 
         // Note: Email update is handled via AuthUser and usually requires re-verification.

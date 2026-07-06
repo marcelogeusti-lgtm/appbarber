@@ -431,3 +431,93 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   from { transform: translateX(-50%); }
   to   { transform: translateX(0); }
 }
+/* ============================================================
+   CLIENT APP — LIGHT THEME SKIN
+   Aplicado quando o wrapper do app do cliente tem .client-light
+   (contexts/ClientThemeContext.js). Remapeia a paleta dark
+   hardcoded das telas do cliente para um tema claro consistente.
+   ============================================================ */
+
+/* --- Fundos de página --- */
+.client-light.bg-\[\#050505\],
+.client-light .bg-\[\#050505\],
+.client-light .bg-\[\#0A0A0A\],
+.client-light .bg-\[\#0a0a0b\],
+.client-light .bg-\[\#0A0A0B\] {
+    background-color: #f4f5f7 !important;
+}
+
+/* --- Cartões / superfícies --- */
+.client-light .bg-\[\#111\],
+.client-light .bg-\[\#111111\],
+.client-light .bg-\[\#0f0f0f\],
+.client-light .bg-\[\#1A1A1A\],
+.client-light .bg-\[\#0b0f19\],
+.client-light .bg-slate-900,
+.client-light .bg-zinc-900 {
+    background-color: #ffffff !important;
+}
+.client-light .bg-slate-900\/50,
+.client-light .bg-zinc-900\/50,
+.client-light .bg-\[\#0A0A0B\]\/40,
+.client-light .bg-\[\#0A0A0B\]\/50,
+.client-light .bg-\[\#0a0a0b\]\/80 {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+.client-light .bg-slate-800 { background-color: #e2e8f0 !important; }
+.client-light .bg-slate-800\/50 { background-color: rgba(226, 232, 240, 0.6) !important; }
+.client-light .bg-white\/5 { background-color: rgba(15, 23, 42, 0.05) !important; }
+.client-light .bg-white\/10 { background-color: rgba(15, 23, 42, 0.08) !important; }
+.client-light .bg-white\/\[0\.02\] { background-color: rgba(15, 23, 42, 0.03) !important; }
+
+/* --- Gradientes decorativos escuros → fundo chapado claro --- */
+.client-light [class*="from-[#0A0A0B]"],
+.client-light [class*="from-[#0a0a0b]"],
+.client-light [class*="via-[#050505]"] {
+    background-image: none !important;
+}
+
+/* --- Textos --- */
+.client-light .text-white { color: #0f172a !important; }
+.client-light .text-white\/80 { color: rgba(15, 23, 42, 0.8) !important; }
+.client-light .text-white\/60 { color: rgba(15, 23, 42, 0.6) !important; }
+.client-light .text-white\/50 { color: rgba(15, 23, 42, 0.55) !important; }
+.client-light .text-white\/40 { color: rgba(15, 23, 42, 0.5) !important; }
+.client-light .text-white\/20 { color: rgba(15, 23, 42, 0.3) !important; }
+.client-light .text-slate-300 { color: #334155 !important; }
+.client-light .text-slate-400 { color: #475569 !important; }
+.client-light .text-slate-500 { color: #64748b !important; }
+.client-light .text-slate-600 { color: #94a3b8 !important; }
+.client-light .text-slate-700 { color: #cbd5e1 !important; }
+.client-light .text-slate-800 { color: #e2e8f0 !important; }
+
+/* --- Bordas --- */
+.client-light .border-white\/5 { border-color: rgba(15, 23, 42, 0.08) !important; }
+.client-light .border-white\/10 { border-color: rgba(15, 23, 42, 0.12) !important; }
+.client-light .border-white\/20 { border-color: rgba(15, 23, 42, 0.2) !important; }
+.client-light .border-slate-700 { border-color: #cbd5e1 !important; }
+.client-light .border-slate-800 { border-color: #e2e8f0 !important; }
+.client-light .border-slate-800\/50 { border-color: rgba(226, 232, 240, 0.7) !important; }
+.client-light .border-slate-900 { border-color: #e8ebf0 !important; }
+.client-light .border-\[\#050505\] { border-color: #f4f5f7 !important; }
+.client-light .border-black { border-color: #ffffff !important; }
+.client-light .border-\[\#0A0A0A\] { border-color: #f4f5f7 !important; }
+
+/* --- Botões CTA "brancos" (bg-white + text-black) invertem p/ escuros --- */
+.client-light .bg-white.text-black {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+}
+.client-light .bg-white.text-black:hover { background-color: #1e293b !important; }
+
+/* --- Estados hover mais comuns --- */
+.client-light .hover\:bg-white\/5:hover { background-color: rgba(15, 23, 42, 0.05) !important; }
+.client-light .hover\:bg-white\/10:hover { background-color: rgba(15, 23, 42, 0.08) !important; }
+.client-light .hover\:bg-slate-800:hover { background-color: #e2e8f0 !important; }
+.client-light .hover\:bg-slate-900:hover { background-color: #f1f5f9 !important; }
+.client-light .hover\:text-white:hover { color: #0f172a !important; }
+.client-light .hover\:border-white\/10:hover { border-color: rgba(15, 23, 42, 0.15) !important; }
+.client-light .group:hover .group-hover\:text-white { color: #0f172a !important; }
+
+/* Sombra pesada de cards escuros fica sutil no claro */
+.client-light .shadow-2xl { box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important; }

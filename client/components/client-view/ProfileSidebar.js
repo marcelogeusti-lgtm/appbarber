@@ -3,19 +3,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { User, MapPin, ShieldCheck, Key, CreditCard, SlidersHorizontal, LogOut } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
+import { useTranslation } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 
 export default function ProfileSidebar() {
     const pathname = usePathname();
     const { user, logout } = useClientAuth();
+    const { t } = useTranslation();
 
     const menuItems = [
-        { icon: User, label: 'Meus Dados', href: '/perfil/editar' },
-        { icon: MapPin, label: 'Endereço', href: '/perfil/endereco' },
-        { icon: CreditCard, label: 'Meus Cartões', href: '/cartoes' },
-        { icon: ShieldCheck, label: 'Segurança', href: '/perfil/seguranca' },
-        { icon: Key, label: 'Meus Acessos', href: '/perfil/acesso' },
-        { icon: SlidersHorizontal, label: 'Preferências', href: '/perfil/preferencias' },
+        { icon: User, label: t('clientApp.menu.myData'), href: '/perfil/editar' },
+        { icon: MapPin, label: t('clientApp.menu.addresses'), href: '/perfil/endereco' },
+        { icon: CreditCard, label: t('clientApp.menu.cards'), href: '/cartoes' },
+        { icon: ShieldCheck, label: t('clientApp.menu.security'), href: '/perfil/seguranca' },
+        { icon: Key, label: t('clientApp.menu.access'), href: '/perfil/acesso' },
+        { icon: SlidersHorizontal, label: t('clientApp.menu.preferences'), href: '/perfil/preferencias' },
     ];
 
     return (
@@ -83,7 +85,7 @@ export default function ProfileSidebar() {
                     className="w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] text-slate-500 hover:text-red-400 hover:bg-red-400/5 transition-all group group relative overflow-hidden"
                 >
                     <LogOut className="w-5 h-5 transition-colors relative z-10" strokeWidth={1.5} />
-                    <span className="text-sm font-bold tracking-widest uppercase relative z-10">Sair da conta</span>
+                    <span className="text-sm font-bold tracking-widest uppercase relative z-10">{t('clientApp.menu.logout')}</span>
                 </button>
             </div>
         </aside>

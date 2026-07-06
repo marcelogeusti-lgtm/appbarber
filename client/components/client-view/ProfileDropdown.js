@@ -6,36 +6,38 @@ import {
     FileText, Star
 } from 'lucide-react';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function ProfileDropdown({ isOpen, onClose }) {
     const { user, logout } = useClientAuth();
+    const { t } = useTranslation();
 
     if (!isOpen) return null;
 
     const sections = [
         {
             items: [
-                { icon: User, label: 'Meus Dados', href: '/perfil/editar' },
-                { icon: Key, label: 'Meus Acessos', href: '/perfil/acesso' },
-                { icon: MapPin, label: 'Endereço', href: '/perfil/endereco' },
+                { icon: User, label: t('clientApp.menu.myData'), href: '/perfil/editar' },
+                { icon: Key, label: t('clientApp.menu.access'), href: '/perfil/acesso' },
+                { icon: MapPin, label: t('clientApp.menu.addresses'), href: '/perfil/endereco' },
             ]
         },
         {
             items: [
-                { icon: Heart, label: 'Favoritos', href: '/favoritos' },
-                { icon: Star, label: 'Fidelidade', href: '/fidelidade' },
-                { icon: CreditCard, label: 'Meus Cartões', href: '/cartoes' },
-                { icon: Sparkles, label: 'Assinaturas', href: '/assinaturas' },
-                { icon: Box, label: 'Pacotes', href: '/pacotes' },
-                { icon: ShieldCheck, label: 'Segurança', href: '/perfil/seguranca' },
-                { icon: History, label: 'Histórico', href: '/historico' },
+                { icon: Heart, label: t('clientApp.nav.favorites'), href: '/favoritos' },
+                { icon: Star, label: t('clientApp.menu.loyalty'), href: '/fidelidade' },
+                { icon: CreditCard, label: t('clientApp.menu.cards'), href: '/cartoes' },
+                { icon: Sparkles, label: t('clientApp.menu.subscriptions'), href: '/assinaturas' },
+                { icon: Box, label: t('clientApp.menu.packages'), href: '/pacotes' },
+                { icon: ShieldCheck, label: t('clientApp.menu.security'), href: '/perfil/seguranca' },
+                { icon: History, label: t('clientApp.menu.history'), href: '/historico' },
             ]
         },
         {
             items: [
-                { icon: Settings, label: 'Preferências', href: '/perfil/preferencias' },
-                { icon: MessageSquare, label: 'Ouvidoria', href: '/suporte' },
-                { icon: FileText, label: 'Termos de Uso', href: '/termos' },
+                { icon: Settings, label: t('clientApp.menu.preferences'), href: '/perfil/preferencias' },
+                { icon: MessageSquare, label: t('clientApp.menu.support'), href: '/suporte' },
+                { icon: FileText, label: t('clientApp.menu.terms'), href: '/termos' },
             ]
         }
     ];
@@ -97,7 +99,7 @@ export default function ProfileDropdown({ isOpen, onClose }) {
                         className="w-full flex items-center justify-center gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all group group"
                     >
                         <LogOut className="w-4 h-4 text-red-500 group-hover:text-white" />
-                        <span className="text-[11px] font-black text-red-500 group-hover:text-white uppercase tracking-[0.2em]">Sair da Conta</span>
+                        <span className="text-[11px] font-black text-red-500 group-hover:text-white uppercase tracking-[0.2em]">{t('clientApp.menu.logout')}</span>
                     </button>
                     <p className="text-center text-[8px] text-slate-700 font-bold uppercase tracking-widest mt-4">AppBarber v2.0</p>
                 </div>

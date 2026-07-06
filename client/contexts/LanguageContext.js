@@ -3,6 +3,38 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const translations = {
   pt: {
+    clientApp: {
+      nav: { home: "Início", search: "Buscar", agenda: "Agenda", favorites: "Favoritos", profile: "Perfil" },
+      header: { notifications: "Notificações", login: "Entrar", myAccount: "Minha Conta" },
+      menu: {
+        myData: "Meus Dados", addresses: "Endereços", cards: "Meus Cartões",
+        security: "Segurança", access: "Meus Acessos", preferences: "Preferências",
+        loyalty: "Fidelidade", history: "Histórico", packages: "Pacotes",
+        subscriptions: "Assinaturas", support: "Ouvidoria", terms: "Termos de Uso", logout: "Sair da Conta"
+      },
+      prefs: {
+        title: "Preferências", subtitle: "Minhas Configurações",
+        appearance: "Aparência", darkMode: "Modo Escuro", lightMode: "Modo Claro",
+        darkModeDesc: "Tema escuro em todo o app", lightModeDesc: "Tema claro em todo o app",
+        language: "Idioma", languageDesc: "Escolha o idioma do aplicativo",
+        shortcuts: "Atalhos", securityShortcut: "Segurança",
+        securityShortcutDesc: "Senha e autenticação em 2 fatores",
+        notifShortcut: "Notificações", notifShortcutDesc: "Lembretes de agendamento no app",
+        open: "Abrir", active: "Ativo"
+      },
+      common: {
+        save: "Salvar", saving: "Salvando...", cancel: "Cancelar", back: "Voltar",
+        loading: "Carregando...", confirm: "Confirmar", delete: "Excluir", edit: "Editar"
+      },
+      footer: {
+        tagline: "Uma nova experiência para uma antiga tradição.",
+        quickAccess: "Acesso rápido", more: "Mais",
+        cookiePrefs: "Preferências de cookies", downloadApp: "Baixe nosso App",
+        isManager: "É um gestor?",
+        managerDesc: "Cadastre seu estabelecimento e comece a receber agendamentos online.",
+        learnMore: "Saiba mais", rights: "Todos os direitos reservados."
+      }
+    },
   "navbar": {
     "home": "Home",
     "about": "Sobre",
@@ -724,6 +756,38 @@ c) O NEXT implementa medidas técnicas de segurança, mas a responsabilidade pel
 }
   },
   en: {
+    clientApp: {
+      nav: { home: "Home", search: "Search", agenda: "Bookings", favorites: "Favorites", profile: "Profile" },
+      header: { notifications: "Notifications", login: "Sign in", myAccount: "My Account" },
+      menu: {
+        myData: "My Info", addresses: "Addresses", cards: "My Cards",
+        security: "Security", access: "My Logins", preferences: "Preferences",
+        loyalty: "Loyalty", history: "History", packages: "Packages",
+        subscriptions: "Subscriptions", support: "Support", terms: "Terms of Use", logout: "Log out"
+      },
+      prefs: {
+        title: "Preferences", subtitle: "My Settings",
+        appearance: "Appearance", darkMode: "Dark Mode", lightMode: "Light Mode",
+        darkModeDesc: "Dark theme across the app", lightModeDesc: "Light theme across the app",
+        language: "Language", languageDesc: "Choose the app language",
+        shortcuts: "Shortcuts", securityShortcut: "Security",
+        securityShortcutDesc: "Password and two-factor authentication",
+        notifShortcut: "Notifications", notifShortcutDesc: "Booking reminders in the app",
+        open: "Open", active: "Active"
+      },
+      common: {
+        save: "Save", saving: "Saving...", cancel: "Cancel", back: "Back",
+        loading: "Loading...", confirm: "Confirm", delete: "Delete", edit: "Edit"
+      },
+      footer: {
+        tagline: "A new experience for an old tradition.",
+        quickAccess: "Quick access", more: "More",
+        cookiePrefs: "Cookie preferences", downloadApp: "Get our App",
+        isManager: "Are you a manager?",
+        managerDesc: "Register your business and start taking online bookings.",
+        learnMore: "Learn more", rights: "All rights reserved."
+      }
+    },
   "navbar": {
     "home": "Home",
     "about": "About",
@@ -1445,6 +1509,38 @@ c) NEXT implements technical security measures, but the responsibility for lawfu
 }
   },
   es: {
+    clientApp: {
+      nav: { home: "Inicio", search: "Buscar", agenda: "Citas", favorites: "Favoritos", profile: "Perfil" },
+      header: { notifications: "Notificaciones", login: "Entrar", myAccount: "Mi Cuenta" },
+      menu: {
+        myData: "Mis Datos", addresses: "Direcciones", cards: "Mis Tarjetas",
+        security: "Seguridad", access: "Mis Accesos", preferences: "Preferencias",
+        loyalty: "Fidelidad", history: "Historial", packages: "Paquetes",
+        subscriptions: "Suscripciones", support: "Soporte", terms: "Términos de Uso", logout: "Cerrar Sesión"
+      },
+      prefs: {
+        title: "Preferencias", subtitle: "Mis Configuraciones",
+        appearance: "Apariencia", darkMode: "Modo Oscuro", lightMode: "Modo Claro",
+        darkModeDesc: "Tema oscuro en toda la app", lightModeDesc: "Tema claro en toda la app",
+        language: "Idioma", languageDesc: "Elige el idioma de la aplicación",
+        shortcuts: "Atajos", securityShortcut: "Seguridad",
+        securityShortcutDesc: "Contraseña y autenticación en 2 pasos",
+        notifShortcut: "Notificaciones", notifShortcutDesc: "Recordatorios de citas en la app",
+        open: "Abrir", active: "Activo"
+      },
+      common: {
+        save: "Guardar", saving: "Guardando...", cancel: "Cancelar", back: "Volver",
+        loading: "Cargando...", confirm: "Confirmar", delete: "Eliminar", edit: "Editar"
+      },
+      footer: {
+        tagline: "Una nueva experiencia para una antigua tradición.",
+        quickAccess: "Acceso rápido", more: "Más",
+        cookiePrefs: "Preferencias de cookies", downloadApp: "Descarga nuestra App",
+        isManager: "¿Eres gestor?",
+        managerDesc: "Registra tu establecimiento y empieza a recibir citas online.",
+        learnMore: "Saber más", rights: "Todos los derechos reservados."
+      }
+    },
   "navbar": {
     "home": "Inicio",
     "about": "Sobre",

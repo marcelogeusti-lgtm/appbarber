@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { Facebook, Instagram, Youtube, Twitter, ArrowUp } from 'lucide-react';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export default function FooterCliente() {
+    const { t } = useTranslation();
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -18,7 +20,7 @@ export default function FooterCliente() {
                             <img src="/logos/logo_icon.png" alt="appbarber" className="h-10 w-auto rounded-xl opacity-90" />
                         </Link>
                         <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
-                            Uma nova experiência para uma antiga tradição.
+                            {t('clientApp.footer.tagline')}
                         </p>
                         <div className="flex gap-5 text-slate-400">
                             <a href="#" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
@@ -30,28 +32,28 @@ export default function FooterCliente() {
 
                     {/* Quick Access */}
                     <div>
-                        <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">Acesso rápido</h4>
+                        <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">{t('clientApp.footer.quickAccess')}</h4>
                         <ul className="space-y-4">
-                             <li><Link href="/inicio" className="text-slate-500 hover:text-white transition-colors text-sm">Início</Link></li>
-                             <li><Link href="/buscar" className="text-slate-500 hover:text-white transition-colors text-sm">Buscar</Link></li>
-                             <li><Link href="/agenda" className="text-slate-500 hover:text-white transition-colors text-sm">Agenda</Link></li>
-                             <li><Link href="/favoritos" className="text-slate-500 hover:text-white transition-colors text-sm">Favoritos</Link></li>
+                             <li><Link href="/inicio" className="text-slate-500 hover:text-white transition-colors text-sm">{t('clientApp.nav.home')}</Link></li>
+                             <li><Link href="/buscar" className="text-slate-500 hover:text-white transition-colors text-sm">{t('clientApp.nav.search')}</Link></li>
+                             <li><Link href="/agenda" className="text-slate-500 hover:text-white transition-colors text-sm">{t('clientApp.nav.agenda')}</Link></li>
+                             <li><Link href="/favoritos" className="text-slate-500 hover:text-white transition-colors text-sm">{t('clientApp.nav.favorites')}</Link></li>
                         </ul>
                     </div>
 
                     {/* More */}
                     <div>
-                        <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">Mais</h4>
+                        <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">{t('clientApp.footer.more')}</h4>
                         <ul className="space-y-4">
-                            <li><Link href="/terms" className="text-slate-500 hover:text-white transition-colors text-sm">Termos de uso</Link></li>
-                            <li><button className="text-slate-500 hover:text-white transition-colors text-sm text-left">Preferências de cookies</button></li>
+                            <li><Link href="/terms" className="text-slate-500 hover:text-white transition-colors text-sm">{t('clientApp.menu.terms')}</Link></li>
+                            <li><button className="text-slate-500 hover:text-white transition-colors text-sm text-left">{t('clientApp.footer.cookiePrefs')}</button></li>
                         </ul>
                     </div>
 
                     {/* App & CTA */}
                     <div className="space-y-8">
                         <div>
-                            <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">Baixe nosso App</h4>
+                            <h4 className="text-white font-bold text-sm mb-6 uppercase tracking-wider">{t('clientApp.footer.downloadApp')}</h4>
                             <div className="flex flex-col gap-3">
                                 <a href="#" className="flex items-center gap-3 bg-[#111] border border-white/10 rounded-xl px-4 py-2 hover:bg-white/5 transition-all group">
                                     <img src="https://cdn.simpleicons.org/apple/white" alt="Apple" className="w-5 h-5 opacity-70 group-hover:opacity-100" />
@@ -71,12 +73,12 @@ export default function FooterCliente() {
                         </div>
 
                         <div>
-                            <h4 className="text-white font-bold text-sm mb-2 uppercase tracking-wider">É um gestor?</h4>
+                            <h4 className="text-white font-bold text-sm mb-2 uppercase tracking-wider">{t('clientApp.footer.isManager')}</h4>
                             <p className="text-slate-500 text-xs mb-4">
-                                Cadastre seu estabelecimento e comece a receber agendamentos online.
+                                {t('clientApp.footer.managerDesc')}
                             </p>
                             <button className="bg-[#111] border border-white/10 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-white/5 transition-colors">
-                                Saiba mais
+                                {t('clientApp.footer.learnMore')}
                             </button>
                         </div>
                     </div>
@@ -86,7 +88,7 @@ export default function FooterCliente() {
                 {/* Bottom Row */}
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-slate-600 text-[10px] font-medium tracking-wide text-center md:text-left">
-                        © 2026 StarApp Sistemas. Todos os direitos reservados.
+                        © 2026 StarApp Sistemas. {t('clientApp.footer.rights')}
                     </p>
                     <button
                         onClick={scrollToTop}
