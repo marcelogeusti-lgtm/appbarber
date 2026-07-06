@@ -130,6 +130,38 @@ export function ClientAuthProvider({ children }) {
         }
     };
 
+    // Vincula a conta social à conta LOGADA (não troca de sessão, ao contrário do login social)
+    const linkSocialAccount = async (provider) => {
+        try {
+            const firebaseProvider = provider === 'GOOGLE' ? googleProvider : facebookProvider;
+            const result = await signInWithPopup(auth, firebaseProvider);
+            const { uid } = result.user;
+
+            await api.post('/auth/link-social', { provider, providerId: uid });
+            await refreshUser();
+            return { success: true };
+        } catch (error) {
+            console.error(`Link ${provider} Error:`, error);
+            return {
+                success: false,
+                message: error.response?.data?.message || `Erro ao vincular ${provider === 'GOOGLE' ? 'Google' : 'Facebook'}.`
+            };
+        }
+    };
+
+    const unlinkSocialAccount = async (provider) => {
+        try {
+            await api.post('/auth/unlink-social', { provider });
+            await refreshUser();
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Erro ao desvincular conta.'
+            };
+        }
+    };
+
     const socialBackendSync = async (payload) => {
         try {
             const res = await api.post('/auth/social-login', { ...payload, context: 'CLIENT' });
@@ -186,6 +218,8 @@ export function ClientAuthProvider({ children }) {
             register,
             googleLogin,
             facebookLogin,
+            linkSocialAccount,
+            unlinkSocialAccount,
             logout,
             refreshUser,
             isLoginModalOpen,

@@ -129,6 +129,9 @@ model AuthUser {
   email     String       @unique
   password  String?
   provider  AuthProvider @default(EMAIL)
+  // Identidades sociais vinculadas (login social funciona mesmo com e-mail diferente)
+  googleId   String? @unique
+  facebookId String? @unique
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 

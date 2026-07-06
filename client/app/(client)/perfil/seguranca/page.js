@@ -371,21 +371,35 @@ export default function SecurityPage() {
                                                 <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-primary" />
                                             </button>
 
-                                            <button
-                                                onClick={() => handleSetupRequest('SMS')} disabled={changing}
-                                                className="w-full flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-left group"
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors">
-                                                        <MessageSquare className="w-5 h-5" />
+                                            {authStatus.smsAvailable ? (
+                                                <button
+                                                    onClick={() => handleSetupRequest('SMS')} disabled={changing}
+                                                    className="w-full flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-left group"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors">
+                                                            <MessageSquare className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-white font-bold text-sm">Via WhatsApp / SMS</p>
+                                                            <p className="text-xs text-slate-500">Enviar para seu telefone cadastrado.</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-white font-bold text-sm">Via WhatsApp / SMS</p>
-                                                        <p className="text-xs text-slate-500">Enviar para seu telefone cadastrado.</p>
+                                                    <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-primary" />
+                                                </button>
+                                            ) : (
+                                                <div className="w-full flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-2xl text-left opacity-50 cursor-not-allowed">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                                                            <MessageSquare className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-slate-400 font-bold text-sm">Via WhatsApp / SMS</p>
+                                                            <p className="text-xs text-slate-600">Indisponível no momento — use E-mail.</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-primary" />
-                                            </button>
+                                            )}
 
                                             {changing && (
                                                 <div className="flex justify-center pt-4">

@@ -24,4 +24,9 @@ router.get('/status', protect, getAuthStatus);
 router.get('/sessions', protect, getSessions);
 router.delete('/sessions/:sessionId', protect, revokeSession);
 
+// --- Social account linking ---
+const { linkSocial, unlinkSocial } = require('../controllers/auth.controller');
+router.post('/link-social', protect, linkSocial);
+router.post('/unlink-social', protect, unlinkSocial);
+
 module.exports = router;

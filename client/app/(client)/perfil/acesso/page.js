@@ -1,47 +1,56 @@
 'use client';
-import { Key, Smartphone, Mail, Globe, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Smartphone, Mail, Globe, CheckCircle2, Loader2 } from 'lucide-react';
 import { useClientAuth } from '../../../../contexts/ClientAuthContext';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
 export default function AccessPage() {
-    const { user, googleLogin, facebookLogin } = useClientAuth();
+    const { user, linkSocialAccount, unlinkSocialAccount } = useClientAuth();
+    const [busy, setBusy] = useState(null); // 'GOOGLE' | 'FACEBOOK'
+
+    const linked = user?.linkedProviders || {};
+
+    const handleLink = async (provider) => {
+        setBusy(provider);
+        const res = await linkSocialAccount(provider);
+        setBusy(null);
+        if (res?.success) toast.success('Conta vinculada com sucesso!');
+        else toast.error(res?.message || 'Erro ao vincular conta.');
+    };
+
+    const handleUnlink = async (provider) => {
+        if (!confirm('Remover o vínculo desta conta social?')) return;
+        setBusy(provider);
+        const res = await unlinkSocialAccount(provider);
+        setBusy(null);
+        if (res?.success) toast.success('Vínculo removido.');
+        else toast.error(res?.message || 'Erro ao desvincular.');
+    };
 
     const accessMethods = [
         {
             icon: Mail,
             label: 'E-mail e Senha',
             value: user?.email || 'Não vinculado',
-            connected: !!user?.email, // In a more complex setup, check provider field
+            connected: !!user?.email,
             desc: 'Método padrão de acesso à sua conta.'
         },
         {
             icon: Globe,
             label: 'Google',
-            value: (user?.provider === 'GOOGLE' || user?.avatarUrl?.includes('googleusercontent')) ? 'Conectado' : 'Não vinculado',
-            connected: user?.provider === 'GOOGLE' || !!user?.avatarUrl?.includes('googleusercontent'),
-            desc: 'Acesse rapidamente usando sua conta Google.',
-            onClick: async () => {
-                const toastId = toast.loading('Conectando ao Google...');
-                const res = await googleLogin();
-                toast.dismiss(toastId);
-                if (res?.success) toast.success('Conta Google vinculada com sucesso!');
-                else toast.error(res?.message || 'Erro ao vincular Google.');
-            }
+            provider: 'GOOGLE',
+            value: linked.google ? 'Conectado' : 'Não vinculado',
+            connected: !!linked.google,
+            desc: 'Acesse rapidamente usando sua conta Google.'
         },
         {
-            icon: Smartphone, // Can use Facebook icon if available, but Smartphone/Globe works as fallback
+            icon: Smartphone,
             label: 'Facebook',
-            value: user?.avatarUrl?.includes('facebook') ? 'Conectado' : 'Não vinculado',
-            connected: !!user?.avatarUrl?.includes('facebook'),
-            desc: 'Acesse usando sua conta do Facebook.',
-            onClick: async () => {
-                const toastId = toast.loading('Conectando ao Facebook...');
-                const res = await facebookLogin();
-                toast.dismiss(toastId);
-                if (res?.success) toast.success('Conta Facebook vinculada com sucesso!');
-                else toast.error(res?.message || 'Erro ao vincular Facebook.');
-            }
+            provider: 'FACEBOOK',
+            value: linked.facebook ? 'Conectado' : 'Não vinculado',
+            connected: !!linked.facebook,
+            desc: 'Acesse usando sua conta do Facebook.'
         },
     ];
 
@@ -100,19 +109,34 @@ export default function AccessPage() {
                             </div>
                         </div>
 
-                        <div className="relative z-10">
+                        <div className="relative z-10 flex flex-col items-end gap-2">
                             {method.connected ? (
-                                <div className="flex items-center gap-3 px-6 py-3 bg-primary/10 text-primary rounded-2xl border border-primary/20 shadow-lg shadow-primary/5">
-                                    <CheckCircle2 className="w-4 h-4" strokeWidth={3} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Conectado</span>
-                                </div>
-                            ) : (
-                                <button 
-                                    onClick={method.onClick}
-                                    className="px-8 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+                                <>
+                                    <div className="flex items-center gap-3 px-6 py-3 bg-primary/10 text-primary rounded-2xl border border-primary/20 shadow-lg shadow-primary/5">
+                                        <CheckCircle2 className="w-4 h-4" strokeWidth={3} />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Conectado</span>
+                                    </div>
+                                    {method.provider && (
+                                        <button
+                                            onClick={() => handleUnlink(method.provider)}
+                                            disabled={busy === method.provider}
+                                            className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 hover:text-red-500 transition-colors disabled:opacity-50"
+                                        >
+                                            {busy === method.provider ? 'Removendo...' : 'Desvincular'}
+                                        </button>
+                                    )}
+                                </>
+                            ) : method.provider ? (
+                                <button
+                                    onClick={() => handleLink(method.provider)}
+                                    disabled={busy === method.provider}
+                                    className="px-8 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 flex items-center gap-2"
                                 >
-                                    Vincular agora
+                                    {busy === method.provider && <Loader2 className="w-3 h-3 animate-spin" />}
+                                    {busy === method.provider ? 'Vinculando...' : 'Vincular agora'}
                                 </button>
+                            ) : (
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-700">Sem e-mail</span>
                             )}
                         </div>
                     </motion.div>

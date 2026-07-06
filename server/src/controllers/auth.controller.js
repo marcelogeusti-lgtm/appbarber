@@ -864,7 +864,12 @@ exports.getMe = async (req, res) => {
                 cpf: client.cpf,
                 cnpj: client.cnpj,
                 authUserId: client.authUserId,
-                provider: client.authUser?.provider
+                provider: client.authUser?.provider,
+                hasPassword: !!client.authUser?.password,
+                linkedProviders: {
+                    google: !!client.authUser?.googleId || client.authUser?.provider === 'GOOGLE',
+                    facebook: !!client.authUser?.facebookId || client.authUser?.provider === 'FACEBOOK'
+                }
             });
         } else {
             const user = await prisma.user.findUnique({
@@ -895,6 +900,11 @@ exports.setup2FA = async (req, res) => {
         const { method } = req.body;
 
         if (method !== 'EMAIL' && method !== 'SMS') return res.status(400).json({ message: 'Método inválido.' });
+
+        // Sem motor de WhatsApp ativo o código por SMS nunca chegaria — barra na origem
+        if (method === 'SMS' && whatsappService.isMocked) {
+            return res.status(400).json({ message: 'Envio por SMS indisponível no momento. Use o método E-mail.' });
+        }
 
         if (!authUserId) return res.status(404).json({ message: 'Vínculo de autenticação não encontrado.' });
 
@@ -977,11 +987,14 @@ exports.getAuthStatus = async (req, res) => {
         
         const authUser = await prisma.authUser.findUnique({
             where: { id: authUserId },
-            select: { twoFactorEnabled: true, twoFactorMethod: true }
+            select: { twoFactorEnabled: true, twoFactorMethod: true, password: true }
         });
         res.json({
             twoFactorEnabled: authUser?.twoFactorEnabled || false,
-            twoFactorMethod: authUser?.twoFactorMethod || null
+            twoFactorMethod: authUser?.twoFactorMethod || null,
+            hasPassword: !!authUser?.password,
+            // SMS de 2FA depende do motor de WhatsApp da plataforma estar ativo
+            smsAvailable: !whatsappService.isMocked
         });
     } catch (error) {
         res.status(500).json({ message: 'Erro.' });
@@ -1030,5 +1043,73 @@ exports.revokeSession = async (req, res) => {
         res.json({ message: 'Sessão encerrada.' });
     } catch (error) {
         res.status(500).json({ message: 'Erro.' });
+    }
+};
+
+// Vincula uma identidade social (Google/Facebook) à conta LOGADA — não troca de sessão.
+exports.linkSocial = async (req, res) => {
+    try {
+        const authUserId = req.user.authUserId;
+        if (!authUserId) return res.status(400).json({ message: 'Conta sem login unificado.' });
+
+        const { provider, providerId } = req.body;
+        const field = provider?.toUpperCase() === 'GOOGLE' ? 'googleId' :
+            provider?.toUpperCase() === 'FACEBOOK' ? 'facebookId' : null;
+
+        if (!field || !providerId) {
+            return res.status(400).json({ message: 'Provider e providerId são obrigatórios.' });
+        }
+
+        const taken = await prisma.authUser.findFirst({
+            where: { [field]: String(providerId), id: { not: authUserId } },
+            select: { id: true }
+        });
+        if (taken) {
+            return res.status(409).json({ message: 'Esta conta social já está vinculada a outro usuário.' });
+        }
+
+        await prisma.authUser.update({
+            where: { id: authUserId },
+            data: { [field]: String(providerId) }
+        });
+
+        res.json({ message: 'Conta vinculada com sucesso.' });
+    } catch (error) {
+        console.error('Link Social Error:', error);
+        res.status(500).json({ message: 'Erro ao vincular conta.' });
+    }
+};
+
+// Remove o vínculo social — bloqueado se deixaria a conta sem forma de login.
+exports.unlinkSocial = async (req, res) => {
+    try {
+        const authUserId = req.user.authUserId;
+        if (!authUserId) return res.status(400).json({ message: 'Conta sem login unificado.' });
+
+        const { provider } = req.body;
+        const field = provider?.toUpperCase() === 'GOOGLE' ? 'googleId' :
+            provider?.toUpperCase() === 'FACEBOOK' ? 'facebookId' : null;
+        if (!field) return res.status(400).json({ message: 'Provider inválido.' });
+
+        const authUser = await prisma.authUser.findUnique({ where: { id: authUserId } });
+        if (!authUser) return res.status(404).json({ message: 'Conta não encontrada.' });
+
+        const otherField = field === 'googleId' ? 'facebookId' : 'googleId';
+        const hasOtherAccess = !!authUser.password || !!authUser[otherField];
+        if (!hasOtherAccess) {
+            return res.status(400).json({
+                message: 'Defina uma senha antes de desvincular — senão você perde o acesso à conta.'
+            });
+        }
+
+        await prisma.authUser.update({
+            where: { id: authUserId },
+            data: { [field]: null }
+        });
+
+        res.json({ message: 'Vínculo removido.' });
+    } catch (error) {
+        console.error('Unlink Social Error:', error);
+        res.status(500).json({ message: 'Erro ao desvincular conta.' });
     }
 };
