@@ -15,6 +15,24 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
     const [showCardSelection, setShowCardSelection] = useState(false);
     const [showNewCardForm, setShowNewCardForm] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
+
+    const handleCancelSubscription = async () => {
+        setCancelling(true);
+        try {
+            await api.post('/subscriptions/cancel', { barbershopId });
+            toast.success('Assinatura cancelada.');
+            setShowCancelConfirm(false);
+            if (onSubscribeSuccess) onSubscribeSuccess();
+            else router.refresh();
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Erro ao cancelar assinatura.');
+        } finally {
+            setCancelling(false);
+        }
+    };
 
     const formatCurrency = (val) => {
         const num = Number(val);
@@ -136,6 +154,42 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                 ></div>
                             </div>
                             <p className="text-[9px] text-slate-500 italic text-right">Benefícios resetam em cada ciclo de renovação.</p>
+                        </div>
+
+                        <button
+                            onClick={() => setShowCancelConfirm(true)}
+                            className="mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-red-500 transition underline underline-offset-4 decoration-slate-700 hover:decoration-red-500"
+                        >
+                            Cancelar assinatura
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* --- MODAL: CONFIRM CANCEL --- */}
+            {showCancelConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in">
+                    <div className="w-full max-w-sm bg-[#111] border border-slate-800 rounded-xl overflow-hidden shadow-2xl p-6 space-y-4">
+                        <h3 className="font-bold text-white uppercase tracking-tight">Cancelar assinatura?</h3>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                            Ao cancelar, você <span className="text-white font-bold">perde imediatamente</span> os
+                            cortes restantes do plano e o acesso aos benefícios. Essa ação não pode ser desfeita.
+                        </p>
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                onClick={handleCancelSubscription}
+                                disabled={cancelling}
+                                className="flex-1 bg-red-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition disabled:opacity-50"
+                            >
+                                {cancelling ? 'Cancelando...' : 'Sim, cancelar'}
+                            </button>
+                            <button
+                                onClick={() => setShowCancelConfirm(false)}
+                                disabled={cancelling}
+                                className="px-5 py-3 rounded-xl font-black text-[10px] uppercase text-slate-400 hover:text-white transition"
+                            >
+                                Voltar
+                            </button>
                         </div>
                     </div>
                 </div>

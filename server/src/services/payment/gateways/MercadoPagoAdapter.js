@@ -117,6 +117,7 @@ class MercadoPagoAdapter extends GatewayAdapter {
                 'in_process': 'pending',
                 'pending': 'pending',
                 'refunded': 'refunded',
+                'charged_back': 'chargeback',
                 'in_mediation': 'pending'
             };
 
@@ -319,6 +320,8 @@ class MercadoPagoAdapter extends GatewayAdapter {
             let status = 'pending';
             if (data.status === 'approved' || data.status === 'accredited') status = 'paid';
             else if (data.status === 'rejected' || data.status === 'cancelled') status = 'failed';
+            else if (data.status === 'refunded') status = 'refunded';
+            else if (data.status === 'charged_back') status = 'chargeback';
 
             return {
                 externalId: data.id.toString(),

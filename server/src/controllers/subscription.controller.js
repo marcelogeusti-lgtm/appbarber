@@ -101,12 +101,22 @@ exports.getSubscribers = async (req, res) => {
 
 // --- Client / Purchase Actions ---
 
+// No JWT do cliente, `id` é o Client.id e `authUserId` é o AuthUser.id.
+// Barbeiros/donos têm `id` = User.id — o Client deles é achado pelo authUserId.
+async function resolveClient(reqUser) {
+    if (reqUser.role === 'CLIENT') {
+        return prisma.client.findUnique({ where: { id: reqUser.id } });
+    }
+    if (reqUser.authUserId) {
+        return prisma.client.findUnique({ where: { authUserId: reqUser.authUserId } });
+    }
+    return null;
+}
+
 exports.getMyActiveSubscription = async (req, res) => {
     try {
         // Find corresponding client for the user
-        const client = await prisma.client.findUnique({
-            where: { authUserId: req.user.id }
-        });
+        const client = await resolveClient(req.user);
 
         if (!client) return res.json(null);
 
@@ -129,7 +139,6 @@ exports.getMyActiveSubscription = async (req, res) => {
 exports.subscribe = async (req, res) => {
     try {
         const { planId, cardId } = req.body;
-        const authUserId = req.user.id;
 
         if (!planId || !cardId) {
             return res.status(400).json({ message: 'Plano e Cartão são obrigatórios.' });
@@ -142,8 +151,8 @@ exports.subscribe = async (req, res) => {
         });
         if (!plan) return res.status(404).json({ message: 'Plano não encontrado.' });
 
-        // 2. Fetch Client
-        const client = await prisma.client.findUnique({ where: { authUserId } });
+        // 2. Fetch Client (Client.id no JWT do cliente; authUserId para staff)
+        const client = await resolveClient(req.user);
         if (!client) return res.status(404).json({ message: 'Perfil de cliente não encontrado.' });
 
         // 3. Fetch Saved CardToken
@@ -297,6 +306,72 @@ exports.assignPlanToClient = async (req, res) => {
         res.status(500).json({ message: 'Erro ao atribuir plano.' });
     }
 };
+// Cliente cancela a própria assinatura. Regra do negócio: ao cancelar,
+// o acesso é revogado na hora (status CANCELLED + cortes zerados).
+exports.cancelMySubscription = async (req, res) => {
+    try {
+        const { barbershopId } = req.body || {};
+
+        const client = await resolveClient(req.user);
+        if (!client) return res.status(404).json({ message: 'Perfil de cliente não encontrado.' });
+
+        const sub = await prisma.clientSubscription.findFirst({
+            where: {
+                clientId: client.id,
+                status: 'ACTIVE',
+                ...(barbershopId ? { plan: { barbershopId } } : {})
+            },
+            include: { plan: true },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (!sub) return res.status(404).json({ message: 'Nenhuma assinatura ativa encontrada.' });
+
+        await prisma.clientSubscription.update({
+            where: { id: sub.id },
+            data: { status: 'CANCELLED', remainingCuts: 0 }
+        });
+
+        console.log(`[Subscription] Client ${client.id} cancelled subscription ${sub.id} (${sub.plan?.name})`);
+        res.json({ message: 'Assinatura cancelada. Os benefícios do plano foram encerrados.' });
+    } catch (error) {
+        console.error('Cancel My Subscription Error:', error);
+        res.status(500).json({ message: 'Erro ao cancelar assinatura.' });
+    }
+};
+
+// Staff cancela a assinatura de um cliente (ex.: pedido no balcão ou estorno manual)
+exports.cancelClientSubscription = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const barbershopId = req.user.barbershopId || req.user.workedBarbershopId;
+
+        const sub = await prisma.clientSubscription.findUnique({
+            where: { id },
+            include: { plan: true }
+        });
+
+        if (!sub) return res.status(404).json({ message: 'Assinatura não encontrada.' });
+        if (sub.plan.barbershopId !== barbershopId && req.user.role !== 'SUPER_ADMIN') {
+            return res.status(403).json({ message: 'Assinatura não pertence à sua barbearia.' });
+        }
+        if (sub.status === 'CANCELLED') {
+            return res.status(400).json({ message: 'Assinatura já está cancelada.' });
+        }
+
+        await prisma.clientSubscription.update({
+            where: { id: sub.id },
+            data: { status: 'CANCELLED', remainingCuts: 0 }
+        });
+
+        console.log(`[Subscription] Staff ${req.user.id} cancelled subscription ${sub.id}`);
+        res.json({ message: 'Assinatura do cliente cancelada.' });
+    } catch (error) {
+        console.error('Cancel Client Subscription Error:', error);
+        res.status(500).json({ message: 'Erro ao cancelar assinatura do cliente.' });
+    }
+};
+
 exports.triggerReset = async (req, res) => {
     try {
         await resetMonthlySubscriptions();

@@ -9,6 +9,8 @@ router.get('/my-active', protect, subscriptionController.getMyActiveSubscription
 router.delete('/:id', protect, authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), subscriptionController.deletePlan);
 router.post('/purchase', protect, subscriptionController.purchasePlan);
 router.post('/subscribe', protect, subscriptionController.subscribe);
+router.post('/cancel', protect, subscriptionController.cancelMySubscription);
+router.post('/:id/cancel', protect, authorize('ADMIN', 'SUPER_ADMIN', 'BARBER'), subscriptionController.cancelClientSubscription);
 router.post('/reset-all', protect, authorize('ADMIN', 'SUPER_ADMIN'), subscriptionController.triggerReset);
 router.get('/list', protect, subscriptionController.getSubscribers);
 

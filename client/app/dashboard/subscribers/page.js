@@ -23,9 +23,13 @@ export default function SubscribersPage() {
 
             const formatted = data.map(sub => ({
                 ...sub,
+                // A API retorna client/plan como objetos — extrai os campos exibíveis
+                name: sub.client?.name || sub.name || 'Cliente',
+                plan: sub.plan?.name || (typeof sub.plan === 'string' ? sub.plan : '—'),
+                remainingCuts: sub.remainingCuts,
                 joined: new Date(sub.joined || sub.createdAt).toLocaleDateString('pt-BR'),
-                expiry: sub.expiry ? new Date(sub.expiry).toLocaleDateString('pt-BR') : 'N/A',
-                ltv: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.ltv || 0)
+                expiry: (sub.endDate || sub.expiry) ? new Date(sub.endDate || sub.expiry).toLocaleDateString('pt-BR') : 'N/A',
+                ltv: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.ltv || Number(sub.plan?.price) || 0)
             }));
 
             setSubscribers(formatted);
@@ -39,6 +43,20 @@ export default function SubscribersPage() {
         } catch (err) {
             console.error(err);
             setLoading(false);
+        }
+    };
+
+    const handleCancelSubscription = async (sub) => {
+        const ok = window.confirm(
+            `Cancelar a assinatura de ${sub.name}?\n\nOs cortes restantes serão zerados e o cliente perde o acesso imediatamente.`
+        );
+        if (!ok) return;
+        try {
+            await api.post(`/subscriptions/${sub.id}/cancel`);
+            fetchSubscribers();
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Erro ao cancelar assinatura.');
         }
     };
 
@@ -170,9 +188,19 @@ export default function SubscribersPage() {
                                         <StatusBadge status={sub.status} />
                                     </td>
                                     <td className="px-8 py-8 text-right">
-                                        <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
-                                            <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary-foreground" />
-                                        </div>
+                                        {sub.status === 'ACTIVE' ? (
+                                            <button
+                                                onClick={() => handleCancelSubscription(sub)}
+                                                title="Cancelar assinatura"
+                                                className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center hover:bg-destructive hover:border-destructive transition-all duration-300 group/cancel"
+                                            >
+                                                <UserMinus className="w-6 h-6 text-muted-foreground group-hover/cancel:text-white" />
+                                            </button>
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center opacity-40">
+                                                <ChevronRight className="w-6 h-6 text-muted-foreground" />
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

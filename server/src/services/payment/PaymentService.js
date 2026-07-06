@@ -296,7 +296,51 @@ class PaymentService {
                     plan: subscription.plan
                 });
             }
+
+            // A cobrança falhou: o plano não pode ficar ativo/pendente aguardando para sempre
+            await prisma.clientSubscription.updateMany({
+                where: { id: p.clientSubscriptionId, status: { in: ['PENDING', 'ACTIVE'] } },
+                data: { status: 'CANCELLED', remainingCuts: 0 }
+            }).catch(err => console.error('[PaymentService] Failed to cancel subscription:', err.message));
         }
+    }
+
+    /**
+     * Revoga a assinatura do cliente quando o pagamento é estornado ou sofre chargeback.
+     * Regra do negócio: cliente que recebeu o dinheiro de volta perde os cortes na hora.
+     * A assinatura pode estar ligada via Payment.clientSubscriptionId (fluxo purchase)
+     * ou via ClientSubscription.externalId = id do pagamento no gateway (fluxo subscribe).
+     */
+    async revokeSubscriptionForRefund(externalPaymentId, paymentRecord, reason) {
+        let sub = null;
+
+        if (paymentRecord?.clientSubscriptionId) {
+            sub = await prisma.clientSubscription.findUnique({
+                where: { id: paymentRecord.clientSubscriptionId }
+            });
+        }
+        if (!sub && externalPaymentId) {
+            sub = await prisma.clientSubscription.findFirst({
+                where: { externalId: String(externalPaymentId) }
+            });
+        }
+
+        if (!sub || sub.status === 'CANCELLED') return;
+
+        await prisma.clientSubscription.update({
+            where: { id: sub.id },
+            data: { status: 'CANCELLED', remainingCuts: 0 }
+        });
+
+        const AuditLogService = require('../AuditLogService');
+        await AuditLogService.log({
+            action: 'SUBSCRIPTION_REVOKED',
+            entity: 'ClientSubscription',
+            entityId: sub.id,
+            newData: { status: 'CANCELLED', remainingCuts: 0, reason: reason || 'refund/chargeback' }
+        }).catch(() => {});
+
+        console.log(`[PaymentService] 🔒 Subscription ${sub.id} revoked (${reason}). Access removed.`);
     }
 
     /**
@@ -331,6 +375,13 @@ class PaymentService {
                     await this.handlePaymentFailure(updated, result);
                 }
             }
+
+            // Estorno/chargeback: revoga a assinatura vinculada mesmo que não exista
+            // registro local de Payment (o fluxo /subscribe guarda o id do pagamento
+            // direto em ClientSubscription.externalId, sem criar Payment)
+            if (result.status === 'refunded' || result.status === 'chargeback') {
+                await this.revokeSubscriptionForRefund(result.externalId, payment, result.status);
+            }
         } else if (result.type === 'subscription') {
             // Handle preapproval/subscription status
             const subscription = await prisma.clientSubscription.findFirst({
@@ -344,7 +395,10 @@ class PaymentService {
 
                 await prisma.clientSubscription.update({
                     where: { id: subscription.id },
-                    data: { status: newStatus }
+                    // Cancelou no gateway → perde o direito aos cortes restantes
+                    data: newStatus === 'CANCELLED'
+                        ? { status: newStatus, remainingCuts: 0 }
+                        : { status: newStatus }
                 });
             }
         }
