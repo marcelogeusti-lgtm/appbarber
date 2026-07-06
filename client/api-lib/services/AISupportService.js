@@ -72,6 +72,42 @@ class AISupportService {
         }
     }
 
+    // Chamada "crua" ao provedor configurado (sem a base de conhecimento do suporte).
+    // Usada pela análise de negócio; retorna null se não houver chave configurada.
+    async generateText(prompt) {
+        const { provider, apiKey } = await this.loadConfig();
+        if (!apiKey || !PROVIDERS[provider]) return null;
+
+        try {
+            if (provider === 'gemini') {
+                const response = await axios.post(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${PROVIDERS.gemini.model}:generateContent?key=${apiKey}`,
+                    {
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.4, topK: 40, topP: 0.95, maxOutputTokens: 1024 }
+                    },
+                    { timeout: 30000 }
+                );
+                return response.data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+            }
+            const cfg = PROVIDERS[provider];
+            const response = await axios.post(
+                `${cfg.baseUrl}/chat/completions`,
+                {
+                    model: cfg.model,
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.4,
+                    max_tokens: 1024
+                },
+                { headers: { Authorization: `Bearer ${apiKey}` }, timeout: 30000 }
+            );
+            return response.data?.choices?.[0]?.message?.content || null;
+        } catch (error) {
+            console.error(`[AISupport] generateText ${provider} error:`, error.response?.data || error.message);
+            return null;
+        }
+    }
+
     async askGemini(message, apiKey) {
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/${PROVIDERS.gemini.model}:generateContent?key=${apiKey}`,

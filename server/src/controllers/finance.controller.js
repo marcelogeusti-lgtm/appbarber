@@ -447,6 +447,18 @@ exports.getOwnerDashboard = async (req, res) => {
         });
         const topServices = Object.entries(serviceStats).map(([name, s]) => ({ name, ...s })).sort((a, b) => b.revenue - a.revenue);
 
+        // 5b. Produtos Mais Vendidos
+        const productStats = {};
+        orders.forEach(o => {
+            o.items.filter(i => i.type === 'PRODUCT').forEach(i => {
+                const name = i.description || 'Produto';
+                if (!productStats[name]) productStats[name] = { count: 0, revenue: 0 };
+                productStats[name].count += i.quantity;
+                productStats[name].revenue += Number(i.total);
+            });
+        });
+        const topProducts = Object.entries(productStats).map(([name, s]) => ({ name, ...s })).sort((a, b) => b.revenue - a.revenue);
+
         // 6. Clientes VIP (Top Spenders)
         const clientRanking = orders.reduce((acc, o) => {
             const name = o.client?.name || 'Avulso';
@@ -519,13 +531,23 @@ exports.getOwnerDashboard = async (req, res) => {
             }
         });
 
-        // Alerta 3: Horários Ociosos (ex: 14h sempre vazio)
-        if (Object.keys(hourlyRevenue).length > 0 && !hourlyRevenue[14]) {
-            alerts.push({
-                type: 'INFO',
-                title: 'Horário Ocioso',
-                message: 'O horário das 14h está sem faturamento neste período. Que tal uma promoção?'
-            });
+        // Alerta 3: Horários Ociosos — qualquer hora comercial sem faturamento
+        const activeHours = Object.keys(hourlyRevenue).map(Number);
+        if (activeHours.length >= 3) {
+            const openH = Math.min(...activeHours);
+            const closeH = Math.max(...activeHours);
+            const idleHours = [];
+            for (let h = openH; h <= closeH; h++) {
+                if (!hourlyRevenue[h]) idleHours.push(h);
+            }
+            if (idleHours.length > 0) {
+                const label = idleHours.slice(0, 3).map(h => `${h}h`).join(', ');
+                alerts.push({
+                    type: 'INFO',
+                    title: 'Horários Ociosos',
+                    message: `${idleHours.length > 1 ? 'Os horários das' : 'O horário das'} ${label} ${idleHours.length > 1 ? 'estão' : 'está'} sem faturamento neste período. Que tal uma promoção nesses horários?`
+                });
+            }
         }
 
         res.json({
@@ -540,6 +562,7 @@ exports.getOwnerDashboard = async (req, res) => {
             rankings: {
                 professionals: rankingPro,
                 services: topServices,
+                products: topProducts,
                 clients: topClients
             },
             charts: {

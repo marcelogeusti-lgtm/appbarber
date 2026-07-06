@@ -449,6 +449,18 @@ exports.getOwnerDashboard = async (req, res) => {
         });
         const topServices = Object.entries(serviceStats).map(([name, s]) => ({ name, ...s })).sort((a, b) => b.revenue - a.revenue);
 
+        // 5b. Produtos Mais Vendidos
+        const productStats = {};
+        orders.forEach(o => {
+            o.items.filter(i => i.type === 'PRODUCT').forEach(i => {
+                const name = i.description || 'Produto';
+                if (!productStats[name]) productStats[name] = { count: 0, revenue: 0 };
+                productStats[name].count += i.quantity;
+                productStats[name].revenue += Number(i.total);
+            });
+        });
+        const topProducts = Object.entries(productStats).map(([name, s]) => ({ name, ...s })).sort((a, b) => b.revenue - a.revenue);
+
         // 6. Clientes VIP (Top Spenders)
         const clientRanking = orders.reduce((acc, o) => {
             const name = o.client?.name || 'Avulso';
@@ -521,13 +533,24 @@ exports.getOwnerDashboard = async (req, res) => {
             }
         });
 
-        // Alerta 3: Horários Ociosos (ex: 14h sempre vazio)
-        if (Object.keys(hourlyRevenue).length > 0 && !hourlyRevenue[14]) {
-            alerts.push({
-                type: 'INFO',
-                title: 'Horário Ocioso',
-                message: 'O horário das 14h está sem faturamento neste período. Que tal uma promoção?'
-            });
+        // Alerta 3: Horários Ociosos — qualquer hora comercial sem faturamento
+        // enquanto o restante do expediente fatura (mín. 3 horas ativas p/ ter base)
+        const activeHours = Object.keys(hourlyRevenue).map(Number);
+        if (activeHours.length >= 3) {
+            const openH = Math.min(...activeHours);
+            const closeH = Math.max(...activeHours);
+            const idleHours = [];
+            for (let h = openH; h <= closeH; h++) {
+                if (!hourlyRevenue[h]) idleHours.push(h);
+            }
+            if (idleHours.length > 0) {
+                const label = idleHours.slice(0, 3).map(h => `${h}h`).join(', ');
+                alerts.push({
+                    type: 'INFO',
+                    title: 'Horários Ociosos',
+                    message: `${idleHours.length > 1 ? 'Os horários das' : 'O horário das'} ${label} ${idleHours.length > 1 ? 'estão' : 'está'} sem faturamento neste período. Que tal uma promoção nesses horários?`
+                });
+            }
         }
 
         res.json({
@@ -542,6 +565,7 @@ exports.getOwnerDashboard = async (req, res) => {
             rankings: {
                 professionals: rankingPro,
                 services: topServices,
+                products: topProducts,
                 clients: topClients
             },
             charts: {
@@ -554,6 +578,57 @@ exports.getOwnerDashboard = async (req, res) => {
     } catch (error) {
         console.error('Owner Dashboard Error:', error);
         res.status(500).json({ message: 'Erro ao processar inteligência de negócio.' });
+    }
+};
+
+// IA de negócio: recebe o resumo do período (o mesmo que a tela de Análise
+// exibe) e devolve recomendações práticas geradas pelo provedor configurado
+// no painel Master (AI_PROVIDER/AI_API_KEY). Sem chave → avisa o front.
+exports.getAiInsights = async (req, res) => {
+    try {
+        const aiService = require('../services/AISupportService');
+        const { kpis = {}, rankings = {}, alerts = [], period = '' } = req.body || {};
+
+        const fmt = (v) => `R$ ${Number(v || 0).toFixed(2)}`;
+        const resumo = [
+            `Período analisado: ${period || 'mês atual'}`,
+            `Faturamento: ${fmt(kpis.monthlyRevenue)} | Lucro estimado: ${fmt(kpis.estimatedProfit)}`,
+            `Ticket médio: ${fmt(kpis.ticketMedio)} | Retenção de clientes: ${Number(kpis.retentionRate || 0).toFixed(0)}%`,
+            `Previsão próximos 30 dias (agendamentos confirmados): ${fmt(kpis.forecast)}`,
+            `Top serviços: ${(rankings.services || []).slice(0, 5).map(s => `${s.name} (${s.count}x, ${fmt(s.revenue)})`).join('; ') || 'sem dados'}`,
+            `Top produtos: ${(rankings.products || []).slice(0, 5).map(p => `${p.name} (${p.count}x, ${fmt(p.revenue)})`).join('; ') || 'sem vendas de produto'}`,
+            `Profissionais (lucro líquido): ${(rankings.professionals || []).slice(0, 5).map(p => `${p.name} (${fmt(p.net)})`).join('; ') || 'sem dados'}`,
+            `Alertas automáticos: ${alerts.map(a => a.message).join(' | ') || 'nenhum'}`
+        ].join('\n');
+
+        const prompt = `Você é um consultor de negócios especializado em barbearias no Brasil.
+Analise os dados reais abaixo de uma barbearia e devolva de 3 a 5 recomendações práticas e específicas.
+
+REGRAS:
+- Responda em Português do Brasil, tom direto e amigável.
+- Cada recomendação em um bullet começando com "•", com no máximo 2 frases.
+- Baseie-se APENAS nos dados fornecidos; não invente números.
+- Se fizer sentido, inclua UMA ideia concreta de promoção (dia/horário/combo baseados nos dados).
+- Se os dados forem escassos, diga o que o dono deve fazer para gerar mais dados (ex.: registrar comandas).
+
+DADOS:
+${resumo}
+
+RECOMENDAÇÕES:`;
+
+        const insights = await aiService.generateText(prompt);
+
+        if (!insights) {
+            return res.json({
+                insights: null,
+                reason: 'Configure o provedor e a chave de IA no painel Master (Configurações → Integrações da Plataforma) para ativar a análise inteligente.'
+            });
+        }
+
+        res.json({ insights });
+    } catch (error) {
+        console.error('AI Insights Error:', error);
+        res.status(500).json({ message: 'Erro ao gerar análise com IA.' });
     }
 };
 

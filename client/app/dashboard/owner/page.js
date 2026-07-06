@@ -31,6 +31,34 @@ export default function OwnerDashboardPage() {
 
     const error = queryError ? (queryError.response?.data?.message || queryError.message || 'Erro ao carregar dados de análise.') : null;
 
+    // Consultor IA: envia o resumo do período e recebe recomendações
+    const [aiInsights, setAiInsights] = useState(null);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiError, setAiError] = useState(null);
+
+    const handleGenerateInsights = async () => {
+        if (!data) return;
+        setAiLoading(true);
+        setAiError(null);
+        try {
+            const res = await api.post('/finance/ai-insights', {
+                kpis: data.kpis,
+                rankings: data.rankings,
+                alerts: data.alerts || [],
+                period: `${startDate} a ${endDate}`
+            });
+            if (res.data.insights) {
+                setAiInsights(res.data.insights);
+            } else {
+                setAiError(res.data.reason || 'Análise indisponível no momento.');
+            }
+        } catch (err) {
+            setAiError(err.response?.data?.message || 'Erro ao gerar análise com IA.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
     if (loading) {
         return <div className="p-8 text-center text-muted-foreground animate-pulse uppercase font-bold tracking-widest text-xs">Acessando inteligência de negócio...</div>;
     }
@@ -51,6 +79,7 @@ export default function OwnerDashboardPage() {
     const { kpis, rankings, charts } = data;
     const professionals = rankings?.professionals || [];
     const services = rankings?.services || [];
+    const products = rankings?.products || [];
     const clients = rankings?.clients || [];
     const hourlyHeatmap = charts?.hourlyHeatmap || [];
 
@@ -176,6 +205,58 @@ export default function OwnerDashboardPage() {
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* --- TOP PRODUCTS --- */}
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-sm font-bold tracking-tight text-foreground mb-4">Produtos Mais Vendidos</h3>
+                    <div className="space-y-2">
+                        {products.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhum produto vendido no período.</p>
+                        ) : products.slice(0, 5).map((p, i) => (
+                            <div key={i} className="p-3 bg-muted/20 rounded-xl border border-border flex justify-between items-center hover:border-primary/30 transition-all">
+                                <div>
+                                    <p className="text-xs font-semibold text-foreground">{p.name}</p>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">{p.count} unidades</p>
+                                </div>
+                                <p className="text-sm font-bold text-primary">{formatBRL(p.revenue)}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* --- AI INSIGHTS --- */}
+                <div className="bg-card p-6 rounded-xl border border-border relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
+                    <div className="flex items-center justify-between mb-4 relative z-10">
+                        <h3 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-primary" /> Consultor IA
+                        </h3>
+                        <button
+                            onClick={handleGenerateInsights}
+                            disabled={aiLoading}
+                            className="px-4 py-2 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                            {aiLoading ? 'Analisando...' : aiInsights ? 'Analisar de novo' : 'Gerar recomendações'}
+                        </button>
+                    </div>
+                    <div className="relative z-10">
+                        {aiLoading ? (
+                            <p className="text-sm text-muted-foreground animate-pulse py-8 text-center">A IA está analisando os números do período...</p>
+                        ) : aiInsights ? (
+                            <div className="text-sm text-foreground leading-relaxed whitespace-pre-line bg-muted/20 border border-border rounded-xl p-4">
+                                {aiInsights}
+                            </div>
+                        ) : aiError ? (
+                            <p className="text-xs text-muted-foreground italic py-4">{aiError}</p>
+                        ) : (
+                            <p className="text-xs text-muted-foreground italic py-4">
+                                A IA lê o faturamento, ticket médio, rankings e alertas do período e devolve recomendações práticas para o seu negócio.
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
 

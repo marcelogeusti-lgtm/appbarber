@@ -3,6 +3,7 @@ const {
     getFinancialStats,
     getFinancialDashboard,
     getOwnerDashboard,
+    getAiInsights,
     getCurrentShift,
     openShift,
     closeShift
@@ -19,6 +20,8 @@ router.get('/stats', authorize('ADMIN', 'SUPER_ADMIN'), checkFeature('reports'),
 router.get('/dashboard', authorize('ADMIN', 'SUPER_ADMIN'), getFinancialDashboard);
 // PROTECTED: Do not remove or modify owner-report route
 router.get('/owner-report', authorize('ADMIN', 'SUPER_ADMIN'), getOwnerDashboard);
+// Análise com IA baseada nos dados do owner-report
+router.post('/ai-insights', authorize('ADMIN', 'SUPER_ADMIN'), getAiInsights);
 
 // Cash Shift (Caixa)
 router.get('/shift/current', authorize('ADMIN', 'BARBER', 'SUPER_ADMIN'), getCurrentShift);
