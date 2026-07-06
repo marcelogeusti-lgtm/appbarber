@@ -458,10 +458,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     background-color: #ffffff !important;
 }
 .client-light .bg-slate-900\/50,
+.client-light .bg-slate-900\/80,
 .client-light .bg-zinc-900\/50,
 .client-light .bg-\[\#0A0A0B\]\/40,
 .client-light .bg-\[\#0A0A0B\]\/50,
-.client-light .bg-\[\#0a0a0b\]\/80 {
+.client-light .bg-\[\#0A0A0B\]\/80,
+.client-light .bg-\[\#0a0a0b\]\/80,
+.client-light .bg-\[\#0a0f1a\]\/80,
+.client-light .bg-\[\#0A0A0A\]\/95,
+.client-light .bg-\[\#050505\]\/40,
+.client-light .bg-\[\#050505\]\/90,
+.client-light .bg-\[\#050505\]\/95 {
     background-color: rgba(255, 255, 255, 0.9) !important;
 }
 .client-light .bg-slate-800 { background-color: #e2e8f0 !important; }
