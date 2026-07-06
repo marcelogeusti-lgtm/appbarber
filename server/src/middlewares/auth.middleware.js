@@ -1,5 +1,10 @@
 const jwt = require('jsonwebtoken');
 
+// Throttle do "lastActive": gravar a atividade da sessão em TODA requisição
+// disputa a conexão única (serverless) e trava as consultas reais.
+const SESSION_TOUCH_INTERVAL_MS = 5 * 60 * 1000;
+const sessionLastTouch = new Map(); // token -> timestamp (por instância warm)
+
 exports.protect = async (req, res, next) => {
     let token;
 
@@ -16,7 +21,10 @@ exports.protect = async (req, res, next) => {
         req.user = decoded; // { id, role, authUserId, barbershopId }
 
         // Update lastActive asynchronously to not block the request
-        if (decoded.authUserId) {
+        const lastTouch = sessionLastTouch.get(token) || 0;
+        if (decoded.authUserId && Date.now() - lastTouch > SESSION_TOUCH_INTERVAL_MS) {
+            sessionLastTouch.set(token, Date.now());
+            if (sessionLastTouch.size > 500) sessionLastTouch.clear();
             const prisma = require('../lib/prisma');
             prisma.session.updateMany({
                 where: { authUserId: decoded.authUserId, token: token },
