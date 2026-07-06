@@ -232,19 +232,20 @@ export default function OwnerDashboardPage() {
                     <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
                     <div className="flex items-center justify-between mb-4 relative z-10">
                         <h3 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-primary" /> Consultor IA
+                            <Zap className="w-4 h-4 text-primary" /> Turbine seu Faturamento
+                            <span className="text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full">IA</span>
                         </h3>
                         <button
                             onClick={handleGenerateInsights}
                             disabled={aiLoading}
                             className="px-4 py-2 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                         >
-                            {aiLoading ? 'Analisando...' : aiInsights ? 'Analisar de novo' : 'Gerar recomendações'}
+                            {aiLoading ? 'Analisando...' : aiInsights ? 'Gerar novo plano' : 'Gerar plano de ação'}
                         </button>
                     </div>
                     <div className="relative z-10">
                         {aiLoading ? (
-                            <p className="text-sm text-muted-foreground animate-pulse py-8 text-center">A IA está analisando os números do período...</p>
+                            <p className="text-sm text-muted-foreground animate-pulse py-8 text-center">Analisando os números do seu período...</p>
                         ) : aiInsights ? (
                             <div className="text-sm text-foreground leading-relaxed whitespace-pre-line bg-muted/20 border border-border rounded-xl p-4">
                                 {aiInsights}
@@ -253,7 +254,7 @@ export default function OwnerDashboardPage() {
                             <p className="text-xs text-muted-foreground italic py-4">{aiError}</p>
                         ) : (
                             <p className="text-xs text-muted-foreground italic py-4">
-                                A IA lê o faturamento, ticket médio, rankings e alertas do período e devolve recomendações práticas para o seu negócio.
+                                A IA analisa seu movimento real — faturamento, ticket médio, serviços, produtos e horários — e monta um plano prático para você vender mais.
                             </p>
                         )}
                     </div>
