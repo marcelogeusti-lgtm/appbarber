@@ -858,6 +858,11 @@ exports.getMe = async (req, res) => {
                 role: 'CLIENT',
                 phone: client.phone,
                 avatarUrl: client.avatarUrl,
+                // Campos do formulário "Meus Dados" — sem eles a tela volta vazia
+                birthDate: client.birthDate,
+                gender: client.gender,
+                cpf: client.cpf,
+                cnpj: client.cnpj,
                 authUserId: client.authUserId,
                 provider: client.authUser?.provider
             });

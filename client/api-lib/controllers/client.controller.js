@@ -318,7 +318,7 @@ exports.getClientDetails = async (req, res) => {
 exports.updateClientProfile = async (req, res) => {
     try {
         const clientId = req.user.id; // From Client Token
-        let { name, phone, birthDate, gender, avatarUrl, cpf, cnpj, requiresNfe } = req.body;
+        let { name, phone, birthDate, gender, avatarUrl, cpf, cnpj } = req.body;
 
         // Validations
         if (!clientId) return res.status(401).json({ message: 'Unauthorized' });
@@ -348,8 +348,7 @@ exports.updateClientProfile = async (req, res) => {
                 birthDate: formattedBirthDate,
                 avatarUrl, // Optional update
                 cpf: cpf || null,
-                cnpj: cnpj || null,
-                requiresNfe: requiresNfe === undefined ? undefined : requiresNfe
+                cnpj: cnpj || null
             }
         });
 
