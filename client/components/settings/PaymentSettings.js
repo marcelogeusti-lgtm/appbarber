@@ -91,12 +91,11 @@ export default function PaymentSettings() {
                     icon={<div className="w-16 h-16 rounded-xl bg-white p-2 border border-border shadow-xl group-hover:scale-110 transition-transform flex items-center justify-center">
                         <img src="/logos/mercadopago.png" alt="Mercado Pago" className="w-full h-full object-contain" />
                     </div>}
-                    helpText="Acesse suas credenciais no painel do Mercado Pago Developers."
+                    helpText='Você só precisa de 2 chaves, que ficam na MESMA página: entre em mercadopago.com.br/developers → "Suas integrações" → sua aplicação → "Credenciais de produção". Copie a Public Key e o Access Token e cole abaixo.'
                     fields={[
-                        { name: 'publicKey', label: 'Public Key', placeholder: 'APP_USR-... ou TEST-...' },
-                        { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'APP_USR-... ou TEST-...' },
-                        { name: 'clientId', label: 'Client ID', placeholder: 'ID numérico da aplicação...' },
-                        { name: 'clientSecret', label: 'Assinatura secreta (Webhook)', type: 'password', placeholder: 'Cole a assinatura secreta do webhook aqui...' }
+                        { name: 'publicKey', label: 'Public Key (obrigatória)', placeholder: 'Cole aqui — começa com APP_USR-...' },
+                        { name: 'accessToken', label: 'Access Token (obrigatório)', type: 'password', placeholder: 'Cole aqui — começa com APP_USR-...' },
+                        { name: 'clientSecret', label: 'Assinatura secreta do Webhook', type: 'password', placeholder: 'Opcional — segurança extra', advanced: true }
                     ]}
                 />
             </div>
@@ -110,6 +109,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
         credentials: { ...config.credentials }
     });
     const [testStatus, setTestStatus] = useState(null); // 'testing', 'success', 'error'
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     useEffect(() => {
         setLocalData({
@@ -195,7 +195,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
             {localData.isActive && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {fields.map(f => (
+                        {fields.filter(f => !f.advanced || showAdvanced).map(f => (
                             <div key={f.name} className={`space-y-3 ${f.type === 'radio' ? 'md:col-span-2' : ''}`}>
                                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                                     {f.type === 'password' ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
@@ -235,6 +235,16 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                             </div>
                         ))}
                     </div>
+
+                    {fields.some(f => f.advanced) && (
+                        <button
+                            type="button"
+                            onClick={() => setShowAdvanced(v => !v)}
+                            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                        >
+                            {showAdvanced ? '− Ocultar configuração avançada' : '+ Configuração avançada (opcional)'}
+                        </button>
+                    )}
 
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6 mt-10 pt-10 border-t border-border/50">
                         <div className="flex items-center gap-6">
