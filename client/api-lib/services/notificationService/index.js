@@ -358,7 +358,12 @@ eventBus.on('INVOICE_CREATED', async (payload) => {
                 }
             });
         }
-    } catch (err) { }
+    } catch (err) {
+        require('../../lib/logger').warn(
+            { err, action: 'invoice_email_failed' },
+            'Falha ao enviar e-mail de fatura'
+        );
+    }
 });
 
 // Event: PASSWORD_RESET_REQUEST

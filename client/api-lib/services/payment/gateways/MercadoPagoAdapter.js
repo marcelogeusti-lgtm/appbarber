@@ -103,9 +103,11 @@ class MercadoPagoAdapter extends GatewayAdapter {
 
             const data = response;
 
-            // --- AUDIT LOG (RESPONSE) ---
-            console.log(`[MP] RESPONSE RECEIVED - Status: ${data.status}`);
-            console.dir(data, { depth: null });
+            // --- AUDIT LOG (RESPONSE) --- só campos seguros; payload completo tem PII
+            require('../../../lib/logger').info(
+                { action: 'mp_payment_response', paymentId: data.id, status: data.status, statusDetail: data.status_detail },
+                'Resposta do Mercado Pago recebida'
+            );
 
             let finalStatus = 'pending';
 

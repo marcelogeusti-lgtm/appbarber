@@ -179,7 +179,10 @@ exports.handleCaktoWebhook = async (req, res) => {
             await prisma.saasWebhookEvent.update({
                 where: { id: eventRecord.id },
                 data: { error: error.message }
-            }).catch(() => {});
+            }).catch(e => require('../lib/logger').warn(
+                { err: e, action: 'saas_webhook_audit_update_failed' },
+                'Falha ao gravar erro no SaasWebhookEvent'
+            ));
         }
         // 200 para a Cakto não redisparar em loop por erro interno nosso;
         // o evento fica registrado com o erro para reprocessamento

@@ -22,6 +22,11 @@ exports.protect = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded; // { id, role, authUserId, barbershopId }
 
+        // Observabilidade: todo log desta requisição passa a carregar quem é o usuário
+        if (req.log) {
+            req.log = req.log.child({ userId: decoded.id, role: decoded.role, barbershopId: decoded.barbershopId || undefined });
+        }
+
         // Update lastActive asynchronously to not block the request
         const lastTouch = sessionLastTouch.get(token) || 0;
         if (decoded.authUserId && Date.now() - lastTouch > SESSION_TOUCH_INTERVAL_MS) {

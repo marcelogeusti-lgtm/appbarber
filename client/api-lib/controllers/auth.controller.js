@@ -397,7 +397,7 @@ exports.login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Login error detailed:', error);
+        (req.log || require('../lib/logger')).error({ err: error, action: 'login_failed' }, 'Erro no fluxo de login');
         res.status(500).json({ message: 'Server error: ' + error.message });
     }
 };

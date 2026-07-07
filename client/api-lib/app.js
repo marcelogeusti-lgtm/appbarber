@@ -27,6 +27,18 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// --- Observabilidade: contexto por requisição ---
+// Todo request ganha um requestId (propagado no header x-request-id) e um
+// logger filho com método/rota. O auth.middleware acrescenta userId/role.
+const logger = require('./lib/logger');
+const { randomUUID } = require('crypto');
+app.use((req, res, next) => {
+    req.requestId = req.headers['x-request-id'] || randomUUID();
+    req.log = logger.child({ requestId: req.requestId, method: req.method, path: req.path });
+    res.setHeader('x-request-id', req.requestId);
+    next();
+});
+
 // Health Check
 app.get(['/', '/api'], (req, res) => {
     res.json({
@@ -106,12 +118,15 @@ app.use('/api', require('./routes/master.routes'));
 app.use('/api/master/settings', require('./routes/masterSettings.routes'));
 app.use('/api', require('./routes/integration.routes'));
 
-// Error Handling Middleware
+// Error Handling Middleware — loga estruturado e NÃO vaza detalhes internos
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    (req.log || require('./lib/logger')).error(
+        { err, action: 'unhandled_error', statusCode: 500 },
+        'Erro não tratado na requisição'
+    );
     res.status(500).json({
         error: 'Internal Server Error',
-        message: err.message
+        requestId: req.requestId || null
     });
 });
 

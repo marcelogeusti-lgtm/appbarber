@@ -22,7 +22,7 @@ exports.handleWebhook = async (req, res) => {
 
     try {
         // 2. Process via Service
-        console.log(`[Webhook] Incoming from ${gateway}`);
+        (req.log || require('../lib/logger')).info({ action: 'payment_webhook_received', gateway }, 'Webhook de pagamento recebido');
         const result = await PaymentService.processWebhook(gateway, req);
 
         // 3. Update Log
@@ -39,7 +39,10 @@ exports.handleWebhook = async (req, res) => {
         return res.status(200).json({ received: true });
 
     } catch (error) {
-        console.error(`[Webhook Error] ${gateway}:`, error.message);
+        (req.log || require('../lib/logger')).error(
+            { err: error, action: 'payment_webhook_failed', gateway, webhookLogId: logId },
+            'Falha ao processar webhook de pagamento'
+        );
         // We still return 200/OK if validation passed but inner logic failed,
         // to prevent gateway from retrying endlessly if it's a code error.
         // But if it's a signature error, return 400.

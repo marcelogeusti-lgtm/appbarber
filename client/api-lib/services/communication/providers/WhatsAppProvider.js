@@ -126,7 +126,12 @@ class WhatsAppProvider {
 
                     // Also emit to internal event bus for the Smart Bot
                     eventBus.emit('WHATSAPP_MESSAGE_RECEIVED', eventPayload);
-                } catch (e) { }
+                } catch (e) {
+                    require('../../../lib/logger').warn(
+                        { err: e, action: 'whatsapp_inbound_dispatch_failed' },
+                        'Falha ao repassar mensagem recebida do WhatsApp'
+                    );
+                }
             });
 
         } catch (error) {

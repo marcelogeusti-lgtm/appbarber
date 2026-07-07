@@ -304,7 +304,10 @@ class PaymentService {
             entity: 'ClientSubscription',
             entityId: sub.id,
             newData: { status: 'CANCELLED', remainingCuts: 0, reason: reason || 'refund/chargeback' }
-        }).catch(() => {});
+        }).catch(e => require('../../lib/logger').warn(
+            { err: e, action: 'audit_log_failed', entity: 'ClientSubscription' },
+            'Falha ao registrar auditoria da revogação'
+        ));
 
         console.log(`[PaymentService] 🔒 Subscription ${sub.id} revoked (${reason}). Access removed.`);
     }

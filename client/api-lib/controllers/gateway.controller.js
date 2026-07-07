@@ -184,7 +184,7 @@ exports.saveConfig = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Save Gateway Config Error:', error);
+        (req.log || require('../lib/logger')).error({ err: error, action: 'gateway_config_save_failed' }, 'Erro ao salvar configuração de gateway');
         return res.status(500).json({ error: 'Failed to save configuration' });
     }
 };

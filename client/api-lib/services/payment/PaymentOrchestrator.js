@@ -450,7 +450,7 @@ class PaymentOrchestrator {
         } else {
             const prefix = String(finalToken).substring(0, 10);
             const target = barbershopId ? `Shop ${barbershopId}` : 'PLATFORM';
-            console.log(`[SECURITY] 💳 Using MP Token Prefix: ${prefix}... for ${target}`);
+            require('../../lib/logger').debug({ action: 'mp_credentials_resolved', target: `${target}` }, 'Credenciais MP resolvidas');
         }
 
         return {
