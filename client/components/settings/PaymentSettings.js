@@ -144,12 +144,6 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
             isActive: config.isActive,
             credentials: { ...config.credentials }
         });
-        // Gateway ainda sem chave salva: abre o formulário direto,
-        // sem exigir clique em "Configurar chaves"
-        const hasAnyCredential = config.credentials && Object.values(config.credentials).some(v => v);
-        if (!config.isActive && !hasAnyCredential) {
-            setExpanded(true);
-        }
     }, [config]);
 
     const handleChange = (field, value) => {
@@ -206,15 +200,21 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                             onChange={async (e) => {
                                 const newActive = e.target.checked;
                                 
+                                // A caixinha segue o botão: ligar abre, desligar fecha
+                                if (!newActive) {
+                                    setExpanded(false);
+                                }
+
                                 // --- PRE-SAVE VALIDATION ---
-                                // Exige os campos obrigatórios DESTE gateway (MP: accessToken; Stripe: secretKey)
+                                // Sem as chaves deste gateway (MP: accessToken; Stripe: secretKey),
+                                // ligar apenas ABRE o formulário para preencher — não ativa ainda
                                 if (newActive) {
                                     const missing = fields
                                         .filter(f => !f.advanced && f.type !== 'radio')
                                         .filter(f => !localData.credentials[f.name]);
                                     if (missing.length > 0) {
-                                        alert(`Atenção: para ativar o ${title}, preencha primeiro: ${missing.map(f => f.label).join(' e ')}. Clique em "Configurar chaves" abaixo para abrir os campos.`);
                                         setExpanded(true);
+                                        alert(`Preencha ${missing.map(f => f.label).join(' e ')} nos campos abaixo e clique em "Sincronizar Credenciais". Depois é só ligar a chavinha de novo.`);
                                         return;
                                     }
                                 }
