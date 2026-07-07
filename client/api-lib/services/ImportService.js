@@ -48,19 +48,26 @@ class ImportService {
                 if (!phone) throw new Error('Telefone obrigatório');
 
                 const birthDate = parseBirth(row.birthDate);
+                // Client não tem coluna `email` (o e-mail vive no AuthUser). Como os
+                // clientes importados são "avulsos" (sem login), preservamos o e-mail
+                // nas observações para não perder o dado.
+                const emailStr = (row.email || '').trim();
+                const notes = emailStr
+                    ? `${row.notes || 'Importado'} | e-mail: ${emailStr}`
+                    : (row.notes || 'Importado via sistema');
+
                 const client = await prisma.client.upsert({
                     where: { phone },
                     update: {
                         name: row.name || undefined,
-                        email: row.email || undefined,
-                        birthDate: birthDate || undefined
+                        birthDate: birthDate || undefined,
+                        ...(emailStr ? { notes } : {})
                     },
                     create: {
                         name: row.name || 'Cliente Importado',
                         phone,
-                        email: row.email || null,
                         birthDate: birthDate || null,
-                        notes: row.notes || 'Importado via sistema'
+                        notes
                     }
                 });
 
