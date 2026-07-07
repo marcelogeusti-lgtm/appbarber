@@ -42,6 +42,41 @@ exports.saveConfig = async (req, res) => {
             return res.status(400).json({ error: 'Gateway and credentials are required' });
         }
 
+        // --- VALIDAÇÃO REAL DA CHAVE NO PROVEDOR ---
+        // Quando uma chave secreta NOVA chega (não mascarada/criptografada),
+        // testamos direto na API do gateway antes de salvar — assim o barbeiro
+        // sabe na hora se copiou a chave certa.
+        const axios = require('axios');
+        const isRealValue = (v) => v && typeof v === 'string' && !v.includes('...') && !v.includes(':');
+
+        if (gateway === 'STRIPE' && isRealValue(credentials.secretKey)) {
+            if (!credentials.secretKey.startsWith('sk_')) {
+                return res.status(400).json({ error: 'A Secret Key da Stripe deve começar com "sk_". Confira se você copiou a chave certa (não a Publishable).' });
+            }
+            try {
+                await axios.get('https://api.stripe.com/v1/balance', {
+                    headers: { Authorization: `Bearer ${credentials.secretKey}` },
+                    timeout: 15000
+                });
+            } catch (verr) {
+                return res.status(400).json({ error: 'A Stripe recusou esta Secret Key. Confira em stripe.com → Developers → API keys e cole novamente.' });
+            }
+        }
+        if (gateway === 'STRIPE' && isRealValue(credentials.publicKey) && !credentials.publicKey.startsWith('pk_')) {
+            return res.status(400).json({ error: 'A Publishable Key da Stripe deve começar com "pk_". Confira se você copiou a chave certa.' });
+        }
+
+        if (gateway === 'MERCADOPAGO' && isRealValue(credentials.accessToken)) {
+            try {
+                await axios.get('https://api.mercadopago.com/users/me', {
+                    headers: { Authorization: `Bearer ${credentials.accessToken}` },
+                    timeout: 15000
+                });
+            } catch (verr) {
+                return res.status(400).json({ error: 'O Mercado Pago recusou este Access Token. Confira as credenciais de produção e cole novamente.' });
+            }
+        }
+
         // --- MANDATORY VALIDATION FOR ACTIVATION ---
         // Cada gateway tem seu par de chaves: MP usa accessToken, Stripe usa secretKey
         const secretFieldName = gateway === 'STRIPE' ? 'secretKey' : 'accessToken';

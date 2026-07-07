@@ -19,6 +19,7 @@ export default function OrderDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     const [services, setServices] = useState([]);
+    const [openMenu, setOpenMenu] = useState(null); // 'service' | 'product' | null
 
     // UI States
     const [showDiscountModal, setShowDiscountModal] = useState(false);
@@ -85,9 +86,11 @@ export default function OrderDetailsPage() {
             }
 
             await api.post(`/orders/${id}/items`, payload);
+            toast.success('Item adicionado à comanda!');
             fetchOrder();
         } catch (err) {
-            toast.error('Erro ao adicionar item');
+            console.error('Add item error:', err);
+            toast.error(err.response?.data?.message || 'Erro ao adicionar item');
         }
     };
 
@@ -238,50 +241,65 @@ export default function OrderDetailsPage() {
 
                         {!isClosed && (
                             <div className="p-6 md:p-8 bg-muted/30 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                {/* Add Service Dropdown */}
-                                <div className="relative group">
-                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                {/* Backdrop: clique fora fecha o menu aberto */}
+                                {openMenu && (
+                                    <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
+                                )}
+
+                                {/* Add Service Dropdown (abre por CLIQUE — funciona em touch) */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setOpenMenu(openMenu === 'service' ? null : 'service')}
+                                        className={`w-full p-4 md:p-5 rounded-xl border font-black text-[10px] uppercase tracking-widest transition flex items-center justify-center gap-3 ${openMenu === 'service' ? 'bg-primary text-white border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'}`}
+                                    >
                                         <Scissors className="w-5 h-5" /> Add Serviço
                                     </button>
-                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
-                                        {ensureArray(services).length > 0 ? ensureArray(services).map(serv => (
-                                            <button
-                                                key={serv.id}
-                                                onClick={() => handleAddItem('SERVICE', serv.id)}
-                                                className="w-full text-left p-4 hover:bg-muted text-foreground text-xs font-black uppercase tracking-tight border-b border-border/50 last:border-0 transition"
-                                            >
-                                                <div className="flex justify-between items-center">
-                                                    <span>{serv.name}</span>
-                                                    <span className="text-primary">{formatBRL(serv.price)}</span>
-                                                </div>
-                                            </button>
-                                        )) : (
-                                            <div className="p-4 text-center text-muted-foreground text-[10px] font-black uppercase">Nenhum serviço disponível</div>
-                                        )}
-                                    </div>
+                                    {openMenu === 'service' && (
+                                        <div className="absolute bottom-full left-0 w-full mb-2 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden max-h-72 overflow-y-auto z-20 animate-in fade-in slide-in-from-bottom-2">
+                                            {ensureArray(services).length > 0 ? ensureArray(services).map(serv => (
+                                                <button
+                                                    key={serv.id}
+                                                    onClick={() => { handleAddItem('SERVICE', serv.id); setOpenMenu(null); }}
+                                                    className="w-full text-left p-4 hover:bg-muted text-foreground text-xs font-black uppercase tracking-tight border-b border-border/50 last:border-0 transition"
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span>{serv.name}</span>
+                                                        <span className="text-primary">{formatBRL(serv.price)}</span>
+                                                    </div>
+                                                </button>
+                                            )) : (
+                                                <div className="p-4 text-center text-muted-foreground text-[10px] font-black uppercase">Nenhum serviço disponível</div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Add Product Dropdown */}
-                                <div className="relative group">
-                                    <button className="w-full p-4 md:p-5 bg-secondary text-secondary-foreground rounded-xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-secondary/80 transition flex items-center justify-center gap-3">
+                                {/* Add Product Dropdown (abre por CLIQUE — funciona em touch) */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setOpenMenu(openMenu === 'product' ? null : 'product')}
+                                        className={`w-full p-4 md:p-5 rounded-xl border font-black text-[10px] uppercase tracking-widest transition flex items-center justify-center gap-3 ${openMenu === 'product' ? 'bg-primary text-white border-primary' : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'}`}
+                                    >
                                         <Package className="w-5 h-5" /> Add Produto
                                     </button>
-                                    <div className="absolute bottom-full left-0 w-full mb-4 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden hidden group-hover:block max-h-72 overflow-y-auto z-20">
-                                        {ensureArray(products).length > 0 ? ensureArray(products).map(prod => (
-                                            <button
-                                                key={prod.id}
-                                                onClick={() => handleAddItem('PRODUCT', prod.id)}
-                                                className="w-full text-left p-4 hover:bg-muted text-foreground text-xs font-black uppercase tracking-tight border-b border-border/50 last:border-0 transition"
-                                            >
-                                                <div className="flex justify-between items-center">
-                                                    <span>{prod.name}</span>
-                                                    <span className="text-primary">{formatBRL(prod.price)}</span>
-                                                </div>
-                                            </button>
-                                        )) : (
-                                            <div className="p-4 text-center text-muted-foreground text-[10px] font-black uppercase">Nenhum produto disponível</div>
-                                        )}
-                                    </div>
+                                    {openMenu === 'product' && (
+                                        <div className="absolute bottom-full left-0 w-full mb-2 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden max-h-72 overflow-y-auto z-20 animate-in fade-in slide-in-from-bottom-2">
+                                            {ensureArray(products).length > 0 ? ensureArray(products).map(prod => (
+                                                <button
+                                                    key={prod.id}
+                                                    onClick={() => { handleAddItem('PRODUCT', prod.id); setOpenMenu(null); }}
+                                                    className="w-full text-left p-4 hover:bg-muted text-foreground text-xs font-black uppercase tracking-tight border-b border-border/50 last:border-0 transition"
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span>{prod.name}</span>
+                                                        <span className="text-primary">{formatBRL(prod.price)}</span>
+                                                    </div>
+                                                </button>
+                                            )) : (
+                                                <div className="p-4 text-center text-muted-foreground text-[10px] font-black uppercase">Nenhum produto disponível</div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

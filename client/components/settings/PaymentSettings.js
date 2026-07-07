@@ -45,10 +45,10 @@ export default function PaymentSettings() {
             await fetchConfigs();
             // Silence alert if it was just a toggle
             if (!data.isToggleOnly) {
-                alert('Configurações de gateway atualizadas com sucesso!');
+                alert('✅ Chaves validadas e sincronizadas com sucesso! Agora é só ligar a chavinha para ativar.');
             }
         } catch (error) {
-            alert('Erro ao salvar: ' + (error.response?.data?.error || error.message));
+            alert('❌ ' + (error.response?.data?.error || error.message));
             fetchConfigs(); // Rollback on error
         } finally {
             setSaving(null);
@@ -199,8 +199,8 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                 </div>
 
                 <div className="flex items-center gap-4 bg-background p-3 px-6 rounded-xl border border-border shadow-inner">
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${localData.isActive ? 'text-primary' : (expanded && !savedHasKeys ? 'text-amber-500' : 'text-muted-foreground')}`}>
-                        {localData.isActive ? 'OPERANDO' : (expanded && !savedHasKeys ? 'CONFIGURANDO' : 'DESATIVADO')}
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${(localData.isActive || (expanded && !savedHasKeys)) ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {localData.isActive ? 'OPERANDO' : (expanded && !savedHasKeys ? 'ATIVA' : 'DESATIVADO')}
                     </span>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
