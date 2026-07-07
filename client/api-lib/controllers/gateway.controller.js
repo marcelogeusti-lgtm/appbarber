@@ -43,10 +43,14 @@ exports.saveConfig = async (req, res) => {
         }
 
         // --- MANDATORY VALIDATION FOR ACTIVATION ---
+        // Cada gateway tem seu par de chaves: MP usa accessToken, Stripe usa secretKey
+        const secretFieldName = gateway === 'STRIPE' ? 'secretKey' : 'accessToken';
+        const secretLabel = gateway === 'STRIPE' ? 'Secret Key' : 'Access Token';
+
         if (isActive) {
             // Check if we have credentials in this request OR if they already exist in DB
             const hasPublicKey = credentials.publicKey && (credentials.publicKey.length > 0);
-            const hasAccessToken = credentials.accessToken && (credentials.accessToken.length > 0);
+            const hasSecret = credentials[secretFieldName] && (credentials[secretFieldName].length > 0);
 
             // Fetch existing config to see if we already have these keys (masked or encrypted)
             const existingConfig = await prisma.gatewayConfig.findUnique({
@@ -54,27 +58,12 @@ exports.saveConfig = async (req, res) => {
             });
 
             const dbHasPublicKey = existingConfig?.credentials?.publicKey;
-            const dbHasAccessToken = existingConfig?.credentials?.accessToken;
+            const dbHasSecret = existingConfig?.credentials?.[secretFieldName];
 
-            if (!(hasPublicKey || dbHasPublicKey) || !(hasAccessToken || dbHasAccessToken)) {
-                return res.status(400).json({ 
-                    error: `Para ativar o ${gateway}, é obrigatório configurar a Public Key e o Access Token.` 
-                });
-            }
-        }
-
-        // --- MANDATORY VALIDATION FOR ACTIVATION ---
-        if (isActive) {
-            if (!credentials.publicKey || !credentials.accessToken) {
+            if (!(hasPublicKey || dbHasPublicKey) || !(hasSecret || dbHasSecret)) {
                 return res.status(400).json({
-                    error: `Para ativar o ${gateway}, é obrigatório preencher o Public Key e o Access Token.`
+                    error: `Para ativar o ${gateway}, é obrigatório configurar a Public Key e a ${secretLabel}.`
                 });
-            }
-            // Check if they are still masked while activating
-            if (credentials.publicKey.includes('...') || credentials.accessToken.includes('...')) {
-                // If it's already in DB, it's allowed (masked as returned by GET), 
-                // but the controller logic below handles merging the old encrypted value.
-                // However, we must ensure we HAVE them in DB if we are activating now.
             }
         }
 

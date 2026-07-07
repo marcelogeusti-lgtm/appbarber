@@ -1,11 +1,13 @@
 const prisma = require('../../lib/prisma');
 const MercadoPagoAdapter = require('./gateways/MercadoPagoAdapter');
+const StripeAdapter = require('./gateways/StripeAdapter');
 const crypto = require('../../utils/crypto');
 
 class PaymentOrchestrator {
     constructor() {
         this.gateways = {
-            mercadopago: new MercadoPagoAdapter()
+            mercadopago: new MercadoPagoAdapter(),
+            stripe: new StripeAdapter()
         };
     }
 
@@ -270,7 +272,14 @@ class PaymentOrchestrator {
         if (!adapter) throw new Error(`Webhook gateway '${gateway}' not supported.`);
 
         // 1. Determine Resource ID to find credentials
-        let resourceId = req.query?.['data.id'] || req.body?.data?.id || req.body?.id || req.body?.preapproval_id;
+        // Stripe manda o objeto do evento em body.data.object; MP usa data.id
+        let resourceId;
+        if (gateway === 'stripe') {
+            const obj = req.body?.data?.object || {};
+            resourceId = obj.object === 'payment_intent' ? obj.id : obj.payment_intent;
+        } else {
+            resourceId = req.query?.['data.id'] || req.body?.data?.id || req.body?.id || req.body?.preapproval_id;
+        }
         if (!resourceId) return { isValid: false, error: 'Missing resource ID' };
         resourceId = resourceId.toString();
 
@@ -278,7 +287,8 @@ class PaymentOrchestrator {
         const record = await this.getPaymentByExternalId(resourceId);
         const credentials = await this.getGatewayConfig(record?.barbershopId || null, gatewayName.toUpperCase());
 
-        if (!credentials || !credentials.accessToken) {
+        const requiredKey = gateway === 'stripe' ? credentials?.secretKey : credentials?.accessToken;
+        if (!credentials || !requiredKey) {
             console.error(`[Orchestrator] No credentials found for validation.`);
             return { isValid: false, error: 'No credentials available' };
         }

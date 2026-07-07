@@ -1,40 +1,58 @@
 const GatewayAdapter = require('./GatewayAdapter');
 const axios = require('axios');
 
+// Stripe via REST puro (sem SDK): PaymentIntents para cobrança de cartão.
+// O fluxo é: backend cria o PaymentIntent -> frontend confirma com Stripe.js
+// (Elements) usando o client_secret -> backend confirma o status via API.
 class StripeAdapter extends GatewayAdapter {
     constructor() {
         super();
         this.apiUrl = 'https://api.stripe.com/v1';
     }
 
-    async createPayment({ amount, description, customer, credentials }) {
+    headers(secretKey) {
+        return {
+            'Authorization': `Bearer ${secretKey}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+    }
+
+    mapStatus(stripeStatus) {
+        if (stripeStatus === 'succeeded') return 'paid';
+        if (['processing', 'requires_action', 'requires_confirmation', 'requires_payment_method', 'requires_capture'].includes(stripeStatus)) return 'pending';
+        if (stripeStatus === 'canceled') return 'failed';
+        return 'pending';
+    }
+
+    async createPayment({ amount, currency, description, customer, credentials, metadata }) {
         const secretKey = credentials?.secretKey || process.env.STRIPE_SECRET_KEY;
-        if (!secretKey) throw new Error("Stripe Secret Key missing.");
+        if (!secretKey) throw new Error('Stripe Secret Key missing.');
 
         try {
-            // 1. Create a PaymentIntent (Simple Flow)
-            // For PIX in Stripe, we need to specify payment_method_types
             const params = new URLSearchParams();
-            params.append('amount', Math.round(amount * 100)); // Stripe uses cents
-            params.append('currency', 'brl');
-            params.append('description', description);
+            params.append('amount', Math.round(amount * 100)); // Stripe usa centavos
+            params.append('currency', (currency || credentials?.currency || 'brl').toLowerCase());
+            if (description) params.append('description', description);
             if (customer?.email) params.append('receipt_email', customer.email);
-
-            // For simplicity in this SaaS, we'll return a generic success/pending 
-            // and let the frontend use the publishable key for direct card entry if needed.
-            // But here we return the client_secret.
+            params.append('automatic_payment_methods[enabled]', 'true');
+            params.append('automatic_payment_methods[allow_redirects]', 'never'); // só cartão no MVP
+            if (metadata) {
+                Object.entries(metadata).forEach(([k, v]) => {
+                    if (v !== undefined && v !== null) params.append(`metadata[${k}]`, String(v));
+                });
+            }
 
             const response = await axios.post(`${this.apiUrl}/payment_intents`, params, {
-                headers: {
-                    'Authorization': `Bearer ${secretKey}`,
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                headers: this.headers(secretKey),
+                timeout: 20000
             });
 
             return {
                 externalId: response.data.id,
+                paymentId: response.data.id,
                 clientSecret: response.data.client_secret,
-                status: response.data.status === 'succeeded' ? 'paid' : 'pending',
+                status: this.mapStatus(response.data.status),
+                gateway: 'stripe',
                 rawResponse: response.data
             };
         } catch (err) {
@@ -43,18 +61,77 @@ class StripeAdapter extends GatewayAdapter {
         }
     }
 
-    async createSubscription({ plan, customer, credentials }) {
-        // Stripe Subscriptions logic: Create Price -> Create Customer -> Create Sub
-        // For now, returning a mock or simplified ID
-        return {
-            subscriptionId: `sub_stripe_${Date.now()}`,
-            status: 'pending'
-        };
+    async getPaymentStatus({ externalId, credentials }) {
+        const secretKey = credentials?.secretKey || process.env.STRIPE_SECRET_KEY;
+        if (!secretKey) throw new Error('Stripe Secret Key missing.');
+
+        try {
+            const response = await axios.get(`${this.apiUrl}/payment_intents/${externalId}`, {
+                headers: { 'Authorization': `Bearer ${secretKey}` },
+                timeout: 20000
+            });
+
+            return {
+                externalId: response.data.id,
+                status: this.mapStatus(response.data.status),
+                statusDetail: response.data.last_payment_error?.message || response.data.status,
+                rawResponse: response.data
+            };
+        } catch (err) {
+            console.error('[Stripe] Get Status Error:', err.response?.data || err.message);
+            throw new Error(`Erro ao consultar Stripe: ${err.response?.data?.error?.message || err.message}`);
+        }
+    }
+
+    // Valida a chave chamando um endpoint autenticado barato
+    async testConnection({ credentials }) {
+        const secretKey = credentials?.secretKey;
+        if (!secretKey) return false;
+        try {
+            await axios.get(`${this.apiUrl}/balance`, {
+                headers: { 'Authorization': `Bearer ${secretKey}` },
+                timeout: 15000
+            });
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    // Webhook: não confiamos no payload — re-consultamos o PaymentIntent na API
+    // com as credenciais da barbearia (resolvidas pelo orchestrator via Payment.externalId).
+    async processWebhook(req, credentials) {
+        const event = req.body || {};
+        const object = event.data?.object || {};
+        const intentId = object.object === 'payment_intent' ? object.id : object.payment_intent;
+
+        if (!intentId) return { isValid: false, error: 'Evento Stripe sem payment_intent' };
+
+        try {
+            const statusData = await this.getPaymentStatus({ externalId: intentId, credentials });
+            let status = statusData.status;
+            // Estorno chega como charge.refunded — o PI continua succeeded, então
+            // marcamos explicitamente pelo tipo do evento
+            if (event.type === 'charge.refunded') status = 'refunded';
+            if (event.type === 'charge.dispute.created') status = 'chargeback';
+
+            return {
+                isValid: true,
+                type: 'payment',
+                externalId: intentId,
+                status,
+                statusDetail: statusData.statusDetail,
+                raw: statusData.rawResponse
+            };
+        } catch (err) {
+            console.error('[Stripe Webhook] Process Error:', err.message);
+            return { isValid: false, error: err.message };
+        }
     }
 
     validateWebhook(req) {
-        // Stripe webhook validation requires the raw body and stripe-signature header
-        // For now returning true if signature exists
+        // A verificação real é feita re-consultando a API no processWebhook;
+        // exigimos apenas o header padrão da Stripe como filtro básico.
         return !!req.headers['stripe-signature'];
     }
 }

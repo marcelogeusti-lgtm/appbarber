@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import CardForm from '../payment/CardForm';
 import { toast } from 'sonner';
 
-export default function SubscriptionsTab({ plans = [], barbershopId, savedCards = [], onSubscribeSuccess, activeSubscription }) {
+export default function SubscriptionsTab({ plans = [], barbershopId, savedCards = [], onSubscribeSuccess, activeSubscription, stripeActive = false }) {
     const router = useRouter();
     const [loading, setLoading] = useState(null); // planId being processed
     const [selectedPlan, setSelectedPlan] = useState(null);
@@ -328,14 +328,22 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                 </div>
                             </div>
 
-                            {/* Action */}
-                            <button
-                                onClick={() => handleSubscribeClick(plan)}
-                                disabled={loading === plan.id}
-                                className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition shadow-xl hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-[1.02] active:scale-95"
-                            >
-                                {loading === plan.id ? 'Processando...' : 'Assinar Agora'}
-                            </button>
+                            {/* Action — assinatura recorrente do clube é via Mercado Pago;
+                                em barbearias Stripe fica indisponível por enquanto */}
+                            {stripeActive ? (
+                                <div className="w-full bg-slate-900 border border-slate-800 py-4 rounded-xl text-center">
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Assinatura disponível presencialmente</p>
+                                    <p className="text-[9px] text-slate-600 mt-1">Fale com a barbearia para ativar seu plano.</p>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => handleSubscribeClick(plan)}
+                                    disabled={loading === plan.id}
+                                    className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition shadow-xl hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-[1.02] active:scale-95"
+                                >
+                                    {loading === plan.id ? 'Processando...' : 'Assinar Agora'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))

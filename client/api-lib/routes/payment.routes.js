@@ -15,6 +15,10 @@ router.post('/pix', protect, paymentController.createPixPayment);
 // POST /api/payments/card - Initiates a Card payment for an appointment
 router.post('/card', protect, paymentController.createCardPayment);
 
+// Stripe: cria o PaymentIntent e confirma o status (fluxo Elements)
+router.post('/stripe/intent', protect, paymentController.createStripeIntent);
+router.post('/stripe/confirm', protect, paymentController.confirmStripePayment);
+
 // POST /api/payments/cards - Save a card for future use
 router.post('/cards', protect, paymentController.saveCard);
 

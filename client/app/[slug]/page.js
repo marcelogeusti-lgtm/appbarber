@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import api from '../../lib/clientApi';
 import { safeSetItem } from '../../lib/storage';
 import CardForm from '../../components/payment/CardForm';
+import StripeCardForm from '../../components/payment/StripeCardForm';
 import { useClientAuth } from '../../contexts/ClientAuthContext';
 
 // Dynamic Sub-components (Lazy Loaded)
@@ -417,6 +418,9 @@ export default function BarbershopPage() {
         return servicePrice + productsPrice + feesTotal;
     }, [selectedService, selectedProducts, pendingFees]);
 
+    // Gateway ativo da barbearia: define qual formulário de cartão o checkout usa
+    const stripeActive = !!barbershop?.gatewayConfigs?.some(g => g.isActive && g.gateway === 'STRIPE');
+
     const handleBook = async () => {
         try {
             if (!formData.name || !formData.phone || !formData.date || !formData.time || (paymentType === 'online' && !formData.cpf)) {
@@ -424,7 +428,8 @@ export default function BarbershopPage() {
             }
 
             // [NO-SHOW GUARANTEE] Check if we need to vault a card first for local payments
-            if (paymentType === 'local' && barbershop?.noShowEnabled) {
+            // (cofre de cartão é recurso do Mercado Pago — barbearias Stripe pulam a exigência)
+            if (paymentType === 'local' && barbershop?.noShowEnabled && !stripeActive) {
                 // If they don't have any saved cards AND haven't just saved one in this session
                 if (savedCards.length === 0 && !cardSavedThisSession && checkoutData?.status !== 'pending_card_vault') {
                     setCheckoutData({
@@ -715,6 +720,7 @@ export default function BarbershopPage() {
                 {activeTab === 'assinaturas' && <SubscriptionsTab
                     plans={barbershop.subscriptionPlans || []}
                     barbershopId={barbershop.id}
+                    stripeActive={stripeActive}
                     savedCards={savedCards}
                     onSubscribeSuccess={() => {
                         alert('Assinatura realizada com sucesso! Aproveite seus benefícios.');
@@ -763,6 +769,15 @@ export default function BarbershopPage() {
                                             </div>
                                             <h2 className="text-3xl font-black text-white uppercase">Pagamento Confirmado!</h2>
                                             <p className="text-slate-400 text-xs">Seu horário já está garantido e aguardamos você!</p>
+                                        </div>
+                                    ) : (checkoutData?.status === 'pending_card' && stripeActive) ? (
+                                        <div className="space-y-6">
+                                            <h2 className="text-xl font-black text-white uppercase text-center mb-6">Pagamento com Cartão</h2>
+                                            <StripeCardForm
+                                                appointmentId={checkoutData.appointmentId}
+                                                onSuccess={() => setCheckoutData(prev => ({ ...prev, status: 'paid' }))}
+                                                onCancel={() => { setStep(4); setCheckoutData(null); }}
+                                            />
                                         </div>
                                     ) : (checkoutData?.status === 'pending_card' || checkoutData?.status === 'pending_card_vault') ? (
                                         <div className="space-y-6">

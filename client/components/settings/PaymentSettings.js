@@ -98,6 +98,32 @@ export default function PaymentSettings() {
                         { name: 'clientSecret', label: 'Assinatura secreta do Webhook', type: 'password', placeholder: 'Opcional — segurança extra', advanced: true }
                     ]}
                 />
+
+                {/* STRIPE CONFIG */}
+                <GatewayCard
+                    title="Stripe"
+                    description="Padrão internacional para cartões — EUA, Europa, México e mais de 40 países."
+                    gateway="stripe"
+                    config={getConfig('stripe')}
+                    onSave={handleSave}
+                    saving={saving === 'stripe'}
+                    icon={<div className="w-16 h-16 rounded-xl bg-[#635BFF] border border-border shadow-xl group-hover:scale-110 transition-transform flex items-center justify-center">
+                        <span className="text-white font-black text-2xl tracking-tighter">S</span>
+                    </div>}
+                    helpText='Crie sua conta grátis em stripe.com. Depois, no painel: "Developers" → "API keys" — as 2 chaves ficam juntas na mesma tela. Copie e cole abaixo. Ao ativar a Stripe, o Mercado Pago é desativado automaticamente (e vice-versa).'
+                    fields={[
+                        { name: 'publicKey', label: 'Publishable Key (obrigatória)', placeholder: 'Cole aqui — começa com pk_...' },
+                        { name: 'secretKey', label: 'Secret Key (obrigatória)', type: 'password', placeholder: 'Cole aqui — começa com sk_...' },
+                        {
+                            name: 'currency', label: 'Moeda de cobrança', type: 'radio', options: [
+                                { value: 'brl', label: 'Real (R$)' },
+                                { value: 'usd', label: 'Dólar (US$)' },
+                                { value: 'eur', label: 'Euro (€)' },
+                                { value: 'mxn', label: 'Peso MX ($)' }
+                            ]
+                        }
+                    ]}
+                />
             </div>
         </div>
     );

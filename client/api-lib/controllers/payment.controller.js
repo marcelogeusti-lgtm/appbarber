@@ -483,3 +483,115 @@ exports.getPublicKey = async (req, res) => {
         return res.status(500).json({ error: 'Erro ao buscar chave pública' });
     }
 };
+
+// --- Stripe (cartão via PaymentIntents) ---
+// Fluxo: intent (cria PI + Payment local) -> frontend confirma com Stripe.js
+// -> confirm (re-consulta a API da Stripe e libera o agendamento).
+
+exports.createStripeIntent = async (req, res) => {
+    try {
+        const { appointmentId } = req.body;
+        if (!appointmentId) return res.status(400).json({ error: 'appointmentId é obrigatório' });
+
+        const appointment = await prisma.appointment.findUnique({
+            where: { id: appointmentId },
+            include: { client: { include: { authUser: true } }, service: true, barbershop: true }
+        });
+        if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' });
+
+        const amount = Number(appointment.service.price);
+        if (amount <= 0) return res.status(400).json({ error: 'Valor inválido para pagamento' });
+
+        // Stripe precisa estar ATIVA para esta barbearia
+        const config = await prisma.gatewayConfig.findUnique({
+            where: { barbershopId_gateway: { barbershopId: appointment.barbershopId, gateway: 'STRIPE' } }
+        });
+        if (!config?.isActive) {
+            return res.status(400).json({ error: 'Stripe não está ativa nesta barbearia.' });
+        }
+
+        const credentials = await PaymentOrchestrator.getGatewayConfig(appointment.barbershopId, 'STRIPE');
+        if (!credentials?.secretKey || !credentials?.publicKey) {
+            return res.status(400).json({ error: 'Credenciais Stripe incompletas. Verifique as chaves em Configurações → Pagamentos.' });
+        }
+
+        // Registro local antes da chamada externa (trilha de auditoria)
+        const pendingPayment = await prisma.payment.create({
+            data: {
+                gateway: 'stripe',
+                method: 'CREDIT_CARD',
+                status: 'pending',
+                amount,
+                clientId: req.user.role === 'CLIENT' ? req.user.id : null,
+                userId: req.user.role !== 'CLIENT' ? req.user.id : null,
+                appointmentId: appointment.id,
+                barbershopId: appointment.barbershopId
+            }
+        });
+
+        const adapter = PaymentOrchestrator.gateways.stripe;
+        const intent = await adapter.createPayment({
+            amount,
+            currency: credentials.currency || 'brl',
+            description: `Agendamento #${appointment.id.slice(0, 8)} - ${appointment.service.name}`,
+            customer: { email: appointment.client?.authUser?.email || appointment.client?.email },
+            credentials,
+            metadata: { appointmentId: appointment.id, paymentId: pendingPayment.id }
+        });
+
+        await prisma.payment.update({
+            where: { id: pendingPayment.id },
+            data: { externalId: intent.externalId }
+        });
+
+        return res.status(201).json({
+            paymentId: pendingPayment.id,
+            clientSecret: intent.clientSecret,
+            publishableKey: credentials.publicKey,
+            amount
+        });
+    } catch (error) {
+        console.error('Create Stripe Intent Error:', error);
+        return res.status(500).json({ error: error.message || 'Erro ao iniciar pagamento Stripe' });
+    }
+};
+
+exports.confirmStripePayment = async (req, res) => {
+    try {
+        const { paymentId } = req.body;
+        if (!paymentId) return res.status(400).json({ error: 'paymentId é obrigatório' });
+
+        const payment = await prisma.payment.findUnique({ where: { id: paymentId } });
+        if (!payment || payment.gateway !== 'stripe' || !payment.externalId) {
+            return res.status(404).json({ error: 'Pagamento não encontrado' });
+        }
+        // Só o dono do pagamento pode confirmá-lo
+        if (req.user.role === 'CLIENT' && payment.clientId !== req.user.id) {
+            return res.status(403).json({ error: 'Não autorizado' });
+        }
+
+        const credentials = await PaymentOrchestrator.getGatewayConfig(payment.barbershopId, 'STRIPE');
+        const adapter = PaymentOrchestrator.gateways.stripe;
+
+        // Fonte da verdade: a API da Stripe (nunca o que o frontend afirma)
+        const statusData = await adapter.getPaymentStatus({ externalId: payment.externalId, credentials });
+
+        if (statusData.status === 'paid' && payment.status !== 'paid') {
+            const updated = await prisma.payment.update({
+                where: { id: payment.id },
+                data: { status: 'paid', paidAt: new Date(), statusDetail: 'stripe_confirmed' }
+            });
+            await PaymentService.handlePaymentApproval(updated);
+        } else if (statusData.status === 'failed' && payment.status !== 'failed') {
+            await prisma.payment.update({
+                where: { id: payment.id },
+                data: { status: 'failed', statusDetail: statusData.statusDetail || 'stripe_failed' }
+            });
+        }
+
+        return res.json({ status: statusData.status, statusDetail: statusData.statusDetail });
+    } catch (error) {
+        console.error('Confirm Stripe Payment Error:', error);
+        return res.status(500).json({ error: error.message || 'Erro ao confirmar pagamento Stripe' });
+    }
+};
