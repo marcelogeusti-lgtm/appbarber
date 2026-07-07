@@ -138,6 +138,8 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
     const [showAdvanced, setShowAdvanced] = useState(false);
     // Permite abrir o formulário e preencher as chaves ANTES de ativar
     const [expanded, setExpanded] = useState(false);
+    // Aviso inline quando tenta ativar sem as chaves (substitui o alert repetitivo)
+    const [missingWarning, setMissingWarning] = useState(null);
 
     useEffect(() => {
         setLocalData({
@@ -152,6 +154,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
             credentials: { ...prev.credentials, [field]: value }
         }));
         setTestStatus(null);
+        setMissingWarning(null);
     };
 
     const handleTestConnection = async () => {
@@ -203,6 +206,7 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                                 // A caixinha segue o botão: ligar abre, desligar fecha
                                 if (!newActive) {
                                     setExpanded(false);
+                                    setMissingWarning(null);
                                 }
 
                                 // --- PRE-SAVE VALIDATION ---
@@ -214,11 +218,12 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                                         .filter(f => !localData.credentials[f.name]);
                                     if (missing.length > 0) {
                                         setExpanded(true);
-                                        alert(`Preencha ${missing.map(f => f.label).join(' e ')} nos campos abaixo e clique em "Sincronizar Credenciais". Depois é só ligar a chavinha de novo.`);
+                                        setMissingWarning(`Para ativar o ${title}, preencha ${missing.map(f => f.label).join(' e ')} abaixo, clique em "Sincronizar Credenciais" e ligue a chavinha de novo.`);
                                         return;
                                     }
                                 }
 
+                                setMissingWarning(null);
                                 setLocalData({ ...localData, isActive: newActive });
                                 // AUTO-SAVE ON TOGGLE
                                 await onSave(gateway, { ...localData, isActive: newActive, isToggleOnly: true });
@@ -242,6 +247,12 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
 
             {(localData.isActive || expanded) && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                    {missingWarning && (
+                        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-500 p-4 rounded-xl flex items-start gap-3">
+                            <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <p className="text-xs font-bold leading-relaxed">{missingWarning}</p>
+                        </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {fields.filter(f => !f.advanced || showAdvanced).map(f => (
                             <div key={f.name} className={`space-y-3 ${f.type === 'radio' ? 'md:col-span-2' : ''}`}>
