@@ -144,6 +144,12 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
             isActive: config.isActive,
             credentials: { ...config.credentials }
         });
+        // Gateway ainda sem chave salva: abre o formulário direto,
+        // sem exigir clique em "Configurar chaves"
+        const hasAnyCredential = config.credentials && Object.values(config.credentials).some(v => v);
+        if (!config.isActive && !hasAnyCredential) {
+            setExpanded(true);
+        }
     }, [config]);
 
     const handleChange = (field, value) => {
