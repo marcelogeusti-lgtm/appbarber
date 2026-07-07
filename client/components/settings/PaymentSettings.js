@@ -136,6 +136,8 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
     });
     const [testStatus, setTestStatus] = useState(null); // 'testing', 'success', 'error'
     const [showAdvanced, setShowAdvanced] = useState(false);
+    // Permite abrir o formulário e preencher as chaves ANTES de ativar
+    const [expanded, setExpanded] = useState(false);
 
     useEffect(() => {
         setLocalData({
@@ -199,10 +201,14 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                                 const newActive = e.target.checked;
                                 
                                 // --- PRE-SAVE VALIDATION ---
+                                // Exige os campos obrigatórios DESTE gateway (MP: accessToken; Stripe: secretKey)
                                 if (newActive) {
-                                    const { publicKey, accessToken } = localData.credentials;
-                                    if (!publicKey || !accessToken) {
-                                        alert(`Atenção: Para ativar o ${title}, você precisa preencher o Public Key e o Access Token primeiro.`);
+                                    const missing = fields
+                                        .filter(f => !f.advanced && f.type !== 'radio')
+                                        .filter(f => !localData.credentials[f.name]);
+                                    if (missing.length > 0) {
+                                        alert(`Atenção: para ativar o ${title}, preencha primeiro: ${missing.map(f => f.label).join(' e ')}. Clique em "Configurar chaves" abaixo para abrir os campos.`);
+                                        setExpanded(true);
                                         return;
                                     }
                                 }
@@ -218,7 +224,17 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                 </div>
             </div>
 
-            {localData.isActive && (
+            {!localData.isActive && !expanded && (
+                <button
+                    type="button"
+                    onClick={() => setExpanded(true)}
+                    className="w-full py-4 border border-dashed border-border rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary hover:border-primary/40 transition-all"
+                >
+                    + Configurar chaves do {title}
+                </button>
+            )}
+
+            {(localData.isActive || expanded) && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {fields.filter(f => !f.advanced || showAdvanced).map(f => (
