@@ -80,6 +80,7 @@ app.use('/api/waitlist', waitlistRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/commissions', require('./routes/commission.routes'));
 app.use('/api/orders', orderRoutes);
+app.use('/api/import', require('./routes/import.routes'));
 app.use('/api/products', productRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/addresses', require('./routes/address.routes'));
