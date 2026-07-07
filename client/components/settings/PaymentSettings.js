@@ -141,6 +141,12 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
     // Aviso inline quando tenta ativar sem as chaves (substitui o alert repetitivo)
     const [missingWarning, setMissingWarning] = useState(null);
 
+    // Chaves obrigatórias JÁ SALVAS no banco definem o modo da chavinha:
+    // sem chaves = abre/fecha a caixinha; com chaves = ativa/desativa de verdade
+    const savedHasKeys = fields
+        .filter(f => !f.advanced && f.type !== 'radio')
+        .every(f => config.credentials?.[f.name]);
+
     useEffect(() => {
         setLocalData({
             isActive: config.isActive,
@@ -193,34 +199,30 @@ function GatewayCard({ title, description, gateway, config, onSave, saving, icon
                 </div>
 
                 <div className="flex items-center gap-4 bg-background p-3 px-6 rounded-xl border border-border shadow-inner">
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${localData.isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {localData.isActive ? 'OPERANDO' : 'DESATIVADO'}
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${localData.isActive ? 'text-primary' : (expanded && !savedHasKeys ? 'text-amber-500' : 'text-muted-foreground')}`}>
+                        {localData.isActive ? 'OPERANDO' : (expanded && !savedHasKeys ? 'CONFIGURANDO' : 'DESATIVADO')}
                     </span>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
                             type="checkbox"
-                            checked={localData.isActive}
+                            checked={savedHasKeys ? localData.isActive : expanded}
                             onChange={async (e) => {
                                 const newActive = e.target.checked;
-                                
-                                // A caixinha segue o botão: ligar abre, desligar fecha
+
+                                // MODO CONFIGURAÇÃO: enquanto não há chaves salvas, a chavinha
+                                // apenas abre/fecha a caixinha (nunca ativa nem desativa nada)
+                                if (!savedHasKeys) {
+                                    setExpanded(newActive);
+                                    setMissingWarning(newActive
+                                        ? `Cole as chaves abaixo, clique em "Sincronizar Credenciais" e o ${title} ficará pronto para ativar.`
+                                        : null);
+                                    return;
+                                }
+
+                                // MODO OPERAÇÃO: com chaves salvas, a chavinha ativa/desativa
                                 if (!newActive) {
                                     setExpanded(false);
                                     setMissingWarning(null);
-                                }
-
-                                // --- PRE-SAVE VALIDATION ---
-                                // Sem as chaves deste gateway (MP: accessToken; Stripe: secretKey),
-                                // ligar apenas ABRE o formulário para preencher — não ativa ainda
-                                if (newActive) {
-                                    const missing = fields
-                                        .filter(f => !f.advanced && f.type !== 'radio')
-                                        .filter(f => !localData.credentials[f.name]);
-                                    if (missing.length > 0) {
-                                        setExpanded(true);
-                                        setMissingWarning(`Para ativar o ${title}, preencha ${missing.map(f => f.label).join(' e ')} abaixo, clique em "Sincronizar Credenciais" e ligue a chavinha de novo.`);
-                                        return;
-                                    }
                                 }
 
                                 setMissingWarning(null);
