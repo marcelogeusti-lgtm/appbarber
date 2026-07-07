@@ -30,6 +30,16 @@ class ImportService {
             return `+${phone}`;
         };
 
+        // Data de nascimento: aceita DD/MM/AAAA e AAAA-MM-DD
+        const parseBirth = (raw) => {
+            const s = String(raw || '').trim();
+            if (!s) return undefined;
+            let d;
+            if (s.includes('/')) { const [dd, mm, yy] = s.split('/'); d = new Date(`${yy.length === 2 ? '19' + yy : yy}-${mm}-${dd}T12:00:00Z`); }
+            else if (s.includes('-')) { d = new Date(`${s}T12:00:00Z`); }
+            return (d && !isNaN(d.getTime())) ? d : undefined;
+        };
+
         // 1. Clientes (upsert por telefone)
         for (let i = 0; i < clients.length; i++) {
             const row = clients[i];
@@ -37,16 +47,19 @@ class ImportService {
                 const phone = normalizePhone(row.phone);
                 if (!phone) throw new Error('Telefone obrigatório');
 
+                const birthDate = parseBirth(row.birthDate);
                 const client = await prisma.client.upsert({
                     where: { phone },
                     update: {
                         name: row.name || undefined,
-                        email: row.email || undefined
+                        email: row.email || undefined,
+                        birthDate: birthDate || undefined
                     },
                     create: {
                         name: row.name || 'Cliente Importado',
                         phone,
                         email: row.email || null,
+                        birthDate: birthDate || null,
                         notes: row.notes || 'Importado via sistema'
                     }
                 });

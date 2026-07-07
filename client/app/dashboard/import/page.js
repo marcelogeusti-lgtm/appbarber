@@ -12,6 +12,7 @@ export default function ImportPage() {
         name: '',
         phone: '',
         email: '',
+        birthDate: '',
         date: '',
         time: '',
         service_name: '',
@@ -58,7 +59,8 @@ export default function ImportPage() {
                             if (low.includes('nome') || low.includes('name')) newMapping.name = h;
                             if (low.includes('tel') || low.includes('phone') || low.includes('cel')) newMapping.phone = h;
                             if (low.includes('email') || low.includes('mail')) newMapping.email = h;
-                            if (low.includes('data') || low.includes('date')) newMapping.date = h;
+                            if (low.includes('aniver') || low.includes('nasc') || low.includes('birth')) newMapping.birthDate = h;
+                            else if (low.includes('data') || low.includes('date')) newMapping.date = h;
                             if (low.includes('hora') || low.includes('time')) newMapping.time = h;
                             if (low.includes('serv') || low.includes('service')) newMapping.service_name = h;
                             if (low.includes('prof') || low.includes('barb')) newMapping.professional_name = h;
@@ -92,6 +94,7 @@ export default function ImportPage() {
                 name: row[mapping.name],
                 phone: phone,
                 email: row[mapping.email],
+                birthDate: mapping.birthDate ? row[mapping.birthDate] : undefined,
                 notes: 'Importado via Mapping'
             };
 
@@ -204,9 +207,10 @@ export default function ImportPage() {
                         {Object.keys(mapping).map(field => (
                             <div key={field} className="space-y-2">
                                 <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                                    {field === 'name' ? 'Nome do Cliente*' : 
-                                     field === 'phone' ? 'Telefone*' : 
+                                    {field === 'name' ? 'Nome do Cliente*' :
+                                     field === 'phone' ? 'Telefone*' :
                                      field === 'email' ? 'E-mail' :
+                                     field === 'birthDate' ? 'Nascimento / Aniversário' :
                                      field === 'date' ? 'Data do Agend.' :
                                      field === 'time' ? 'Hora do Agend.' :
                                      field === 'service_name' ? 'Nome do Serviço' :
