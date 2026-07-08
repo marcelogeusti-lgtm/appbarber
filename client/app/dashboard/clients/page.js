@@ -44,6 +44,7 @@ export default function ClientsPage() {
     });
 
     const clients = Array.isArray(clientRes.data) ? clientRes.data : [];
+    const totalClients = clientRes.total ?? 0;
 
     const filteredClients = clients.filter(client =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,12 +87,22 @@ export default function ClientsPage() {
                         <p className="text-muted-foreground text-sm font-medium italic">Acompanhe histórico, gastos e fidelidade da sua base.</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsNewClientModalOpen(true)}
+                <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-center justify-center px-6 py-3 bg-primary/10 border border-primary/20 rounded-xl min-w-[110px]">
+                        <span className="text-3xl font-black tabular-nums text-primary leading-none">
+                            {isInitialLoading ? '—' : totalClients}
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-primary/70 mt-1">
+                            {totalClients === 1 ? 'Cliente' : 'Clientes'} no total
+                        </span>
+                    </div>
+                    <button
+                        onClick={() => setIsNewClientModalOpen(true)}
                     className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2 transition-all active:scale-95"
                 >
                     <Plus className="w-5 h-5" /> Novo Cliente
-                </button>
+                    </button>
+                </div>
             </header>
 
             {/* Filters */}
