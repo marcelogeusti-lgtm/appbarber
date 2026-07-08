@@ -96,7 +96,6 @@ app.use('/api/whatsapp', require('./routes/whatsapp.routes'));
 app.use('/api/packages', require('./routes/package.routes'));
 app.use('/api/feature-flags', require('./routes/featureFlag.routes'));
 app.use('/api/rollout', require('./routes/rollout.routes'));
-app.use('/api/rollout', require('./routes/rollout.routes'));
 app.use('/api/loyalty', require('./routes/loyalty.routes'));
 app.use('/api/coupons', require('./routes/coupon.routes'));
 app.use('/api/queue', require('./routes/queue.routes'));

@@ -580,6 +580,7 @@ model Service {
   waitlist          Waitlist[]
   orderItems        OrderItem[]
   subscriptionPlans SubscriptionPlan[]
+  packages          BarbershopPackage[]
 
   commissionOverrides ProfessionalServiceCommission[]
   professionals       Professional[]
@@ -1499,6 +1500,40 @@ model ClientAccountEntry {
 
   @@index([barbershopId, clientId])
   @@index([barbershopId, createdAt])
+}
+
+// Pacotes de serviços pré-pagos (definição por barbearia)
+model BarbershopPackage {
+  id             String          @id @default(uuid())
+  barbershopId   String
+  name           String
+  description    String?
+  price          Float
+  validityDays   Int             @default(90)
+  totalQuantity  Int             @default(1)
+  active         Boolean         @default(true)
+  services       Service[]
+  clientPackages ClientPackage[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([barbershopId, active])
+}
+
+// Pacote comprado por um cliente (saldo de usos)
+model ClientPackage {
+  id                String            @id @default(uuid())
+  clientId          String
+  packageId         String
+  package           BarbershopPackage @relation(fields: [packageId], references: [id])
+  totalQuantity     Int
+  remainingQuantity Int
+  status            String            @default("ACTIVE") // ACTIVE | USED | EXPIRED
+  startDate         DateTime          @default(now())
+  endDate           DateTime
+  createdAt         DateTime          @default(now())
+
+  @@index([clientId, status])
 }
 
 // Documentos e imagens de divulgação (registro por link)

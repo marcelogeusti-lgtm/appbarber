@@ -120,11 +120,12 @@ function ChargeModal({ barbershopId, onClose, onSaved }) {
 
 function PayModal({ barbershopId, client, onClose, onSaved }) {
     const [amount, setAmount] = useState(String(client.balance.toFixed(2)));
+    const [method, setMethod] = useState('CASH');
     const [saving, setSaving] = useState(false);
     const save = async () => {
         if (!Number(amount)) { alert('Informe o valor.'); return; }
         setSaving(true);
-        try { await api.post('/accounts', { barbershopId, clientId: client.clientId, type: 'PAYMENT', amount: Number(amount), description: 'Pagamento de conta' }); onSaved(); }
+        try { await api.post('/accounts', { barbershopId, clientId: client.clientId, type: 'PAYMENT', amount: Number(amount), paymentMethod: method, description: 'Pagamento de conta' }); onSaved(); }
         catch (e) { alert(e.response?.data?.message || 'Erro ao registrar pagamento.'); }
         finally { setSaving(false); }
     };
@@ -133,6 +134,12 @@ function PayModal({ barbershopId, client, onClose, onSaved }) {
             <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">Saldo devedor: <span className="font-black text-destructive">{money(client.balance)}</span></p>
                 <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Valor recebido (R$)" className="acc-i" autoFocus />
+                <select value={method} onChange={e => setMethod(e.target.value)} className="acc-i">
+                    <option value="CASH">Dinheiro</option>
+                    <option value="PIX">PIX</option>
+                    <option value="CREDIT_CARD">Cartão de Crédito</option>
+                    <option value="DEBIT_CARD">Cartão de Débito</option>
+                </select>
                 <p className="text-[11px] text-muted-foreground italic">O valor recebido entra automaticamente no caixa.</p>
                 <button onClick={save} disabled={saving} className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-50">{saving ? 'Registrando...' : 'Confirmar recebimento'}</button>
             </div>

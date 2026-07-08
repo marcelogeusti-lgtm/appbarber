@@ -46,8 +46,9 @@ exports.getStatement = async (req, res) => {
 // Lança um valor na conta (dívida) ou registra um pagamento (entra no caixa)
 exports.addEntry = async (req, res) => {
     try {
-        const { barbershopId, clientId, type, amount, description } = req.body;
+        const { barbershopId, clientId, type, amount, description, paymentMethod } = req.body;
         const value = Number(amount);
+        const method = ['CASH', 'PIX', 'CREDIT_CARD', 'DEBIT_CARD'].includes(paymentMethod) ? paymentMethod : 'CASH';
         if (!barbershopId || !clientId || !value || value <= 0 || !['CHARGE', 'PAYMENT'].includes(type)) {
             return res.status(400).json({ message: 'Dados inválidos.' });
         }
@@ -72,7 +73,7 @@ exports.addEntry = async (req, res) => {
                         type: 'INCOME',
                         category: 'Fiado',
                         barbershopId,
-                        paymentMethod: 'CASH',
+                        paymentMethod: method,
                         origin: 'PRESENCIAL',
                         date: new Date()
                     }
