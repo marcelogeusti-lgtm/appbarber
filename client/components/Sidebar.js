@@ -237,6 +237,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                         <MenuGroup title="Financeiro" id="financeiro" icon={DollarSign}>
                             <MenuItem href="/dashboard/finance/dashboard" icon={PieChart} label="Dashboard" />
                             <MenuItem href="/dashboard/finance" icon={Wallet} label="Movimentações" />
+                            <MenuItem href="/dashboard/accounts" icon={Receipt} label="Contas / Fiado" badge="Novo" />
                             <MenuItem href="/dashboard/reports/commissions" icon={DollarSign} label="Comissões" />
                             <MenuItem href="/dashboard/reports/rankings" icon={Trophy} label="Rankings" badge="Novo" />
 

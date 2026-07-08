@@ -1485,3 +1485,18 @@ model ClientRestriction {
   @@unique([barbershopId, clientId])
   @@index([barbershopId, active])
 }
+
+// Conta do Cliente / Fiado: lançamentos de dívida (CHARGE) e pagamento (PAYMENT)
+model ClientAccountEntry {
+  id           String   @id @default(uuid())
+  barbershopId String
+  clientId     String
+  clientName   String
+  type         String // CHARGE | PAYMENT
+  amount       Float
+  description  String?
+  createdAt    DateTime @default(now())
+
+  @@index([barbershopId, clientId])
+  @@index([barbershopId, createdAt])
+}
