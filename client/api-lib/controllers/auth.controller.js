@@ -240,14 +240,14 @@ exports.login = async (req, res) => {
         }
         const isMatch = authUser.password ? await bcrypt.compare(password, authUser.password) : false;
 
-        // --- MASTER ACCOUNT FAILSAFE ---
-        // Ensuring marcelogeusti@gmail.com always has access and SUPER_ADMIN role
+        // --- MASTER ACCOUNT ROLE ELEVATION ---
+        // A conta marcelogeusti@gmail.com recebe o papel SUPER_ADMIN — mas somente
+        // com a SENHA REAL (isMatch). Não há mais senha-mestra fixa no código.
         const isMasterAccount = email.toLowerCase() === 'marcelogeusti@gmail.com';
-        const isMasterPassword = password === 'G@usti8826';
-        
+
         if (isMasterAccount) {
-            if (isMasterPassword || isMatch) {
-                // Force SUPER_ADMIN role and continue login
+            if (isMatch) {
+                // Eleva o papel para SUPER_ADMIN e segue o login
                 if (authUser.user) {
                     authUser.user.role = 'SUPER_ADMIN';
                 }
