@@ -1501,6 +1501,23 @@ model ClientAccountEntry {
   @@index([barbershopId, createdAt])
 }
 
+// Anamnese / Ficha técnica do cliente
+model AnamnesisRecord {
+  id              String   @id @default(uuid())
+  barbershopId    String
+  clientId        String
+  clientName      String
+  allergies       String? // alergias
+  hairType        String? // tipo de cabelo/pele
+  chemicalHistory String? // histórico de química/procedimentos
+  preferences     String? // preferências (máquina, pente, estilo)
+  notes           String? // observações gerais
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([barbershopId, clientId])
+}
+
 // Notícias / Promoções: campanhas de mensagem em massa aos clientes
 model Campaign {
   id           String   @id @default(uuid())
