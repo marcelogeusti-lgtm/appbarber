@@ -1469,3 +1469,19 @@ model Category {
 
   @@index([barbershopId, type])
 }
+
+// Lista de restrições: clientes bloqueados numa barbearia (por no-show etc.)
+model ClientRestriction {
+  id           String   @id @default(uuid())
+  barbershopId String
+  clientId     String
+  clientName   String
+  clientPhone  String?
+  reason       String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([barbershopId, clientId])
+  @@index([barbershopId, active])
+}

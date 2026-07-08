@@ -201,6 +201,14 @@ exports.createAppointment = async (req, res) => {
                 currentUser = { ...existingClient, role: 'CLIENT' };
             }
 
+            // Lista de restrições: cliente bloqueado nesta barbearia não pode agendar
+            if (clientId && service && service.barbershopId) {
+                const { isBlocked } = require('./restriction.controller');
+                if (await isBlocked(service.barbershopId, clientId)) {
+                    return res.status(403).json({ message: 'Este cliente está bloqueado para novos agendamentos nesta barbearia. Procure a barbearia.' });
+                }
+            }
+
             if (clientId && service && service.barbershopId) {
                 prisma.communicationLog.create({
                     data: {
