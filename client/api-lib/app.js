@@ -106,6 +106,7 @@ app.use('/api/restrictions', require('./routes/restriction.routes'));
 app.use('/api/accounts', require('./routes/account.routes'));
 app.use('/api/surveys', require('./routes/survey.routes'));
 app.use('/api/rotation', require('./routes/rotation.routes'));
+app.use('/api/campaigns', require('./routes/campaign.routes'));
 app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/tutorials', require('./routes/tutorial.routes'));
 app.use('/api/support', require('./routes/support.routes'));
