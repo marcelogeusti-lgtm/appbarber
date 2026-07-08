@@ -1429,3 +1429,43 @@ model QueueEntry {
   @@index([barbershopId, status])
   @@index([barbershopId, arrivedAt])
 }
+
+// Cadastros de apoio (fornecedores, equipamentos, categorias)
+model Supplier {
+  id           String   @id @default(uuid())
+  barbershopId String
+  name         String
+  phone        String?
+  email        String?
+  cnpj         String?
+  notes        String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([barbershopId])
+}
+
+model Equipment {
+  id           String    @id @default(uuid())
+  barbershopId String
+  name         String
+  quantity     Int       @default(1)
+  notes        String?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([barbershopId])
+}
+
+model Category {
+  id           String   @id @default(uuid())
+  barbershopId String
+  name         String
+  type         String   @default("SERVICE") // SERVICE | PRODUCT
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([barbershopId, type])
+}

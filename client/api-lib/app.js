@@ -101,6 +101,7 @@ app.use('/api/loyalty', require('./routes/loyalty.routes'));
 app.use('/api/coupons', require('./routes/coupon.routes'));
 app.use('/api/queue', require('./routes/queue.routes'));
 app.use('/api/rankings', require('./routes/ranking.routes'));
+app.use('/api/registry', require('./routes/registry.routes'));
 app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/tutorials', require('./routes/tutorial.routes'));
 app.use('/api/support', require('./routes/support.routes'));
