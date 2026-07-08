@@ -1386,3 +1386,25 @@ model SaasWebhookEvent {
   @@index([email])
   @@index([processed])
 }
+
+// Cupons de desconto por barbearia (aplicáveis em comandas/agendamentos)
+model Coupon {
+  id            String    @id @default(uuid())
+  barbershopId  String
+  code          String
+  description   String?
+  discountType  String    @default("PERCENT") // PERCENT | FIXED
+  discountValue Float
+  minValue      Float? // valor mínimo da comanda para valer
+  maxUses       Int? // limite total de usos (null = ilimitado)
+  usedCount     Int       @default(0)
+  perClientLimit Int? // limite de usos por cliente (null = ilimitado)
+  validFrom     DateTime?
+  validUntil    DateTime?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([barbershopId, code])
+  @@index([barbershopId, active])
+}
