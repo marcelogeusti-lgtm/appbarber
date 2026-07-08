@@ -39,13 +39,22 @@ exports.addToQueue = async (req, res) => {
         const { barbershopId, clientId, clientName, clientPhone, professionalId, serviceName, notes } = req.body;
         if (!barbershopId || !clientName) return res.status(400).json({ message: 'Nome e barbearia são obrigatórios.' });
 
+        // Sem profissional escolhido? Se o rodízio estiver ligado, atribui o próximo da vez.
+        let finalProId = professionalId && professionalId !== 'all' ? professionalId : null;
+        if (!finalProId) {
+            try {
+                const { pickNext } = require('./rotation.controller');
+                finalProId = await pickNext(barbershopId);
+            } catch (e) { /* rodízio opcional */ }
+        }
+
         const entry = await prisma.queueEntry.create({
             data: {
                 barbershopId,
                 clientId: clientId || null,
                 clientName: String(clientName).trim(),
                 clientPhone: clientPhone || null,
-                professionalId: professionalId && professionalId !== 'all' ? professionalId : null,
+                professionalId: finalProId,
                 serviceName: serviceName || null,
                 notes: notes || null,
                 status: 'WAITING'

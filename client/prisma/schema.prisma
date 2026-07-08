@@ -1501,6 +1501,15 @@ model ClientAccountEntry {
   @@index([barbershopId, createdAt])
 }
 
+// Rodízio de profissionais: distribui walk-ins de forma justa
+model RotationConfig {
+  id           String   @id @default(uuid())
+  barbershopId String   @unique
+  enabled      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 // Pesquisa de Satisfação / NPS
 model SurveyResponse {
   id           String   @id @default(uuid())
