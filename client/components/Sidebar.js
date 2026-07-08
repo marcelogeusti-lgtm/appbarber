@@ -8,7 +8,7 @@ import {
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, MessageSquare,
     PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3,
-    PlayCircle, Database, UploadCloud, Ticket, ListOrdered, Trophy, Boxes, ShieldX
+    PlayCircle, Database, UploadCloud, Ticket, ListOrdered, Trophy, Boxes, ShieldX, Gauge
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
@@ -223,6 +223,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                             </>
                         )}
                         <MenuItem href="/dashboard/reviews" icon={Star} label="Avaliações" />
+                        <MenuItem href="/dashboard/surveys" icon={Gauge} label="Pesquisa (NPS)" badge="Novo" />
                     </MenuGroup>
 
                     {/* Conteúdo (Cursos) */}

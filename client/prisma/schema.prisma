@@ -1500,3 +1500,17 @@ model ClientAccountEntry {
   @@index([barbershopId, clientId])
   @@index([barbershopId, createdAt])
 }
+
+// Pesquisa de Satisfação / NPS
+model SurveyResponse {
+  id           String   @id @default(uuid())
+  barbershopId String
+  clientId     String?
+  clientName   String?
+  clientPhone  String?
+  score        Int // 0-10 (NPS)
+  comment      String?
+  createdAt    DateTime @default(now())
+
+  @@index([barbershopId, createdAt])
+}
