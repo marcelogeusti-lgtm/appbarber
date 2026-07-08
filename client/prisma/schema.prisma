@@ -1408,3 +1408,24 @@ model Coupon {
   @@unique([barbershopId, code])
   @@index([barbershopId, active])
 }
+
+// Ordem de Chegada / Fila do dia (walk-in): quem chega sem agendar
+model QueueEntry {
+  id             String    @id @default(uuid())
+  barbershopId   String
+  clientId       String?
+  clientName     String
+  clientPhone    String?
+  professionalId String? // preferência de profissional (null = qualquer)
+  serviceName    String? // serviço desejado (texto livre)
+  status         String    @default("WAITING") // WAITING | CALLED | ATTENDED | CANCELLED
+  notes          String?
+  arrivedAt      DateTime  @default(now())
+  calledAt       DateTime?
+  attendedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([barbershopId, status])
+  @@index([barbershopId, arrivedAt])
+}
