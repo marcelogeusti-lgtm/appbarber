@@ -1501,6 +1501,20 @@ model ClientAccountEntry {
   @@index([barbershopId, createdAt])
 }
 
+// Documentos e imagens de divulgação (registro por link)
+model Document {
+  id           String   @id @default(uuid())
+  barbershopId String
+  title        String
+  url          String
+  category     String   @default("GENERAL") // GENERAL | CONTRACT | MARKETING | CLIENT | PROFESSIONAL
+  isImage      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([barbershopId, category])
+}
+
 // Anamnese / Ficha técnica do cliente
 model AnamnesisRecord {
   id              String   @id @default(uuid())
