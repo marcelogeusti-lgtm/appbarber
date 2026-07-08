@@ -8,7 +8,7 @@ import {
     Settings, MessageCircle, LogOut, ChevronDown, ChevronRight,
     Store, CreditCard, UserCheck, MessageSquare,
     PanelLeftClose, PanelLeftOpen, X, GraduationCap, Shield, Gift, Star, BarChart3,
-    PlayCircle, Database, UploadCloud, Ticket, ListOrdered, Trophy, Boxes, ShieldX, Gauge, Repeat, Megaphone, ClipboardList, Cake, FolderOpen
+    PlayCircle, Database, UploadCloud, Ticket, ListOrdered, Trophy, Boxes, ShieldX, Gauge, Repeat, Megaphone, ClipboardList, Cake, FolderOpen, Hourglass, Package2
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
@@ -196,6 +196,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                         <MenuItem href="/dashboard/schedule" icon={Calendar} label="Agenda" />
                         <MenuItem href="/dashboard/queue" icon={ListOrdered} label="Ordem de Chegada" badge="Novo" />
                         <MenuItem href="/dashboard/rotation" icon={Repeat} label="Rodízio" badge="Novo" />
+                        <MenuItem href="/dashboard/waitlist" icon={Hourglass} label="Lista de Espera" badge="Novo" />
                     </div>
 
                     <div className="h-px bg-border mx-2 my-2"></div>
@@ -219,6 +220,7 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                         {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
                             <>
                                 <MenuItem href="/dashboard/subscriptions" icon={Package} label="Planos & Assinaturas" />
+                                <MenuItem href="/dashboard/packages" icon={Package2} label="Pacotes de Serviços" badge="Novo" />
                                 <MenuItem href="/dashboard/subscribers" icon={Users} label="Assinantes" />
                                 <MenuItem href="/dashboard/loyalty" icon={Gift} label="Fidelidade" />
                                 <MenuItem href="/dashboard/coupons" icon={Ticket} label="Cupons" badge="Novo" />
