@@ -151,8 +151,8 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                 ${isCollapsed ? 'md:w-16' : 'md:w-64'}
             `}>
                 {/* Header */}
-                <div className={`border-b border-border flex items-center transition-all duration-300 relative ${isCollapsed ? 'justify-center p-4' : 'justify-between p-6 mb-2'}`}>
-                    <div className="flex items-center gap-3 w-full justify-center md:justify-start">
+                <div className={`h-16 border-b border-border flex items-center transition-all duration-300 relative ${isCollapsed ? 'justify-center px-2' : 'px-6'}`}>
+                    <div className="flex items-center gap-3 w-full justify-center">
                         {!isCollapsed ? (
                             <img
                                 src="/logos/logo_full.png"
@@ -171,13 +171,13 @@ export default function Sidebar({ user, barbershop, isLocked, logout, isOpen, on
                     {/* Desktop Collapse Toggle - Border Positioned */}
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className={`hidden md:flex absolute -right-3 top-7 w-6 h-6 bg-card border border-border rounded-full items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all shadow-sm z-50 ${isCollapsed ? 'rotate-180' : ''}`}
+                        className={`hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-card border border-border rounded-full items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all shadow-sm z-50 ${isCollapsed ? 'rotate-180' : ''}`}
                     >
                         <ChevronRight className="w-3 h-3" />
                     </button>
 
                     {/* Mobile Close Button */}
-                    <button onClick={onClose} className="md:hidden absolute right-4 text-muted-foreground hover:text-foreground">
+                    <button onClick={onClose} className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
