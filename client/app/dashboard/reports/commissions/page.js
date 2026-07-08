@@ -40,7 +40,29 @@ export default function CommissionsReportPage() {
             fetchReport();
         } catch (err) {
             console.error(err);
-            alert('Erro ao dar baixa nas comissões');
+            alert(err.response?.data?.message || 'Erro ao dar baixa nas comissões');
+        }
+    };
+
+    const handleGiveAdvance = async (barber) => {
+        const input = prompt(`Vale / Adiantamento para ${barber.barberName}\n\nDigite o valor (R$) a adiantar:`);
+        if (input === null) return;
+        const value = Number(String(input).replace(',', '.'));
+        if (!value || value <= 0) {
+            alert('Valor inválido.');
+            return;
+        }
+        if (!confirm(`Confirmar vale de R$ ${value.toFixed(2)} para ${barber.barberName}?\n\nIsso lança uma despesa no caixa e abate das comissões dele.`)) return;
+        try {
+            const userStr = localStorage.getItem('user');
+            const user = JSON.parse(userStr);
+            const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
+            await api.post('/commissions/advance', { barberId: barber.barberId, barbershopId: bId, amount: value });
+            alert('Vale registrado com sucesso!');
+            fetchReport();
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Erro ao registrar o vale');
         }
     };
 
@@ -194,7 +216,7 @@ export default function CommissionsReportPage() {
                         </thead>
                         <tbody className="divide-y divide-border/50">
                             {data.barbers.map((barber, idx) => {
-                                const liquidTotal = (barber.serviceCommission + barber.productCommission + barber.subscriptionCommission + (barber.extras || 0) - (barber.productPurchases || 0));
+                                const liquidTotal = (barber.serviceCommission + barber.productCommission + barber.subscriptionCommission + (barber.extras || 0) - (barber.productPurchases || 0) - (barber.advancesTaken || 0));
                                 return (
                                     <tr key={idx} className="hover:bg-primary/5 transition-colors group">
                                         <td className="px-10 py-8">
@@ -213,14 +235,28 @@ export default function CommissionsReportPage() {
                                         <td className="px-6 py-8 text-right text-xs font-black text-foreground">R$ {barber.productCommission.toFixed(2)}</td>
                                         <td className="px-6 py-8 text-right bg-primary/5">
                                             <span className="text-lg font-black text-primary tracking-tighter uppercase whitespace-nowrap">R$ {liquidTotal.toFixed(2)}</span>
+                                            {(barber.advancesTaken || 0) > 0 && (
+                                                <span className="block text-[9px] font-black text-destructive uppercase tracking-widest mt-1">
+                                                    − R$ {barber.advancesTaken.toFixed(2)} em vale
+                                                </span>
+                                            )}
                                         </td>
-                                        <td className="px-10 py-8 text-center">
-                                            <button
-                                                onClick={() => handlePayCommissions(barber.barberId)}
-                                                className="bg-primary/10 text-primary border border-primary/30 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all shadow-sm active:scale-95"
-                                            >
-                                                Dar Baixa
-                                            </button>
+                                        <td className="px-10 py-8">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleGiveAdvance(barber)}
+                                                    className="bg-background border border-border text-muted-foreground px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-all shadow-sm active:scale-95"
+                                                    title="Adiantar um valor (vale) que será abatido das comissões"
+                                                >
+                                                    Vale
+                                                </button>
+                                                <button
+                                                    onClick={() => handlePayCommissions(barber.barberId)}
+                                                    className="bg-primary/10 text-primary border border-primary/30 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all shadow-sm active:scale-95"
+                                                >
+                                                    Dar Baixa
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 );

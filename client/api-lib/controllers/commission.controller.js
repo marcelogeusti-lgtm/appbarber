@@ -113,13 +113,18 @@ exports.getCommissionsReport = async (req, res) => {
                 .filter(c => c.type === 'EXTRA')
                 .reduce((sum, c) => sum + Number(c.amount), 0);
 
-            // Compras de produto (débito) - items in commission table with negative amount
+            // Compras de produto (débito) - negativos que NÃO são adiantamento
             const productPurchases = barberCommissions
-                .filter(c => c.amount < 0)
+                .filter(c => c.amount < 0 && c.type !== 'ADVANCE')
                 .reduce((sum, c) => sum + Math.abs(Number(c.amount)), 0);
 
-            // Total de comissões (Líquido)
-            const totalCommissions = serviceCommission + productCommission + subscriptionCommission + extras - productPurchases;
+            // Vales / Adiantamentos já entregues (registrados como comissão negativa tipo ADVANCE)
+            const advancesTaken = barberCommissions
+                .filter(c => c.type === 'ADVANCE')
+                .reduce((sum, c) => sum + Math.abs(Number(c.amount)), 0);
+
+            // Total de comissões (Líquido) — desconta compras de produto e adiantamentos
+            const totalCommissions = serviceCommission + productCommission + subscriptionCommission + extras - productPurchases - advancesTaken;
 
             // Comissões pagas vs pendentes
             const paidCommissions = barberCommissions
@@ -142,6 +147,7 @@ exports.getCommissionsReport = async (req, res) => {
                 subscriptionCommission,
                 extras,
                 productPurchases,
+                advancesTaken,
                 totalCommissions,
                 paidCommissions,
                 pendingCommissions
@@ -154,7 +160,8 @@ exports.getCommissionsReport = async (req, res) => {
             totalServices: barberStats.reduce((sum, b) => sum + b.totalServices, 0),
             totalSubscriptions: appointments.filter(apt => apt.paymentMethod === 'SUBSCRIPTION').length,
             totalPaidCommissions: barberStats.reduce((sum, b) => sum + b.paidCommissions, 0),
-            totalPendingCommissions: barberStats.reduce((sum, b) => sum + b.pendingCommissions, 0)
+            totalPendingCommissions: barberStats.reduce((sum, b) => sum + b.pendingCommissions, 0),
+            totalAdvances: barberStats.reduce((sum, b) => sum + (b.advancesTaken || 0), 0)
         };
 
         res.json({
@@ -186,6 +193,14 @@ exports.payCommissions = async (req, res) => {
         }
 
         const totalToPay = pendingCommissions.reduce((sum, c) => sum + Number(c.amount), 0);
+
+        // Se o líquido for zero ou negativo, o profissional já recebeu adiantado de mais:
+        // não há repasse a fazer (o saldo negativo é abatido nas próximas comissões).
+        if (totalToPay <= 0) {
+            return res.status(400).json({
+                message: 'Não há saldo a pagar. O profissional está com adiantamento a compensar em comissões futuras.'
+            });
+        }
 
         const result = await prisma.$transaction(async (tx) => {
             // 2. Update status
@@ -227,6 +242,52 @@ exports.payCommissions = async (req, res) => {
 };
 
 // Criar comissão manual
+// Dar um Vale / Adiantamento ao profissional (abate das comissões futuras)
+exports.giveAdvance = async (req, res) => {
+    try {
+        const { barberId, barbershopId, amount, note } = req.body;
+        const value = Number(amount);
+
+        if (!barberId || !barbershopId || !value || value <= 0) {
+            return res.status(400).json({ message: 'Informe um valor de adiantamento válido.' });
+        }
+
+        const pro = await prisma.user.findUnique({ where: { id: barberId }, select: { name: true } });
+
+        await prisma.$transaction(async (tx) => {
+            // 1. Registra o vale como comissão NEGATIVA (tipo ADVANCE), pendente:
+            //    reduz o saldo a receber; se passar do acumulado, vira saldo negativo
+            //    que as próximas comissões abatem.
+            await tx.commission.create({
+                data: {
+                    barberId,
+                    barbershopId,
+                    type: 'ADVANCE',
+                    description: note ? `Vale/Adiantamento — ${note}` : 'Vale/Adiantamento',
+                    amount: -Math.abs(value),
+                    percentage: null,
+                    status: 'PENDING'
+                }
+            });
+
+            // 2. Lança a despesa (dinheiro que saiu do caixa agora)
+            await financialService.recordExpense({
+                amount: value,
+                description: `Vale/Adiantamento: ${pro?.name || 'Profissional'}`,
+                category: 'Comissão',
+                barbershopId,
+                professionalId: barberId,
+                paymentMethod: 'CASH'
+            });
+        });
+
+        res.json({ message: 'Vale registrado com sucesso', amount: value });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Erro ao registrar o vale.' });
+    }
+};
+
 exports.createCommission = async (req, res) => {
     try {
         const { barberId, barbershopId, type, description, amount } = req.body;

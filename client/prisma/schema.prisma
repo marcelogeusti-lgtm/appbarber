@@ -91,6 +91,7 @@ enum CommissionType {
   PRODUCT
   SUBSCRIPTION
   EXTRA
+  ADVANCE
 }
 
 enum CommissionStatus {
