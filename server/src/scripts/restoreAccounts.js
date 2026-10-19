@@ -6,7 +6,12 @@ async function main() {
     console.log('🚀 Starting Data Restoration...');
 
     try {
-        const password = await bcrypt.hash('G@usti8826', 10);
+        const plain = process.env.MASTER_RESTORE_PASSWORD;
+        if (!plain) {
+            console.error('❌ Defina MASTER_RESTORE_PASSWORD antes de rodar este script.');
+            process.exit(1);
+        }
+        const password = await bcrypt.hash(plain, 10);
 
         // 1. Create MASTER Account
         const masterAuth = await prisma.authUser.upsert({
