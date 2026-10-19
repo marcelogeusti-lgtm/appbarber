@@ -64,14 +64,10 @@ export default function AdminLogin() {
         setError('');
         try {
             const result = await signInWithPopup(auth, googleProvider);
-            const { email, displayName, photoURL, uid } = result.user;
+            const idToken = await result.user.getIdToken();
 
             const res = await api.post('/auth/social-login', {
-                email,
-                name: displayName,
-                avatarUrl: photoURL,
-                provider: 'GOOGLE',
-                providerId: uid,
+                idToken,
                 context: 'PRO',
                 intent: 'login'
             });

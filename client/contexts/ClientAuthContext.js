@@ -94,16 +94,9 @@ export function ClientAuthProvider({ children }) {
     const googleLogin = async () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
-            const { email, displayName, photoURL, uid } = result.user;
 
-            // Backend Sync
-            return await socialBackendSync({
-                email,
-                name: displayName,
-                avatarUrl: photoURL,
-                provider: 'GOOGLE',
-                providerId: uid
-            });
+            // Backend Sync — o servidor valida o ID token e extrai a identidade dele
+            return await socialBackendSync({ idToken: await result.user.getIdToken() });
         } catch (error) {
             console.error('Google Auth Error:', error);
             return { success: false, message: 'Erro ao autenticar com Google.' };
@@ -116,14 +109,7 @@ export function ClientAuthProvider({ children }) {
         }
         try {
             const result = await signInWithPopup(auth, facebookProvider);
-            const { email, displayName, photoURL, uid } = result.user;
-            return await socialBackendSync({
-                email,
-                name: displayName,
-                avatarUrl: photoURL,
-                provider: 'FACEBOOK',
-                providerId: uid
-            });
+            return await socialBackendSync({ idToken: await result.user.getIdToken() });
         } catch (error) {
             console.error('Facebook Auth Error:', error);
             return { success: false, message: 'Erro ao autenticar com Facebook.' };
@@ -135,9 +121,9 @@ export function ClientAuthProvider({ children }) {
         try {
             const firebaseProvider = provider === 'GOOGLE' ? googleProvider : facebookProvider;
             const result = await signInWithPopup(auth, firebaseProvider);
-            const { uid } = result.user;
+            const idToken = await result.user.getIdToken();
 
-            await api.post('/auth/link-social', { provider, providerId: uid });
+            await api.post('/auth/link-social', { idToken });
             await refreshUser();
             return { success: true };
         } catch (error) {

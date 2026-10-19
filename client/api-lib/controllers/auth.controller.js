@@ -5,9 +5,11 @@ const { generateUniqueSlug } = require('../utils/slugGenerator');
 const emailProvider = require('../services/communication/providers/EmailProvider');
 const whatsappService = require('../services/communication/WhatsAppService');
 const eventBus = require('../services/events/eventBus');
+const crypto = require('crypto');
+const { verifySocialIdToken, SocialTokenError } = require('../config/firebaseAuthVerifier');
 
 // Helper para gerar código de 6 dígitos
-const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generateOTP = () => crypto.randomInt(100000, 1000000).toString();
 
 // Helper functions
 const createSession = async (req, authUserId, token) => {
@@ -404,11 +406,24 @@ exports.login = async (req, res) => {
 
 exports.socialLogin = async (req, res) => {
     try {
-        const { email, name, provider, providerId, avatarUrl, context, intent } = req.body;
-        const normalizedEmail = email?.toLowerCase();
+        const { idToken, context, intent } = req.body;
 
-        if (!normalizedEmail || !provider) {
-            return res.status(400).json({ message: 'Email e Provider são obrigatórios' });
+        // Identidade vem SÓ do ID token verificado no servidor — nunca do body.
+        let identity;
+        try {
+            identity = await verifySocialIdToken(idToken);
+        } catch (err) {
+            if (err instanceof SocialTokenError) return res.status(401).json({ message: err.message });
+            throw err;
+        }
+
+        const { provider, uid: providerId, emailVerified } = identity;
+        const normalizedEmail = identity.email;
+        const name = identity.name || req.body.name;
+        const avatarUrl = identity.picture || req.body.avatarUrl;
+
+        if (!normalizedEmail) {
+            return res.status(400).json({ message: 'Sua conta social não informou um e-mail. Use outro método de login.' });
         }
 
         const barbershopSelect = {
@@ -451,6 +466,12 @@ exports.socialLogin = async (req, res) => {
                 select: socialSelect
             });
 
+            // E-mail não verificado pelo provedor (comum no Facebook) não pode
+            // assumir uma conta existente: o dono precisa vincular pelo painel.
+            if (authUser && !emailVerified) {
+                return res.status(409).json({ message: 'Já existe uma conta com este e-mail. Entre com sua senha e vincule a conta social em Configurações.' });
+            }
+
             // Auto-vínculo: achou por e-mail e a identidade social ainda não está gravada
             if (authUser && providerIdField && providerId && !authUser[providerIdField]) {
                 await prisma.authUser.update({
@@ -485,10 +506,10 @@ exports.socialLogin = async (req, res) => {
         if (context === 'PRO') {
             if (!authUser.user) {
                 // Tenta adoção de órfão
-                const orphanedUser = await prisma.user.findFirst({
+                const orphanedUser = emailVerified ? await prisma.user.findFirst({
                     where: { email: { equals: normalizedEmail, mode: 'insensitive' }, authUserId: null },
                     include: { ownedBarbershops: true, workedBarbershop: true }
-                });
+                }) : null;
 
                 if (orphanedUser) {
                     const updatedUser = await prisma.user.update({
@@ -921,13 +942,16 @@ exports.linkSocial = async (req, res) => {
         const authUserId = req.user.authUserId;
         if (!authUserId) return res.status(400).json({ message: 'Conta sem login unificado.' });
 
-        const { provider, providerId } = req.body;
-        const field = provider?.toUpperCase() === 'GOOGLE' ? 'googleId' :
-            provider?.toUpperCase() === 'FACEBOOK' ? 'facebookId' : null;
-
-        if (!field || !providerId) {
-            return res.status(400).json({ message: 'Provider e providerId são obrigatórios.' });
+        let identity;
+        try {
+            identity = await verifySocialIdToken(req.body.idToken);
+        } catch (err) {
+            if (err instanceof SocialTokenError) return res.status(401).json({ message: err.message });
+            throw err;
         }
+
+        const { provider, uid: providerId } = identity;
+        const field = provider === 'GOOGLE' ? 'googleId' : 'facebookId';
 
         // Identidade já usada por OUTRA conta?
         const taken = await prisma.authUser.findFirst({

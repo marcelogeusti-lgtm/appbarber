@@ -113,14 +113,10 @@ export default function AuthPage() {
 
         try {
             const result = await signInWithPopup(auth, provider);
-            const { email, displayName, photoURL, uid } = result.user;
+            const idToken = await result.user.getIdToken();
 
             const res = await api.post('/auth/social-login', {
-                email,
-                name: displayName,
-                avatarUrl: photoURL,
-                provider: providerName.toUpperCase(),
-                providerId: uid,
+                idToken,
                 context: 'PRO',
                 intent: activeTab // 'login' or 'register'
             });
