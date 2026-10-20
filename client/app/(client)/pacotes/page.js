@@ -38,8 +38,8 @@ export default function MyPackagesPage() {
                     <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <div>
-                    <h1 className="text-xl font-black text-white italic tracking-tight">Meus Pacotes</h1>
-                    <p className="text-slate-500 text-[9px] font-bold tracking-[0.2em] mt-0.5">Assinaturas e Créditos</p>
+                    <h1 className="text-xl font-black text-white italic tracking-tight">Meus Planos e Pacotes</h1>
+                    <p className="text-slate-500 text-[9px] font-bold tracking-[0.2em] mt-0.5">Pacotes, Assinaturas e Créditos</p>
                 </div>
             </header>
 
@@ -51,7 +51,7 @@ export default function MyPackagesPage() {
                         </div>
 
                         <div className="mb-10 relative z-10 transition-transform active:scale-[0.99]">
-                            <p className="text-[9px] font-black text-primary tracking-[0.4em] mb-2">Plano de Benefícios</p>
+                            <p className="text-[9px] font-black text-primary tracking-[0.4em] mb-2">{subscription.plan?.isRecurring ? 'Assinatura' : 'Pacote'}</p>
                             <h2 className="text-2xl font-black italic tracking-tighter leading-none mb-1">{subscription.plan?.name}</h2>
                             <div className="flex items-center gap-2 mt-3">
                                 <span className="text-[10px] font-black text-white opacity-40 tracking-[0.2em]">MEMBRO VIP</span>
@@ -65,8 +65,8 @@ export default function MyPackagesPage() {
                                     <Scissors className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-slate-500 text-[9px] font-black tracking-widest uppercase">Cortes Restantes</p>
-                                    <p className="text-2xl font-black text-white italic tracking-tighter">{subscription.remainingCuts || 0} DE {subscription.plan?.limit || '∞'}</p>
+                                    <p className="text-slate-500 text-[9px] font-black tracking-widest uppercase">Serviços Restantes</p>
+                                    <p className="text-2xl font-black text-white italic tracking-tighter">{subscription.remainingCuts || 0} DE {subscription.plan?.quantityOfCuts || '∞'}</p>
                                 </div>
                             </div>
 
@@ -84,7 +84,7 @@ export default function MyPackagesPage() {
                         </div>
 
                         <button className="w-full glass-premium border-white/10 text-white font-black py-5 rounded-[2rem] text-[10px] uppercase tracking-[0.3em] active:scale-95 transition-all shadow-xl relative z-10">
-                            Gerenciar Minha Assinatura
+                            {subscription.plan?.isRecurring ? 'Gerenciar Minha Assinatura' : 'Gerenciar Meu Pacote'}
                         </button>
                     </div>
                 ) : (
@@ -94,7 +94,7 @@ export default function MyPackagesPage() {
                             <div className="absolute inset-0 rounded-full border border-primary/20 animate-pulse opacity-20"></div>
                         </div>
                         <div className="space-y-3">
-                            <h3 className="text-lg font-black text-white italic tracking-tight italic">Nenhum Pacote Ativo</h3>
+                            <h3 className="text-lg font-black text-white italic tracking-tight italic">Nenhum Plano ou Pacote Ativo</h3>
                             <p className="text-slate-500 text-[10px] font-bold tracking-[0.2em] leading-relaxed max-w-xs mx-auto text-center">Você ainda não possui assinaturas ou pacotes de serviços contratados.</p>
                         </div>
                         <button onClick={() => router.push('/search')} className="px-10 py-5 glass-premium border-primary/20 text-primary uppercase text-[10px] font-black tracking-widest rounded-[1.5rem] active:scale-95 transition-all">

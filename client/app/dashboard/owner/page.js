@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../../../lib/api';
 import {
     Calendar, ArrowUpRight, Target, UserPlus, Zap, BarChart3,
-    Star, Clock, Trophy, Award
+    Star, Clock, Trophy, Award, Repeat
 } from 'lucide-react';
 
 const getShopId = () => {
@@ -81,6 +81,7 @@ export default function OwnerDashboardPage() {
     const services = rankings?.services || [];
     const products = rankings?.products || [];
     const clients = rankings?.clients || [];
+    const clientsByVisits = rankings?.clientsByVisits || [];
     const hourlyHeatmap = charts?.hourlyHeatmap || [];
 
     const formatBRL = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -165,6 +166,7 @@ export default function OwnerDashboardPage() {
                                     <div>
                                         <p className="font-semibold text-sm text-foreground">{pro.name}</p>
                                         <div className="flex gap-3 mt-0.5">
+                                            <p className="text-[10px] text-muted-foreground">{pro.count || 0} atendimento(s)</p>
                                             <p className="text-[10px] text-muted-foreground">Bruto: {formatBRL(pro.revenue)}</p>
                                             <p className="text-[10px] text-destructive">Comissão: {formatBRL(pro.commission)}</p>
                                         </div>
@@ -261,7 +263,7 @@ export default function OwnerDashboardPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* --- HOURLY HEATMAP --- */}
                 <div className="bg-card p-6 rounded-xl border border-border">
                     <h3 className="text-sm font-bold tracking-tight text-foreground mb-4 flex items-center gap-2">
@@ -301,6 +303,31 @@ export default function OwnerDashboardPage() {
                                     <p className="font-medium text-sm text-foreground">{c.name}</p>
                                 </div>
                                 <p className="font-bold text-sm text-foreground">{formatBRL(c.amount)}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* --- FREQUENT CLIENTS (by visits) --- */}
+                <div className="bg-card p-6 rounded-xl border border-border">
+                    <h3 className="text-sm font-bold tracking-tight text-foreground mb-4 flex items-center gap-2">
+                        <Repeat className="w-4 h-4 text-primary" /> Clientes Mais Frequentes
+                    </h3>
+                    <div className="space-y-2">
+                        {clientsByVisits.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-8 italic">Nenhuma visita registrada no período.</p>
+                        ) : clientsByVisits.slice(0, 5).map((c, i) => (
+                            <div key={c.id || i} className="flex items-center justify-between p-3 bg-muted/20 rounded-xl border border-transparent hover:border-primary/20 transition-all">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${i === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                        {i + 1}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-medium text-sm text-foreground truncate">{c.name}</p>
+                                        <p className="text-[10px] text-muted-foreground mt-0.5">{formatBRL(c.amount)}</p>
+                                    </div>
+                                </div>
+                                <p className="font-bold text-sm text-primary whitespace-nowrap">{c.visits} {c.visits === 1 ? 'visita' : 'visitas'}</p>
                             </div>
                         ))}
                     </div>

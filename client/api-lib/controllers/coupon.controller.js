@@ -82,6 +82,47 @@ exports.remove = async (req, res) => {
     }
 };
 
+// Conta quantas comandas (não canceladas) do cliente já usaram o cupom.
+// Não há campo próprio: o uso fica registrado em order.notes como linha "Cupom: CODE".
+exports.countClientUses = async (db, { barbershopId, clientId, code }) => {
+    if (!clientId) return 0;
+    const orders = await db.order.findMany({
+        where: { barbershopId, clientId, status: { not: 'CANCELLED' }, notes: { contains: `Cupom: ${code}` } },
+        select: { notes: true }
+    });
+    const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('(^|\\n)Cupom: ' + escaped + '(\\r?\\n|$)');
+    return orders.filter(o => re.test(o.notes || '')).length;
+};
+
+// Desconto do cupom sobre um valor (PERCENT/FIXED), nunca acima do valor, arredondado em centavos.
+exports.computeDiscount = (coupon, amount) => {
+    const raw = coupon.discountType === 'FIXED'
+        ? coupon.discountValue
+        : (amount * coupon.discountValue) / 100;
+    return Math.round(Math.max(0, Math.min(raw, amount)) * 100) / 100;
+};
+
+// Regras compartilhadas (validate e aplicação na comanda).
+// Retorna { ok: true, discount } ou { ok: false, status, message }.
+exports.checkCoupon = async (db, coupon, { amount, clientId, barbershopId }) => {
+    if (!coupon) return { ok: false, status: 404, message: 'Cupom não encontrado.' };
+    if (!coupon.active) return { ok: false, status: 400, message: 'Cupom inativo.' };
+
+    const now = new Date();
+    if (coupon.validFrom && now < coupon.validFrom) return { ok: false, status: 400, message: 'Cupom ainda não começou.' };
+    if (coupon.validUntil && now > coupon.validUntil) return { ok: false, status: 400, message: 'Cupom expirado.' };
+    if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) return { ok: false, status: 400, message: 'Cupom esgotado.' };
+    if (coupon.minValue != null && amount < coupon.minValue) {
+        return { ok: false, status: 400, message: `Valor mínimo de R$ ${coupon.minValue.toFixed(2)} para usar este cupom.` };
+    }
+    if (coupon.perClientLimit != null && clientId) {
+        const uses = await exports.countClientUses(db, { barbershopId: barbershopId || coupon.barbershopId, clientId, code: coupon.code });
+        if (uses >= coupon.perClientLimit) return { ok: false, status: 400, message: 'Este cliente já atingiu o limite de uso deste cupom.' };
+    }
+    return { ok: true, discount: exports.computeDiscount(coupon, amount) };
+};
+
 // Valida um cupom para um valor de compra e calcula o desconto
 // Body/Query: barbershopId, code, amount, clientId?
 exports.validate = async (req, res) => {
@@ -96,20 +137,9 @@ exports.validate = async (req, res) => {
         const coupon = await prisma.coupon.findFirst({
             where: { barbershopId, code: String(code).trim().toUpperCase() }
         });
-        if (!coupon) return res.status(404).json({ valid: false, message: 'Cupom não encontrado.' });
-        if (!coupon.active) return res.status(400).json({ valid: false, message: 'Cupom inativo.' });
-
-        const now = new Date();
-        if (coupon.validFrom && now < coupon.validFrom) return res.status(400).json({ valid: false, message: 'Cupom ainda não começou.' });
-        if (coupon.validUntil && now > coupon.validUntil) return res.status(400).json({ valid: false, message: 'Cupom expirado.' });
-        if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) return res.status(400).json({ valid: false, message: 'Cupom esgotado.' });
-        if (coupon.minValue != null && amount < coupon.minValue) {
-            return res.status(400).json({ valid: false, message: `Valor mínimo de R$ ${coupon.minValue.toFixed(2)} para usar este cupom.` });
-        }
-
-        const discount = coupon.discountType === 'FIXED'
-            ? Math.min(coupon.discountValue, amount)
-            : (amount * coupon.discountValue) / 100;
+        const check = await exports.checkCoupon(prisma, coupon, { amount, clientId, barbershopId });
+        if (!check.ok) return res.status(check.status).json({ valid: false, message: check.message });
+        const discount = check.discount;
 
         res.json({
             valid: true,
@@ -117,7 +147,7 @@ exports.validate = async (req, res) => {
             code: coupon.code,
             discountType: coupon.discountType,
             discountValue: coupon.discountValue,
-            discount: Math.round(discount * 100) / 100,
+            discount,
             finalAmount: Math.round((amount - discount) * 100) / 100
         });
     } catch (e) {

@@ -23,7 +23,6 @@ const DetailsTab = dynamic(() => import('../../components/client-view/DetailsTab
 const ProfessionalsTab = dynamic(() => import('../../components/client-view/ProfessionalsTab'), { loading: () => <TabSkeleton />, ssr: false });
 const ProductsTab = dynamic(() => import('../../components/client-view/ProductsTab'), { loading: () => <TabSkeleton />, ssr: false });
 const LoyaltyTab = dynamic(() => import('../../components/client-view/LoyaltyTab'), { loading: () => <TabSkeleton />, ssr: false });
-const PackagesTab = dynamic(() => import('../../components/client-view/PackagesTab'), { loading: () => <TabSkeleton />, ssr: false });
 const SubscriptionsTab = dynamic(() => import('../../components/client-view/SubscriptionsTab'), { loading: () => <TabSkeleton />, ssr: false });
 const ReviewsTab = dynamic(() => import('../../components/client-view/ReviewsTab'), { loading: () => <TabSkeleton />, ssr: false });
 
@@ -565,7 +564,7 @@ export default function BarbershopPage() {
         { id: 'profissionais', label: 'PROFISSIONAIS' },
         { id: 'produtos', label: 'PRODUTOS' },
         { id: 'fidelidade', label: 'FIDELIDADE' },
-        { id: 'assinaturas', label: 'ASSINATURAS' },
+        { id: 'assinaturas', label: 'PLANOS & PACOTES' },
         { id: 'avaliacoes', label: 'AVALIAÇÕES' },
     ];
 
@@ -716,7 +715,6 @@ export default function BarbershopPage() {
                 {activeTab === 'profissionais' && <ProfessionalsTab professionals={barbershop.staff || []} />}
                 {activeTab === 'produtos' && <ProductsTab products={products} />}
                 {activeTab === 'fidelidade' && <LoyaltyTab points={points} barbershopId={barbershop.id} />}
-                {activeTab === 'pacotes' && <PackagesTab plans={barbershop.packages || []} />}
                 {activeTab === 'assinaturas' && <SubscriptionsTab
                     plans={barbershop.subscriptionPlans || []}
                     barbershopId={barbershop.id}

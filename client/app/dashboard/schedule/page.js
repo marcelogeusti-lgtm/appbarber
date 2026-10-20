@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import api from '../../../lib/api';
-import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle, XCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Scissors, ChevronLeft, ChevronRight, Filter, LayoutGrid, List, PlusCircle, AlertCircle, XCircle, X } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, subDays, startOfDay, endOfDay } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
@@ -17,7 +18,20 @@ import { useSocket } from '../../../contexts/SocketContext';
 import { useQuery } from '@tanstack/react-query';
 
 export default function SchedulePage() {
+    // useSearchParams exige um limite de Suspense no build do Next 14
+    return (
+        <Suspense fallback={null}>
+            <SchedulePageContent />
+        </Suspense>
+    );
+}
+
+const VALID_TABS = ['appointments', 'waitlist', 'availability'];
+
+function SchedulePageContent() {
     const socket = useSocket();
+    const searchParams = useSearchParams();
+    const initialTab = VALID_TABS.includes(searchParams?.get('tab')) ? searchParams.get('tab') : 'appointments';
 
     // Centralized Barbershop Data from Cache
     const { data: barbershop } = useQuery({
@@ -37,7 +51,9 @@ export default function SchedulePage() {
     const [selectedPro, setSelectedPro] = useState('all');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState('day');
-    const [activeTab, setActiveTab] = useState('appointments');
+    const [activeTab, setActiveTab] = useState(initialTab);
+    // Lista de espera: 'day' = so o dia selecionado; 'all' = todas as pendentes (antiga pagina /dashboard/waitlist)
+    const [waitlistScope, setWaitlistScope] = useState(initialTab === 'waitlist' ? 'all' : 'day');
     const [editingAppointment, setEditingAppointment] = useState(null);
     const [viewingAppointment, setViewingAppointment] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -203,13 +219,33 @@ export default function SchedulePage() {
             const res = await api.get(`/waitlist`, {
                 params: {
                     barbershopId: barbershopId,
-                    date: currentDate.toISOString(),
+                    ...(waitlistScope === 'day' ? { date: currentDate.toISOString() } : {}),
                     professionalId: selectedPro
                 }
             });
             setWaitlist(res.data);
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    // Carrega a lista de espera (e atualiza a cada 20s enquanto a aba estiver aberta)
+    useEffect(() => {
+        if (!barbershopId) return;
+        fetchWaitlist();
+        if (activeTab !== 'waitlist') return;
+        const interval = setInterval(fetchWaitlist, 20000);
+        return () => clearInterval(interval);
+    }, [barbershopId, currentDate, selectedPro, waitlistScope, activeTab]);
+
+    const handleRemoveFromWaitlist = async (id) => {
+        if (!confirm('Remover da lista de espera?')) return;
+        try {
+            await api.delete(`/waitlist/${id}`);
+            setWaitlist(prev => prev.filter(w => w.id !== id));
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao remover.');
         }
     };
 
@@ -425,7 +461,7 @@ export default function SchedulePage() {
                 )}
 
                 {activeTab === 'waitlist' && (
-                    <WaitlistView waitlist={waitlist} professionals={professionals} />
+                    <WaitlistView waitlist={waitlist} professionals={professionals} scope={waitlistScope} onScopeChange={setWaitlistScope} onRemove={handleRemoveFromWaitlist} />
                 )}
 
                 {activeTab === 'availability' && (
@@ -538,41 +574,85 @@ export default function SchedulePage() {
     );
 }
 
-function WaitlistView({ waitlist, professionals }) {
-    if (waitlist.length === 0) return (
-        <div className="py-40 text-center space-y-6">
-            <div className="w-24 h-24 bg-card rounded-xl border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-inner">
-                <Clock className="w-10 h-10" />
-            </div>
-            <div className="max-w-xs mx-auto">
-                <h3 className="text-xl font-black text-foreground uppercase tracking-tighter">Lista Vazia</h3>
-                <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 leading-relaxed">Nenhum cliente na lista de espera para este dia.</p>
-            </div>
+function WaitlistView({ waitlist, professionals, scope, onScopeChange, onRemove }) {
+    const scopeToggle = (
+        <div className="flex items-center justify-end gap-2 px-8 pt-6">
+            {[{ id: 'day', label: 'Dia selecionado' }, { id: 'all', label: 'Todas as datas' }].map(opt => (
+                <button
+                    key={opt.id}
+                    onClick={() => onScopeChange(opt.id)}
+                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${scope === opt.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-border hover:text-foreground'}`}
+                >
+                    {opt.label}
+                </button>
+            ))}
         </div>
     );
 
+    if (waitlist.length === 0) return (
+        <>
+            {scopeToggle}
+            <div className="py-40 text-center space-y-6">
+                <div className="w-24 h-24 bg-card rounded-xl border border-border flex items-center justify-center mx-auto text-muted-foreground shadow-inner">
+                    <Clock className="w-10 h-10" />
+                </div>
+                <div className="max-w-xs mx-auto">
+                    <h3 className="text-xl font-black text-foreground uppercase tracking-tighter">Lista Vazia</h3>
+                    <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest mt-2 leading-relaxed">
+                        {scope === 'all' ? 'Ninguém na lista de espera.' : 'Nenhum cliente na lista de espera para este dia.'}
+                    </p>
+                </div>
+            </div>
+        </>
+    );
+
     return (
-        <div className="divide-y divide-border/50">
-            {waitlist.map(entry => (
-                <div key={entry.id} className="p-8 hover:bg-primary/5 transition flex items-center justify-between group">
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-background rounded-xl border border-border flex items-center justify-center text-muted-foreground font-black text-xl">
-                            {entry.clientName?.charAt?.(0)}
+        <>
+            {scopeToggle}
+            <div className="divide-y divide-border/50">
+                {waitlist.map(entry => (
+                    <div key={entry.id} className="p-8 hover:bg-primary/5 transition flex items-center justify-between gap-4 group">
+                        <div className="flex items-center gap-6 min-w-0">
+                            <div className="w-16 h-16 shrink-0 bg-background rounded-xl border border-border flex items-center justify-center text-muted-foreground font-black text-xl">
+                                {entry.clientName?.charAt?.(0)}
+                            </div>
+                            <div className="min-w-0">
+                                <h4 className="font-black text-lg text-foreground uppercase tracking-tight truncate">{entry.clientName}</h4>
+                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 mb-2 flex flex-wrap gap-x-3 gap-y-1">
+                                    {entry.service?.name && <span>{entry.service.name}</span>}
+                                    {(entry.professional?.name || professionals.find(p => p.id === entry.professionalId)?.name) && (
+                                        <span>com {entry.professional?.name || professionals.find(p => p.id === entry.professionalId)?.name}</span>
+                                    )}
+                                    {entry.clientPhone && <span>{entry.clientPhone}</span>}
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {entry.date && (
+                                        <span className="bg-background text-muted-foreground border border-border px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                            Deseja: {format(new Date(entry.date), 'dd/MM')}
+                                        </span>
+                                    )}
+                                    <span className="bg-background text-muted-foreground border border-border px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                        Aguardando desde {format(new Date(entry.createdAt), 'dd/MM HH:mm')}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h4 className="font-black text-lg text-foreground uppercase tracking-tight">{entry.clientName}</h4>
-                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 mb-2">{entry.service?.name}</p>
-                            <span className="bg-background text-muted-foreground border border-border px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                                Aguardando desde {format(new Date(entry.createdAt), 'HH:mm')}
-                            </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button className="bg-primary text-primary-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20">
+                                Agendar
+                            </button>
+                            <button
+                                onClick={() => onRemove(entry.id)}
+                                title="Remover da lista de espera"
+                                className="p-3 rounded-xl border border-border text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-all"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
-                    <button className="bg-primary text-primary-foreground px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition shadow-lg shadow-primary/20">
-                        Agendar
-                    </button>
-                </div>
-            ))}
-        </div>
+                ))}
+            </div>
+        </>
     );
 }
 

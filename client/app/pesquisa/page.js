@@ -15,11 +15,16 @@ function SurveyForm() {
         if (score === null) return;
         setSending(true);
         try {
-            await fetch('/api/surveys/submit', {
+            const res = await fetch('/api/surveys/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ barbershopId, score, clientName: name || null, comment: comment || null })
             });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                alert(data.message || 'Não foi possível enviar. Tente novamente.');
+                return;
+            }
             setSent(true);
         } catch (e) { alert('Não foi possível enviar. Tente novamente.'); }
         finally { setSending(false); }

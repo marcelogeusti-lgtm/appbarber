@@ -296,13 +296,13 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                 <div>
                                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
                                         <Crown className="w-3 h-3 text-primary fill-primary" />
-                                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">Premium</span>
+                                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">{plan.isRecurring ? 'Assinatura' : 'Pacote'}</span>
                                     </div>
                                     <h3 className="font-black text-white text-2xl uppercase tracking-tight leading-none">{plan.name}</h3>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-2xl font-black text-white">{formatCurrency(plan.price)}</p>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">/ Mês</p>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{plan.isRecurring ? `/ ${plan.validityDays} dias` : 'Pagamento único'}</p>
                                 </div>
                             </div>
 
@@ -312,7 +312,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                     <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
                                         <Check className="w-3 h-3 text-primary" />
                                     </div>
-                                    <span className="text-slate-300 text-sm font-medium">{plan.quantityOfCuts} Cortes inclusos</span>
+                                    <span className="text-slate-300 text-sm font-medium">{plan.quantityOfCuts} serviços inclusos</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
@@ -341,7 +341,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
                                     disabled={loading === plan.id}
                                     className="w-full bg-white text-black py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition shadow-xl hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-[1.02] active:scale-95"
                                 >
-                                    {loading === plan.id ? 'Processando...' : 'Assinar Agora'}
+                                    {loading === plan.id ? 'Processando...' : (plan.isRecurring ? 'Assinar Agora' : 'Comprar Pacote')}
                                 </button>
                             )}
                         </div>
@@ -350,7 +350,7 @@ export default function SubscriptionsTab({ plans = [], barbershopId, savedCards 
             ) : (
                 <div className="text-center py-20 bg-[#0A0A0A] rounded-xl border border-dashed border-slate-800">
                     <Crown className="w-12 h-12 text-slate-800 mx-auto mb-4" />
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Nenhuma assinatura disponível.</p>
+                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Nenhum plano ou pacote disponível.</p>
                 </div>
             )}
         </div>

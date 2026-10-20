@@ -281,6 +281,62 @@ exports.updateDiscount = async (req, res) => {
     }
 };
 
+const couponController = require('./coupon.controller');
+
+// Apply Coupon (POST /orders/:id/coupon { code })
+exports.applyCoupon = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const code = String(req.body.code || '').trim().toUpperCase();
+        if (!code) return res.status(400).json({ message: 'Informe o código do cupom.' });
+
+        const userShopId = req.user.barbershopId || req.user.workedBarbershopId;
+        if (req.user.role === 'CLIENT' || (!userShopId && req.user.role !== 'SUPER_ADMIN')) {
+            return res.status(403).json({ message: 'Acesso negado.' });
+        }
+
+        const fail = (status, message) => Object.assign(new Error(message), { httpStatus: status });
+
+        const updatedOrder = await prisma.$transaction(async (tx) => {
+            const order = await tx.order.findUnique({ where: { id } });
+            if (!order || (req.user.role !== 'SUPER_ADMIN' && order.barbershopId !== userShopId)) {
+                throw fail(404, 'Comanda não encontrada.');
+            }
+            if (order.status !== 'OPEN') throw fail(400, 'Só é possível aplicar cupom em comanda aberta.');
+            if (/(^|\n)Cupom: /.test(order.notes || '')) throw fail(400, 'Esta comanda já tem um cupom aplicado.');
+
+            const coupon = await tx.coupon.findFirst({ where: { barbershopId: order.barbershopId, code } });
+            const check = await couponController.checkCoupon(tx, coupon, {
+                amount: order.subtotal, clientId: order.clientId, barbershopId: order.barbershopId
+            });
+            if (!check.ok) throw fail(check.status, check.message);
+
+            const used = await tx.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+            if (coupon.maxUses != null && used.usedCount > coupon.maxUses) throw fail(400, 'Cupom esgotado.');
+
+            return await tx.order.update({
+                where: { id },
+                data: {
+                    discount: check.discount,
+                    total: order.subtotal - check.discount,
+                    notes: order.notes ? `${order.notes}\nCupom: ${coupon.code}` : `Cupom: ${coupon.code}`
+                },
+                include: {
+                    items: { include: { service: true, product: true } },
+                    client: true,
+                    professional: true
+                }
+            });
+        });
+
+        res.json(updatedOrder);
+    } catch (error) {
+        if (error.httpStatus) return res.status(error.httpStatus).json({ message: error.message });
+        console.error('Apply Coupon Error:', error);
+        res.status(500).json({ message: 'Erro ao aplicar cupom.' });
+    }
+};
+
 const TransactionService = require('../services/TransactionService');
 
 // Close/Pay Order
@@ -288,8 +344,10 @@ exports.closeOrder = async (req, res) => {
     try {
         const { id } = req.params;
         const { paymentMethod, discount, emitNfe } = req.body;
+        // Fiado: fecha a comanda lançando o valor na conta do cliente (sem receita agora)
+        const onAccount = req.body.onAccount === true || paymentMethod === 'FIADO';
 
-        if (!paymentMethod) {
+        if (!paymentMethod && !onAccount) {
             return res.status(400).json({ message: 'Selecione a forma de pagamento.' });
         }
 
@@ -310,6 +368,9 @@ exports.closeOrder = async (req, res) => {
 
         const finalDiscount = discount !== undefined ? parseFloat(discount) : order.discount;
         const finalTotal = order.subtotal - finalDiscount;
+        if (onAccount && !(finalTotal > 0)) {
+            return res.status(400).json({ message: 'Comanda sem valor para lançar no fiado.' });
+        }
 
         const result = await prisma.$transaction(async (tx) => {
             // Check if already paid (Prepaid via Online)
@@ -327,13 +388,65 @@ exports.closeOrder = async (req, res) => {
                     data: {
                         status: 'CLOSED',
                         paymentStatus: 'PAID',
-                        paymentMethod,
+                        paymentMethod: onAccount ? undefined : paymentMethod,
                         discount: finalDiscount,
                         total: finalTotal,
                         paidAt: new Date()
                     }
                 });
                 return { order: updatedOrder, message: 'Comanda finalizada (Pré-paga).' };
+            }
+
+            if (onAccount) {
+                // Fiado: sem INCOME agora; a receita entra quando o cliente paga a conta
+                // (lançamento PAYMENT em account.controller cria a transação "Fiado").
+                const updatedOrder = await tx.order.update({
+                    where: { id },
+                    data: {
+                        status: 'CLOSED',
+                        paymentStatus: 'PENDING',
+                        paymentMethod: null,
+                        discount: finalDiscount,
+                        total: finalTotal
+                    }
+                });
+                const accountEntry = await tx.clientAccountEntry.create({
+                    data: {
+                        barbershopId: order.barbershopId,
+                        clientId: order.clientId,
+                        clientName: order.client?.name || 'Cliente',
+                        type: 'CHARGE',
+                        amount: finalTotal,
+                        description: `Comanda #${order.id}`
+                    }
+                });
+                // Comissão igual ao fechamento normal (mesma base/taxa do TransactionService),
+                // só que sem transactionId: o serviço foi prestado mesmo sem o dinheiro ter entrado.
+                if (order.professionalId) {
+                    const gross = order.items.reduce((sum, i) => sum + i.total, 0);
+                    const base = gross > 0 ? gross : finalTotal;
+                    const proUser = await tx.user.findUnique({
+                        where: { id: order.professionalId },
+                        include: { professionalProfile: true }
+                    });
+                    const rate = proUser?.professionalProfile?.commissionPercent ?? 50;
+                    await tx.commission.create({
+                        data: {
+                            barberId: order.professionalId,
+                            barbershopId: order.barbershopId,
+                            appointmentId: order.appointmentId || null,
+                            type: 'SERVICE',
+                            description: `Comissão - Fiado Comanda #${order.id.substring(0, 8)}`,
+                            amount: (base * rate) / 100,
+                            percentage: rate,
+                            status: 'PENDING'
+                        }
+                    });
+                }
+                if (order.appointmentId) {
+                    await tx.appointment.update({ where: { id: order.appointmentId }, data: { status: 'COMPLETED' } });
+                }
+                return { order: updatedOrder, accountEntry, message: 'Comanda lançada no fiado.' };
             }
 
             // Standard Payment Flow

@@ -425,8 +425,16 @@ exports.getOwnerDashboard = async (req, res) => {
             proStock[id].commission += Number(c.amount);
         });
 
+        // Atendimentos (comandas fechadas) por profissional no período
+        orders.forEach(o => {
+            const id = o.professionalId;
+            if (!id || !proStock[id]) return;
+            proStock[id].count = (proStock[id].count || 0) + 1;
+        });
+
         const rankingPro = Object.values(proStock).map(p => ({
             ...p,
+            count: p.count || 0,
             net: p.revenue - p.commission
         })).sort((a, b) => b.net - a.net);
 
@@ -469,6 +477,19 @@ exports.getOwnerDashboard = async (req, res) => {
             return acc;
         }, {});
         const topClients = Object.entries(clientRanking).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount).slice(0, 10);
+
+        // 6b. Clientes mais frequentes (nº de visitas = comandas fechadas no período).
+        // Reaproveita as orders já carregadas: nenhuma query extra.
+        const clientsByVisitsMap = {};
+        orders.forEach(o => {
+            if (!o.clientId) return;
+            const c = clientsByVisitsMap[o.clientId] || (clientsByVisitsMap[o.clientId] = { id: o.clientId, name: o.client?.name || 'Cliente', visits: 0, amount: 0 });
+            c.visits += 1;
+            c.amount += Number(o.total || 0);
+        });
+        const clientsByVisits = Object.values(clientsByVisitsMap)
+            .sort((a, b) => b.visits - a.visits || b.amount - a.amount)
+            .slice(0, 10);
 
         // 7. Previsão de Faturamento (Próximos 30 dias de agendamentos confirmados)
         const futureApts = await prisma.appointment.findMany({
@@ -566,7 +587,8 @@ exports.getOwnerDashboard = async (req, res) => {
                 professionals: rankingPro,
                 services: topServices,
                 products: topProducts,
-                clients: topClients
+                clients: topClients,
+                clientsByVisits
             },
             charts: {
                 hourlyHeatmap: Object.entries(hourlyRevenue).map(([hour, value]) => ({ hour: parseInt(hour), value })),

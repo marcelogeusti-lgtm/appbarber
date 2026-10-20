@@ -3,13 +3,37 @@ const prisma = require('../lib/prisma');
 // Submissão de resposta (público — via link) ou manual pelo painel
 exports.submit = async (req, res) => {
     try {
-        const { barbershopId, clientId, clientName, clientPhone, score, comment } = req.body;
-        const s = Number(score);
-        if (!barbershopId || isNaN(s) || s < 0 || s > 10) {
-            return res.status(400).json({ message: 'Barbearia e nota (0 a 10) são obrigatórios.' });
+        const { barbershopId, clientName, clientPhone, score, comment } = req.body || {};
+        if (!barbershopId || typeof barbershopId !== 'string') {
+            return res.status(400).json({ message: 'Barbearia é obrigatória.' });
         }
+        const s = typeof score === 'string' && score.trim() !== '' ? Number(score) : score;
+        if (!Number.isInteger(s) || s < 0 || s > 10) {
+            return res.status(400).json({ message: 'A nota deve ser um número inteiro de 0 a 10.' });
+        }
+        if (comment != null && (typeof comment !== 'string' || comment.length > 1000)) {
+            return res.status(400).json({ message: 'O comentário deve ter no máximo 1000 caracteres.' });
+        }
+        if (clientName != null && (typeof clientName !== 'string' || clientName.length > 120)) {
+            return res.status(400).json({ message: 'Nome inválido.' });
+        }
+        if (clientPhone != null && (typeof clientPhone !== 'string' || clientPhone.length > 30)) {
+            return res.status(400).json({ message: 'Telefone inválido.' });
+        }
+
+        const shop = await prisma.barbershop.findUnique({ where: { id: barbershopId }, select: { id: true } });
+        if (!shop) return res.status(404).json({ message: 'Barbearia não encontrada.' });
+
         const row = await prisma.surveyResponse.create({
-            data: { barbershopId, clientId: clientId || null, clientName: clientName || null, clientPhone: clientPhone || null, score: s, comment: comment || null }
+            data: {
+                barbershopId,
+                // clientId não é aceito: o endpoint é público e não há como provar quem respondeu
+                clientId: null,
+                clientName: clientName?.trim() || null,
+                clientPhone: clientPhone?.trim() || null,
+                score: s,
+                comment: comment?.trim() || null
+            }
         });
         res.status(201).json({ ok: true, id: row.id });
     } catch (e) {

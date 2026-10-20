@@ -27,6 +27,8 @@ export default function OrderDetailsPage() {
     const [discountValue, setDiscountValue] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState('');
     const [processing, setProcessing] = useState(false);
+    const [couponCode, setCouponCode] = useState('');
+    const [applyingCoupon, setApplyingCoupon] = useState(false);
 
 
     useEffect(() => {
@@ -117,6 +119,22 @@ export default function OrderDetailsPage() {
         }
     };
 
+    const handleApplyCoupon = async () => {
+        const code = couponCode.trim();
+        if (!code) return;
+        setApplyingCoupon(true);
+        try {
+            await api.post(`/orders/${id}/coupon`, { code });
+            toast.success('Cupom aplicado!');
+            setCouponCode('');
+            fetchOrder();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Erro ao aplicar cupom');
+        } finally {
+            setApplyingCoupon(false);
+        }
+    };
+
     const handleOpenPayment = () => {
         setShowPaymentModal(true);
     };
@@ -130,7 +148,10 @@ export default function OrderDetailsPage() {
         setProcessing(true);
         try {
             await api.post(`/orders/${id}/pay`, {
-                discount: order.discount || 0
+                discount: order.discount || 0,
+                ...(selectedMethod === 'FIADO'
+                    ? { onAccount: true }
+                    : { paymentMethod: selectedMethod })
             });
 
             // Refresh order
@@ -138,7 +159,7 @@ export default function OrderDetailsPage() {
 
             setShowPaymentModal(false);
             setSelectedMethod('');
-            toast.success('Comanda finalizada com sucesso!');
+            toast.success(selectedMethod === 'FIADO' ? 'Comanda lançada no fiado do cliente!' : 'Comanda finalizada com sucesso!');
 
         } catch (err) {
             console.error(err);
@@ -157,6 +178,8 @@ export default function OrderDetailsPage() {
     if (!order) return <div className="p-8 text-center text-destructive font-black uppercase text-xs tracking-widest">Comanda não encontrada</div>;
 
     const isClosed = order.status === 'CLOSED' || order.status === 'PAID';
+    const isFiado = isClosed && order.paymentStatus === 'PENDING';
+    const appliedCoupon = (order.notes || '').match(/(?:^|\n)Cupom: (\S+)/)?.[1];
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 pb-20">
@@ -317,7 +340,7 @@ export default function OrderDetailsPage() {
                                 <span className="text-foreground">{formatBRL(order.subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
-                                <span>Desconto</span>
+                                <span>Desconto{appliedCoupon ? ` (cupom ${appliedCoupon})` : ''}</span>
                                 <span className="text-destructive">- {formatBRL(order.discount)}</span>
                             </div>
                             <div className="flex justify-between items-end text-foreground pt-6 border-t border-border/50">
@@ -348,8 +371,17 @@ export default function OrderDetailsPage() {
                                                 <CheckCircle className="w-6 h-6" />
                                             </div>
                                             <div>
-                                                <p className="text-xs font-black uppercase tracking-widest text-primary">Liquidado via {order.paymentMethod || 'Caixa'}</p>
-                                                <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
+                                                {isFiado ? (
+                                                    <>
+                                                        <p className="text-xs font-black uppercase tracking-widest text-primary">Lançada no fiado</p>
+                                                        <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">A receber na conta do cliente</p>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <p className="text-xs font-black uppercase tracking-widest text-primary">Liquidado via {order.paymentMethod || 'Caixa'}</p>
+                                                        <p className="text-[10px] font-bold text-primary/70 uppercase tracking-widest mt-1">{new Date(order.paidAt).toLocaleString('pt-BR')}</p>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -377,6 +409,26 @@ export default function OrderDetailsPage() {
                                 >
                                     <Percent className="w-5 h-5 text-primary" /> Aplicar Desconto
                                 </button>
+                            )}
+
+                            {!isClosed && !appliedCoupon && (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon(); }}
+                                        placeholder="Código do cupom"
+                                        className="flex-1 min-w-0 p-4 bg-background border border-border rounded-xl text-foreground font-black text-xs uppercase tracking-widest outline-none focus:ring-4 ring-primary/10"
+                                    />
+                                    <button
+                                        onClick={handleApplyCoupon}
+                                        disabled={applyingCoupon || !couponCode.trim()}
+                                        className="px-4 bg-background text-foreground rounded-xl border border-border font-black text-[10px] uppercase tracking-widest hover:bg-muted transition disabled:opacity-50"
+                                    >
+                                        {applyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aplicar cupom'}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -468,6 +520,7 @@ export default function OrderDetailsPage() {
                                     { id: 'CASH', label: 'Dinheiro', icon: '💵' },
                                     { id: 'CREDIT_CARD', label: 'Crédito', icon: '💳' },
                                     { id: 'DEBIT_CARD', label: 'Débito', icon: '🏧' },
+                                    { id: 'FIADO', label: 'Fiado (conta do cliente)', icon: '📒' },
                                 ].map(method => (
                                     <button
                                         key={method.id}
@@ -498,8 +551,14 @@ export default function OrderDetailsPage() {
                                             { id: 'CASH', label: 'Dinheiro' },
                                             { id: 'CREDIT_CARD', label: 'Cartão de Crédito' },
                                             { id: 'DEBIT_CARD', label: 'Cartão de Débito' },
+                                            { id: 'FIADO', label: 'Fiado (conta do cliente)' },
                                         ].find(m => m.id === selectedMethod)?.label}
                                     </p>
+                                    {selectedMethod === 'FIADO' && (
+                                        <div className="mt-2 text-[10px] text-muted-foreground font-bold bg-muted/50 p-2 rounded-lg border border-border">
+                                            O valor vai para a conta do cliente e só entra no caixa quando ele pagar (tela Contas / Fiado).
+                                        </div>
+                                    )}
                                     {selectedMethod === 'PIX' && (
                                         <div className="mt-2 text-[10px] text-yellow-500 font-bold bg-yellow-500/10 p-2 rounded-lg border border-yellow-500/20">
                                             ⚠️ Este sistema NÃO gera cobrança Pix. <br /> Receba na sua conta e apenas confirme aqui.

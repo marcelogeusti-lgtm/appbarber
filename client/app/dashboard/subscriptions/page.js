@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/api';
-import { CreditCard, Plus, Trash2, Calendar, Target, ShoppingBag } from 'lucide-react';
+import { CreditCard, Plus, Trash2, Calendar, Target, ShoppingBag, Package, Repeat } from 'lucide-react';
 
 const getShopId = () => {
     try {
@@ -11,9 +11,13 @@ const getShopId = () => {
     } catch { return null; }
 };
 
+// Um "pacote" é um plano não recorrente (isRecurring=false): pagamento único,
+// N serviços com validade em dias. "Assinatura" é recorrente (isRecurring=true).
+const EMPTY_PLAN = { name: '', price: '', quantityOfCuts: '', validityDays: '', isRecurring: true };
+
 export default function SubscriptionPlansPage() {
     const queryClient = useQueryClient();
-    const [newPlan, setNewPlan] = useState({ name: '', price: '', quantityOfCuts: '', validityDays: '' });
+    const [newPlan, setNewPlan] = useState(EMPTY_PLAN);
     const [isAdding, setIsAdding] = useState(false);
     const [error, setError] = useState('');
 
@@ -37,7 +41,7 @@ export default function SubscriptionPlansPage() {
             const bId = user.barbershopId || user.barbershop?.id || user.ownedBarbershops?.[0]?.id;
 
             await api.post('/subscriptions', { ...newPlan, barbershopId: bId });
-            setNewPlan({ name: '', price: '', quantityOfCuts: '', validityDays: '' });
+            setNewPlan(EMPTY_PLAN);
             setIsAdding(false);
             fetchPlans();
         } catch (err) {
@@ -46,7 +50,7 @@ export default function SubscriptionPlansPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Deseja excluir este plano? Clientes que já assinaram continuarão ativos até o fim da validade.')) return;
+        if (!confirm('Deseja excluir este plano/pacote? Clientes que já contrataram continuarão ativos até o fim da validade.')) return;
         try {
             await api.delete(`/subscriptions/${id}`);
             fetchPlans();
@@ -65,25 +69,51 @@ export default function SubscriptionPlansPage() {
                         <CreditCard className="w-8 h-8" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Clube de Assinatura</h1>
-                        <p className="text-muted-foreground text-sm font-medium italic">Gestão de planos recorrentes e fidelização</p>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">Planos & Pacotes</h1>
+                        <p className="text-muted-foreground text-sm font-medium italic">Assinaturas recorrentes e pacotes de serviços pré-pagos</p>
                     </div>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
                     className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 transition"
                 >
-                    {isAdding ? 'CANCELAR' : <><Plus className="w-4 h-4" /> CRIAR NOVO PLANO</>}
+                    {isAdding ? 'CANCELAR' : <><Plus className="w-4 h-4" /> NOVO PLANO OU PACOTE</>}
                 </button>
             </header>
 
             {isAdding && (
                 <form onSubmit={handleCreatePlan} className="bg-card p-8 rounded-xl border border-border shadow-2xl animate-in zoom-in-95 duration-300 space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {[
+                                { value: true, icon: Repeat, title: 'Assinatura recorrente', desc: 'Cobrança a cada ciclo, créditos renovados' },
+                                { value: false, icon: Package, title: 'Pacote (pagamento único)', desc: 'Paga uma vez, usa os serviços dentro da validade' },
+                            ].map(opt => {
+                                const Icon = opt.icon;
+                                const selected = newPlan.isRecurring === opt.value;
+                                return (
+                                    <button
+                                        key={String(opt.value)} type="button"
+                                        onClick={() => setNewPlan({ ...newPlan, isRecurring: opt.value })}
+                                        className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${selected ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'border-border bg-background hover:border-primary/50'}`}
+                                    >
+                                        <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
+                                        <span>
+                                            <span className="block text-xs font-black uppercase tracking-tight text-foreground">{opt.title}</span>
+                                            <span className="block text-[10px] font-medium text-muted-foreground">{opt.desc}</span>
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nome do Plano</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{newPlan.isRecurring ? 'Nome do Plano' : 'Nome do Pacote'}</label>
                             <input
-                                required placeholder="Ex: Essencial Mensal"
+                                required placeholder={newPlan.isRecurring ? 'Ex: Essencial Mensal' : 'Ex: Pacote 5 Cortes'}
                                 value={newPlan.name} onChange={e => setNewPlan({ ...newPlan, name: e.target.value })}
                                 className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all text-sm"
                             />
@@ -97,17 +127,17 @@ export default function SubscriptionPlansPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Qtd de Cortes</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Qtd de Serviços</label>
                             <input
-                                type="number" required placeholder="4"
+                                type="number" min="0" required placeholder={newPlan.isRecurring ? '4' : '5'}
                                 value={newPlan.quantityOfCuts} onChange={e => setNewPlan({ ...newPlan, quantityOfCuts: e.target.value })}
                                 className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Validade (Dias)</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{newPlan.isRecurring ? 'Ciclo (Dias)' : 'Validade (Dias)'}</label>
                             <input
-                                type="number" required placeholder="30"
+                                type="number" min="1" required placeholder={newPlan.isRecurring ? '30' : '90'}
                                 value={newPlan.validityDays} onChange={e => setNewPlan({ ...newPlan, validityDays: e.target.value })}
                                 className="w-full p-4 bg-background border border-border rounded-xl focus:ring-2 ring-primary outline-none font-bold text-foreground transition-all text-sm"
                             />
@@ -135,7 +165,7 @@ export default function SubscriptionPlansPage() {
 
                     {error && <p className="text-xs font-bold text-destructive uppercase">{error}</p>}
                     <button type="submit" className="w-full bg-primary text-primary-foreground py-5 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-xl shadow-primary/10">
-                        PUBLICAR PLANO NO CLUBE
+                        {newPlan.isRecurring ? 'PUBLICAR ASSINATURA' : 'PUBLICAR PACOTE'}
                     </button>
                 </form>
             )}
@@ -151,6 +181,9 @@ export default function SubscriptionPlansPage() {
 
                         <div className="space-y-6">
                             <div>
+                                <span className={`inline-flex items-center gap-1.5 mb-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${plan.isRecurring ? 'bg-primary/10 text-primary border-primary/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}>
+                                    {plan.isRecurring ? <><Repeat className="w-3 h-3" /> Assinatura</> : <><Package className="w-3 h-3" /> Pacote</>}
+                                </span>
                                 <h3 className="text-2xl font-black uppercase tracking-tight text-foreground group-hover:text-primary transition-colors leading-none mb-2">{plan.name}</h3>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-xs font-black text-primary uppercase">R$</span>
@@ -184,7 +217,7 @@ export default function SubscriptionPlansPage() {
                                     </p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em]">Ciclo</p>
+                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em]">{plan.isRecurring ? 'Ciclo' : 'Validade'}</p>
                                     <p className="flex items-center gap-2 font-black text-xs text-muted-foreground uppercase tracking-tighter">
                                         <Calendar className="w-3.5 h-3.5 text-primary" /> {plan.validityDays} Dias
                                     </p>
@@ -203,7 +236,7 @@ export default function SubscriptionPlansPage() {
                 {plans.length === 0 && !isAdding && (
                     <div className="col-span-full py-20 text-center space-y-4 bg-card rounded-xl border-2 border-dashed border-border">
                         <CreditCard className="w-12 h-12 text-muted-foreground mx-auto" />
-                        <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">Nenhum plano disponível para esta unidade.</p>
+                        <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">Nenhum plano ou pacote disponível para esta unidade.</p>
                     </div>
                 )}
             </div>

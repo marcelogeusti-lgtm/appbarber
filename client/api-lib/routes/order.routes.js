@@ -14,6 +14,7 @@ router.post('/', orderController.createOrder);
 router.get('/:id', orderController.getOrder);
 router.post('/:id/items', orderController.addItem);
 router.put('/:id/discount', orderController.updateDiscount);
+router.post('/:id/coupon', orderController.applyCoupon);
 router.delete('/items/:itemId', orderController.removeItem);
 router.post('/:id/pay', orderController.closeOrder);
 

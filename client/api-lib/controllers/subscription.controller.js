@@ -178,7 +178,7 @@ exports.subscribe = async (req, res) => {
             barbershopId: plan.barbershopId,
             clientId: client.id,
             amount: Number(plan.price),
-            description: `Assinatura: ${plan.name} (Mensal)`,
+            description: plan.isRecurring ? `Assinatura: ${plan.name}` : `Pacote: ${plan.name}`,
             token: cardTokenRecord.token, // This is the 'card_...' ID from MP
             installments: 1,
             // customerId: cardTokenRecord.customerId (if we stored it, else Orchestrator finds it)
@@ -194,9 +194,10 @@ exports.subscribe = async (req, res) => {
         }
 
         // 5. Create Active Subscription
+        // Validade vem do plano (pacotes podem durar 90 dias, por exemplo); 30 é o padrão antigo
         const now = new Date();
-        const nextBilling = new Date();
-        nextBilling.setDate(now.getDate() + 30); // 30 Days Cycle default
+        const validUntil = new Date(now);
+        validUntil.setDate(validUntil.getDate() + (plan.validityDays || 30));
 
         // Deactivate previous active subs for this shop/plan logic if needed?
         // Usually yes, one active sub per shop? Or per plan? Let's assume per Shop for now to avoid stacking.
@@ -215,8 +216,8 @@ exports.subscribe = async (req, res) => {
                 planId: plan.id,
                 status: 'ACTIVE',
                 startDate: now,
-                endDate: nextBilling, // Valid until next billing
-                nextBillingDate: nextBilling,
+                endDate: validUntil,
+                nextBillingDate: plan.isRecurring ? validUntil : null,
                 paymentMethod: 'CREDIT_CARD',
                 remainingCuts: plan.quantityOfCuts,
                 externalId: paymentResult.paymentId // Link to initial payment for reference
